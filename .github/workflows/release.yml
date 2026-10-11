@@ -152,7 +152,10 @@ jobs:
 
       # A tag with a hyphen (v1.0.0-rc.1) is published as a prerelease. The
       # notes are the tag's CHANGELOG.md section, or, for a prerelease with
-      # none, generated from the commits since the previous tag.
+      # none, generated from the commits since the previous tag. A release
+      # already drafted or published on GitHub for the tag (creating one in
+      # the web interface is what pushed the tag) is completed instead of
+      # failing: it gets the title, the notes and the archives.
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -160,6 +163,16 @@ jobs:
         run: |
           prerelease=""
           case "$TAG" in *-*) prerelease="--prerelease" ;; esac
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            if [ -s notes/release-notes.md ]; then
+              gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" \
+                --title "gnux $TAG" --notes-file notes/release-notes.md $prerelease
+            else
+              gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --title "gnux $TAG" $prerelease
+            fi
+            gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+            exit 0
+          fi
           notes="--generate-notes"
           if [ -s notes/release-notes.md ]; then
             notes="--notes-file=notes/release-notes.md"

@@ -4,6 +4,8 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+## [0.0.1] - 2026-10-11
+
 ### Added
 
 - 22 GNU-compatible tools in one multi-call binary, `gnux`: `basenamex`, `catx`, `cpx`, `dirnamex`, `echox`, `envx`, `falsex`, `headx`, `lnx`, `lsx`, `mkdirx`, `mvx`, `pwdx`, `realpathx`, `rmx`, `rmdirx`, `sleepx`, `tailx`, `touchx`, `truex`, `wcx` and `yesx`. Each runs as its own name, as its GNU name through a link, or as `gnux <tool>`, with GNU's flags, diagnostics and exit statuses.
@@ -18,4 +20,5 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 - The project is now gnux, a portable implementation of the GNU core utilities. `rmx`, which it started as, was rewritten as one of its tools, with GNU's full `rm` flag surface.
 
-[Unreleased]: https://github.com/braswelljr/gnux/commits/main
+[Unreleased]: https://github.com/braswelljr/gnux/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/braswelljr/gnux/releases/tag/v0.0.1

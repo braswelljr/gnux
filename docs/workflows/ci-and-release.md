@@ -271,7 +271,10 @@ man pages relies on the committed `documentation/man/`, which `verify` has just 
 2. `sha256sum gnux-* > checksums.txt` in `dist/`.
 3. `gh release create "$TAG" dist/* --title "gnux $TAG" --notes-file=notes/release-notes.md`,
    or `--generate-notes` when that file is empty (a prerelease with no changelog section),
-   adding `--prerelease` when the tag contains a hyphen (`v1.0.0-rc.1`).
+   adding `--prerelease` when the tag contains a hyphen (`v1.0.0-rc.1`). If a release for the tag
+   already exists (made in GitHub's web interface, which is also what pushed the tag), it is
+   completed instead: `gh release edit` sets the title and the notes, and `gh release upload
+   --clobber` attaches the archives and `checksums.txt`.
 
 The result, for `v0.1.0`:
 
