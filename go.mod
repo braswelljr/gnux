@@ -1,4 +1,4 @@
-module github.com/braswelljr/rmx
+module github.com/braswelljr/gnux
 
 go 1.25.0
 

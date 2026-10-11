@@ -1,0 +1,192 @@
+## dirnamex
+
+Strip the last component from file names.
+
+Mirrors GNU `dirname`. Run it as `dirnamex`, or as `gnux dirnamex`.
+
+### Synopsis
+
+```bash
+dirnamex [OPTION] NAME...
+```
+
+### Description
+
+`dirnamex` prints each NAME with its last non-slash component and trailing slashes removed. If NAME contains no slash the result is '.', the current directory, and anything directly under the root yields the root itself. The rest of the path is left exactly as written: no symbolic links are resolved and no '.' or '..' components are collapsed. `-z` separates the output with NUL instead of newlines, for names that may contain newlines.
+
+### Permissions
+
+`dirnamex` works on the text of its operands only: it never touches the filesystem, so the names need not exist and no permissions are required.
+
+### Use cases
+
+- Finding the directory a script lives in from $0.
+- Computing the parent directory to create before writing a file.
+- Splitting a list of paths into their directories in a pipeline.
+- Walking up a path several levels by applying `dirnamex` repeatedly.
+- Getting the name of a file's containing folder together with `basenamex`.
+- Finding the real directory of a file behind symbolic links together with `realpathx`.
+- Producing NUL-separated output with `-z` for names that may contain newlines.
+
+### Flags
+
+```text
+      --help      display this help and exit
+      --version   output version information and exit
+  -z, --zero      end each output line with NUL, not newline
+```
+
+### Examples
+
+Print the directory part of a path:
+
+```bash
+dirnamex /usr/bin/sort
+```
+
+```powershell
+dirnamex C:\Windows\System32\sort.exe
+```
+
+Handle several names at once:
+
+```bash
+dirnamex dir1/str dir2/str stdio.h
+```
+
+```powershell
+dirnamex dir1\str dir2\str stdio.h
+```
+
+Ignore trailing slashes:
+
+```bash
+dirnamex /usr/bin/
+```
+
+```powershell
+dirnamex C:\Windows\System32\
+```
+
+Get '.' for a bare name and the root for a top-level entry:
+
+```bash
+dirnamex stdio.h /etc
+```
+
+```powershell
+dirnamex stdio.h \Windows
+```
+
+Leave '.' and '..' exactly as written (no normalization):
+
+```bash
+dirnamex a/../b/./c
+```
+
+```powershell
+dirnamex a\..\b\.\c
+```
+
+Separate the output with NUL bytes instead of newlines:
+
+```bash
+dirnamex -z a/b c/d | od -c
+```
+
+```powershell
+dirnamex -z a\b c\d | Format-Hex
+```
+
+Create the directory a file will be written to:
+
+```bash
+mkdirx -p "$(dirnamex out/reports/q1.csv)"
+```
+
+```powershell
+mkdirx -p (dirnamex out\reports\q1.csv)
+```
+
+Create a log file's directory, then the file:
+
+```bash
+d=$(dirnamex logs/2024/app.log) && mkdirx -p "$d" && touchx logs/2024/app.log
+```
+
+```powershell
+$d = dirnamex logs\2024\app.log; mkdirx -p $d; touchx logs\2024\app.log
+```
+
+Change to the directory a script lives in:
+
+```bash
+cd "$(dirnamex "$0")" && pwdx
+```
+
+```powershell
+Set-Location (dirnamex $PSCommandPath); pwdx
+```
+
+Go up two levels:
+
+```bash
+dirnamex "$(dirnamex /srv/app/releases/v1/bin)"
+```
+
+```powershell
+dirnamex (dirnamex C:\srv\app\releases\v1\bin)
+```
+
+Print the name of the folder that contains a file:
+
+```bash
+basenamex "$(dirnamex /var/lib/app/data.db)"
+```
+
+```powershell
+basenamex (dirnamex C:\ProgramData\app\data.db)
+```
+
+Find the real directory of a file behind symbolic links:
+
+```bash
+dirnamex "$(realpathx scripts/run.sh)"
+```
+
+```powershell
+dirnamex (realpathx scripts\run.sh)
+```
+
+Split several paths into their directories with the `gnux shell`:
+
+```bash
+gnux shell -c 'dirnamex src/main.go docs/guide.md README.md'
+```
+
+```powershell
+gnux shell -c 'dirnamex src/main.go docs/guide.md README.md'
+```
+
+### Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+### Help in the terminal
+
+```bash
+dirnamex --help                # options, first examples, exit status
+gnux help dirnamex             # this page: the full manual
+gnux help dirnamex --OPTION    # one option in depth, with its examples
+```
+
+### See also
+
+- [basenamex](../basenamex/index.md)
+- [realpathx](../realpathx/index.md)
+- [mkdirx](../mkdirx/index.md)
+- [gnux](../index.md) - every tool in the bundle
+- [guide](../guide.md) - installation and usage

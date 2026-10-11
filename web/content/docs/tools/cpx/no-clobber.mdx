@@ -1,0 +1,37 @@
+---
+title: "-n, --no-clobber"
+description: "Do not overwrite an existing file."
+---
+
+An option of [cpx](/docs/tools/cpx).
+
+## Usage
+
+```bash
+cpx -n SOURCE... DIRECTORY
+cpx --no-clobber SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-n` | `--no-clobber` | none |  | do not overwrite an existing file |
+
+## Examples
+
+Copy into a directory named first, without overwriting anything:
+
+```bash
+cpx -n -t ~/Documents report.pdf slides.pdf
+```
+
+```powershell
+cpx -n -t $HOME\Documents report.pdf slides.pdf
+```
+
+## Help in the terminal
+
+```bash
+gnux help cpx --no-clobber
+```

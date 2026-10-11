@@ -1,0 +1,54 @@
+.nh
+.TH "GNUX" "1" "Jan 2024" "gnux" "gnux manual"
+
+.SH NAME
+gnux - The GNU core utilities' interface on every platform, in one Go binary.
+
+
+.SH SYNOPSIS
+\fBgnux [OPTION]... [TOOL [ARGUMENT]...]\fP
+
+
+.SH DESCRIPTION
+gnux brings the interface of the GNU core utilities to every platform. Each tool is named after its GNU counterpart with an x appended (rm is rmx, cp is cpx) and mirrors its flags, semantics and diagnostics.
+
+.PP
+Run a tool as a subcommand (gnux rmx -rf build), or link the binary to the tool's name and invoke it directly (rmx -rf build): gnux looks at the name it was started under and behaves as that tool. --list prints every tool name, one per line.
+
+.PP
+gnux shell is a small portable shell whose commands are these tools: it runs the same script on every platform, with no dependency on the system's own shell.
+
+.PP
+Every tool answers --help with its options, first examples and exit status. gnux help TOOL prints the tool's full manual - every option, permissions, use cases, every example for bash and PowerShell, exit status and related tools - and gnux help TOOL OPTION explains one option with the examples that use it.
+
+
+.SH OPTIONS
+\fB--help\fP[=false]
+	display this help and exit
+
+.PP
+\fB--list\fP[=false]
+	print the name of every tool, one per line
+
+.PP
+\fB--version\fP[=false]
+	output version information and exit
+
+
+.SH EXAMPLE
+.EX
+  # run a tool through gnux
+  gnux rmx -rf build/
+
+  # make every tool a command of its own
+  for t in $(gnux --list); do ln -s "$(command -v gnux)" "$HOME/bin/$t"; done
+  rmx -rf build/
+
+  # read a tool's full manual, or one option in depth
+  gnux help rmx
+  gnux help rmx --force
+.EE
+
+
+.SH SEE ALSO
+\fBgnux-basenamex(1)\fP, \fBgnux-catx(1)\fP, \fBgnux-cpx(1)\fP, \fBgnux-dirnamex(1)\fP, \fBgnux-echox(1)\fP, \fBgnux-envx(1)\fP, \fBgnux-falsex(1)\fP, \fBgnux-headx(1)\fP, \fBgnux-lnx(1)\fP, \fBgnux-lsx(1)\fP, \fBgnux-mkdirx(1)\fP, \fBgnux-mvx(1)\fP, \fBgnux-pwdx(1)\fP, \fBgnux-realpathx(1)\fP, \fBgnux-rmdirx(1)\fP, \fBgnux-rmx(1)\fP, \fBgnux-shell(1)\fP, \fBgnux-sleepx(1)\fP, \fBgnux-tailx(1)\fP, \fBgnux-touchx(1)\fP, \fBgnux-truex(1)\fP, \fBgnux-wcx(1)\fP, \fBgnux-yesx(1)\fP

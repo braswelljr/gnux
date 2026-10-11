@@ -1,0 +1,37 @@
+---
+title: "-H, --dereference-command-line"
+description: "Follow symbolic links listed on the command line."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx -H [FILE]...
+lsx --dereference-command-line [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-H` | `--dereference-command-line` | none |  | follow symbolic links listed on the command line |
+
+## Examples
+
+Follow symbolic links: those named on the command line (`-H`), or all of them (`-L`):
+
+```bash
+lsx -lH current && lsx -lL lib/
+```
+
+```powershell
+lsx -lH current; lsx -lL lib
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --dereference-command-line
+```

@@ -1,0 +1,57 @@
+---
+title: "-v, --verbose"
+description: "Output a diagnostic for every directory processed."
+---
+
+An option of [rmdirx](/docs/tools/rmdirx).
+
+## Usage
+
+```bash
+rmdirx -v DIRECTORY...
+rmdirx --verbose DIRECTORY...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-v` | `--verbose` | none |  | output a diagnostic for every directory processed |
+
+## Examples
+
+Report each directory as it is removed:
+
+```bash
+rmdirx -v empty1 empty2
+```
+
+```powershell
+rmdirx -v empty1 empty2
+```
+
+Remove a directory and its now-empty parents, reporting each:
+
+```bash
+rmdirx -pv out/reports/2024
+```
+
+```powershell
+rmdirx -pv out\reports\2024
+```
+
+Create and then remove a temporary staging tree with the `gnux shell`:
+
+```bash
+gnux shell -c 'mkdirx -p staging/a && rmdirx -pv staging/a'
+```
+
+```powershell
+gnux shell -c 'mkdirx -p staging/a && rmdirx -pv staging/a'
+```
+
+## Help in the terminal
+
+```bash
+gnux help rmdirx --verbose
+```

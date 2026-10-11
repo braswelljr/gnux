@@ -1,0 +1,37 @@
+---
+title: "-i, --inode"
+description: "Print the index number of each file."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx -i [FILE]...
+lsx --inode [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-i` | `--inode` | none |  | print the index number of each file |
+
+## Examples
+
+Show inode numbers and allocated blocks, with directories marked by a slash:
+
+```bash
+lsx -isp
+```
+
+```powershell
+lsx -isp
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --inode
+```

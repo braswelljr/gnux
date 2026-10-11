@@ -1,0 +1,47 @@
+---
+title: "-h, --human-readable"
+description: "With -l and -s, print sizes like 1K 234M 2G etc."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx -h [FILE]...
+lsx --human-readable [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-h` | `--human-readable` | none |  | with `-l` and `-s`, print sizes like 1K 234M 2G etc. |
+
+## Examples
+
+Long listing including hidden files, with human-readable sizes:
+
+```bash
+lsx -lah
+```
+
+```powershell
+lsx -lah
+```
+
+Smallest files first (reverse the size sort):
+
+```bash
+lsx -lShr downloads/
+```
+
+```powershell
+lsx -lShr downloads
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --human-readable
+```

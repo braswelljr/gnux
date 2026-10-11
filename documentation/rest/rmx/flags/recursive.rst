@@ -1,0 +1,56 @@
+.. _recursive:
+
+recursive
+---------
+
+Remove directories and their contents recursively (-r, -R).
+
+Synopsis
+~~~~~~~~
+
+
+By default rmx refuses to remove directories. -r (or its alias -R) removes each directory and everything beneath it, walking the tree post-order so children are removed before their parents. It composes with the other flags: -ri prompts per entry, -rv reports each removal, -rf deletes without prompting.
+
+PERMISSIONS. Recursive removal needs read+execute permission to list and descend into each directory, and write permission on a directory to unlink the entries inside it. A directory you cannot write to fails with 'Permission denied' and its contents are left in place. The --preserve-root failsafe additionally refuses to recurse on '/'.
+
+USE CASES.
+  - Deleting a directory and all of its contents in one command.
+  - Clearing build/output trees (build/, dist/, node_modules/).
+  - Combining with -i/-I for confirmation or -v to audit a large delete.
+  - Resetting a generated directory before regenerating it.
+
+::
+
+  recursive [DIR]...
+
+Examples
+~~~~~~~~
+
+::
+
+    # Remove a directory and everything under it
+    rmx -r logs/
+
+    # Recursively remove a directory, printing each deletion
+    rmx -rv cache/
+
+    # Use the -R spelling, as with GNU rm
+    rmx -R dist/
+
+    # Remove several trees without prompting
+    rmx -rf node_modules/ coverage/
+
+    # Reset a directory and recreate it empty
+    rmx -rf out/ && mkdirx out
+
+    # Recursively clean up with the gnux shell
+    gnux shell -c 'rmx -r tmp-*'
+
+Options
+~~~~~~~
+
+::
+
+  -h, --help        help for recursive
+  -r, --recursive   remove directories and their contents recursively
+

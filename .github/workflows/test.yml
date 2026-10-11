@@ -1,3 +1,7 @@
+# Requirement enforced: the code vets and passes its tests under the race
+# detector on Linux, macOS and Windows with the Go version pinned in go.mod,
+# the built binary dispatches on its own name, and every tool still compiles
+# for js/wasm (the web playground).
 name: Test
 
 on:
@@ -41,6 +45,27 @@ jobs:
 
       - name: Test (race + coverage)
         run: go test -race -covermode=atomic -coverprofile=coverage.out ./...
+
+      # gnux picks the tool from the name it is started under; prove that with a
+      # real binary on every OS (a copy rather than a symlink, for Windows).
+      - name: Smoke test (multi-call dispatch)
+        run: |
+          ext=""
+          [ "$RUNNER_OS" = "Windows" ] && ext=".exe"
+          go build -o "bin/gnux${ext}" .
+          cp "bin/gnux${ext}" "bin/pwdx${ext}"
+          "./bin/gnux${ext}" --list
+          "./bin/gnux${ext}" pwdx
+          "./bin/pwdx${ext}"
+
+      # The playground runs gnux in the browser, so every tool must keep
+      # compiling for js/wasm.
+      - name: Build for WebAssembly
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          GOOS: js
+          GOARCH: wasm
+        run: go build -o /dev/null ./tools/wasm
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest'

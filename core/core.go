@@ -1,6 +1,6 @@
-// Package core implements the removal engine behind rmx, a drop-in replacement
-// for the GNU/UNIX rm command. It mirrors rm's flags, prompting behavior and
-// diagnostics while adding concurrent removal on the non-interactive path.
+// Package core holds the plumbing every gnux engine shares: the standard
+// streams, GNU-style diagnostics, exit-status errors and confirmation prompts.
+// The engines themselves live in sub-packages, one per tool (core/rm, core/cp, …).
 package core
 
 import (
@@ -8,314 +8,168 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"unicode"
 
 	"github.com/mattn/go-isatty"
-
-	"github.com/braswelljr/rmx/internal/common"
 )
 
-// ErrFailed reports that one or more paths could not be removed. It is returned
-// by Run after all diagnostics have already been written to Err, so callers
-// should exit non-zero without printing it again.
-var ErrFailed = errors.New("some files could not be removed")
+// ErrFailed reports that a tool ran but one or more operations failed. It is
+// returned after all diagnostics have already been written to the error stream,
+// so callers should exit with status 1 without printing it again.
+var ErrFailed = errors.New("command failed")
 
-// New builds a removal engine. If in is an *os.File attached to a terminal,
-// write-protected prompting is enabled in PromptDefault mode.
-func New(opts Options, in io.Reader, out, errw io.Writer) *Rm {
-	r := &Rm{
-		Options: opts,
-		In:      in,
-		Out:     out,
-		Err:     errw,
-		reader:  bufio.NewReader(in),
-	}
-	if f, ok := in.(*os.File); ok {
-		r.isTTY = isatty.IsTerminal(f.Fd()) || isatty.IsCygwinTerminal(f.Fd())
-	}
-	return r
+// ExitError asks for a specific, silent exit status. Tools whose status carries
+// meaning beyond 0/1 (ls exits 2 on serious trouble, env 125–127) return it once
+// their diagnostics are written.
+type ExitError struct {
+	Code int
 }
 
-// Run removes each of paths according to the configured options. Diagnostics
-// are written to Err as they occur; the returned error is ErrFailed if any
-// removal failed, otherwise nil.
-func (r *Rm) Run(paths []string) error {
-	if len(paths) == 0 {
-		if r.Force {
-			return nil
-		}
-		r.errf("missing operand")
-		r.warnf("Try '%s --help' for more information.", common.AppName)
-		return r.result()
-	}
-
-	// -I: a single up-front prompt gates a bulk or recursive removal.
-	if r.Interactive == PromptOnce {
-		if n := len(paths); r.Recursive || n > 3 {
-			q := fmt.Sprintf("remove %d argument%s?", n, plural(n))
-			if r.Recursive {
-				q = fmt.Sprintf("remove %d argument%s recursively?", n, plural(n))
-			}
-			if !r.ask(q) {
-				return nil
-			}
-		}
-		r.Interactive = PromptNever
-	}
-
-	// Prompting reads a shared stdin, and verbose output must stay in argument
-	// order; both force sequential processing. Everything else fans out.
-	if r.mayPrompt() || r.Verbose {
-		for _, p := range paths {
-			r.removeArg(p)
-		}
-	} else {
-		r.runConcurrent(paths)
-	}
-	return r.result()
+func (e *ExitError) Error() string {
+	return fmt.Sprintf("exit status %d", e.Code)
 }
 
-// runConcurrent removes independent top-level arguments in parallel, bounded to
-// one worker per CPU. Only reached when no prompting can occur.
-func (r *Rm) runConcurrent(paths []string) {
-	if len(paths) == 1 {
-		r.removeArg(paths[0])
-		return
-	}
-
-	// len(paths) >= 2 here (the single-path case returned above), and
-	// runtime.NumCPU() >= 1, so workers is always >= 1.
-	workers := min(runtime.NumCPU(), len(paths))
-
-	jobs := make(chan string)
-	var wg sync.WaitGroup
-	wg.Add(workers)
-	for range workers {
-		go func() {
-			defer wg.Done()
-			for p := range jobs {
-				r.removeArg(p)
-			}
-		}()
-	}
-	for _, p := range paths {
-		jobs <- p
-	}
-	close(jobs)
-	wg.Wait()
+// UsageError is a command-line mistake (missing operand, bad flag value). The
+// caller prints it prefixed with the tool name, followed by the standard
+// "Try '<tool> --help' for more information." hint.
+type UsageError struct {
+	Msg string
 }
 
-// removeArg handles a single top-level operand.
-func (r *Rm) removeArg(path string) {
-	if base := filepath.Base(filepath.Clean(path)); base == "." || base == ".." {
-		r.errf("refusing to remove '.' or '..' directory: skipping '%s'", path)
-		return
-	}
-
-	info, err := os.Lstat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			if r.Force {
-				return
-			}
-			r.errf("cannot remove '%s': No such file or directory", path)
-			return
-		}
-		r.errf("cannot remove '%s': %s", path, errText(err))
-		return
-	}
-
-	if info.IsDir() {
-		if r.Recursive && r.PreserveRoot && isRoot(path) {
-			r.errf("it is dangerous to operate recursively on '%s'", path)
-			r.warnf("use --no-preserve-root to override this failsafe")
-			return
-		}
-		r.removeDirArg(path, info)
-		return
-	}
-
-	r.removeFileEntry(path, info)
+func (e *UsageError) Error() string {
+	return e.Msg
 }
 
-// removeDirArg dispatches directory removal based on -r and -d.
-func (r *Rm) removeDirArg(path string, info os.FileInfo) {
-	switch {
-	case r.Recursive:
-		if r.fastPathOK() {
-			if err := os.RemoveAll(path); err != nil {
-				r.errf("cannot remove '%s': %s", path, errText(err))
-			}
-			return
-		}
-		dev, haveDev := uint64(0), false
-		if r.OneFileSystem {
-			dev, haveDev = deviceID(info)
-		}
-		r.removeTree(path, dev, haveDev)
-
-	case r.Dir:
-		// Report a non-empty directory with rm's canonical message rather than
-		// the OS-native errno text (which differs across platforms).
-		entries, err := os.ReadDir(path)
-		if err != nil {
-			r.errf("cannot remove '%s': %s", path, errText(err))
-			return
-		}
-		if len(entries) > 0 {
-			r.errf("cannot remove '%s': Directory not empty", path)
-			return
-		}
-		if !r.confirmDir(path) {
-			return
-		}
-		if err := r.del(path); err != nil {
-			r.errf("cannot remove '%s': %s", path, errText(err))
-			return
-		}
-		if r.Verbose {
-			r.outf("removed directory '%s'", path)
-		}
-
-	default:
-		r.errf("cannot remove '%s': Is a directory", path)
-	}
+// Usagef builds a UsageError from a format string.
+func Usagef(format string, a ...any) error {
+	return &UsageError{Msg: fmt.Sprintf(format, a...)}
 }
 
-// removeTree removes a directory and its contents post-order, honoring
-// prompting, --one-file-system and --verbose. It returns true only if the whole
-// subtree (including the directory itself) was removed.
-func (r *Rm) removeTree(path string, rootDev uint64, haveDev bool) bool {
-	entries, err := os.ReadDir(path)
-	if err != nil {
-		r.errf("cannot remove '%s': %s", path, errText(err))
+// Streams bundles the three standard streams a tool reads and writes. Passing
+// them explicitly keeps every engine testable against in-memory buffers, and
+// lets an application embedding an engine capture or silence its output. All
+// three fields must be set: use Stdio for the process's own streams, or
+// Discard and override what you need.
+type Streams struct {
+	In  io.Reader
+	Out io.Writer
+	Err io.Writer
+}
+
+// Stdio returns the process's standard input, output and error.
+func Stdio() Streams {
+	return Streams{In: os.Stdin, Out: os.Stdout, Err: os.Stderr}
+}
+
+// Discard returns streams that read as empty and drop everything written, for
+// callers that only care about an engine's side effects and returned error.
+func Discard() Streams {
+	return Streams{In: strings.NewReader(""), Out: io.Discard, Err: io.Discard}
+}
+
+// IsTerminal reports whether v (a stream) is an *os.File attached to a terminal.
+func IsTerminal(v any) bool {
+	f, ok := v.(*os.File)
+	if !ok {
 		return false
 	}
-
-	if r.Interactive == PromptAlways && len(entries) > 0 {
-		if !r.ask(fmt.Sprintf("descend into directory '%s'?", path)) {
-			return false
-		}
-	}
-
-	childSkipped := false
-	for _, e := range entries {
-		child := filepath.Join(path, e.Name())
-		ci, err := os.Lstat(child)
-		if err != nil {
-			r.errf("cannot remove '%s': %s", child, errText(err))
-			childSkipped = true
-			continue
-		}
-
-		if ci.IsDir() {
-			if r.OneFileSystem && haveDev {
-				if cdev, ok := deviceID(ci); ok && cdev != rootDev {
-					r.warnf("skipping '%s', since it's on a different device", child)
-					childSkipped = true
-					continue
-				}
-			}
-			if !r.removeTree(child, rootDev, haveDev) {
-				childSkipped = true
-			}
-		} else if !r.removeFileEntry(child, ci) {
-			childSkipped = true
-		}
-	}
-
-	if childSkipped {
-		return false
-	}
-
-	if !r.confirmDir(path) {
-		return false
-	}
-	if err := r.del(path); err != nil {
-		r.errf("cannot remove '%s': %s", path, errText(err))
-		return false
-	}
-	if r.Verbose {
-		r.outf("removed directory '%s'", path)
-	}
-	return true
+	return isatty.IsTerminal(f.Fd()) || isatty.IsCygwinTerminal(f.Fd())
 }
 
-// removeFileEntry removes a single non-directory entry, prompting as required.
-// It returns true if the entry was removed.
-func (r *Rm) removeFileEntry(path string, info os.FileInfo) bool {
-	switch {
-	case r.Interactive == PromptAlways:
-		if !r.ask(fmt.Sprintf("remove %s '%s'?", describe(info), path)) {
-			return false
-		}
-	case r.Interactive == PromptDefault && r.isTTY && !writable(path):
-		if !r.ask(fmt.Sprintf("remove write-protected %s '%s'?", describe(info), path)) {
-			return false
-		}
-	}
+// Diag writes a tool's diagnostics the way GNU does - "<prog>: <message>" on the
+// error stream - and counts errors so the engine can report its exit status. It
+// is safe for concurrent use.
+type Diag struct {
+	prog string
 
-	if err := r.del(path); err != nil {
-		if r.Force && os.IsNotExist(err) {
-			return false
-		}
-		r.errf("cannot remove '%s': %s", path, errText(err))
-		return false
-	}
-	if r.Verbose {
-		r.outf("removed '%s'", path)
-	}
-	return true
+	mu       sync.Mutex // guards out/err writes and errCount
+	out, err io.Writer
+	errCount int
 }
 
-// confirmDir asks for confirmation before removing an (empty) directory,
-// returning true when removal should proceed.
-func (r *Rm) confirmDir(path string) bool {
-	switch {
-	case r.Interactive == PromptAlways:
-		return r.ask(fmt.Sprintf("remove directory '%s'?", path))
-	case r.Interactive == PromptDefault && r.isTTY && !writable(path):
-		return r.ask(fmt.Sprintf("remove write-protected directory '%s'?", path))
-	default:
-		return true
+// NewDiag builds a Diag for the tool named prog writing to s.
+func NewDiag(prog string, s Streams) *Diag {
+	return &Diag{prog: prog, out: s.Out, err: s.Err}
+}
+
+// Prog returns the tool name diagnostics are prefixed with.
+func (d *Diag) Prog() string {
+	return d.prog
+}
+
+// Errorf writes an error diagnostic and counts it toward the exit status.
+func (d *Diag) Errorf(format string, a ...any) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	fmt.Fprintf(d.err, d.prog+": "+format+"\n", a...)
+	d.errCount++
+}
+
+// Warnf writes a diagnostic that does not affect the exit status.
+func (d *Diag) Warnf(format string, a ...any) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	fmt.Fprintf(d.err, d.prog+": "+format+"\n", a...)
+}
+
+// Printf writes one line of regular output (e.g. --verbose reports) to stdout.
+func (d *Diag) Printf(format string, a ...any) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	fmt.Fprintf(d.out, format+"\n", a...)
+}
+
+// Failed reports whether any error has been recorded.
+func (d *Diag) Failed() bool {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return d.errCount > 0
+}
+
+// Result returns ErrFailed if any error was recorded, otherwise nil.
+func (d *Diag) Result() error {
+	if d.Failed() {
+		return ErrFailed
 	}
+	return nil
 }
 
-// mayPrompt reports whether any removal could trigger an interactive prompt.
-func (r *Rm) mayPrompt() bool {
-	return r.Interactive == PromptAlways || (r.Interactive == PromptDefault && r.isTTY)
+// Prompter asks yes/no questions on the error stream and reads the answer from
+// the input stream, as rm -i, cp -i and friends do.
+type Prompter struct {
+	// Fn, when non-nil, is consulted instead of reading from the input stream.
+	// It is the injection point tests use to answer confirmation prompts.
+	Fn func(question string) bool
+
+	prog   string
+	mu     sync.Mutex
+	reader *bufio.Reader
+	err    io.Writer
 }
 
-// fastPathOK reports whether a directory can be removed via a single
-// os.RemoveAll rather than a manual, decision-making walk.
-func (r *Rm) fastPathOK() bool {
-	return r.RemoveFn == nil && !r.mayPrompt() && !r.Verbose && !r.OneFileSystem
+// NewPrompter builds a Prompter for the tool named prog.
+func NewPrompter(prog string, s Streams) *Prompter {
+	return &Prompter{prog: prog, reader: bufio.NewReader(s.In), err: s.Err}
 }
 
-// del performs the actual unlink, honoring an injected RemoveFn.
-func (r *Rm) del(path string) error {
-	if r.RemoveFn != nil {
-		return r.RemoveFn(path)
+// Ask poses question and reports whether the answer was affirmative (it starts
+// with 'y' or 'Y'). End of input counts as "no".
+func (p *Prompter) Ask(question string) bool {
+	if p.Fn != nil {
+		return p.Fn(question)
 	}
-	return os.Remove(path)
-}
 
-// ask poses a yes/no question, returning true on an affirmative answer.
-func (r *Rm) ask(question string) bool {
-	if r.PromptFn != nil {
-		return r.PromptFn(question)
-	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	fmt.Fprintf(p.err, "%s: %s ", p.prog, question)
 
-	r.mu.Lock()
-	fmt.Fprintf(r.Err, "%s: %s ", common.AppName, question)
-	r.mu.Unlock()
-
-	line, err := r.reader.ReadString('\n')
+	line, err := p.reader.ReadString('\n')
 	if err != nil && line == "" {
 		return false
 	}
@@ -323,34 +177,45 @@ func (r *Rm) ask(question string) bool {
 	return line != "" && (line[0] == 'y' || line[0] == 'Y')
 }
 
-func (r *Rm) errf(format string, a ...any) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	fmt.Fprintf(r.Err, common.AppName+": "+format+"\n", a...)
-	r.errCount++
-}
-
-func (r *Rm) warnf(format string, a ...any) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	fmt.Fprintf(r.Err, common.AppName+": "+format+"\n", a...)
-}
-
-func (r *Rm) outf(format string, a ...any) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	fmt.Fprintf(r.Out, format+"\n", a...)
-}
-
-func (r *Rm) result() error {
-	if r.errCount > 0 {
-		return ErrFailed
+// ErrText renders an error the way GNU tools do: the bare, capitalized syscall
+// message (e.g. "Permission denied", "Directory not empty") with the path and
+// operation stripped. The common cases are normalized so the text is identical
+// on every platform.
+func ErrText(err error) string {
+	switch {
+	case err == nil:
+		return ""
+	case errors.Is(err, syscall.ENOTEMPTY):
+		// Checked before fs.ErrExist, which Go also matches ENOTEMPTY against.
+		return "Directory not empty"
+	case errors.Is(err, fs.ErrNotExist):
+		return "No such file or directory"
+	case errors.Is(err, fs.ErrPermission):
+		return "Permission denied"
+	case errors.Is(err, fs.ErrExist):
+		return "File exists"
 	}
-	return nil
+
+	var perr *fs.PathError
+	if errors.As(err, &perr) {
+		err = perr.Err
+	}
+	var lerr *os.LinkError
+	if errors.As(err, &lerr) {
+		err = lerr.Err
+	}
+	msg := err.Error()
+	if msg == "" {
+		return msg
+	}
+	runes := []rune(msg)
+	runes[0] = unicode.ToUpper(runes[0])
+	return string(runes)
 }
 
-// describe returns rm's noun for a filesystem entry (e.g. "regular empty file").
-func describe(info os.FileInfo) string {
+// Describe returns the GNU noun for a filesystem entry (e.g. "regular empty
+// file"), as used in prompts and diagnostics.
+func Describe(info os.FileInfo) string {
 	m := info.Mode()
 	switch {
 	case m&os.ModeSymlink != 0:
@@ -376,28 +241,8 @@ func describe(info os.FileInfo) string {
 	}
 }
 
-// errText renders an error the way rm does: the bare, capitalised syscall
-// message (e.g. "Permission denied", "Directory not empty").
-func errText(err error) string {
-	var perr *os.PathError
-	if errors.As(err, &perr) {
-		err = perr.Err
-	}
-	var lerr *os.LinkError
-	if errors.As(err, &lerr) {
-		err = lerr.Err
-	}
-	msg := err.Error()
-	if msg == "" {
-		return msg
-	}
-	runes := []rune(msg)
-	runes[0] = unicode.ToUpper(runes[0])
-	return string(runes)
-}
-
-// isRoot reports whether path resolves to a filesystem root (e.g. "/" or "C:\").
-func isRoot(path string) bool {
+// IsRoot reports whether path resolves to a filesystem root (e.g. "/" or "C:\").
+func IsRoot(path string) bool {
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		return false
@@ -406,7 +251,8 @@ func isRoot(path string) bool {
 	return filepath.Dir(abs) == abs
 }
 
-func plural(n int) string {
+// Plural returns "s" unless n is 1, for building count-aware messages.
+func Plural(n int) string {
 	if n == 1 {
 		return ""
 	}

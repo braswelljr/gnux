@@ -1,0 +1,47 @@
+---
+title: "-u, --update"
+description: "Control which existing files are updated: all, none, or older (the default for -u)."
+---
+
+An option of [cpx](/docs/tools/cpx).
+
+## Usage
+
+```bash
+cpx -u SOURCE... DIRECTORY
+cpx --update[=string] SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-u` | `--update` | `string` (optional) |  | control which existing files are updated: all, none, or older (the default for `-u`) |
+
+## Examples
+
+Update a mirror, copying only files that are newer:
+
+```bash
+cpx -ru src/. mirror/
+```
+
+```powershell
+cpx -ru src\. mirror
+```
+
+Add missing default files without overwriting customized ones:
+
+```bash
+cpx -r --update=none defaults/. config/
+```
+
+```powershell
+cpx -r --update=none defaults\. config
+```
+
+## Help in the terminal
+
+```bash
+gnux help cpx --update
+```

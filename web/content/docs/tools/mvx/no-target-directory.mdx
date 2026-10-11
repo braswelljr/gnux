@@ -1,0 +1,37 @@
+---
+title: "-T, --no-target-directory"
+description: "Treat DEST as a normal file."
+---
+
+An option of [mvx](/docs/tools/mvx).
+
+## Usage
+
+```bash
+mvx -T SOURCE... DIRECTORY
+mvx --no-target-directory SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-T` | `--no-target-directory` | none |  | treat DEST as a normal file |
+
+## Examples
+
+Rename a directory over an existing empty one instead of moving into it:
+
+```bash
+mvx -T build-new build
+```
+
+```powershell
+mvx -T build-new build
+```
+
+## Help in the terminal
+
+```bash
+gnux help mvx --no-target-directory
+```

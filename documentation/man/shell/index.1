@@ -1,0 +1,74 @@
+.nh
+.TH "SHELL" "1" "Jan 2024" "gnux" "gnux manual"
+
+.SH NAME
+shell - Run a portable shell whose commands are the gnux tools.
+
+
+.SH SYNOPSIS
+\fBshell [OPTION]... [SCRIPT]\fP
+
+
+.SH DESCRIPTION
+gnux shell is a small command interpreter whose commands are the gnux tools, run inside the gnux process. Because nothing in it depends on the system's own shell or utilities, the same script behaves identically on Linux, macOS and Windows. With no SCRIPT it reads commands from standard input, prompting when that is a terminal; with -c it runs the given string.
+
+.PP
+The language is a deliberately small subset of POSIX sh: pipelines (a | b), the &&, || and ; connectors, redirection (<, >, >>, and 2> for standard error; /dev/null discards on every platform), NAME=value variables with $NAME, ${NAME}, $? and $PWD expansion, single and double quotes, globbing (*, ?, [...]), ~ for the home directory and # comments. The builtins are cd, exit and help. Tools answer to both names, so rm and rmx are the same command. There are no loops, functions or conditionals beyond && and ||, and a variable's value is never re-split, so paths with spaces need no quoting once stored. External programs are not looked up; run one through the env tool (envx PROGRAM ARG...).
+
+.PP
+The exit status is that of the last command run, 2 for a syntax error, and 127 for an unknown command. With -e the script stops at the first failing command.
+
+.PP
+EXIT STATUS.
+  N  the exit status of the last command run
+  1  a redirection could not be opened (that command is not run)
+  2  a syntax error, exit with a non-numeric argument, or a command-line mistake
+  127  an unknown command, or a SCRIPT that cannot be opened
+
+.PP
+HELP. gnux shell --help shows the options and the first examples; gnux help shell prints the full manual, and gnux help shell OPTION explains one option.
+
+.PP
+SEE ALSO. envx, truex, falsex, echox.
+
+.PP
+PERMISSIONS. The shell itself needs only read access to SCRIPT. Each command it runs needs whatever its tool needs; redirection creates files with mode 0644 (before the umask).
+
+.PP
+USE CASES.
+  - Build, clean and packaging scripts that must run unchanged on Windows, macOS and Linux.
+  - A consistent interactive shell on machines without the GNU tools installed.
+  - Embedding small file-management scripts in a Go application without spawning processes.
+
+
+.SH OPTIONS
+\fB-c\fP, \fB--command\fP=""
+	run the commands in \fBSTRING\fR instead of reading a script
+
+.PP
+\fB-e\fP, \fB--errexit\fP[=false]
+	exit at the first command that fails
+
+.PP
+\fB--help\fP[=false]
+	display this help and exit
+
+.PP
+\fB--version\fP[=false]
+	output version information and exit
+
+
+.SH EXAMPLE
+.EX
+  # Start an interactive session
+  gnux shell
+
+  # Run a one-liner
+  gnux shell -c 'mkdirx -p dist && cpx -r assets dist/ && lsx -l dist'
+
+  # Run a script file, stopping at the first failure
+  gnux shell -e build.gnux
+
+  # Pipe a script in
+  echo 'catx *.log | wcx -l' | gnux shell
+.EE

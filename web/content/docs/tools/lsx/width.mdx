@@ -1,0 +1,37 @@
+---
+title: "-w, --width"
+description: "Set output width to COLS; 0 means no limit."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx -w COLS [FILE]...
+lsx --width=COLS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-w` | `--width` | `COLS` |  | set output width to COLS; 0 means no limit |
+
+## Examples
+
+Fill rows across rather than down columns, in at most 60 columns:
+
+```bash
+lsx -x -w 60 /usr/bin
+```
+
+```powershell
+lsx -x -w 60 C:\Windows\System32
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --width
+```

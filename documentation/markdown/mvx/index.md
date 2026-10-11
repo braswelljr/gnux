@@ -1,0 +1,210 @@
+## mvx
+
+Move (rename) files and directories.
+
+Mirrors GNU `mv`. Run it as `mvx`, or as `gnux mvx`.
+
+### Synopsis
+
+```bash
+mvx [OPTION]... SOURCE... DIRECTORY
+```
+
+### Description
+
+`mvx` renames SOURCE to DEST, or moves several SOURCEs into DIRECTORY (also selectable with `-t`; `-T` forces the two-operand form). Within one filesystem a move is an atomic rename. Across filesystems `mvx` copies the source with all of its attributes, symbolic links and hard links intact and removes the original only after the copy has fully succeeded. An existing destination is replaced unless `-n` (never), `-u` (only when the source is newer) or `-i` (ask first) says otherwise; a directory is never moved into itself, and a directory only replaces an empty directory. GNU `mv` lets the last of `-f`, `-i` and `-n` win; `mvx` cannot see option order, so it prefers the most cautious instead: `-n` over `-i` over `-f`.
+
+### Permissions
+
+Renaming needs write and search permission on both the source and destination directories, not on the file itself; in a sticky directory you must also own the entry. On a terminal, replacing a write-protected destination asks for confirmation unless `-f` is given. A cross-filesystem move additionally needs read permission on everything being moved, and preserves ownership only when privileged.
+
+### Use cases
+
+- Renaming a file or directory in place.
+- Sorting files into a directory, including with find/xargs via `-t`.
+- Relocating a tree to another disk without losing modes, times or links.
+- Protecting existing files in scripts with `-n`, or reviewing overwrites with `-i`.
+- Promoting a staged file over the live one only when it is newer (`-u`).
+- Atomically swapping a freshly written file into place after it is complete.
+- Replacing a directory's name with `-T` instead of moving into it.
+- Logging every move in a cleanup script with `-v`.
+
+### Flags
+
+```text
+  -f, --force                     do not prompt before overwriting
+      --help                      display this help and exit
+  -i, --interactive               prompt before overwrite
+  -n, --no-clobber                do not overwrite an existing file
+  -T, --no-target-directory       treat DEST as a normal file
+      --strip-trailing-slashes    remove any trailing slashes from each SOURCE argument
+  -t, --target-directory string   move all SOURCE arguments into DIRECTORY
+  -u, --update string[="older"]   control which existing files are updated: all, none, or older (the default for -u)
+  -v, --verbose                   explain what is being done
+      --version                   output version information and exit
+```
+
+### Examples
+
+Rename a file:
+
+```bash
+mvx draft.md final.md
+```
+
+```powershell
+mvx draft.md final.md
+```
+
+Move several files into a directory, reporting each one:
+
+```bash
+mvx -v a.log b.log archive/
+```
+
+```powershell
+mvx -v a.log b.log archive
+```
+
+Move without ever overwriting an existing file:
+
+```bash
+mvx -n photo.jpg ~/Pictures/
+```
+
+```powershell
+mvx -n photo.jpg $HOME\Pictures
+```
+
+Name the destination directory first (handy with xargs):
+
+```bash
+mvx -t build/out lib.a lib.so
+```
+
+```powershell
+mvx -t build\out lib.a lib.so
+```
+
+Ask before replacing an existing file:
+
+```bash
+mvx -i new-config.yml config.yml
+```
+
+```powershell
+mvx -i new-config.yml config.yml
+```
+
+Replace a write-protected destination without being asked:
+
+```bash
+mvx -f settings.tmp settings.json
+```
+
+```powershell
+mvx -f settings.tmp settings.json
+```
+
+Replace the destination only when the source is newer:
+
+```bash
+mvx -u staging/index.html public/index.html
+```
+
+```powershell
+mvx -u staging\index.html public\index.html
+```
+
+Skip files that already exist at the destination, using `--update`:
+
+```bash
+mvx --update=none -v incoming/*.csv data/
+```
+
+```powershell
+mvx --update=none -v (Get-ChildItem incoming\*.csv).FullName data
+```
+
+Rename a directory over an existing empty one instead of moving into it:
+
+```bash
+mvx -T build-new build
+```
+
+```powershell
+mvx -T build-new build
+```
+
+Move a directory given with a trailing slash:
+
+```bash
+mvx --strip-trailing-slashes logs/ old-logs
+```
+
+```powershell
+mvx --strip-trailing-slashes logs\ old-logs
+```
+
+Write to a temporary file, then move it into place only on success:
+
+```bash
+echox "generated" > report.tmp && mvx report.tmp report.txt
+```
+
+```powershell
+echox "generated" > report.tmp; if ($LASTEXITCODE -eq 0) { mvx report.tmp report.txt }
+```
+
+Move every log file into an archive directory found with find:
+
+```bash
+find . -maxdepth 1 -name '*.log' -print0 | xargs -0 mvx -t archive/
+```
+
+```powershell
+mvx -t archive (Get-ChildItem -Filter *.log -Name)
+```
+
+Report an error when the move fails:
+
+```bash
+mvx missing.txt dest/ || echox "move failed with status $?"
+```
+
+```powershell
+mvx missing.txt dest; if ($LASTEXITCODE -ne 0) { echox "move failed with status $LASTEXITCODE" }
+```
+
+Archive text files into a dated directory with the `gnux shell`:
+
+```bash
+gnux shell -c 'mkdirx -p archive/2024 && mvx -v *.txt archive/2024/'
+```
+
+```powershell
+gnux shell -c 'mkdirx -p archive/2024 && mvx -v *.txt archive/2024/'
+```
+
+### Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+### Help in the terminal
+
+```bash
+mvx --help                # options, first examples, exit status
+gnux help mvx             # this page: the full manual
+gnux help mvx --OPTION    # one option in depth, with its examples
+```
+
+### See also
+
+- [cpx](../cpx/index.md)
+- [rmx](../rmx/index.md)
+- [lnx](../lnx/index.md)
+- [gnux](../index.md) - every tool in the bundle
+- [guide](../guide.md) - installation and usage

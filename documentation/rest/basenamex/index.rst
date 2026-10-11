@@ -1,0 +1,91 @@
+.. _basenamex:
+
+basenamex
+---------
+
+Strip the directory and suffix from file names.
+
+Synopsis
+~~~~~~~~
+
+
+basenamex prints NAME with any leading directory components removed. Trailing slashes are ignored, so 'dir/' yields 'dir', and a name made only of slashes yields the root. If SUFFIX is given and NAME ends with it, the suffix is removed too - unless that would leave nothing. With -a every operand is a NAME; -s supplies the suffix for all of them and implies -a. -z separates the output with NUL instead of newlines, for names that may contain newlines.
+
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+HELP. basenamex --help shows the options and the first examples; gnux help basenamex prints the full manual, and gnux help basenamex OPTION explains one option.
+
+SEE ALSO. dirnamex, realpathx.
+
+PERMISSIONS. basenamex works on the text of its operands only: it never touches the filesystem, so the names need not exist and no permissions are required.
+
+USE CASES.
+  - Getting a script's own name from $0.
+  - Deriving an output file name by dropping the directory and extension of an input.
+  - Stripping one extension from a whole batch of paths with -s.
+  - Naming a directory after an archive, minus its .tar.gz.
+  - Renaming or copying files in a loop while keeping their base names.
+  - Printing several base names at once with -a, without a suffix.
+  - Producing NUL-separated output with -z for names that may contain newlines.
+
+::
+
+  basenamex [OPTION]... NAME [SUFFIX]
+
+Examples
+~~~~~~~~
+
+::
+
+    # Print the last component of a path
+    basenamex /usr/bin/sort
+
+    # Ignore trailing slashes
+    basenamex /home/user/
+
+    # Drop the directory and the extension
+    basenamex include/stdio.h .h
+
+    # Remove a multi-part extension
+    basenamex --suffix=.tar.gz release/gnux-1.0.tar.gz
+
+    # Keep the name when removing the suffix would leave nothing
+    basenamex .h .h
+
+    # Treat every operand as a NAME
+    basenamex -a /var/log/syslog /etc/hosts
+
+    # Strip a suffix from several names at once
+    basenamex -s .go cmd/main.go core/core.go
+
+    # Strip an extension from every match of a glob
+    basenamex -s .jpg photos/*.jpg
+
+    # Separate the output with NUL bytes instead of newlines
+    basenamex -a -z a/b c/d | od -c
+
+    # Print the name of the running script
+    basenamex "$0"
+
+    # Back up every photo under its base name
+    for f in photos/*.jpg; do cpx "$f" "out/$(basenamex "$f" .jpg).bak"; done
+
+    # Create a directory named after an archive
+    name=$(basenamex -s .tar.gz gnux-1.0.tar.gz) && mkdirx "$name"
+
+    # Strip a directory and extension from several logs with the gnux shell
+    gnux shell -c 'basenamex -s .log /var/log/app.log /var/log/db.log'
+
+Options
+~~~~~~~
+
+::
+
+      --help            display this help and exit
+  -a, --multiple        support multiple arguments and treat each as a NAME
+  -s, --suffix SUFFIX   remove a trailing SUFFIX; implies -a
+      --version         output version information and exit
+  -z, --zero            end each output line with NUL, not newline
+

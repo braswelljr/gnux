@@ -29,5 +29,10 @@ pnpmfile.js
 *.sln
 *.sw?
 
-# testing files
-bin/test
+# Build output (make build / make links)
+bin/
+dist/
+
+# The playground's WebAssembly build (make web/wasm); rebuilt, never committed
+web/public/gnux.wasm
+web/public/wasm_exec.js

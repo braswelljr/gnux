@@ -1,0 +1,58 @@
+# Git hooks, run by lefthook (https://lefthook.dev). Install them once with
+# `make hooks`. Skip them for one commit with LEFTHOOK=0 git commit ..., and
+# never to get a change past CI: the same checks run there.
+#
+# pre-commit formats what is being committed and lints it; pre-push makes sure
+# the generated reference and the website's docs match the code being pushed.
+
+pre-commit:
+  jobs:
+    - name: go
+      glob: "*.go"
+      exclude:
+        - "web/**"
+      group:
+        piped: true
+        jobs:
+          # gofmt -s and goimports, as configured in .golangci.yml.
+          - name: format
+            run: golangci-lint fmt {staged_files}
+            stage_fixed: true
+          # Every package a staged file belongs to, linted whole: a change can
+          # break code in the same package that it does not touch. A package
+          # this machine cannot build (tools/wasm is js/wasm only) is left to
+          # the job below; go list reports it with an error, and ./... in CI
+          # skips it the same way.
+          - name: lint
+            run: |
+              pkgs=$(go list -e -f '{{if not .Error}}{{.Dir}}{{end}}' $(for f in {staged_files}; do echo "./$(dirname "$f")/"; done | sort -u))
+              [ -z "$pkgs" ] || golangci-lint run $pkgs
+
+    # The playground's entry point builds only for the browser, so it is
+    # linted as that build.
+    - name: go wasm
+      glob: "tools/wasm/*.go"
+      run: GOOS=js GOARCH=wasm golangci-lint run ./tools/wasm/
+
+    - name: web
+      root: "web/"
+      group:
+        piped: true
+        jobs:
+          - name: format
+            glob: "*.{js,mjs,ts,jsx,tsx,md,mdx,css,json,yaml,yml}"
+            run: node_modules/.bin/prettier --write --ignore-unknown {staged_files}
+            stage_fixed: true
+          - name: lint
+            glob: "*.{js,mjs,ts,jsx,tsx}"
+            run: node_modules/.bin/eslint --fix --no-warn-ignored --max-warnings=0 {staged_files}
+            stage_fixed: true
+
+pre-push:
+  jobs:
+    # Regenerates documentation/ (every format) and web/content/docs, then fails
+    # if that changed anything: the pushed commits would not match what the
+    # code generates, and the Docs workflow would reject them. Commit the
+    # regenerated files and push again.
+    - name: docs
+      run: make docs/check

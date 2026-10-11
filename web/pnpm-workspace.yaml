@@ -1,0 +1,4 @@
+# pnpm settings for this standalone package (pnpm 11 reads them from here).
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true

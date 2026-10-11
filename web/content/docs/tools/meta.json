@@ -1,0 +1,27 @@
+{
+  "title": "Tools",
+  "pages": [
+    "basenamex",
+    "catx",
+    "cpx",
+    "dirnamex",
+    "echox",
+    "envx",
+    "falsex",
+    "headx",
+    "lnx",
+    "lsx",
+    "mkdirx",
+    "mvx",
+    "pwdx",
+    "realpathx",
+    "rmdirx",
+    "rmx",
+    "sleepx",
+    "tailx",
+    "touchx",
+    "truex",
+    "wcx",
+    "yesx"
+  ]
+}

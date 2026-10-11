@@ -1,0 +1,499 @@
+---
+title: "Portable scripting"
+description: "How to write scripts with gnux shell, the small interpreter whose commands are the gnux tools run inside the gnux process: the language subset it understands (variables, quoting, globbing, redirection, pipelines and the \u0026\u0026, || and ; connectors), running scripts with -e, -c, files and standard input, exit statuses, cd, the deliberate differences from POSIX sh, and reaching external programs through envx. It ends with four complete, tested scripts (a project scaffold, a build-output cleanup, log rotation and release staging) that run unchanged on Linux, macOS and Windows, because nothing in them depends on the machine's own shell or utilities."
+---
+
+## Why a gnux script
+
+A build or cleanup step is usually written twice: once as a `.sh` file for Linux and macOS, once as a `.ps1` or `.bat` for Windows, and the two drift apart. A `gnux shell` script is written once:
+
+- **The commands are the tools.** `rmx`, `cpx`, `lsx` and the rest run in-process, with the same flags, output and diagnostics on every platform.
+- **The language is the same everywhere.** Quoting, globbing, `~` and redirection are done by gnux, not by bash, zsh, PowerShell or `cmd.exe`.
+- **The only dependency is the gnux binary.** No bash on Windows, no coreutils in a minimal container.
+
+The same file serves a developer laptop and every CI runner.
+
+## Running scripts
+
+```bash
+gnux shell                          # interactive session (prompt: gnux> )
+gnux shell build.gnux               # run a script file
+gnux shell -e build.gnux            # ... stopping at the first failing command
+gnux shell -c 'lsx -l | wcx -l'     # run a one-liner
+gnux shell -e -c 'mkdirx -p dist && cpx -r assets dist/'
+echo 'pwdx' | gnux shell            # read the script from standard input
+```
+
+```powershell
+gnux shell -e build.gnux
+gnux shell -c 'lsx -l | wcx -l'
+'pwdx' | gnux shell
+```
+
+The file extension does not matter; `.gnux` is a convention that tells readers which interpreter to use.
+
+On Linux and macOS a script can be made executable with a shebang. Because the first line starts with `#`, it is also an ordinary comment to gnux:
+
+```bash
+#!/usr/bin/env -S gnux shell -e
+echox from shebang
+```
+
+```bash
+chmod +x build.gnux && ./build.gnux
+```
+
+`help` inside the shell prints a summary of the language:
+
+```text
+gnux shell - commands are the gnux tools, run in-process.
+
+  command arg...            run a tool (rmx or rm, lsx or ls, ...) or a builtin
+  a | b                     pipe a's output into b
+  a && b    a || b    a; b  run b on success / on failure / always
+  cmd < in > out >> log     redirect standard input and output
+  cmd 2> errs               redirect standard error; /dev/null discards
+  NAME=value                set a variable;  $NAME  ${NAME}  $?  $PWD  expand one
+  'literal'  "with $vars"   quoting; \ escapes a special character
+  *.go  file?.txt  [a-c]*   globbing;  ~  is the home directory
+  # comment
+
+Builtins: cd [DIR], exit [STATUS], help.
+Run 'TOOL --help' for a tool's options. To run an external program: envx PROGRAM ARG...
+```
+
+## The language
+
+### Commands
+
+A command is a tool, by its gnux name or its GNU name, or one of the builtins `cd`, `exit` and `help`. `rm` and `rmx` are the same command inside the shell, so scripts can read like ordinary shell scripts:
+
+```bash
+rm -rf dist && mkdir -p dist/logs
+ls -1 dist | wc -l
+```
+
+Anything else is an unknown command, status 127:
+
+```text
+gnux: frob: command not found
+```
+
+### Variables
+
+```bash
+NAME=my-service
+OUT=dist/$NAME
+echox $OUT ${NAME}_v2 $NAME.log "$NAME-x"
+```
+
+```text
+dist/my-service my-service_v2 my-service.log my-service-x
+```
+
+- `$NAME` and `${NAME}` expand a variable; use braces when letters follow (`${NAME}_v2`).
+- `$?` is the status of the last command, `$PWD` the working directory.
+- A name not set in the script is looked up in the environment, so `$HOME`, `$PATH` and CI variables such as `$GITHUB_SHA` work.
+- An unset variable expands to nothing.
+
+### Quoting
+
+```bash
+echox 'single quotes: $HOME is literal'
+echox "double quotes: $HOME is expanded"
+echox "say \"hi\"" 'it'"'"'s'
+echox a\ b "c  d"
+```
+
+```text
+single quotes: $HOME is literal
+double quotes: /home/alice is expanded
+say "hi" it's
+a b c  d
+```
+
+A backslash escapes only a special character (a space, a quote, `$`, `*`, `|`, `;`, `&`, `<`, `>` and so on). Before an ordinary letter it is kept, so Windows paths survive unquoted:
+
+```bash
+echox C:\tools\bin
+```
+
+```text
+C:\tools\bin
+```
+
+A quoted string cannot span lines: each line is parsed on its own, so an unterminated quote is a syntax error.
+
+### Globbing and `~`
+
+```bash
+lsx *.go                 # every .go file
+echox file?.txt          # one character
+echox [ab].go            # a character class
+lsx ~/projects           # the home directory, on every platform
+```
+
+A pattern that matches nothing is left as it is, as in sh: `echox *.none` prints `*.none`. That is what makes `rmx -f *.tmp` safe when there are no `.tmp` files: `rmx -f` ignores the missing name.
+
+### Connectors
+
+```bash
+mkdirx -p dist && cpx -r assets dist/      # second only if the first succeeds
+catx config.local || cpx config.default config.local   # second only if the first fails
+echox one; echox two                       # always both
+```
+
+### Redirection
+
+```bash
+lsx -1 > listing.txt          # write standard output
+echox done >> build.log       # append
+wcx -l < listing.txt          # read standard input
+catx missing 2> errors.txt    # standard error to a file
+catx missing 2>> errors.txt   # ... appended
+rmx -rv build > /dev/null     # discard; /dev/null works on Windows too
+```
+
+Redirection targets are opened before the command runs, so `lsx -1 > count.txt` lists `count.txt` itself, exactly as a POSIX shell would. New files get mode 0644 before the umask.
+
+### Pipelines
+
+```bash
+lsx -1 | wcx -l
+catx *.log | headx -n 20
+yesx | headx -n 3
+```
+
+The stages run concurrently, joined by in-memory pipes. When a reader finishes early, the writer sees a closed pipe and stops quietly: that is how `yesx | headx -n 3` ends. The status of a pipeline is the status of its last stage:
+
+```bash
+falsex | truex; echox $?
+truex | falsex; echox $?
+```
+
+```text
+0
+1
+```
+
+### Comments
+
+`#` at the start of a word starts a comment to the end of the line.
+
+```bash
+# Build the docs.
+mkdirx -p site   # idempotent
+```
+
+## Builtins
+
+| Builtin | What it does |
+|---------|--------------|
+| `cd [DIR]` | Change directory; with no argument, go home. `cd -` is not supported |
+| `exit [STATUS]` | Stop the script with STATUS, or with the last command's status |
+| `help` | Print the language summary |
+
+`cd` changes the directory for the rest of the script and for every tool it runs. When the script ends, `gnux shell` restores the directory it started in. Inside a pipeline, `cd` and `exit` run as in a subshell and do not affect the script.
+
+## Exit statuses
+
+| Situation | Status |
+|-----------|--------|
+| Normal end | The last command's status |
+| `exit N` | N |
+| Syntax error (unterminated quote, dangling `&&`, redirection with no file) | 2, and a script stops |
+| Unknown command | 127 |
+| The script file cannot be opened | 127 |
+| More than one script, or a script with `-c` | 2 |
+
+```bash
+gnux shell -c 'echox "unterminated'; echo $?
+gnux shell -c 'echox a &&'; echo $?
+gnux shell -c 'frob'; echo $?
+gnux shell -c 'exit 3'; echo $?
+```
+
+```text
+gnux: syntax error: unterminated double quote
+2
+gnux: syntax error: expected a command after '&&'
+2
+gnux: frob: command not found
+127
+3
+```
+
+An interactive session reports a syntax error and carries on.
+
+## Stopping at the first failure with `-e`
+
+Without `-e` a failing command does not stop the script:
+
+```bash
+gnux shell -c 'falsex; echox after'; echo $?
+```
+
+```text
+after
+0
+```
+
+With `-e` the script stops at the first command that fails, and exits with its status:
+
+```bash
+gnux shell -e -c 'falsex; echox after'; echo $?
+```
+
+```text
+1
+```
+
+A command whose status is tested by `&&` or `||` does not trigger `-e`, so failures you expect can be absorbed:
+
+```bash
+gnux shell -e -c 'falsex || echox recovered; echox after'
+```
+
+```text
+recovered
+after
+```
+
+The idiom `command || truex` marks a failure as acceptable, which the log rotation script below relies on.
+
+## Deliberate differences from sh
+
+The shell is a portable subset, not a bash clone. The differences are few and on purpose:
+
+- **A variable's value is never re-split or re-globbed.** A path with spaces needs no quotes once stored:
+
+  ```bash
+  DIR="my dir"
+  mkdirx -p "my dir"
+  touchx $DIR/x          # one argument: my dir/x
+  F="*.go"
+  echox $F               # prints *.go, not the matching files
+  ```
+
+- **`NAME=value cmd` sets the variable for the rest of the script**, not only for `cmd`. As in sh, `$NAME` on the same line is expanded before the assignment happens:
+
+  ```bash
+  X=1 echox $X           # prints an empty line
+  echox $X               # prints 1
+  ```
+
+  To set an environment variable for one command, use `envx NAME=value command`.
+
+- **No loops, functions, `if`, `case`, command substitution or here-documents.** Conditionals are `&&` and `||`. A script that needs a loop is a sign that it belongs in a real programming language, or in a Go program using the [library](/docs/guides/go-library).
+- **No external programs by name.** Only tools and builtins are commands. See the next section.
+- **Diagnostics name the shell `gnux`**, as in `gnux: frob: command not found`.
+
+## Running external programs through `envx`
+
+`envx` runs any program found on `PATH`, so it is the shell's door to the rest of the system:
+
+```bash
+envx go build ./...
+envx git rev-parse --short HEAD > dist/COMMIT
+envx GOOS=linux GOARCH=arm64 go build -o dist/app-linux-arm64 .
+envx -C web pnpm install
+envx sh -c 'echo external'
+```
+
+Its exit status is the program's own, or 127 when it is not found and 126 when it cannot be run, so `-e` and `&&` work as expected. Use external programs sparingly in a script meant to be portable: each one is a dependency the machine must have.
+
+## Complete scripts
+
+Each script below was run with `gnux shell -e` on a fresh directory, and runs unchanged on Windows.
+
+### Project scaffold
+
+Creates a new project skeleton. Edit `NAME`, or set it from the environment by deleting the first line and running `envx NAME=api gnux shell -e scaffold.gnux`.
+
+```bash
+# scaffold.gnux - create a new project skeleton.
+# Usage: gnux shell -e scaffold.gnux
+NAME=my-service
+
+mkdirx -pv $NAME/cmd $NAME/internal $NAME/docs $NAME/scripts $NAME/.github/workflows
+touchx $NAME/go.sum $NAME/docs/.keep $NAME/internal/.keep
+echox "# $NAME" > $NAME/README.md
+echox "" >> $NAME/README.md
+echox "Generated by scaffold.gnux." >> $NAME/README.md
+echox -e "bin/\ndist/\n*.log" > $NAME/.gitignore
+echox "module example.com/$NAME" > $NAME/go.mod
+lsx -AR $NAME
+```
+
+```text
+mkdirx: created directory 'my-service'
+mkdirx: created directory 'my-service/cmd'
+mkdirx: created directory 'my-service/internal'
+mkdirx: created directory 'my-service/docs'
+mkdirx: created directory 'my-service/scripts'
+mkdirx: created directory 'my-service/.github'
+mkdirx: created directory 'my-service/.github/workflows'
+my-service:
+.github
+.gitignore
+README.md
+cmd
+docs
+go.mod
+go.sum
+internal
+scripts
+...
+```
+
+### Build-output cleanup
+
+Removes build output and keeps a log of what went. It is safe to run any number of times: `-f` ignores what is already gone, and unmatched globs stay literal and are ignored too.
+
+```bash
+# clean.gnux - remove build output, keep a log of what went.
+rmx -rfv bin dist coverage.out > clean.log
+rmx -fv *.tmp *.test >> clean.log
+rmdirx --ignore-fail-on-non-empty tmp 2>/dev/null
+wcx -l clean.log
+```
+
+```text
+7 clean.log
+```
+
+And `clean.log`:
+
+```text
+removed 'bin/app'
+removed directory 'bin'
+removed directory 'dist/x'
+removed directory 'dist'
+removed 'coverage.out'
+removed 'a.tmp'
+removed 'b.test'
+```
+
+The `2>/dev/null` on `rmdirx` is a belt-and-braces measure: `--ignore-fail-on-non-empty` already makes a non-empty `tmp` a success, but a missing `tmp` would still print a diagnostic. Without `-e`, it would not stop the script either way.
+
+### Log rotation
+
+Keeps three generations of a log: `app.log` becomes `app.log.1`, `app.log.1` becomes `app.log.2`, and so on, with the oldest dropped.
+
+```bash
+# rotate.gnux - keep three generations of a log:
+#   app.log -> app.log.1 -> app.log.2 -> app.log.3 (the old .3 is dropped)
+# Run with: gnux shell -e rotate.gnux
+LOG=logs/app.log
+
+mkdirx -p logs
+touchx $LOG
+rmx -f $LOG.3
+# A generation that does not exist yet is not an error: || truex absorbs it.
+mvx $LOG.2 $LOG.3 2>/dev/null || truex
+mvx $LOG.1 $LOG.2 2>/dev/null || truex
+mvx $LOG $LOG.1
+touchx $LOG
+echox "rotated $LOG" >> logs/rotate.log
+lsx -1 logs
+```
+
+After five runs, each preceded by a line appended to `app.log`:
+
+```text
+app.log
+app.log.1
+app.log.2
+app.log.3
+rotate.log
+```
+
+```bash
+headx logs/app.log.*
+```
+
+```text
+==> logs/app.log.1 <==
+run 5
+
+==> logs/app.log.2 <==
+run 4
+
+==> logs/app.log.3 <==
+run 3
+```
+
+Schedule it with cron on Linux and macOS, or Task Scheduler on Windows, pointing at `gnux shell -e rotate.gnux`.
+
+### Release staging
+
+Stages a release tree under `dist/`, stamps the version file with a fixed date for reproducibility, points `dist/latest` at it and writes a manifest.
+
+```bash
+# release.gnux - stage a release tree under dist/.
+# Run with: gnux shell -e release.gnux
+VERSION=1.4.0
+OUT=dist/myapp-$VERSION
+
+rmx -rf dist
+mkdirx -p $OUT/bin $OUT/docs
+cpx -v README.md LICENSE $OUT/docs/
+cpx -r config $OUT/
+cpx bin/myapp $OUT/bin/
+echox $VERSION > $OUT/VERSION
+touchx -d 2025-01-01 $OUT/VERSION
+lnx -sfn myapp-$VERSION dist/latest
+lsx -lR --time-style=long-iso dist > dist/MANIFEST.txt
+echox "staged $OUT" && catx $OUT/VERSION
+```
+
+```text
+'README.md' -> 'dist/myapp-1.4.0/docs/README.md'
+'LICENSE' -> 'dist/myapp-1.4.0/docs/LICENSE'
+staged dist/myapp-1.4.0
+1.4.0
+```
+
+```bash
+lsx -l dist
+```
+
+```text
+total 4
+-rw-r--r-- 1 alice staff 795 Oct 11 18:55 MANIFEST.txt
+lrwxr-xr-x 1 alice staff  11 Oct 11 18:55 latest -> myapp-1.4.0
+drwxr-xr-x 6 alice staff 192 Oct 11 18:55 myapp-1.4.0
+```
+
+On Windows, `lnx -s` needs Developer Mode or an elevated prompt; on a runner without either, replace that line with `cpx -r $OUT dist/latest`.
+
+### A pipeline-heavy report
+
+A shorter example that shows pipelines and redirection doing real work: a summary of a source tree written to a file.
+
+```bash
+# report.gnux - summarize a source tree.
+OUT=report.txt
+echox "files:" > $OUT
+lsx -1 src | wcx -l >> $OUT
+echox "lines of Go:" >> $OUT
+catx src/*.go | wcx -l >> $OUT
+echox "largest:" >> $OUT
+lsx -S src | headx -n 3 >> $OUT
+catx $OUT
+```
+
+## Interactive use
+
+`gnux shell` with no arguments on a terminal is an interactive session with the prompt `gnux> `. A syntax error is reported and the session carries on; `exit` leaves it. It is a consistent shell for machines without the GNU tools installed: the same commands, flags and globbing on a Windows server as on a Linux laptop.
+
+## Embedding scripts in Go
+
+A Go program can run a script in-process with `cmd.NewShell(opts, streams).RunString(script)`, set variables with `Set` before running it, or drive the shell one line at a time with `Eval`. See [Go library](/docs/guides/go-library) for complete programs.
+
+## See also
+
+- The [shell reference](/docs/shell).
+- [CI and containers](/docs/guides/ci-and-containers): these scripts as cross-OS CI steps.
+- [Troubleshooting](/docs/guides/troubleshooting): shell errors and their statuses.
+- [Requirements](https://github.com/braswelljr/gnux/blob/main/docs/requirements/functional-requirements.md), sections 5 (the portable shell) and FR-78 (deliberate differences from sh), and workflow WF-3 in the [user workflows](https://github.com/braswelljr/gnux/blob/main/docs/requirements/srs-workflows.md).

@@ -1,3 +1,5 @@
+# Requirement enforced: gnux cross-compiles, statically (CGO_ENABLED=0), for
+# every platform it supports - linux and darwin on amd64/arm64, windows on amd64.
 name: Build
 
 on:
@@ -39,16 +41,16 @@ jobs:
           CGO_ENABLED: "0"
         run: |
           version="$(git describe --tags --always --dirty 2>/dev/null || echo dev)"
-          bin="rmx"
-          [ "${{ matrix.goos }}" = "windows" ] && bin="rmx.exe"
-          out="dist/rmx-${{ matrix.goos }}-${{ matrix.goarch }}"
+          bin="gnux"
+          [ "${{ matrix.goos }}" = "windows" ] && bin="gnux.exe"
+          out="dist/gnux-${{ matrix.goos }}-${{ matrix.goarch }}"
           go build -trimpath \
-            -ldflags "-s -w -X github.com/braswelljr/rmx/internal/common.Version=${version}" \
+            -ldflags "-s -w -X github.com/braswelljr/gnux/internal/common.Version=${version}" \
             -o "${out}/${bin}" .
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: rmx-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/rmx-${{ matrix.goos }}-${{ matrix.goarch }}/*
+          name: gnux-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/gnux-${{ matrix.goos }}-${{ matrix.goarch }}/*
           if-no-files-found: error

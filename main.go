@@ -1,26 +1,17 @@
+// Command gnux is a multi-call binary carrying GNU-compatible implementations of
+// the core utilities, for every platform. See package cmd for how a tool is selected.
 package main
 
-//go:generate go run ./tools/gendocs docs
+//go:generate go run ./tools/gendocs documentation
+//go:generate go run ./tools/gendocs web/content/docs mdx
 
 import (
-	"errors"
-	"fmt"
 	"os"
 
-	"github.com/braswelljr/rmx/cmd"
-	"github.com/braswelljr/rmx/core"
-	"github.com/braswelljr/rmx/internal/common"
+	"github.com/braswelljr/gnux/cmd"
+	"github.com/braswelljr/gnux/core"
 )
 
 func main() {
-	root := cmd.NewRoot(os.Stdin, os.Stdout, os.Stderr)
-
-	if err := root.Execute(); err != nil {
-		// core.ErrFailed means diagnostics were already printed; anything else is
-		// a usage/parse error we surface here.
-		if !errors.Is(err, core.ErrFailed) {
-			fmt.Fprintf(os.Stderr, "%s: %v\n", common.AppName, err)
-		}
-		os.Exit(1)
-	}
+	os.Exit(cmd.Main(os.Args, core.Stdio()))
 }

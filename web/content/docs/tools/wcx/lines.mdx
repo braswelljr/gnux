@@ -1,0 +1,117 @@
+---
+title: "-l, --lines"
+description: "Print the newline counts."
+---
+
+An option of [wcx](/docs/tools/wcx).
+
+## Usage
+
+```bash
+wcx -l [FILE]...
+wcx --lines [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-l` | `--lines` | none |  | print the newline counts |
+
+## Examples
+
+Count only the lines:
+
+```bash
+wcx -l access.log
+```
+
+```powershell
+wcx -l access.log
+```
+
+Print lines and words together (always in that order, whatever the flag order):
+
+```bash
+wcx -wl essay.txt
+```
+
+```powershell
+wcx -wl essay.txt
+```
+
+Count the lines of several files, with a total:
+
+```bash
+wcx -l *.go
+```
+
+```powershell
+wcx -l (Get-ChildItem *.go -Name)
+```
+
+Count several files without the total line, or force it for a single file:
+
+```bash
+wcx -l --total=never *.go && wcx -l --total=always main.go
+```
+
+```powershell
+wcx -l --total=never (Get-ChildItem *.go -Name); wcx -l --total=always main.go
+```
+
+Count the entries a command produces:
+
+```bash
+lsx | wcx -l
+```
+
+```powershell
+lsx | wcx -l
+```
+
+Read the list of files to count from a NUL-separated file:
+
+```bash
+wcx -l --files0-from=sources.lst
+```
+
+```powershell
+wcx -l --files0-from=sources.lst
+```
+
+Print only the grand total for a list of files found elsewhere:
+
+```bash
+find . -name '*.go' -print0 | wcx -l --files0-from=- --total=only
+```
+
+```powershell
+wcx -l --total=only (Get-ChildItem -Recurse *.go).FullName
+```
+
+Fail a script when a file is missing (exit status 1):
+
+```bash
+wcx -l missing.txt || echox "exit status $?"
+```
+
+```powershell
+wcx -l missing.txt; if ($LASTEXITCODE -ne 0) { "exit status $LASTEXITCODE" }
+```
+
+Count matching files in the portable `gnux shell`:
+
+```bash
+gnux shell -c 'lsx -1 *.md | wcx -l'
+```
+
+```powershell
+gnux shell -c 'lsx -1 *.md | wcx -l'
+```
+
+## Help in the terminal
+
+```bash
+gnux help wcx --lines
+```

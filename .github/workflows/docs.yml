@@ -1,3 +1,6 @@
+# Requirement enforced: the committed generated documentation - the reference
+# in documentation/ and the website content in web/content/docs/ - matches what the
+# generator produces from the current code.
 name: Docs
 
 on:
@@ -5,14 +8,18 @@ on:
     branches: [main]
     paths:
       - "**.go"
-      - "docs/**"
+      - "documentation/guides/**"
+      - "documentation/**"
+      - "web/content/docs/**"
       - "tools/**"
       - go.mod
   pull_request:
     branches: [main]
     paths:
       - "**.go"
-      - "docs/**"
+      - "documentation/guides/**"
+      - "documentation/**"
+      - "web/content/docs/**"
       - "tools/**"
       - go.mod
 
@@ -33,14 +40,16 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      # Writes the reference (documentation/, four formats) and the website content
+      # (web/content/docs, MDX) from the tool registry.
       - name: Regenerate documentation
         run: go generate ./...
 
       - name: Verify docs are up to date
         run: |
-          if [ -n "$(git status --porcelain docs)" ]; then
-            echo "::error::docs/ is out of date. Run 'make docs' and commit the result." >&2
-            git status --porcelain docs
-            git --no-pager diff -- docs
+          if [ -n "$(git status --porcelain documentation web/content/docs)" ]; then
+            echo "::error::Generated docs are out of date. Run 'make docs' and commit the result." >&2
+            git status --porcelain documentation web/content/docs
+            git --no-pager diff -- documentation web/content/docs
             exit 1
           fi

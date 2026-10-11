@@ -1,0 +1,37 @@
+---
+title: "-b, --number-nonblank"
+description: "Number nonempty output lines, overrides -n."
+---
+
+An option of [catx](/docs/tools/catx).
+
+## Usage
+
+```bash
+catx -b [FILE]...
+catx --number-nonblank [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-b` | `--number-nonblank` | none |  | number nonempty output lines, overrides `-n` |
+
+## Examples
+
+Number only the non-empty lines:
+
+```bash
+catx -b poem.txt
+```
+
+```powershell
+catx -b poem.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help catx --number-nonblank
+```

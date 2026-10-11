@@ -1,0 +1,37 @@
+---
+title: "-b, --escape"
+description: "Print C-style escapes for nongraphic characters."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx -b [FILE]...
+lsx --escape [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-b` | `--escape` | none |  | print C-style escapes for nongraphic characters |
+
+## Examples
+
+Quote names, or escape control characters, to spot odd file names:
+
+```bash
+lsx -Q && lsx -b && lsx -q
+```
+
+```powershell
+lsx -Q; lsx -b; lsx -q
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --escape
+```

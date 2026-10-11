@@ -1,13 +1,17 @@
 package docs
 
 import (
-	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
-	"github.com/braswelljr/rmx/cmd"
+	"github.com/spf13/pflag"
+
+	"github.com/braswelljr/gnux/cmd"
+	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/internal/tool"
 )
 
 func TestWrapCode(t *testing.T) {
@@ -15,7 +19,11 @@ func TestWrapCode(t *testing.T) {
 		name, in, want string
 	}{
 		{"flag pair", "the -d/--dir flag", "the `-d`/`--dir` flag"},
-		{"command words", "rmx wraps rm and rmdir", "`rmx` wraps `rm` and `rmdir`"},
+		{"command words", "rmx wraps rm via gnux", "`rmx` wraps `rm` via `gnux`"},
+		{"adjacent references merge", "run gnux rmx -rf build", "run `gnux rmx -rf` build"},
+		{"gnux shell is one command", "start gnux shell with -e", "start `gnux shell` with `-e`"},
+		{"prose words untouched", "is this true or false at the head", "is this true or false at the head"},
+		{"links untouched", "see [rmx](rmx/index.md) for -r", "see [rmx](rmx/index.md) for `-r`"},
 		{"command phrase", "run go install then make build", "run `go install` then `make build`"},
 		{"hyphenated words untouched", "a write-protected read-only file", "a write-protected read-only file"},
 		{"heading untouched", "## rm and -d", "## rm and -d"},
@@ -57,17 +65,23 @@ func TestFenceLang(t *testing.T) {
 
 func TestGenerateAll(t *testing.T) {
 	dir := t.TempDir()
-	root := cmd.NewRoot(strings.NewReader(""), io.Discard, io.Discard)
-	if err := GenerateAll(root, dir); err != nil {
+	if err := GenerateAll(dir); err != nil {
 		t.Fatalf("GenerateAll: %v", err)
 	}
 
 	// A representative file exists and is non-empty in every layout position.
-	for _, p := range []string{
-		"markdown/index.md", "markdown/guide.md", "markdown/flags/force.md",
-		"man/index.1", "man/flags/recursive.1",
-		"yaml/index.yaml", "rest/flags/directory.rst",
-	} {
+	want := []string{
+		"markdown/index.md", "markdown/guide.md", "markdown/rmx/index.md", "markdown/rmx/flags/force.md",
+		"man/index.1", "man/rmx/index.1", "man/rmx/flags/recursive.1",
+		"yaml/index.yaml", "yaml/rmx/index.yaml", "rest/guide.rst", "rest/rmx/flags/directory.rst",
+	}
+	// Every registered tool gets a page in every format.
+	for _, tool := range cmd.Commands() {
+		want = append(want,
+			"markdown/"+tool.Name()+"/index.md", "man/"+tool.Name()+"/index.1",
+			"yaml/"+tool.Name()+"/index.yaml", "rest/"+tool.Name()+"/index.rst")
+	}
+	for _, p := range want {
 		fi, err := os.Stat(filepath.Join(dir, p))
 		if err != nil || fi.Size() == 0 {
 			t.Errorf("expected non-empty %s (err=%v)", p, err)
@@ -75,21 +89,50 @@ func TestGenerateAll(t *testing.T) {
 	}
 
 	// Markdown wraps flag references; man stays plain.
-	md, _ := os.ReadFile(filepath.Join(dir, "markdown/flags/directory.md"))
+	md, _ := os.ReadFile(filepath.Join(dir, "markdown/rmx/flags/directory.md"))
 	if !strings.Contains(string(md), "`--dir`") {
 		t.Errorf("markdown per-flag page should wrap flags in code")
 	}
-	man, _ := os.ReadFile(filepath.Join(dir, "man/flags/directory.1"))
+	man, _ := os.ReadFile(filepath.Join(dir, "man/rmx/flags/directory.1"))
 	if strings.Contains(string(man), "`") {
 		t.Errorf("man page should contain no backticks")
+	}
+}
+
+// TestMarkdownLinksResolve checks that every relative link in the markdown
+// tree points at a file the generator actually wrote.
+func TestMarkdownLinksResolve(t *testing.T) {
+	dir := t.TempDir()
+	if err := Generate(dir, "markdown"); err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	root := filepath.Join(dir, "markdown")
+	for rel, content := range readTree(t, root) {
+		for _, m := range mdLinkTargetRe.FindAllStringSubmatch(content, -1) {
+			target := m[1]
+			if strings.Contains(target, "://") {
+				continue
+			}
+			path := filepath.Join(root, filepath.Dir(rel), filepath.FromSlash(target))
+			if _, err := os.Stat(path); err != nil {
+				t.Errorf("%s links to %q, which does not exist", rel, target)
+			}
+		}
+	}
+}
+
+var mdLinkTargetRe = regexp.MustCompile(`\]\(([^)#]+)\)`)
+
+func TestGenerateUnknownFormat(t *testing.T) {
+	if err := Generate(t.TempDir(), "pdf"); err == nil {
+		t.Fatal("expected an error for an unknown format")
 	}
 }
 
 func TestGenerateAllDeterministic(t *testing.T) {
 	a, b := t.TempDir(), t.TempDir()
 	for _, dir := range []string{a, b} {
-		root := cmd.NewRoot(strings.NewReader(""), io.Discard, io.Discard)
-		if err := GenerateAll(root, dir); err != nil {
+		if err := GenerateAll(dir); err != nil {
 			t.Fatalf("GenerateAll(%s): %v", dir, err)
 		}
 	}
@@ -133,4 +176,192 @@ func readTree(t *testing.T, root string) map[string]string {
 		t.Fatalf("walk %s: %v", root, err)
 	}
 	return out
+}
+
+func TestGenerateMDX(t *testing.T) {
+	dir := t.TempDir()
+	extra := []Page{
+		{Dir: "rules", Name: "index", Title: "Rules", Description: "Every rule.", Markdown: "# Rules\n\nUse {braces} and <tags>.\n"},
+		{Dir: "rules", Name: "no-em-dashes", Title: "Rule: no em dashes", Description: "None.", Markdown: "# Rule: no em dashes\n\nNone.\n"},
+	}
+	if err := GenerateMDX(dir, extra...); err != nil {
+		t.Fatalf("GenerateMDX: %v", err)
+	}
+	tree := readTree(t, dir)
+
+	if got, want := tree[filepath.FromSlash("rules/index.mdx")], "---\ntitle: \"Rules\"\ndescription: \"Every rule.\"\n---\n\nUse \\{braces\\} and \\<tags>.\n"; got != want {
+		t.Errorf("extra page = %q, want %q", got, want)
+	}
+	// Each folder is an open list under a heading, the hand-written ones first.
+	root := tree["meta.json"]
+	rules, tools := strings.Index(root, `"---Rules---"`), strings.Index(root, `"---Tools---"`)
+	if rules == -1 || tools == -1 || rules > tools ||
+		!strings.Contains(root, `"rules/no-em-dashes"`) || strings.Contains(root, `"rules/index"`) ||
+		!strings.Contains(root, `"...tools"`) {
+		t.Errorf("navigation should list the rules, then the tools, under headings: %s", root)
+	}
+	if meta := tree[filepath.FromSlash("rules/meta.json")]; !strings.Contains(meta, `"no-em-dashes"`) || !strings.Contains(meta, `"title": "Rules"`) || strings.Contains(meta, `"index"`) {
+		t.Errorf("extra folder meta = %s", meta)
+	}
+
+	want := []string{"index.mdx", "guide.mdx", "library.mdx", "shell.mdx", "meta.json", "tools/meta.json"}
+	for _, tool := range cmd.Tools() {
+		want = append(want, "tools/"+tool.Name()+"/index.mdx", "tools/"+tool.Name()+"/meta.json")
+		for _, topic := range tool.Topics {
+			want = append(want, "tools/"+tool.Name()+"/"+topic.Meta.Name+".mdx")
+		}
+	}
+	// Every option has a page, not only the ones with a Topic.
+	want = append(want, "tools/lsx/all.mdx", "tools/headx/lines.mdx")
+	for _, p := range want {
+		if tree[filepath.FromSlash(p)] == "" {
+			t.Errorf("expected non-empty %s", p)
+		}
+	}
+
+	for name, content := range tree {
+		if !strings.HasSuffix(name, ".mdx") {
+			continue
+		}
+		if !strings.HasPrefix(content, "---\ntitle: \"") {
+			t.Errorf("%s: missing title frontmatter", name)
+		}
+		// Outside code, MDX would parse a bare brace or angle bracket.
+		inFence := false
+		for _, line := range strings.Split(content, "\n") {
+			if strings.HasPrefix(line, "```") {
+				inFence = !inFence
+				continue
+			}
+			if inFence {
+				continue
+			}
+			for i, part := range strings.Split(line, "`") {
+				if i%2 == 0 && unescapedRe.MatchString(part) {
+					t.Errorf("%s: unescaped MDX character in %q", name, line)
+				}
+			}
+		}
+		if inFence {
+			t.Errorf("%s: unbalanced code fence", name)
+		}
+	}
+}
+
+var unescapedRe = regexp.MustCompile(`(^|[^\\])[{}<]`)
+
+func TestMDXEscape(t *testing.T) {
+	in := "use ${NAME} or <file> but not `${code}`\n```bash\necho ${x} <in\n```\nafter {x}"
+	want := "use $\\{NAME\\} or \\<file> but not `${code}`\n```bash\necho ${x} <in\n```\nafter \\{x\\}"
+	if got := mdxEscape(in); got != want {
+		t.Fatalf("mdxEscape = %q, want %q", got, want)
+	}
+}
+
+func TestHandwrittenPages(t *testing.T) {
+	root := t.TempDir()
+	write := func(rel, content string) {
+		t.Helper()
+		p := filepath.Join(root, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("rules/README.md", "# Rules\n\nEvery **rule**, see [one](one-rule.md).\n\n| a | b |\n")
+	write("rules/one-rule.md", "# Rule: one\n\nThe summary.\n\nBody with links: [index](README.md), [req](../requirements/functional-requirements.md#fr-1), "+
+		"[agents](../../AGENTS.md), [code](../../core/core.go), [gen](../markdown/index.md), [web](https://example.com/x.md), [here](#top), "+
+		"[page](../../web/src/app/(home)/page.tsx) (aside), [tool](../../documentation/markdown/rmx/index.md), "+
+		"[flag](../../documentation/markdown/rmx/flags/force.md), [ref](../../documentation/markdown/index.md), "+
+		"[man](../../documentation/man/rmx/index.1).\n")
+	write("requirements/functional-requirements.md", "# Functional requirements\n\nWhat it does.\n")
+	write("rules/notes.txt", "ignored")
+
+	pages, err := HandwrittenPages(root, "docs", "requirements", "rules", "missing")
+	if err != nil {
+		t.Fatalf("HandwrittenPages: %v", err)
+	}
+
+	var got []string
+	byName := map[string]Page{}
+	for _, p := range pages {
+		got = append(got, p.Dir+"/"+p.Name)
+		byName[p.Dir+"/"+p.Name] = p
+	}
+	if want := "requirements/functional-requirements rules/index rules/one-rule"; strings.Join(got, " ") != want {
+		t.Fatalf("pages = %v, want %s", got, want)
+	}
+
+	index := byName["rules/index"]
+	if index.Title != "Rules" || index.Description != "Every rule, see one." {
+		t.Errorf("index title/description = %q / %q", index.Title, index.Description)
+	}
+
+	body := byName["rules/one-rule"].Markdown
+	if byName["rules/one-rule"].Description != "The summary." || strings.Contains(body, "The summary.") {
+		t.Errorf("the summary should be the description and not repeat in the body: %q / %q", byName["rules/one-rule"].Description, body)
+	}
+	for _, want := range []string{
+		"[index](/docs/rules)",
+		"[req](/docs/requirements/functional-requirements#fr-1)",
+		"[agents](https://github.com/braswelljr/gnux/blob/main/AGENTS.md)",
+		"[code](https://github.com/braswelljr/gnux/blob/main/core/core.go)",
+		"[gen](https://github.com/braswelljr/gnux/blob/main/docs/markdown/index.md)",
+		"[tool](/docs/tools/rmx)",
+		"[flag](/docs/tools/rmx/force)",
+		"[ref](/docs)",
+		"[man](https://github.com/braswelljr/gnux/blob/main/documentation/man/rmx/index.1)",
+		"[web](https://example.com/x.md)",
+		"[here](#top)",
+		"[page](https://github.com/braswelljr/gnux/blob/main/web/src/app/(home)/page.tsx) (aside)",
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("rewritten links missing %q in %q", want, body)
+		}
+	}
+}
+
+func TestPassesMatchesOnlyTheToolsOwnFlags(t *testing.T) {
+	lookup := func(name string) tool.Spec {
+		t.Helper()
+		for _, s := range cmd.Tools() {
+			if s.Name() == name {
+				return s
+			}
+		}
+		t.Fatalf("no tool %s", name)
+		return tool.Spec{}
+	}
+	flag := func(s tool.Spec, name string) *pflag.Flag {
+		t.Helper()
+		f := s.Command(core.Discard()).Flags().Lookup(name)
+		if f == nil {
+			t.Fatalf("%s has no --%s", s.Name(), name)
+		}
+		return f
+	}
+	env, rm := lookup("envx"), lookup("rmx")
+
+	for _, c := range []struct {
+		spec    tool.Spec
+		flag    string
+		command string
+		want    bool
+	}{
+		{rm, "force", "rmx -rf build", true},
+		{rm, "force", "gnux rm --force x", true},
+		{rm, "force", "rmx -r build", false},
+		{rm, "recursive", "lsx -R . | rmx x", false},
+		// "-" is standard input, not a flag without a short form.
+		{rm, "one-file-system", "printf x | rmx -", false},
+		// What follows envx's command is that command's.
+		{env, "ignore-environment", "envx lsx -i", false},
+		{env, "ignore-environment", "envx -i lsx", true},
+	} {
+		if got := passes(c.spec, c.command, flag(c.spec, c.flag)); got != c.want {
+			t.Errorf("passes(%s --%s, %q) = %v, want %v", c.spec.Name(), c.flag, c.command, got, c.want)
+		}
+	}
 }

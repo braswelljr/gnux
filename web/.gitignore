@@ -1,0 +1,48 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+/.swc/
+next-env.d.ts
+
+# production
+/build
+
+# fumadocs (generated on every build)
+.source
+
+# misc
+.DS_Store
+*.pem
+*.tsbuildinfo
+
+# debug
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+
+# vercel
+.vercel
+
+# locks: pnpm-lock.yaml is the one that is committed
+package-lock.json
+yarn.lock
+
+# editor configs
+.idea
+.sublime
+
+# Not ignored on purpose: public/gnux.wasm, public/wasm_exec.js and content/docs
+# are produced by `pnpm gen`, and whether they are committed is decided at the
+# repository root.

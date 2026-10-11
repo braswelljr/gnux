@@ -1,6 +1,34 @@
 {
   "version": 1,
   "skills": {
+    "apple-design": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/apple-design/SKILL.md",
+      "computedHash": "8b94db67cb9edaad5f1501010804caa610131f1d2dfda0a27664b2e858deade3"
+    },
+    "atomic-design": {
+      "source": "jwilger/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/atomic-design/SKILL.md",
+      "computedHash": "7ccfec65e59c1d9d9b7d798771b335d49ab99c2e726b17ef6e810782347df857"
+    },
+    "brainstorming": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "efddfd0efbd0e7b5075c5a66ff91a706ac506c88c7b5ddd7fd45a351cb3fe3af"
+    },
+    "emil-design-eng": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/emil-design-eng/SKILL.md",
+      "computedHash": "41b0a4dc1a27164fe297845a6c6850a39e9242c42c9be999967fcee9df2c5974"
+    },
+    "frontend-developer-skill": {
+      "source": "404kidwiz/claude-supercode-skills",
+      "sourceType": "github",
+      "computedHash": "634f7798d91fb9d350fccd4b91ae6138acfebf7dd2902ee4512582c6a40119a9"
+    },
     "golang-concurrency": {
       "source": "samber/cc-skills-golang",
       "sourceType": "github",
@@ -60,6 +88,51 @@
       "sourceType": "github",
       "skillPath": "skills/golang-testing/SKILL.md",
       "computedHash": "28a13faa42b4ae4623bb49994888dcf7f2a66d07587177db5fd5071b12f04a26"
+    },
+    "gsap": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "skillPath": "skills/gsap/SKILL.md",
+      "computedHash": "ef2658b3705d3fd5c8e38d197b31521553a0bee3b40bda2ab70bf22bd6b88854"
+    },
+    "gsap-framer-scroll-animation": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/gsap-framer-scroll-animation/SKILL.md",
+      "computedHash": "e6a4caf23b818ffc5185d51339e941ca783944b6693da877fc1206693b2dff66"
+    },
+    "html": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "html/SKILL.md",
+      "computedHash": "3cdff568d692ae5dd1adebfbbcae39f07eaf27e6a578be5de9a4549ac295a804"
+    },
+    "semantic-html": {
+      "source": "schalkneethling/webdev-agent-skills",
+      "sourceType": "github",
+      "skillPath": "semantic-html/SKILL.md",
+      "computedHash": "67a71a5ff7208259bb06dc5b1cb06a182a657529efe024b63cd9e7647de4258a"
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "computedHash": "91c02eb706f046fb9d6a061efbb96496e4be751b5b14c283cf82baaa50f3a985"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "43ca6c197f8ec13055079da7053232d477068b03ca443f9ac1bc819b95cdd432"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "a6a44d5498f7e8f68289902f3dedfc6f38ae0cee1e96527c80724cf27f727c2a"
+    },
+    "zod": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "skillPath": "skills/.curated/zod/SKILL.md",
+      "computedHash": "c69b5133b65643317236707f2cd3e521b4fc6e5ee5fd6c6c00cf62a37dfd0144"
     }
   }
 }

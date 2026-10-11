@@ -1,0 +1,36 @@
+---
+title: "--parents"
+description: "Use the full source file name under DIRECTORY."
+---
+
+An option of [cpx](/docs/tools/cpx).
+
+## Usage
+
+```bash
+cpx --parents SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--parents` | none |  | use the full source file name under DIRECTORY |
+
+## Examples
+
+Recreate the source paths under a backup directory:
+
+```bash
+cpx --parents src/app/main.go src/lib/util.go backup/
+```
+
+```powershell
+cpx --parents src/app/main.go src/lib/util.go backup
+```
+
+## Help in the terminal
+
+```bash
+gnux help cpx --parents
+```

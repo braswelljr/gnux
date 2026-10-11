@@ -1,0 +1,57 @@
+---
+title: "-v, --verbose"
+description: "Explain what is being done."
+---
+
+An option of [mvx](/docs/tools/mvx).
+
+## Usage
+
+```bash
+mvx -v SOURCE... DIRECTORY
+mvx --verbose SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-v` | `--verbose` | none |  | explain what is being done |
+
+## Examples
+
+Move several files into a directory, reporting each one:
+
+```bash
+mvx -v a.log b.log archive/
+```
+
+```powershell
+mvx -v a.log b.log archive
+```
+
+Skip files that already exist at the destination, using `--update`:
+
+```bash
+mvx --update=none -v incoming/*.csv data/
+```
+
+```powershell
+mvx --update=none -v (Get-ChildItem incoming\*.csv).FullName data
+```
+
+Archive text files into a dated directory with the `gnux shell`:
+
+```bash
+gnux shell -c 'mkdirx -p archive/2024 && mvx -v *.txt archive/2024/'
+```
+
+```powershell
+gnux shell -c 'mkdirx -p archive/2024 && mvx -v *.txt archive/2024/'
+```
+
+## Help in the terminal
+
+```bash
+gnux help mvx --verbose
+```

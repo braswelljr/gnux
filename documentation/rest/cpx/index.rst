@@ -1,0 +1,132 @@
+.. _cpx:
+
+cpx
+---
+
+Copy files and directories.
+
+Synopsis
+~~~~~~~~
+
+
+cpx copies SOURCE to DEST, or several SOURCEs into DIRECTORY (also selectable with -t; -T forces the two-operand form). Directories are copied only with -r, and a directory is never copied into itself. A new file receives the source's permission bits filtered by the umask; -p or --preserve[=LIST] carries over mode, ownership, timestamps and hard links, and -a is shorthand for -dR --preserve=all. Symbolic links are followed unless copying recursively; -P/-d keep them as links, -L follows them everywhere and -H only on the command line. -l and -s create hard or symbolic links instead of copying data. Existing destinations are overwritten unless -n (never), -u (only when the source is newer) or -i (ask first) says otherwise; -f removes a destination that cannot be opened and tries again. GNU cp lets the last of conflicting options win; cpx cannot see option order, so it prefers the most cautious instead: -n overrides -i, and an explicit -P/-d overrides -H, which overrides -L.
+
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+HELP. cpx --help shows the options and the first examples; gnux help cpx prints the full manual, and gnux help cpx OPTION explains one option.
+
+SEE ALSO. mvx, lnx, rmx, mkdirx.
+
+PERMISSIONS. Copying needs read permission on each source and write and search permission on the destination directory. Without -p the copy is owned by the invoking user and its mode is the source's mode minus the umask. Preserving ownership requires privilege; an ordinary user silently keeps their own ownership, as with GNU cp. On Windows only the read-only attribute and modification time are carried over.
+
+USE CASES.
+  - Duplicating a file before editing it, so the original can be restored.
+  - Copying a directory tree with -r, or a faithful archive of it with -a.
+  - Refreshing a mirror with -u so only newer files are rewritten.
+  - Filling in missing defaults without touching customized files (--update=none).
+  - Guarding existing files in scripts with -n, or interactively with -i.
+  - Building a tree of hard links (-al) or symlinks (-s) instead of duplicating data.
+  - Recreating selected files under a backup directory with their paths intact (--parents).
+  - Replacing a read-only destination in a deployment step with -f.
+  - Collecting build artifacts into a directory named up front with -t.
+
+::
+
+  cpx [OPTION]... SOURCE... DIRECTORY
+
+Examples
+~~~~~~~~
+
+::
+
+    # Copy a file to a new name
+    cpx notes.txt notes.bak
+
+    # Copy several files into a directory, reporting each one
+    cpx -v a.txt b.txt backup/
+
+    # Archive a directory tree, preserving modes, times and links
+    cpx -a project/ /mnt/backup/project
+
+    # Update a mirror, copying only files that are newer
+    cpx -ru src/. mirror/
+
+    # Copy into a directory named first, without overwriting anything
+    cpx -n -t ~/Documents report.pdf slides.pdf
+
+    # Ask before overwriting an existing copy
+    cpx -i config.yml config.yml.orig
+
+    # Keep the mode and timestamps of a script while copying it
+    cpx -p deploy.sh bin/
+
+    # Preserve only the timestamps, or archive without carrying over ownership
+    cpx --preserve=timestamps photo.jpg archive/ && cpx -a --no-preserve=ownership project/ copy/
+
+    # Recreate the source paths under a backup directory
+    cpx --parents src/app/main.go src/lib/util.go backup/
+
+    # Make a new release tree of hard links that share the old one's data
+    cpx -al releases/v1 releases/v2
+
+    # Create a symbolic link instead of a copy (use an absolute source)
+    cpx -s "$PWD/config.yml" config-link.yml
+
+    # Copy a symbolic link as a link, rather than the file it points to
+    cpx -P current.yml saved-link.yml
+
+    # Copy a tree, replacing every symbolic link with the file it points to
+    cpx -rL vendor/ vendor-flat/
+
+    # Copy through a symlinked directory named on the command line only
+    cpx -rH latest snapshot
+
+    # Copy a template's contents into an existing directory, not inside it
+    cpx -rT template/ newproject/
+
+    # Add missing default files without overwriting customized ones
+    cpx -r --update=none defaults/. config/
+
+    # Replace a read-only destination file
+    cpx -f new.conf readonly.conf
+
+    # Back up a tree without crossing into other mounted file systems
+    cpx -ax --strip-trailing-slashes data/ /mnt/backup/data
+
+    # Make a backup and continue only if the copy succeeded
+    cpx config.yml config.yml.bak && echox "backup saved"
+
+    # Copy every .conf file into a fresh directory with the gnux shell
+    gnux shell -c 'mkdirx -p confbak && cpx -v *.conf confbak/'
+
+Options
+~~~~~~~
+
+::
+
+  -a, --archive                                         same as -dR --preserve=all
+  -L, --dereference                                     always follow symbolic links in SOURCE
+  -H, --dereference-args                                follow command-line symbolic links in SOURCE
+  -f, --force                                           if an existing destination file cannot be opened, remove it and try again
+      --help                                            display this help and exit
+  -i, --interactive                                     prompt before overwrite
+  -l, --link                                            hard link files instead of copying
+  -n, --no-clobber                                      do not overwrite an existing file
+  -P, --no-dereference                                  never follow symbolic links in SOURCE
+  -d, --no-dereference-links                            same as --no-dereference --preserve=links
+      --no-preserve string                              don't preserve the listed attributes
+  -T, --no-target-directory                             treat DEST as a normal file
+  -x, --one-file-system                                 stay on this file system
+      --parents                                         use the full source file name under DIRECTORY
+      --preserve string[="mode,ownership,timestamps"]   preserve the listed attributes: mode, ownership, timestamps, links, all
+  -p, --preserve-default                                same as --preserve=mode,ownership,timestamps
+  -r, --recursive                                       copy directories recursively
+      --strip-trailing-slashes                          remove any trailing slashes from each SOURCE argument
+  -s, --symbolic-link                                   make symbolic links instead of copying
+  -t, --target-directory string                         copy all SOURCE arguments into DIRECTORY
+  -u, --update string[="older"]                         control which existing files are updated: all, none, or older (the default for -u)
+  -v, --verbose                                         explain what is being done
+      --version                                         output version information and exit
+

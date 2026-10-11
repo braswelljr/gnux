@@ -1,0 +1,20 @@
+{
+  "title": "gnux",
+  "pages": [
+    "index",
+    "guide",
+    "shell",
+    "library",
+    "---Guides---",
+    "guides/adoption",
+    "guides/ci-and-containers",
+    "guides/cookbook",
+    "guides/getting-started",
+    "guides/go-library",
+    "guides/portable-scripting",
+    "guides/troubleshooting",
+    "guides/windows-and-powershell",
+    "---Tools---",
+    "...tools"
+  ]
+}

@@ -1,0 +1,37 @@
+---
+title: "-f, --force"
+description: "Do not prompt before overwriting."
+---
+
+An option of [mvx](/docs/tools/mvx).
+
+## Usage
+
+```bash
+mvx -f SOURCE... DIRECTORY
+mvx --force SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-f` | `--force` | none |  | do not prompt before overwriting |
+
+## Examples
+
+Replace a write-protected destination without being asked:
+
+```bash
+mvx -f settings.tmp settings.json
+```
+
+```powershell
+mvx -f settings.tmp settings.json
+```
+
+## Help in the terminal
+
+```bash
+gnux help mvx --force
+```

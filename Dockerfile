@@ -14,18 +14,22 @@ COPY . .
 # Version is injected at link time; override with --build-arg VERSION=<tag>.
 ARG VERSION=dev
 RUN CGO_ENABLED=0 go build -trimpath \
-    -ldflags "-s -w -X github.com/braswelljr/rmx/internal/common.Version=${VERSION}" \
-    -o /out/rmx .
+    -ldflags "-s -w -X github.com/braswelljr/gnux/internal/common.Version=${VERSION}" \
+    -o /out/gnux .
+
+# gnux picks the tool from the name it is invoked under, so one link per tool
+# makes each of them (rmx, cpx, lsx, ...) a command of its own.
+RUN cd /out && for t in $(./gnux --list); do ln -s gnux "$t"; done
 
 # ---- runtime stage -------------------------------------------------------------
 FROM alpine:3.20
 
 # Run as an unprivileged user; mount the directory to operate on at /work.
-RUN adduser -D -u 10001 rmx
-COPY --from=build /out/rmx /usr/local/bin/rmx
+RUN adduser -D -u 10001 gnux
+COPY --from=build /out/ /usr/local/bin/
 
-USER rmx
+USER gnux
 WORKDIR /work
 
-ENTRYPOINT ["rmx"]
+ENTRYPOINT ["gnux"]
 CMD ["--help"]

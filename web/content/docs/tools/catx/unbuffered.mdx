@@ -1,0 +1,37 @@
+---
+title: "-u, --unbuffered"
+description: "(ignored)."
+---
+
+An option of [catx](/docs/tools/catx).
+
+## Usage
+
+```bash
+catx -u [FILE]...
+catx --unbuffered [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-u` | `--unbuffered` | none |  | (ignored) |
+
+## Examples
+
+Put standard input between two files (`-u` is accepted and ignored):
+
+```bash
+echox '---' | catx -u header.txt - footer.txt
+```
+
+```powershell
+'---' | catx -u header.txt - footer.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help catx --unbuffered
+```

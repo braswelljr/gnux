@@ -1,0 +1,130 @@
+# Requirement enforced: a pushed version tag (v*) becomes a GitHub release with
+# a statically linked (CGO_ENABLED=0) gnux archive for every supported platform
+# - linux and darwin on amd64/arm64, windows on amd64 - each reporting the tag
+# as its version, plus a checksums file (FR-36, FR-38, NFR-1, NFR-2).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+# Read-only by default (NFR-37); only the publishing job may write releases.
+permissions:
+  contents: read
+
+jobs:
+  # The same gates as a pull request, against the tagged commit: a tag must not
+  # publish what CI would reject.
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race ./...
+
+      - name: Verify docs are up to date
+        run: |
+          go generate ./...
+          if [ -n "$(git status --porcelain documentation web/content/docs)" ]; then
+            echo "::error::Generated docs are out of date at this tag. Run 'make docs' and commit." >&2
+            exit 1
+          fi
+
+  build:
+    needs: verify
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { goos: linux, goarch: amd64 }
+          - { goos: linux, goarch: arm64 }
+          - { goos: darwin, goarch: amd64 }
+          - { goos: darwin, goarch: arm64 }
+          - { goos: windows, goarch: amd64 }
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build and package ${{ matrix.goos }}/${{ matrix.goarch }}
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+          VERSION: ${{ github.ref_name }}
+        run: |
+          name="gnux-${VERSION}-${GOOS}-${GOARCH}"
+          bin="gnux"
+          [ "$GOOS" = "windows" ] && bin="gnux.exe"
+          mkdir -p "dist/${name}"
+          go build -trimpath \
+            -ldflags "-s -w -X github.com/braswelljr/gnux/internal/common.Version=${VERSION}" \
+            -o "dist/${name}/${bin}" .
+          cp LICENSE README.md "dist/${name}/"
+          # The man pages ship with the Unix archives, where man can read them.
+          [ "$GOOS" != "windows" ] && cp -r documentation/man "dist/${name}/man"
+          cd dist
+          if [ "$GOOS" = "windows" ]; then
+            zip -qr "${name}.zip" "${name}"
+          else
+            tar -czf "${name}.tar.gz" "${name}"
+          fi
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: archive-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download archives
+        uses: actions/download-artifact@v4
+        with:
+          pattern: archive-*
+          path: dist
+          merge-multiple: true
+
+      - name: Write checksums
+        working-directory: dist
+        run: sha256sum gnux-* > checksums.txt
+
+      # A tag with a hyphen (v1.0.0-rc.1) is published as a prerelease.
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          prerelease=""
+          case "$TAG" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$TAG" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "gnux $TAG" \
+            --generate-notes \
+            $prerelease

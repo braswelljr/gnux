@@ -1,3 +1,5 @@
+# Requirement enforced: the code is clean under golangci-lint v2 with the
+# repository's .golangci.yml.
 name: Lint
 
 on:

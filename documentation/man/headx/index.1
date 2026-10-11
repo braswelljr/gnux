@@ -1,0 +1,124 @@
+.nh
+.TH "HEADX" "1" "Jan 2024" "gnux" "gnux manual"
+
+.SH NAME
+headx - Print the first part of each file.
+
+
+.SH SYNOPSIS
+\fBheadx [OPTION]... [FILE]...\fP
+
+
+.SH DESCRIPTION
+headx prints the first 10 lines of each FILE to standard output. With no FILE, or when FILE is -, it reads standard input. -n NUM changes the number of lines and -c NUM switches to bytes; a leading '-' on NUM inverts the selection and prints everything except the last NUM lines or bytes. NUM accepts a multiplier suffix: b is 512, K, M, G, T, P and E are powers of 1024 (also written KiB, MiB, ...), and KB, MB, ... are powers of 1000. With more than one FILE each is preceded by a '==> name <==' header; -q suppresses the headers and -v forces them. -z makes NUL the line delimiter. The historical 'headx -NUM' spelling of '-n NUM' is accepted. Reading stops as soon as enough has been seen, so headx is cheap on huge files.
+
+.PP
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+.PP
+HELP. headx --help shows the options and the first examples; gnux help headx prints the full manual, and gnux help headx OPTION explains one option.
+
+.PP
+SEE ALSO. tailx, catx, wcx.
+
+.PP
+PERMISSIONS. Needs read permission on each FILE and search permission on the directories leading to it. Nothing is ever modified.
+
+.PP
+USE CASES.
+  - Peeking at the start of a large file or log without reading all of it.
+  - Taking the first few results of a pipeline.
+  - Dropping a fixed-size trailer with -n -NUM or -c -NUM.
+  - Sampling the first bytes of a binary file with -c, for example to check a magic number.
+  - Reading the header row of a CSV file before processing it.
+  - Comparing the beginnings of several files side by side, with or without '==> name <==' headers.
+  - Cutting an endless stream such as yesx down to a fixed number of lines.
+  - Extracting a range of lines when combined with tailx.
+  - Handling NUL-separated file lists safely with -z.
+
+
+.SH OPTIONS
+\fB-c\fP, \fB--bytes\fP=
+	print the first NUM bytes of each file; with a leading '-', print all but the last NUM bytes of each file
+
+.PP
+\fB--help\fP[=false]
+	display this help and exit
+
+.PP
+\fB-n\fP, \fB--lines\fP=
+	print the first NUM lines instead of the first 10; with a leading '-', print all but the last NUM lines of each file
+
+.PP
+\fB-q\fP, \fB--quiet\fP[=false]
+	never print headers giving file names
+
+.PP
+\fB--silent\fP[=false]
+	same as --quiet
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	always print headers giving file names
+
+.PP
+\fB--version\fP[=false]
+	output version information and exit
+
+.PP
+\fB-z\fP, \fB--zero-terminated\fP[=false]
+	line delimiter is NUL, not newline
+
+
+.SH EXAMPLE
+.EX
+  # Print the first 10 lines of a file
+  headx access.log
+
+  # Print the first 3 lines of each file, with headers
+  headx -n 3 a.txt b.txt
+
+  # Print only the header row of a CSV file
+  headx -n 1 data.csv
+
+  # Print the first line of every CSV file without the file name headers
+  headx -q -n 1 *.csv
+
+  # Show the file name header even for a single file (--silent is the long spelling of -q)
+  headx -v -n 2 config.ini
+
+  # Print the first kibibyte of a file
+  headx -c 1K image.png > start.bin
+
+  # Check a file's magic number from its first bytes
+  headx -c 4 image.png | catx -v
+
+  # Copy the first megabyte (10^6 bytes) of a large file
+  headx -c 1MB disk.img > sample.img
+
+  # Print everything except the last 2 lines
+  headx -n -2 report.txt
+
+  # Strip the final byte, such as a trailing newline
+  headx -c -1 version.txt
+
+  # Keep the first 5 lines of a pipeline, using the historical -NUM form
+  lsx -t | headx -5
+
+  # Print lines 11 to 20 of a file
+  headx -n 20 app.log | tailx -n 10
+
+  # Cut an endless stream down to three lines
+  yesx ok | headx -n 3
+
+  # Take the first two entries of a NUL-separated list
+  find . -name '*.txt' -print0 | headx -z -n 2 | xargs -0 wcx -l
+
+  # Fail a script when a file cannot be read
+  headx -n 1 missing.txt || echox "exit status $?"
+
+  # Preview the start of every log in the portable gnux shell
+  gnux shell -c 'headx -n 3 *.log'
+.EE

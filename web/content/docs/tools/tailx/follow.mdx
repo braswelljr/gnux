@@ -1,0 +1,47 @@
+---
+title: "-f, --follow"
+description: "Output appended data as the file grows; HOW is 'name' or 'descriptor' (the default)."
+---
+
+An option of [tailx](/docs/tools/tailx).
+
+## Usage
+
+```bash
+tailx -f [FILE]...
+tailx --follow[=HOW] [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-f` | `--follow` | `HOW` (optional) |  | output appended data as the file grows; HOW is 'name' or 'descriptor' (the default) |
+
+## Examples
+
+Follow a log, printing only lines appended from now on:
+
+```bash
+tailx -n 0 -f app.log
+```
+
+```powershell
+tailx -n 0 -f app.log
+```
+
+Follow by name and wait for a file that does not exist yet:
+
+```bash
+tailx --follow=name --retry service.log
+```
+
+```powershell
+tailx --follow=name --retry service.log
+```
+
+## Help in the terminal
+
+```bash
+gnux help tailx --follow
+```

@@ -1,0 +1,37 @@
+---
+title: "-z, --zero-terminated"
+description: "Line delimiter is NUL, not newline."
+---
+
+An option of [headx](/docs/tools/headx).
+
+## Usage
+
+```bash
+headx -z [FILE]...
+headx --zero-terminated [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-z` | `--zero-terminated` | none |  | line delimiter is NUL, not newline |
+
+## Examples
+
+Take the first two entries of a NUL-separated list:
+
+```bash
+find . -name '*.txt' -print0 | headx -z -n 2 | xargs -0 wcx -l
+```
+
+```powershell
+headx -z -n 2 names.lst
+```
+
+## Help in the terminal
+
+```bash
+gnux help headx --zero-terminated
+```

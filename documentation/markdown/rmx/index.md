@@ -1,0 +1,235 @@
+## rmx
+
+Remove (unlink) files and directories.
+
+Mirrors GNU `rm`. Run it as `rmx`, or as `gnux rmx`.
+
+### Synopsis
+
+```bash
+rmx [OPTION]... [FILE]...
+```
+
+### Description
+
+`rmx` removes each FILE. By default it does not remove directories; use `-r` to remove a directory and everything under it, or `-d` to remove an empty directory. Prompting is controlled by `-i` (before every removal), `-I` (once before a bulk or recursive removal) and `--interactive`; `-f` disables all prompts and ignores missing files. `rmx` refuses to remove '.' and '..' and, by default, refuses to recurse on the filesystem root. Independent arguments are removed concurrently whenever no prompt or ordered output is involved.
+
+### Permissions
+
+Removing an entry needs write and search permission on the directory that contains it, not on the entry itself. On a terminal, a write-protected file triggers a confirmation prompt unless `-f` is given.
+
+### Use cases
+
+- Everyday file cleanup.
+- Unattended deletion in CI or scripts with `-f`.
+- Cautious, per-file review with `-i`, or one confirmation before a large delete with `-I`.
+- Auditing a recursive delete with `-rv`.
+- Clearing build output (build/, dist/, node_modules/) before a fresh build.
+- Pruning directories that should already be empty with `-d`, without risking contents.
+- Removing temporary files a script created, even if some were never written (`-f`).
+- Deleting a tree without crossing into mounted volumes (`--one-file-system`).
+- Removing files whose names start with '-' by ending options with --.
+
+### Flags
+
+```text
+  -d, --dir                             remove empty directories
+  -f, --force                           ignore nonexistent files and arguments, never prompt
+      --help                            display this help and exit
+      --interactive string[="always"]   prompt according to WHEN: never, once, or always
+      --no-preserve-root                do not treat '/' specially
+      --one-file-system                 when removing recursively, skip directories on a different file system
+      --preserve-root                   do not remove '/' (default) (default true)
+  -i, --prompt-each                     prompt before every removal
+  -I, --prompt-once                     prompt once before removing more than three files, or when removing recursively
+  -r, --recursive                       remove directories and their contents recursively
+  -v, --verbose                         explain what is being done
+      --version                         output version information and exit
+```
+
+### Examples
+
+Remove a few files:
+
+```bash
+rmx notes.txt draft.md
+```
+
+```powershell
+rmx notes.txt draft.md
+```
+
+Recursively remove a directory, reporting each deletion:
+
+```bash
+rmx -rv build/
+```
+
+```powershell
+rmx -rv build
+```
+
+Unattended cleanup: no prompts, ignore missing paths:
+
+```bash
+rmx -rf /tmp/cache
+```
+
+```powershell
+rmx -rf $env:TEMP\cache
+```
+
+Remove an empty directory only:
+
+```bash
+rmx -d generated/
+```
+
+```powershell
+rmx -d generated
+```
+
+Ask before each removal:
+
+```bash
+rmx -i *.bak
+```
+
+```powershell
+rmx -i (Get-ChildItem -Filter *.bak -Name)
+```
+
+Ask once before a recursive delete:
+
+```bash
+rmx -I -r old-project/
+```
+
+```powershell
+rmx -I -r old-project
+```
+
+Choose the prompt policy explicitly:
+
+```bash
+rmx --interactive=once *.log
+```
+
+```powershell
+rmx --interactive=once (Get-ChildItem -Filter *.log -Name)
+```
+
+Answer every prompt with yes from a pipeline:
+
+```bash
+yesx | rmx -i a.tmp b.tmp
+```
+
+```powershell
+yesx | rmx -i a.tmp b.tmp
+```
+
+Remove a file whose name starts with a dash:
+
+```bash
+rmx -- -draft.txt
+```
+
+```powershell
+rmx -- -draft.txt
+```
+
+Remove a tree but skip file systems mounted beneath it:
+
+```bash
+rmx -r --one-file-system scratch/
+```
+
+```powershell
+rmx -r --one-file-system scratch
+```
+
+Disable the root failsafe for a deliberate recursive delete:
+
+```bash
+rmx -rf --no-preserve-root /mnt/scratch
+```
+
+```powershell
+rmx -rf --no-preserve-root D:\scratch
+```
+
+Clean up and rebuild only if the removal succeeded:
+
+```bash
+rmx -rf dist/ && mkdirx dist
+```
+
+```powershell
+rmx -rf dist; if ($LASTEXITCODE -eq 0) { mkdirx dist }
+```
+
+Detect a failed removal in a script:
+
+```bash
+rmx missing.txt || echox "rmx exited with $?"
+```
+
+```powershell
+rmx missing.txt; if ($LASTEXITCODE -ne 0) { echox "rmx exited with $LASTEXITCODE" }
+```
+
+Count how many entries a recursive delete removed:
+
+```bash
+rmx -rv cache/ | wcx -l
+```
+
+```powershell
+rmx -rv cache | wcx -l
+```
+
+Remove temporary files with the `gnux shell`:
+
+```bash
+gnux shell -c 'rmx -fv *.tmp && echox done'
+```
+
+```powershell
+gnux shell -c 'rmx -fv *.tmp && echox done'
+```
+
+### Flag reference
+
+- [force](flags/force.md) - Ignore nonexistent files and arguments, and never prompt.
+- [interactive](flags/interactive.md) - Prompt before removals: `-i` (every file), `-I` (once), `--interactive`[=WHEN].
+- [recursive](flags/recursive.md) - Remove directories and their contents recursively (`-r`, `-R`).
+- [directory](flags/directory.md) - Remove empty directories (`-d`/`--dir`).
+- [verbose](flags/verbose.md) - Explain what is being removed (`-v`/`--verbose`).
+- [onefilesystem](flags/onefilesystem.md) - Stay on one file system during recursive removal (`--one-file-system`).
+- [preserveroot](flags/preserveroot.md) - Refuse to recurse on '/' (`--preserve-root`, default; `--no-preserve-root` overrides).
+- [version](flags/version.md) - Print version information and exit (`--version`).
+
+### Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+### Help in the terminal
+
+```bash
+rmx --help                # options, first examples, exit status
+gnux help rmx             # this page: the full manual
+gnux help rmx --OPTION    # one option in depth, with its examples
+```
+
+### See also
+
+- [rmdirx](../rmdirx/index.md)
+- [mvx](../mvx/index.md)
+- [cpx](../cpx/index.md)
+- [gnux shell](../shell/index.md)
+- [gnux](../index.md) - every tool in the bundle
+- [guide](../guide.md) - installation and usage

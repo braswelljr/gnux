@@ -1,0 +1,37 @@
+---
+title: "-F, --classify"
+description: "Append indicator (one of */=@|) to entries."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx -F [FILE]...
+lsx --classify [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-F` | `--classify` | none |  | append indicator (one of */=@\|) to entries |
+
+## Examples
+
+Recursively list a tree, marking directories and executables:
+
+```bash
+lsx -RF src/
+```
+
+```powershell
+lsx -RF src
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --classify
+```

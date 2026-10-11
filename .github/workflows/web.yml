@@ -1,0 +1,89 @@
+# Requirement enforced: the website builds from a clean checkout - gnux
+# compiles to WebAssembly, the playground's in-memory filesystem passes its
+# tests against that real binary, and the Fumadocs site lints, type-checks and
+# builds, and the built pages carry their SEO metadata. Needs Go (version from
+# go.mod), Node.js 22.18 or newer and pnpm (version from web/package.json).
+name: Web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "**.go"
+      - go.mod
+      - .github/workflows/web.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "**.go"
+      - go.mod
+      - .github/workflows/web.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      # The playground loads this binary; it is built, not committed.
+      - name: Build gnux for WebAssembly
+        run: make web/wasm
+
+      - name: Install dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        working-directory: web
+        run: pnpm lint
+
+      - name: Check formatting
+        working-directory: web
+        run: pnpm format:check
+
+      - name: Type-check
+        working-directory: web
+        run: pnpm typecheck
+
+      - name: Test the playground filesystem against the wasm
+        working-directory: web
+        run: pnpm test
+
+      - name: Build
+        working-directory: web
+        run: pnpm build
+
+      # Starts the built site and checks robots.txt, the sitemap, llms.txt and
+      # each page's title, description, canonical URL and structured data.
+      - name: Check SEO output
+        working-directory: web
+        run: pnpm test:seo

@@ -1,0 +1,37 @@
+name: verbose
+synopsis: Explain what is being removed (-v/--verbose).
+description: |-
+    -v/--verbose prints a line for each item removed, e.g. removed 'notes.txt'. To keep the report in the order you listed the arguments, verbose removal runs sequentially rather than concurrently.
+
+    PERMISSIONS. -v does not change permission handling or what may be removed; it only reports the items that were successfully removed. Files it could not remove are reported as errors on stderr as usual.
+
+    USE CASES.
+      - Auditing exactly what a recursive or wildcard delete removed.
+      - Confirming a script deleted the files you expected.
+      - Troubleshooting by pairing -v with -i to see and approve each removal.
+      - Keeping a log of a cleanup by saving the report to a file.
+usage: verbose [FILE]...
+options:
+    - name: help
+      shorthand: h
+      default_value: "false"
+      usage: help for verbose
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: explain what is being done
+example: |4-
+      # Remove several files, printing a line per file
+      rmx -v a.txt b.txt
+
+      # Recursively remove a directory, reporting each removal
+      rmx -rv dist/
+
+      # Save the removal report to a log file
+      rmx -rv cache/ > cleanup.log
+
+      # Count the entries removed
+      rmx -rv tmp/ | wcx -l
+
+      # Report removals of files that may not exist, with the gnux shell
+      gnux shell -c 'rmx -fv *.bak'

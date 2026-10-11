@@ -1,0 +1,316 @@
+# Getting started
+
+This guide takes you from nothing to a working gnux installation: installing the binary with `go install`, `make`, `install.sh` or Docker, turning each of the 22 tools into a command of its own by linking its name to the binary, and running your first commands in both invocation forms. It also covers the GNU-name aliases that let scripts written for the GNU tools run unchanged, the `--help`, `--version` and `--list` options every installation has, and how to check that everything is wired up correctly.
+
+## What you are installing
+
+gnux is one statically linked executable called `gnux`. It contains every tool: `basenamex`, `catx`, `cpx`, `dirnamex`, `echox`, `envx`, `falsex`, `headx`, `lnx`, `lsx`, `mkdirx`, `mvx`, `pwdx`, `realpathx`, `rmx`, `rmdirx`, `sleepx`, `tailx`, `touchx`, `truex`, `wcx` and `yesx`. Each is named after its GNU counterpart with an `x` appended, and mirrors its flags, diagnostics and exit statuses.
+
+The binary decides which tool to be by looking at the name it was started under. That is why installation has two parts:
+
+1. Put `gnux` on your `PATH`.
+2. Optionally, create one link (or copy) per tool name pointing at it, so that `rmx`, `cpx` and the rest are commands of their own.
+
+Without step 2 everything still works, through the subcommand form: `gnux rmx -rf build`.
+
+## Requirements
+
+| To... | You need |
+|-------|----------|
+| Run gnux | Nothing but the binary: Linux or macOS (amd64, arm64) or Windows (amd64). No cgo, no runtime dependencies |
+| Use the per-tool commands | A filesystem with symbolic links (or copies of the binary) and the install directory on `PATH` |
+| Install with `go install` or build from source | Go 1.25 or newer, and `git` |
+| Use the optional helpers | `make` for the Makefile, `bash` for `install.sh`, Docker for the image |
+
+## Install with `go install`
+
+The quickest route, on any platform with Go:
+
+```bash
+go install github.com/braswelljr/gnux@latest
+```
+
+The binary lands in `$(go env GOBIN)`, or `$(go env GOPATH)/bin` when `GOBIN` is unset. Make sure that directory is on your `PATH`:
+
+```bash
+export PATH="$(go env GOPATH)/bin:$PATH"   # add to ~/.bashrc or ~/.zshrc
+gnux --version
+```
+
+```powershell
+$env:Path = "$(go env GOPATH)\bin;$env:Path"   # add to your $PROFILE
+gnux --version
+```
+
+To pin a version, name a tag instead of `latest`: `go install github.com/braswelljr/gnux@v0.1.0`.
+
+A plain `go install` does not stamp the version string, so `gnux --version` prints `gnux dev`. Use `make install` or `install.sh --from-source` when you want the real version reported.
+
+## Link the tool names
+
+gnux looks at the name it was started under, so a link called `rmx` that points to `gnux` behaves as `rmx`. `gnux --list` prints every tool name, one per line, which makes the loop short:
+
+```bash
+bin="$(dirname "$(command -v gnux)")"
+for t in $(gnux --list); do ln -sf gnux "$bin/$t"; done
+```
+
+```powershell
+# Symbolic links need Developer Mode or an elevated prompt on Windows.
+# Copies work everywhere and dispatch exactly the same way.
+$bin = Split-Path (Get-Command gnux).Source
+foreach ($t in gnux --list) { Copy-Item "$bin\gnux.exe" "$bin\$t.exe" -Force }
+```
+
+Check the result:
+
+```bash
+rmx --version
+lsx --version
+```
+
+```text
+rmx (gnux) dev
+lsx (gnux) dev
+```
+
+The [Windows guide](windows-and-powershell.md) covers links versus copies in detail.
+
+## Install with `install.sh`
+
+`install.sh` in the repository root does both parts at once: it installs the binary with `go install` and links every tool name next to it.
+
+```bash
+./install.sh                    # latest version, plus the per-tool links
+VERSION=v0.1.0 ./install.sh     # a specific tag
+./install.sh --from-source      # build the current checkout, with the version stamped in
+./install.sh --no-links         # the gnux binary only
+```
+
+A typical run prints:
+
+```text
+Installing github.com/braswelljr/gnux@latest...
+Installed gnux to /home/you/go/bin/gnux
+Linked 22 tools (rmx, cpx, lsx, ...) in /home/you/go/bin
+Ensure /home/you/go/bin is on your PATH, then run: gnux --help
+```
+
+It stops with `error: the Go toolchain is required` if Go is missing, and with `error: unknown option` (exit status 2) for any argument other than `--from-source` or `--no-links`.
+
+## Build from source with `make`
+
+```bash
+git clone https://github.com/braswelljr/gnux.git
+cd gnux
+
+make build            # ./bin/gnux, with the version from git describe
+make links            # build, then link every tool name inside ./bin
+./bin/lsx -la         # try a tool straight from the build directory
+
+make install          # go install, with the version stamped in
+make install/links    # install, then link every tool name next to the installed binary
+```
+
+`make build/all` cross-compiles for Linux, macOS and Windows on amd64 and arm64 into `./bin`. To build by hand with the version injected:
+
+```bash
+go build -ldflags "-X github.com/braswelljr/gnux/internal/common.Version=$(git describe --tags --always)" -o bin/gnux .
+```
+
+## Run in Docker
+
+The repository's `Dockerfile` is a two-stage build: a `golang:1.25-alpine` stage compiles a static binary and links every tool name, and an `alpine:3.20` stage carries only `/usr/local/bin/gnux` and its links. The image runs as an unprivileged user (uid 10001) in `/work`, with `gnux` as its entry point.
+
+```bash
+docker build -t gnux .
+docker build -t gnux --build-arg VERSION=v0.1.0 .     # stamp a version
+
+docker run --rm gnux --list
+docker run --rm -v "$(pwd):/work" gnux lsx -la
+docker run --rm -v "$(pwd):/work" gnux shell -c 'wcx -l *.go'
+docker run --rm -v "$(pwd):/work" --entrypoint rmx gnux -rv build/
+```
+
+```powershell
+docker run --rm -v "${PWD}:/work" gnux lsx -la
+```
+
+Or through Compose, which builds the image and mounts the current directory at `/work`:
+
+```bash
+docker compose run --rm gnux --version
+docker compose run --rm gnux lsx -la
+docker compose run --rm gnux rmx -rv build/
+```
+
+These are real file tools working on the mounted directory: `rmx` in a container deletes your files just as it would on the host. More container patterns are in [CI and containers](ci-and-containers.md).
+
+## Your first commands
+
+Run a tool under its own name, exactly as you would its GNU counterpart:
+
+```bash
+mkdirx -pv demo/src demo/docs
+echox 'hello, gnux' > demo/README.md
+lsx -R demo
+catx -n demo/README.md
+wcx -c demo/README.md
+```
+
+```text
+mkdirx: created directory 'demo'
+mkdirx: created directory 'demo/src'
+mkdirx: created directory 'demo/docs'
+demo:
+README.md
+docs
+src
+
+demo/docs:
+
+demo/src:
+     1	hello, gnux
+12 demo/README.md
+```
+
+Clean up the same way:
+
+```bash
+rmx -rv demo
+```
+
+## The two invocation forms
+
+Every tool can be run two ways, with identical results:
+
+```bash
+rmx -rf build/          # as a command of its own (needs the link)
+gnux rmx -rf build/     # as a subcommand of the one binary (always works)
+```
+
+The subcommand form is handy when the links are not installed, on a machine where you only copied `gnux`, or in a container whose entry point is `gnux`.
+
+## GNU-name aliases
+
+Both forms also answer to the GNU name of each tool:
+
+```bash
+gnux rm -rf build/      # same as gnux rmx -rf build/
+gnux ls -la             # same as gnux lsx -la
+```
+
+And a link named after the GNU tool selects it too, so scripts that call the GNU names work where GNU coreutils is not installed, such as a minimal container or a Windows machine:
+
+```bash
+ln -s "$(command -v gnux)" /usr/local/bin/rm
+rm --version
+```
+
+```text
+rmx (gnux) dev
+```
+
+The program name is matched without its directory, without a `.exe` suffix and ignoring case, so `RMX.EXE` on Windows selects `rmx`.
+
+Think before shadowing the system's own `rm` or `ls`: other programs and scripts on the machine may depend on GNU or BSD extensions gnux does not implement. The `x` names exist precisely so the two can live side by side.
+
+## Help, version and the tool list
+
+Every tool, and gnux itself, accepts `--help` and `--version`:
+
+```bash
+gnux --help            # what gnux is, and every tool with its GNU name and summary
+rmx --help             # usage, description, options, first examples, exit status
+gnux rmx --help        # the same, through the subcommand form
+rmx --version          # rmx (gnux) VERSION
+```
+
+`--help` has no short form, so `-h` stays free for the tools that use it (`lsx -h` is human-readable sizes, `touchx -h` acts on a symbolic link itself).
+
+`--help` stays one screen, as GNU's does. For the full manual, the same content as the online reference, use `gnux help`:
+
+```bash
+gnux help rmx          # NAME, SYNOPSIS, DESCRIPTION, OPTIONS, PERMISSIONS, USE CASES,
+                       # every EXAMPLE (bash and PowerShell), EXIT STATUS, SEE ALSO
+gnux help rm           # the GNU name works too
+gnux help rmx force    # one option in depth: --force, force, -f and f all work
+gnux help lsx -l       # any option of any tool, with every example that uses it
+gnux help shell        # the manual for gnux shell
+```
+
+```text
+$ gnux help cpx -v
+OPTION
+    -v, --verbose  (cpx)
+        explain what is being done
+
+EXAMPLES
+  # Copy several files into a directory, reporting each one
+  $ cpx -v a.txt b.txt backup/
+  PS> cpx -v a.txt b.txt backup
+...
+```
+
+Inside `gnux shell` and the playground, `help rmx` and `gnux help rmx` print the same manual. Help is colored on a terminal and plain when piped, or when `NO_COLOR` is set.
+
+`gnux --list` prints the tool names, one per line, ready for a loop:
+
+```bash
+gnux --list | wcx -l
+```
+
+```text
+22
+```
+
+## Options follow GNU conventions
+
+```bash
+rmx -rvf build/                 # short flags combine
+lsx --sort=size                 # long flags take --name=value
+lsx --sort size                 # ... or a separate argument
+rmx -- -weird-file-name         # -- ends option parsing
+cpx -t backup/ a.txt b.txt      # options may follow operands (except for envx)
+```
+
+An option gnux does not implement is refused, never silently ignored:
+
+```bash
+rmx --no-such-flag x
+```
+
+```text
+rmx: unknown flag: --no-such-flag
+Try 'rmx --help' for more information.
+```
+
+## Exit statuses at a glance
+
+| Status | Meaning |
+|--------|---------|
+| 0 | Success |
+| 1 | Something failed (diagnostic on standard error), or a command-line mistake |
+| 2 | `lsx`: serious trouble, such as an operand that cannot be accessed |
+| 125, 126, 127 | `envx`: it failed itself, the command could not be run, the command was not found |
+| 2, 127 | `gnux shell`: a syntax error, an unknown command |
+
+[Troubleshooting](troubleshooting.md) explains each one with examples.
+
+## Check your installation
+
+```bash
+command -v gnux rmx lsx         # all three should resolve
+gnux --version
+gnux --list | wcx -l            # 22
+gnux shell -c 'echox shell works && pwdx'
+```
+
+If `rmx` is not found, the links were not created or their directory is not on `PATH`: rerun the linking loop. If `gnux --version` prints `dev`, the binary was built without the version flag, which is harmless.
+
+## Next steps
+
+- The [cookbook](cookbook.md) for everyday recipes.
+- [Portable scripting](portable-scripting.md) for scripts that run on every platform.
+- The [reference](../markdown/index.md) for every flag of every tool.
+- The [user workflows](../../docs/requirements/srs-workflows.md) for the install flow and its failure paths, step by step.

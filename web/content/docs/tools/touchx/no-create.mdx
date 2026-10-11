@@ -1,0 +1,47 @@
+---
+title: "-c, --no-create"
+description: "Do not create any files."
+---
+
+An option of [touchx](/docs/tools/touchx).
+
+## Usage
+
+```bash
+touchx -c FILE...
+touchx --no-create FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-c` | `--no-create` | none |  | do not create any files |
+
+## Examples
+
+Update timestamps without creating anything:
+
+```bash
+touchx -c build/*.o
+```
+
+```powershell
+touchx -c (Get-ChildItem build\*.o)
+```
+
+Copy just the modification time, and only to files that already exist:
+
+```bash
+touchx -c -m -r original.jpg edited.jpg report.pdf
+```
+
+```powershell
+touchx -c -m -r original.jpg edited.jpg report.pdf
+```
+
+## Help in the terminal
+
+```bash
+gnux help touchx --no-create
+```

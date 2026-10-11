@@ -1,0 +1,13 @@
+{
+  "title": "mvx",
+  "pages": [
+    "force",
+    "interactive",
+    "no-clobber",
+    "no-target-directory",
+    "strip-trailing-slashes",
+    "target-directory",
+    "update",
+    "verbose"
+  ]
+}

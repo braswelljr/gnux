@@ -20,7 +20,7 @@ linters:
   settings:
     revive:
       rules:
-        # exported rule omitted — JSDoc block comments document all exported
+        # exported rule omitted - JSDoc block comments document all exported
         # symbols; Go's "must start with symbol name" godoc format is not enforced.
         - name: error-return
         - name: error-naming
@@ -29,7 +29,7 @@ linters:
         - name: blank-imports
 
     gocritic:
-      # Only checks that are NOT already on by default — listing default checks
+      # Only checks that are NOT already on by default - listing default checks
       # here makes golangci-lint emit "no need to enable" warnings.
       enabled-checks:
         - commentedOutCode
@@ -72,6 +72,24 @@ linters:
       - linters:
           - errcheck
         text: "Error return value of `fmt\\.Fprint(f|ln)?`"
+
+# Formatting, checked by `golangci-lint run` and applied by `golangci-lint fmt`
+# (`make fix` and the pre-commit hook in lefthook.yml). goimports groups this
+# module's own imports last, after the standard library and third parties.
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+    goimports:
+      local-prefixes:
+        - github.com/braswelljr/gnux
+  exclusions:
+    paths:
+      - vendor
+      - bin
 
 run:
   timeout: 5m

@@ -1,0 +1,37 @@
+---
+title: "-Q, --quote-name"
+description: "Enclose entry names in double quotes."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx -Q [FILE]...
+lsx --quote-name [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-Q` | `--quote-name` | none |  | enclose entry names in double quotes |
+
+## Examples
+
+Quote names, or escape control characters, to spot odd file names:
+
+```bash
+lsx -Q && lsx -b && lsx -q
+```
+
+```powershell
+lsx -Q; lsx -b; lsx -q
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --quote-name
+```

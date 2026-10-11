@@ -1,28 +1,41 @@
-// Command gendocs generates the rmx CLI reference in every cobra format.
+// Command gendocs generates the gnux reference - the entry page, the guide and
+// one page per tool (and per flag, where a tool documents them) - in every
+// cobra format.
 //
 // Usage:
 //
 //	go run ./tools/gendocs [dir] [format]
 //
-//	dir      output base directory (default "docs")
-//	format   one of: all (default), markdown, man, yaml, rest, guide, flags
+//	dir      output base directory (default "documentation")
+//	format   one of: all (default), markdown, man, yaml, rest, or mdx
+//
+// "all" writes the four reference formats under dir/<format>. "mdx" is
+// separate: it writes the website's content straight into dir, which should be
+// the Fumadocs content root (web/content/docs), and includes the hand-written
+// guides in documentation/guides (the requirements, workflows and rules in
+// docs/ stay in the repository). Run it from the repository root.
 //
 // It is also wired as a `go generate` step (see main.go) and `make docs`.
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
-	"github.com/spf13/cobra"
-
-	"github.com/braswelljr/rmx/cmd"
-	"github.com/braswelljr/rmx/cmd/docs"
+	"github.com/braswelljr/gnux/cmd/docs"
 )
 
+// The hand-written documents published on the website with the generated
+// pages: each folder of handwrittenRoot becomes a section of the same name.
+// They sit beside the generated reference in documentation/, which the
+// generator rebuilds format by format (documentation/<format>), so a folder
+// that is not a format name is never touched by it.
+const handwrittenRoot = "documentation"
+
+var handwrittenFolders = []string{"guides"}
+
 func main() {
-	dir := "docs"
+	dir := "documentation"
 	if len(os.Args) > 1 {
 		dir = os.Args[1]
 	}
@@ -32,32 +45,31 @@ func main() {
 		format = os.Args[2]
 	}
 
-	root := cmd.NewRoot(os.Stdin, os.Stdout, os.Stderr)
-
-	if err := generate(root, dir, format); err != nil {
+	if err := generate(dir, format); err != nil {
 		log.Fatalf("gendocs: %v", err)
 	}
 
 	log.Printf("gendocs: wrote %s reference to %s/", format, dir)
 }
 
-func generate(root *cobra.Command, dir, format string) error {
+func generate(dir, format string) error {
 	switch format {
 	case "all":
-		return docs.GenerateAll(root, dir)
-	case "markdown", "md":
-		return docs.GenerateMarkdown(root, dir)
-	case "man":
-		return docs.GenerateMan(root, dir)
-	case "yaml", "yml":
-		return docs.GenerateYaml(root, dir)
-	case "rest", "rst":
-		return docs.GenerateReST(root, dir)
-	case "guide":
-		return docs.GenerateGuide(dir)
-	case "flags":
-		return docs.GenerateFlags(dir)
-	default:
-		return fmt.Errorf("unknown format %q (want: all, markdown, man, yaml, rest, guide, flags)", format)
+		return docs.GenerateAll(dir)
+	case "mdx":
+		// The hand-written documents live beside the reference and are read
+		// relative to the repository root, where gendocs is run from.
+		pages, err := docs.HandwrittenPages(handwrittenRoot, handwrittenRoot, handwrittenFolders...)
+		if err != nil {
+			return err
+		}
+		return docs.GenerateMDX(dir, pages...)
+	case "md":
+		format = "markdown"
+	case "yml":
+		format = "yaml"
+	case "rst":
+		format = "rest"
 	}
+	return docs.Generate(dir, format)
 }

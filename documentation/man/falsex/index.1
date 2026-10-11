@@ -1,0 +1,69 @@
+.nh
+.TH "FALSEX" "1" "Jan 2024" "gnux" "gnux manual"
+
+.SH NAME
+falsex - Do nothing, unsuccessfully.
+
+
+.SH SYNOPSIS
+\fBfalsex [ignored command line arguments]\fP
+
+
+.SH DESCRIPTION
+falsex exits with status 1 and does nothing else: it reads no input, writes no output and ignores every argument it is given. The only exceptions are --help and --version, which are honored when they are the sole argument. It exists so scripts have a portable command whose result is always failure.
+
+.PP
+EXIT STATUS.
+  1  always, whatever the arguments
+
+.PP
+HELP. falsex --help shows the options and the first examples; gnux help falsex prints the full manual, and gnux help falsex OPTION explains one option.
+
+.PP
+SEE ALSO. truex, gnux shell.
+
+.PP
+PERMISSIONS. Needs no permissions; it touches nothing.
+
+.PP
+USE CASES.
+  - Testing how a script or CI step reacts to a failing command.
+  - Disabling a hook or account shell by pointing it at a command that always fails.
+  - Terminating an until loop condition: until falsex; do ...; done never stops on its own.
+  - Checking that 'gnux shell -e' aborts a script at the first failure.
+  - Exercising the else branch of a conditional or the right side of ||.
+  - Standing in for a command that is expected to fail in examples and tests.
+
+
+.SH OPTIONS
+\fB--help\fP[=false]
+	display this help and exit
+
+.PP
+\fB--version\fP[=false]
+	output version information and exit
+
+
+.SH EXAMPLE
+.EX
+  # Exit with status 1
+  falsex
+
+  # Show the exit status
+  falsex; echox $?
+
+  # Run a fallback when a command fails
+  falsex || echox 'fallback ran'
+
+  # Skip the command after &&
+  falsex && echox never; echox "status: $?"
+
+  # Take the else branch of a conditional
+  if falsex; then echox yes; else echox no; fi
+
+  # See gnux shell -e stop at the first failure
+  gnux shell -e -c 'echox before; falsex; echox after'; echox "shell exited $?"
+
+  # Pass the status through envx, which exits with the command's status
+  envx falsex; echox $?
+.EE

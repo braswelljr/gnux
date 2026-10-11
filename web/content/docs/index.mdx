@@ -1,0 +1,47 @@
+---
+title: "gnux"
+description: "The GNU core utilities in one cross-platform binary, a Go library, and a portable shell."
+---
+
+`gnux` brings the interface of the GNU core utilities to every platform: one binary of GNU-compatible tools, written in Go. Every tool is named after its GNU counterpart with an x appended - `rm` is `rmx`, `cp` is `cpx`, `ls` is `lsx` - and mirrors its flags, semantics, diagnostics and exit statuses, on Linux, macOS and Windows alike. It can be used three ways: as commands, as a Go library, and through `gnux shell`, a portable script interpreter built on the tools. `gnux` is an independent project, not affiliated with or endorsed by the GNU Project or the FSF; it complements GNU coreutils rather than replacing them.
+
+## Three ways to use it
+
+- **Commands** - each tool is a command of its own, and a subcommand of the one binary. See the [guide](/docs/guide).
+- **Go library** - every tool's engine is an importable package. See [Go library](/docs/library).
+- **Portable shell** - scripts that run the same on every platform. See [gnux shell](/docs/shell).
+
+```bash
+rmx -rf build/                  # a command of its own
+gnux rmx -rf build/             # a subcommand
+gnux shell -c 'rmx -rf build/'  # a line of a portable script
+```
+
+## Tools
+
+| Tool | GNU counterpart | What it does |
+| --- | --- | --- |
+| [basenamex](/docs/tools/basenamex) | `basename` | Strip the directory and suffix from file names |
+| [catx](/docs/tools/catx) | `cat` | Concatenate files and print them on standard output |
+| [cpx](/docs/tools/cpx) | `cp` | Copy files and directories |
+| [dirnamex](/docs/tools/dirnamex) | `dirname` | Strip the last component from file names |
+| [echox](/docs/tools/echox) | `echo` | Display a line of text |
+| [envx](/docs/tools/envx) | `env` | Run a program in a modified environment, or print the environment |
+| [falsex](/docs/tools/falsex) | `false` | Do nothing, unsuccessfully |
+| [headx](/docs/tools/headx) | `head` | Print the first part of each file |
+| [lnx](/docs/tools/lnx) | `ln` | Make hard or symbolic links between files |
+| [lsx](/docs/tools/lsx) | `ls` | List information about files and directory contents |
+| [mkdirx](/docs/tools/mkdirx) | `mkdir` | Create the DIRECTORY(ies), if they do not already exist |
+| [mvx](/docs/tools/mvx) | `mv` | Move (rename) files and directories |
+| [pwdx](/docs/tools/pwdx) | `pwd` | Print the full name of the current working directory |
+| [realpathx](/docs/tools/realpathx) | `realpath` | Print the resolved absolute file name |
+| [rmdirx](/docs/tools/rmdirx) | `rmdir` | Remove the DIRECTORY(ies), if they are empty |
+| [rmx](/docs/tools/rmx) | `rm` | Remove (unlink) files and directories |
+| [sleepx](/docs/tools/sleepx) | `sleep` | Delay for a specified amount of time |
+| [tailx](/docs/tools/tailx) | `tail` | Print the last part of each file, optionally following it as it grows |
+| [touchx](/docs/tools/touchx) | `touch` | Update the access and modification times of each FILE to the current time |
+| [truex](/docs/tools/truex) | `true` | Do nothing, successfully |
+| [wcx](/docs/tools/wcx) | `wc` | Print newline, word, and byte counts for each file |
+| [yesx](/docs/tools/yesx) | `yes` | Output a string repeatedly until killed |
+
+Try any of them in the [playground](/playground) - it runs the real tools in your browser.

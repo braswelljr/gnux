@@ -1,0 +1,77 @@
+---
+title: "-m, --mode"
+description: "Set file MODE (as in chmod), not a=rwx - umask."
+---
+
+An option of [mkdirx](/docs/tools/mkdirx).
+
+## Usage
+
+```bash
+mkdirx -m MODE DIRECTORY...
+mkdirx --mode=MODE DIRECTORY...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-m` | `--mode` | `MODE` |  | set file MODE (as in chmod), not a=rwx - umask |
+
+## Examples
+
+Create a directory only its owner can enter:
+
+```bash
+mkdirx -m 700 ~/.secrets
+```
+
+```powershell
+mkdirx -m 700 $HOME\.secrets
+```
+
+Use a symbolic mode:
+
+```bash
+mkdirx -m u=rwx,go=rx shared
+```
+
+```powershell
+mkdirx -m 'u=rwx,go=rx' shared
+```
+
+Grant everything except write for others, using a symbolic mode with a removal:
+
+```bash
+mkdirx -m a=rwx,o-w drop
+```
+
+```powershell
+mkdirx -m 'a=rwx,o-w' drop
+```
+
+Create a world-writable scratch directory with the sticky bit set:
+
+```bash
+mkdirx -m 1777 scratch
+```
+
+```powershell
+mkdirx -m 1777 scratch
+```
+
+Create missing parents but give only the last directory an explicit mode:
+
+```bash
+mkdirx -p -m 755 www/public
+```
+
+```powershell
+mkdirx -p -m 755 www\public
+```
+
+## Help in the terminal
+
+```bash
+gnux help mkdirx --mode
+```

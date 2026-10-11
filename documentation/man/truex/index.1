@@ -1,0 +1,69 @@
+.nh
+.TH "TRUEX" "1" "Jan 2024" "gnux" "gnux manual"
+
+.SH NAME
+truex - Do nothing, successfully.
+
+
+.SH SYNOPSIS
+\fBtruex [ignored command line arguments]\fP
+
+
+.SH DESCRIPTION
+truex exits with status 0 and does nothing else: it reads no input, writes no output and ignores every argument it is given. The only exceptions are --help and --version, which are honored when they are the sole argument. It exists so scripts have a portable command whose result is always success.
+
+.PP
+EXIT STATUS.
+  0  always, whatever the arguments
+
+.PP
+HELP. truex --help shows the options and the first examples; gnux help truex prints the full manual, and gnux help truex OPTION explains one option.
+
+.PP
+SEE ALSO. falsex, yesx, gnux shell.
+
+.PP
+PERMISSIONS. Needs no permissions; it touches nothing.
+
+.PP
+USE CASES.
+  - Writing an infinite loop: while truex; do ...; done.
+  - Forcing a command list to succeed, as in \fBmight-fail || truex\fR\&.
+  - Standing in for a command that should be a no-op, such as a disabled hook.
+  - Keeping a 'gnux shell -e' script going past a step whose failure is acceptable.
+  - Testing how a script or CI step reacts to a command that always succeeds.
+  - Giving the always-true branch of a conditional a portable command to run.
+
+
+.SH OPTIONS
+\fB--help\fP[=false]
+	display this help and exit
+
+.PP
+\fB--version\fP[=false]
+	output version information and exit
+
+
+.SH EXAMPLE
+.EX
+  # Exit successfully
+  truex
+
+  # Show the exit status
+  truex; echox $?
+
+  # Ignore every argument and still succeed
+  truex --any thing at all; echox $?
+
+  # Ignore the failure of a command
+  rmx missing.txt || truex
+
+  # Chain a command that always runs
+  truex && echox 'always runs'
+
+  # Keep a gnux shell script with -e running past an allowed failure
+  gnux shell -e -c 'rmx old.log || truex; echox survived'
+
+  # Loop until interrupted
+  while truex; do date; sleepx 1; done
+.EE

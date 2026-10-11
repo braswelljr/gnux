@@ -1,20 +1,22 @@
-# Convenience wrapper for running rmx in a container.
+# Convenience wrapper for running gnux in a container.
 #
-# The current directory is mounted read-write at /work, so rmx operates on your
-# files. Pass flags/paths after the service name:
+# The current directory is mounted read-write at /work, so the tools operate on
+# your files. Pass the tool and its arguments after the service name:
 #
-#   docker compose run --rm rmx --version
-#   docker compose run --rm rmx -rv build/
+#   docker compose run --rm gnux --version
+#   docker compose run --rm gnux lsx -la
+#   docker compose run --rm gnux rmx -rv build/
 #
-# Caution: this is a real delete tool operating on the mounted volume.
+# Caution: these are real file tools operating on the mounted volume.
 
 services:
-  rmx:
+  gnux:
     build:
       context: .
       args:
         VERSION: dev
-    image: braswelljr/rmx:dev
+    image: braswelljr/gnux:dev
     volumes:
       - ./:/work
-    # ENTRYPOINT is `rmx` (from the image); arguments come from the CLI.
+    # ENTRYPOINT is `gnux` (from the image); the tool and its arguments come
+    # from the CLI.

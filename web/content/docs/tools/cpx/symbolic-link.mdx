@@ -1,0 +1,37 @@
+---
+title: "-s, --symbolic-link"
+description: "Make symbolic links instead of copying."
+---
+
+An option of [cpx](/docs/tools/cpx).
+
+## Usage
+
+```bash
+cpx -s SOURCE... DIRECTORY
+cpx --symbolic-link SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-s` | `--symbolic-link` | none |  | make symbolic links instead of copying |
+
+## Examples
+
+Create a symbolic link instead of a copy (use an absolute source):
+
+```bash
+cpx -s "$PWD/config.yml" config-link.yml
+```
+
+```powershell
+cpx -s "$PWD\config.yml" config-link.yml
+```
+
+## Help in the terminal
+
+```bash
+gnux help cpx --symbolic-link
+```

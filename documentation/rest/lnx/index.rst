@@ -1,0 +1,102 @@
+.. _lnx:
+
+lnx
+---
+
+Make hard or symbolic links between files.
+
+Synopsis
+~~~~~~~~
+
+
+lnx creates a link to TARGET. It accepts ln's four forms: TARGET LINK_NAME; TARGET alone (a link of the same name in the current directory); TARGET... DIRECTORY; and -t DIRECTORY TARGET.... Links are hard links by default and symbolic with -s; a symbolic link stores TARGET exactly as written unless -r rewrites it relative to the link's own location. An existing destination is an error unless -f (replace it) or -i (ask first) is given, and the replacement is atomic, so the old entry survives a failure. -n treats a LINK_NAME that is a symbolic link to a directory as the entry to replace rather than a directory to link into, and -T always treats LINK_NAME as a plain file. For hard links, -L links to what a symbolic link TARGET points at and -P (the default) to the link itself. GNU ln lets the last of conflicting options win; lnx cannot see option order, so it prefers the most cautious (-i over -f) and -L over -P.
+
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+HELP. lnx --help shows the options and the first examples; gnux help lnx prints the full manual, and gnux help lnx OPTION explains one option.
+
+SEE ALSO. cpx, realpathx, lsx, rmx.
+
+PERMISSIONS. Creating a link needs write and search permission on the directory that will hold it. A symbolic link needs no access to TARGET, which may not even exist; a hard link requires TARGET to exist on the same filesystem and cannot point at a directory. On Windows, creating symbolic links requires Developer Mode or an elevated prompt.
+
+USE CASES.
+  - Pointing a stable name (current, latest) at a versioned file or directory.
+  - Atomically switching a symlink to a new release with -sfn.
+  - Creating relocatable links inside a tree with -sr.
+  - Giving one file a second name without duplicating its data.
+  - Exposing scripts on PATH by linking them into ~/bin with -t.
+  - Installing the gnux per-tool commands as links to one binary.
+  - Snapshotting a file with a hard link before it is replaced.
+  - Linking dotfiles from a repository into the home directory.
+
+::
+
+  lnx [OPTION]... TARGET... [LINK_NAME|DIRECTORY]
+
+Examples
+~~~~~~~~
+
+::
+
+    # Create a symbolic link
+    lnx -s /opt/app/releases/v2 current
+
+    # Repoint an existing symlink to a directory, in one atomic step
+    lnx -sfn releases/v3 current
+
+    # Create a hard link, reporting what was done
+    lnx -v data.db data.db.snapshot
+
+    # Link several files into a directory with relative symlinks
+    lnx -sr -t ~/bin tools/build tools/deploy
+
+    # Create a link with the same name in the current directory
+    lnx -s ../shared/config.yml
+
+    # Link several targets into an existing directory
+    lnx -sv ../dotfiles/.vimrc ../dotfiles/.gitconfig home/
+
+    # Ask before replacing an existing link
+    lnx -si settings.prod.json settings.json
+
+    # Replace an existing file with a link
+    lnx -sf app-v2.conf app.conf
+
+    # Treat the link name as a plain file, never as a directory to link into
+    lnx -sT releases/v3 current-release
+
+    # Hard-link the file a symlink points to, instead of the symlink itself
+    lnx -L current.log saved.log
+
+    # Hard-link the symlink itself (the default, spelled out)
+    lnx -P current.log current-link.log
+
+    # Create the per-tool commands as links to the gnux binary
+    for t in $(gnux --list); do lnx -sf gnux "$t"; done
+
+    # Report whether linking succeeded
+    lnx -s target.txt link.txt && echox linked || echox "link exists already"
+
+    # Create a release directory and point current at it with the gnux shell
+    gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
+
+Options
+~~~~~~~
+
+::
+
+  -f, --force                     remove existing destination files
+      --help                      display this help and exit
+  -i, --interactive               prompt whether to remove destinations
+  -L, --logical                   dereference TARGETs that are symbolic links
+  -n, --no-dereference            treat LINK_NAME as a normal file if it is a symbolic link to a directory
+  -T, --no-target-directory       treat LINK_NAME as a normal file always
+  -P, --physical                  make hard links directly to symbolic links (default)
+  -r, --relative                  with -s, create links relative to link location
+  -s, --symbolic                  make symbolic links instead of hard links
+  -t, --target-directory string   specify the DIRECTORY in which to create the links
+  -v, --verbose                   print name of each linked file
+      --version                   output version information and exit
+

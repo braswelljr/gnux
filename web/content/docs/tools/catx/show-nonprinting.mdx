@@ -1,0 +1,37 @@
+---
+title: "-v, --show-nonprinting"
+description: "Use ^ and M- notation, except for LFD and TAB."
+---
+
+An option of [catx](/docs/tools/catx).
+
+## Usage
+
+```bash
+catx -v [FILE]...
+catx --show-nonprinting [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-v` | `--show-nonprinting` | none |  | use ^ and M- notation, except for LFD and TAB |
+
+## Examples
+
+Make control and non-ASCII bytes visible in ^X and M- notation:
+
+```bash
+catx -v binary.dat | headx -n 5
+```
+
+```powershell
+catx -v binary.dat | headx -n 5
+```
+
+## Help in the terminal
+
+```bash
+gnux help catx --show-nonprinting
+```

@@ -1,0 +1,78 @@
+.. _yesx:
+
+yesx
+----
+
+Output a string repeatedly until killed.
+
+Synopsis
+~~~~~~~~
+
+
+yesx repeatedly writes a line made of every STRING joined by single spaces, or 'y' when none is given, until it is killed or its output is closed. Output is written in large batches of whole lines, so it is fast enough to use as a data source. When the reader goes away (as in `yesx | head`) yesx stops quietly; any other write failure is reported and exits with status 1. A first '--' is taken as the end of options and not printed; --help and --version are honored only when they are the sole argument, and every other argument is repeated as text.
+
+EXIT STATUS.
+  0  the reader went away (a closed pipe is the normal way yesx ends)
+  1  a write error other than a closed pipe
+
+HELP. yesx --help shows the options and the first examples; gnux help yesx prints the full manual, and gnux help yesx OPTION explains one option.
+
+SEE ALSO. headx, echox, rmx.
+
+PERMISSIONS. Needs no filesystem permissions; it only writes to standard output.
+
+USE CASES.
+  - Answering every prompt of an interactive command automatically.
+  - Generating an endless or, with head, a fixed amount of filler input.
+  - Loading a CPU core or a pipe for a quick throughput test.
+  - Declining every prompt with 'yesx n' to see what a command would ask.
+  - Creating a test file of an exact size with headx -c.
+  - Producing numbered or repeated sample rows for testing other tools.
+
+::
+
+  yesx [STRING]...
+
+Examples
+~~~~~~~~
+
+::
+
+    # Answer 'y' to every prompt of a command
+    yesx | rmx -i *.tmp
+
+    # Answer 'n' instead
+    yesx n | rmx -i *.tmp
+
+    # Confirm every step of an interactive recursive removal
+    yesx | rmx -ri build
+
+    # Produce five copies of a line
+    yesx 'all work and no play' | headx -n 5
+
+    # Join several arguments into one repeated line
+    yesx a b c | headx -n 2
+
+    # Repeat text that starts with a dash after --
+    yesx -- -n | headx -n 2
+
+    # Create a file of exactly one mebibyte
+    yesx 0123456789 | headx -c 1M > filler.txt && wcx -c filler.txt
+
+    # Number a few repeated rows
+    yesx row | headx -n 4 | catx -n
+
+    # Measure pipe throughput by counting 100 MiB
+    yesx | headx -c 100M | wcx -c
+
+    # Stop cleanly inside a gnux shell pipeline
+    gnux shell -c 'yesx hello | headx -n 3 > out.txt; wcx -l out.txt'
+
+Options
+~~~~~~~
+
+::
+
+      --help      display this help and exit
+      --version   output version information and exit
+
