@@ -1,0 +1,21 @@
+# Changelog
+
+Every notable change to gnux, release by release, newest first. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and gnux uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Changes land under Unreleased as they are made, and that section becomes the next version when it is tagged; the release workflow publishes the version's section as its GitHub release notes.
+
+## [Unreleased]
+
+### Added
+
+- 22 GNU-compatible tools in one multi-call binary, `gnux`: `basenamex`, `catx`, `cpx`, `dirnamex`, `echox`, `envx`, `falsex`, `headx`, `lnx`, `lsx`, `mkdirx`, `mvx`, `pwdx`, `realpathx`, `rmx`, `rmdirx`, `sleepx`, `tailx`, `touchx`, `truex`, `wcx` and `yesx`. Each runs as its own name, as its GNU name through a link, or as `gnux <tool>`, with GNU's flags, diagnostics and exit statuses.
+- `gnux shell`, a small portable POSIX sh subset whose commands are the tools, run in-process, so one script behaves the same on Linux, macOS and Windows.
+- Every tool's engine as an importable Go package under `core/`, plus `cmd.RunTool` and `cmd.NewShell` for running tools and scripts from Go.
+- `gnux help TOOL [OPTION]` for a tool's full manual, or one option in depth.
+- The reference in markdown, man, YAML and reStructuredText under `documentation/`, generated from the code and checked in CI.
+- A website with the documentation, a page for every option of every tool, and a playground that runs the real gnux, compiled to WebAssembly, on an in-memory filesystem.
+- Release archives for Linux and macOS (amd64, arm64) and Windows (amd64), with a checksums file.
+
+### Changed
+
+- The project is now gnux, a portable implementation of the GNU core utilities. `rmx`, which it started as, was rewritten as one of its tools, with GNU's full `rm` flag surface.
+
+[Unreleased]: https://github.com/braswelljr/gnux/commits/main

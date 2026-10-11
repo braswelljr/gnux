@@ -5,6 +5,7 @@
     "guide",
     "shell",
     "library",
+    "changelog",
     "---Guides---",
     "guides/adoption",
     "guides/ci-and-containers",

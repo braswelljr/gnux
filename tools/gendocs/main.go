@@ -34,6 +34,12 @@ const handwrittenRoot = "documentation"
 
 var handwrittenFolders = []string{"guides"}
 
+// handwrittenFiles are single hand-written documents published as top-level
+// pages, by repository path and page name: the changelog is /docs/changelog.
+var handwrittenFiles = []struct{ file, name string }{
+	{"CHANGELOG.md", "changelog"},
+}
+
 func main() {
 	dir := "documentation"
 	if len(os.Args) > 1 {
@@ -62,6 +68,13 @@ func generate(dir, format string) error {
 		pages, err := docs.HandwrittenPages(handwrittenRoot, handwrittenRoot, handwrittenFolders...)
 		if err != nil {
 			return err
+		}
+		for _, f := range handwrittenFiles {
+			page, err := docs.HandwrittenFile(f.file, f.name)
+			if err != nil {
+				return err
+			}
+			pages = append(pages, page)
 		}
 		return docs.GenerateMDX(dir, pages...)
 	case "md":

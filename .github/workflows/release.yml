@@ -1,7 +1,9 @@
 # Requirement enforced: a pushed version tag (v*) becomes a GitHub release with
 # a statically linked (CGO_ENABLED=0) gnux archive for every supported platform
 # - linux and darwin on amd64/arm64, windows on amd64 - each reporting the tag
-# as its version, plus a checksums file (FR-36, FR-38, NFR-1, NFR-2).
+# as its version, plus a checksums file (FR-36, FR-38, NFR-1, NFR-2). Its notes
+# are the tag's section of CHANGELOG.md, which a release must have; only a
+# prerelease without one falls back to notes generated from the commits.
 name: Release
 
 on:
@@ -40,6 +42,33 @@ jobs:
             echo "::error::Generated docs are out of date at this tag. Run 'make docs' and commit." >&2
             exit 1
           fi
+
+      # Checked here, before anything is built: a release without its
+      # changelog section stops now. tools/changelog explains what is missing.
+      - name: Release notes from CHANGELOG.md
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if go run ./tools/changelog "$TAG" > release-notes.md; then
+            exit 0
+          fi
+          case "$TAG" in
+            *-*)
+              echo "::notice::No CHANGELOG.md section for prerelease $TAG; its notes are generated from the commits."
+              : > release-notes.md
+              ;;
+            *)
+              echo "::error::CHANGELOG.md has no section for $TAG. Add one and tag again."
+              exit 1
+              ;;
+          esac
+
+      - name: Keep the release notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
+          if-no-files-found: error
 
   build:
     needs: verify
@@ -111,11 +140,19 @@ jobs:
           path: dist
           merge-multiple: true
 
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: notes
+
       - name: Write checksums
         working-directory: dist
         run: sha256sum gnux-* > checksums.txt
 
-      # A tag with a hyphen (v1.0.0-rc.1) is published as a prerelease.
+      # A tag with a hyphen (v1.0.0-rc.1) is published as a prerelease. The
+      # notes are the tag's CHANGELOG.md section, or, for a prerelease with
+      # none, generated from the commits since the previous tag.
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -123,8 +160,12 @@ jobs:
         run: |
           prerelease=""
           case "$TAG" in *-*) prerelease="--prerelease" ;; esac
+          notes="--generate-notes"
+          if [ -s notes/release-notes.md ]; then
+            notes="--notes-file=notes/release-notes.md"
+          fi
           gh release create "$TAG" dist/* \
             --repo "$GITHUB_REPOSITORY" \
             --title "gnux $TAG" \
-            --generate-notes \
+            "$notes" \
             $prerelease

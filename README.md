@@ -282,7 +282,7 @@ doc. Commit the regenerated files with your change.
 | Lint     | `golangci-lint`                                                                                          |
 | Docs     | regenerates `documentation/` and `web/content/docs/` and fails if the committed copies are stale         |
 | Web      | builds the WebAssembly binary, then lints, type-checks, tests and builds the website                     |
-| Release  | on a `v*` tag: re-runs the checks, builds an archive per platform, publishes them with checksums         |
+| Release  | on a `v*` tag: re-runs the checks, builds an archive per platform, publishes them with checksums and the tag's [`CHANGELOG.md`](CHANGELOG.md) section as notes |
 
 ## Documentation
 

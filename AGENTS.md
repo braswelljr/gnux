@@ -67,6 +67,8 @@ gnux/
     tool/                  # tool.Spec / tool.Topic, Spec.Command, --help/--version handling
   tools/gendocs/           # `go run ./tools/gendocs [dir] [format]` - reference generator
   tools/wasm/              # js/wasm entry point for the playground (build tag js && wasm)
+  tools/changelog/         # `go run ./tools/changelog vX.Y.Z` - a release's CHANGELOG.md section
+  CHANGELOG.md             # Release history (Keep a Changelog); published as /docs/changelog
   web/                     # Next.js + Fumadocs site and playground (own go.mod: not part of ./...)
     content/docs/          # Generated MDX (committed) - never edit by hand
     public/                # gnux.wasm + wasm_exec.js land here (`make web/wasm`; not committed)
@@ -426,10 +428,14 @@ cleanup, and best-effort `fmt.Fprint*` diagnostic writes. `_test.go` files are e
 | `lint.yml`  | `golangci-lint` (pinned v2 release)                                                     |
 | `docs.yml`  | regenerates `documentation/` and `web/content/docs/`; fails if the committed copies are stale |
 | `web.yml`   | builds the wasm, then lints, type-checks, tests and builds the website                  |
-| `release.yml` | on a `v*` tag: re-runs vet/test/docs checks, builds per-platform archives, publishes a GitHub release with `checksums.txt` |
+| `release.yml` | on a `v*` tag: re-runs vet/test/docs checks, requires the tag's `CHANGELOG.md` section, builds per-platform archives, publishes a GitHub release with `checksums.txt` and that section as its notes |
 
-Releasing is `git tag -a vX.Y.Z && git push origin vX.Y.Z`; a tag with a hyphen is a
-prerelease. Every workflow is `permissions: contents: read`; only the release's publish job gets
+Every notable change goes into `CHANGELOG.md` under `## [Unreleased]` in the same change
+(Keep a Changelog: Added, Changed, Fixed, Removed). It is published as `/docs/changelog`. To
+release, turn that section into `## [X.Y.Z] - YYYY-MM-DD`, open a new empty Unreleased above it,
+update the link definitions, commit, then `git tag -a vX.Y.Z && git push origin vX.Y.Z`; a tag
+with a hyphen is a prerelease. The release's notes are that section (`go run
+./tools/changelog vX.Y.Z` prints them), and a release tag without one fails before it builds. Every workflow is `permissions: contents: read`; only the release's publish job gets
 `contents: write`. Without link flags, `common.Version` falls back to the build-info module
 version, so `go install ...@vX.Y.Z` reports the tag.
 

@@ -87,6 +87,25 @@ func HandwrittenPages(dir, repoPath string, folders ...string) ([]Page, error) {
 	return pages, nil
 }
 
+// HandwrittenFile reads one hand-written document that lives outside the
+// published folders (CHANGELOG.md, at the repository root) as a top-level page
+// called name. file is its path from the repository root, which its relative
+// links are resolved against; they all become GitHub links, as no published
+// folder is beside it. Title and description come from the document as for
+// HandwrittenPages.
+func HandwrittenFile(file, name string) (Page, error) {
+	raw, err := os.ReadFile(file)
+	if err != nil {
+		return Page{}, fmt.Errorf("read %s: %w", file, err)
+	}
+	md := rewriteLinks(string(raw), path.Dir(filepath.ToSlash(file)), "", nil)
+	title, description := titleAndDescription(md)
+	if title == "" {
+		title = folderTitle(name)
+	}
+	return Page{Name: name, Title: title, Description: description, Markdown: withoutLead(md)}, nil
+}
+
 // pageName maps a markdown file name to its page name; a README is the index.
 func pageName(file string) string {
 	if file == "README.md" {

@@ -9,6 +9,7 @@ on:
     paths:
       - "**.go"
       - "documentation/guides/**"
+      - CHANGELOG.md
       - "documentation/**"
       - "web/content/docs/**"
       - "tools/**"
@@ -18,6 +19,7 @@ on:
     paths:
       - "**.go"
       - "documentation/guides/**"
+      - CHANGELOG.md
       - "documentation/**"
       - "web/content/docs/**"
       - "tools/**"

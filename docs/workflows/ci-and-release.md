@@ -215,7 +215,7 @@ archive per platform, and publishes a GitHub release with every archive and a
 
 ```mermaid
 flowchart LR
-    T["git push origin v0.1.0"] --> V["verify<br/>go vet, go test -race,<br/>docs freshness"]
+    T["git push origin v0.1.0"] --> V["verify<br/>go vet, go test -race,<br/>docs freshness,<br/>CHANGELOG.md section"]
     V --> B["build (matrix x5)<br/>CGO_ENABLED=0, Version=tag<br/>tar.gz or zip"]
     B --> P["publish (contents: write)<br/>sha256sum > checksums.txt<br/>gh release create"]
     P --> R["GitHub release v0.1.0<br/>5 archives + checksums.txt"]
@@ -236,7 +236,12 @@ Workflow-level permissions are `contents: read`; only `publish` writes (NFR-37).
 On `ubuntu-latest`, against the tagged commit: `go vet ./...`, `go test -race ./...`, and the
 docs freshness check (`go generate ./...` then `git status --porcelain docs web/content/docs`).
 The point is that a tag cannot publish what CI would reject, even if it was pushed on a commit
-that never went through a pull request. It does not repeat Lint, the Windows and macOS test
+that never went through a pull request.
+
+Last, `go run ./tools/changelog "$TAG"` prints the tag's section of `CHANGELOG.md` (the lines
+under `## [0.1.0]`, for `v0.1.0`) into `release-notes.md`, uploaded as the `release-notes`
+artifact. A release tag with no section, or an empty one, fails here, before anything is built;
+a prerelease tag (one with a hyphen) without one gets an empty file and generated notes. It does not repeat Lint, the Windows and macOS test
 legs, or Web; those are expected to be green on `main` before tagging.
 
 ### Job `build`
@@ -261,10 +266,12 @@ man pages relies on the committed `documentation/man/`, which `verify` has just 
 
 `needs: build`, `permissions: contents: write`:
 
-1. Download every `archive-*` artifact into `dist/` (`merge-multiple: true`).
+1. Download every `archive-*` artifact into `dist/` (`merge-multiple: true`), and the
+   `release-notes` artifact into `notes/`.
 2. `sha256sum gnux-* > checksums.txt` in `dist/`.
-3. `gh release create "$TAG" dist/* --title "gnux $TAG" --generate-notes`, adding
-   `--prerelease` when the tag contains a hyphen (`v1.0.0-rc.1`).
+3. `gh release create "$TAG" dist/* --title "gnux $TAG" --notes-file=notes/release-notes.md`,
+   or `--generate-notes` when that file is empty (a prerelease with no changelog section),
+   adding `--prerelease` when the tag contains a hyphen (`v1.0.0-rc.1`).
 
 The result, for `v0.1.0`:
 
@@ -279,10 +286,21 @@ checksums.txt
 
 ### Cutting a release
 
+`CHANGELOG.md` is kept as changes are made, under `## [Unreleased]`. To release:
+
+1. Rename that heading to the version and date, `## [0.1.0] - 2026-10-20`, and start a new,
+   empty `## [Unreleased]` above it.
+2. Update the link definitions at the bottom: `[Unreleased]` compares the new tag with `HEAD`,
+   and the version's link compares it with the previous tag (or, for the first, points at it).
+3. Check the notes the release will carry, then commit (the pre-push hook regenerates
+   `/docs/changelog` and stops the push if it is stale), tag and push:
+
 ```bash
+go run ./tools/changelog v0.1.0             # the release notes, or why there are none
 make ci                                     # the Go gates, locally
+git commit -am "release: v0.1.0"
 git tag -a v0.1.0 -m "gnux v0.1.0"
-git push origin v0.1.0
+git push origin main v0.1.0
 ```
 
 ### Reproducing one archive locally

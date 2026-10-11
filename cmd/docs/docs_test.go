@@ -365,3 +365,27 @@ func TestPassesMatchesOnlyTheToolsOwnFlags(t *testing.T) {
 		}
 	}
 }
+
+func TestHandwrittenFile(t *testing.T) {
+	dir := t.TempDir()
+	file := filepath.Join(dir, "CHANGELOG.md")
+	md := "# Changelog\n\nEvery change, newest first.\n\n## [Unreleased]\n\n- See [the guide](documentation/guides/README.md).\n"
+	if err := os.WriteFile(file, []byte(md), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// Read through a repository-relative path, as gendocs does from the root.
+	t.Chdir(dir)
+	page, err := HandwrittenFile("CHANGELOG.md", "changelog")
+	if err != nil {
+		t.Fatalf("HandwrittenFile: %v", err)
+	}
+	if page.Dir != "" || page.Name != "changelog" || page.Title != "Changelog" || page.Description != "Every change, newest first." {
+		t.Errorf("page = %+v", page)
+	}
+	if strings.Contains(page.Markdown, "Every change, newest first.") {
+		t.Errorf("the summary should not repeat in the body: %q", page.Markdown)
+	}
+	if want := "](https://github.com/braswelljr/gnux/blob/main/documentation/guides/README.md)"; !strings.Contains(page.Markdown, want) {
+		t.Errorf("link not rewritten to GitHub: %q", page.Markdown)
+	}
+}
