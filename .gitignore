@@ -14,10 +14,11 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# Lock files for dependency management
+# Lock files of the package managers the website does not use. web/ is pnpm,
+# and its pnpm-lock.yaml is committed: CI installs with --frozen-lockfile and
+# Vercel installs from it, so dependency versions never drift between them.
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
 pnpmfile.js
 
 # Editor directories and files
