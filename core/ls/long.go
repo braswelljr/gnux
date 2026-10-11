@@ -64,12 +64,17 @@ func (l *Ls) printLong(entries []*entry) {
 		r := rows[i]
 		var b strings.Builder
 		b.WriteString(r.frills)
-		b.WriteString(r.mode + " " + padLeft(r.links, linksW) + " ")
+		b.WriteString(r.mode)
+		b.WriteString(" ")
+		b.WriteString(padLeft(r.links, linksW))
+		b.WriteString(" ")
 		if !l.NoOwner {
-			b.WriteString(alignID(r.owner, ownerW, r.ownerNumeric) + " ")
+			b.WriteString(alignID(r.owner, ownerW, r.ownerNumeric))
+			b.WriteString(" ")
 		}
 		if !l.NoGroup {
-			b.WriteString(alignID(r.group, groupW, r.groupNumeric) + " ")
+			b.WriteString(alignID(r.group, groupW, r.groupNumeric))
+			b.WriteString(" ")
 		}
 		if r.device {
 			device := padLeft(r.major, majorW) + ", " + padLeft(r.minor, minorW)
@@ -77,7 +82,9 @@ func (l *Ls) printLong(entries []*entry) {
 		} else {
 			b.WriteString(padLeft(r.size, sizeW))
 		}
-		b.WriteString(" " + r.time + " ")
+		b.WriteString(" ")
+		b.WriteString(r.time)
+		b.WriteString(" ")
 		l.put(b.String())
 
 		l.putName(e)

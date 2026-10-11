@@ -92,7 +92,9 @@ func (p *palette) modeColor(mode os.FileMode, name string) string {
 	var key string
 	switch {
 	case mode.IsDir():
-		sticky, otherWritable := mode&os.ModeSticky != 0, mode&0o002 != 0
+		// Where permission bits are not real (Windows), every directory is plain.
+		sticky := permissionBits && mode&os.ModeSticky != 0
+		otherWritable := permissionBits && mode&0o002 != 0
 		switch {
 		case sticky && otherWritable:
 			key = "tw"

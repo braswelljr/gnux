@@ -35,3 +35,13 @@ func chown(path string, info os.FileInfo) error {
 	}
 	return err
 }
+
+// createdDirMode is the mode a directory made by os.Mkdir(path, perm) ended up
+// with: perm as the umask left it, which is the mode cp gives a new directory
+// without -p.
+func createdDirMode(path string, perm os.FileMode) os.FileMode {
+	if info, err := os.Lstat(path); err == nil {
+		return info.Mode().Perm()
+	}
+	return perm
+}

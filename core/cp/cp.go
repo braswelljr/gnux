@@ -361,8 +361,8 @@ func (c *Cp) copyDir(src, dst string, si os.FileInfo, exists, top bool, parent o
 		// A read-only source directory must not stop its own contents from
 		// being copied: grant the owner access now and restore the mode
 		// (as masked by the umask at creation) afterwards.
-		if di, err := os.Lstat(dst); err == nil && di.Mode().Perm()&0o700 != 0o700 {
-			restore, needRestore = di.Mode().Perm(), true
+		if mode := createdDirMode(dst, si.Mode().Perm()); mode&0o700 != 0o700 {
+			restore, needRestore = mode, true
 			if err := os.Chmod(dst, restore|0o700); err != nil {
 				needRestore = false
 			}

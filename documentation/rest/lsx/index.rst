@@ -20,7 +20,7 @@ HELP. lsx --help shows the options and the first examples; gnux help lsx prints 
 
 SEE ALSO. realpathx, wcx, touchx.
 
-PERMISSIONS. Listing a directory needs read permission on it; examining its entries (anything beyond bare names: -l, -s, -i, -F, --color, sorting by time or size) also needs search permission. Entries that cannot be examined are still listed, with '?' in place of the unknown fields. On Windows, which has no POSIX owner, group, inode or block count, those columns hold placeholders.
+PERMISSIONS. Listing a directory needs read permission on it; examining its entries (anything beyond bare names: -l, -s, -i, -F, --color, sorting by time or size) also needs search permission. Entries that cannot be examined are still listed, with '?' in place of the unknown fields. On Windows, which has no POSIX owner, group, inode or block count, those columns hold placeholders, and with no POSIX permission bits every directory is colored as a plain directory, never as other-writable or sticky.
 
 USE CASES.
   - Seeing what is in a directory at a glance.

@@ -145,7 +145,9 @@ func TestSymbolicLink(t *testing.T) {
 	t.Run("target is stored verbatim and need not exist", func(t *testing.T) {
 		dangling := filepath.Join(dir, "dangling")
 		run(t, ln.Options{Symbolic: true}, "no/such/thing", dangling)
-		wantLink(t, dangling, "no/such/thing")
+		// Verbatim but for the separator: on Windows, Go stores a link's
+		// slashes as backslashes, the only separator a Windows link follows.
+		wantLink(t, dangling, filepath.FromSlash("no/such/thing"))
 	})
 
 	t.Run("existing destination", func(t *testing.T) {

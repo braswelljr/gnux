@@ -24,7 +24,7 @@ HELP. lnx --help shows the options and the first examples; gnux help lnx prints 
 SEE ALSO. cpx, realpathx, lsx, rmx.
 
 .PP
-PERMISSIONS. Creating a link needs write and search permission on the directory that will hold it. A symbolic link needs no access to TARGET, which may not even exist; a hard link requires TARGET to exist on the same filesystem and cannot point at a directory. On Windows, creating symbolic links requires Developer Mode or an elevated prompt.
+PERMISSIONS. Creating a link needs write and search permission on the directory that will hold it. A symbolic link needs no access to TARGET, which may not even exist; a hard link requires TARGET to exist on the same filesystem and cannot point at a directory. On Windows, creating symbolic links requires Developer Mode or an elevated prompt; a link's target is stored with backslashes, the only separator a Windows link follows; and replacing a link to a directory (-sfn) removes the old link before renaming the new one in, since Windows cannot rename over it, so it is not atomic there.
 
 .PP
 USE CASES.

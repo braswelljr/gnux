@@ -237,7 +237,8 @@ func (l *Ln) ask(question string) bool {
 
 // replaceWith atomically replaces dst: the new link is created under a
 // temporary name beside it and renamed into place, so dst is never missing
-// and survives a failure to create its replacement.
+// and survives a failure to create its replacement. (On Windows, a symbolic
+// link to a directory cannot be renamed over; see renameOver.)
 func replaceWith(dst string, create func(name string) error) error {
 	dir := filepath.Dir(dst)
 	var (
@@ -253,7 +254,7 @@ func replaceWith(dst string, create func(name string) error) error {
 	if err != nil {
 		return err
 	}
-	if err := os.Rename(tmp, dst); err != nil {
+	if err := renameOver(tmp, dst); err != nil {
 		_ = os.Remove(tmp)
 		return fmt.Errorf("replace %s: %w", dst, err)
 	}

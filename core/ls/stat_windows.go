@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+// permissionBits is false: Windows has no POSIX permission bits, and Go reports
+// every directory as rwxrwxrwx, so a mode's write and sticky bits say nothing
+// about the directory and must not color it as other-writable.
+const permissionBits = false
+
 // statSys fills in what Windows offers. There are no POSIX inode numbers, link
 // counts, IDs or block counts behind os.FileInfo, so those are placeholders: a
 // link count of 1 and an allocation rounded up from the file size.

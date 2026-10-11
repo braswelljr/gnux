@@ -51,10 +51,12 @@ func (l *Ls) blocksOf(e *entry) string {
 func (l *Ls) frillsOf(e *entry, f frills) string {
 	var b strings.Builder
 	if l.Inode {
-		b.WriteString(padLeft(inodeString(e), f.inode) + " ")
+		b.WriteString(padLeft(inodeString(e), f.inode))
+		b.WriteString(" ")
 	}
 	if l.ShowBlocks {
-		b.WriteString(padLeft(l.blocksOf(e), f.blocks) + " ")
+		b.WriteString(padLeft(l.blocksOf(e), f.blocks))
+		b.WriteString(" ")
 	}
 	return b.String()
 }
