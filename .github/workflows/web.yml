@@ -47,12 +47,21 @@ jobs:
         with:
           package_json_file: web/package.json
 
+      # No `cache: pnpm` here: setup-node asks pnpm for its store from the
+      # repository root, and pnpm 11 under pnpm/action-setup answers with a
+      # folder inside its own install that does not exist yet, which fails the
+      # step. The store is pinned to one folder instead and cached below.
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Cache the pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('web/pnpm-lock.yaml') }}
+          restore-keys: pnpm-store-${{ runner.os }}-
 
       # The playground loads this binary; it is built, not committed.
       - name: Build gnux for WebAssembly
@@ -60,7 +69,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: web
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --store-dir ~/.pnpm-store
 
       - name: Lint
         working-directory: web

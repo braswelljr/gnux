@@ -82,13 +82,20 @@ type result struct {
 	err            error
 }
 
+// coverageWarning is what a test binary built for coverage (go test -cover,
+// -coverprofile) prints on exit when GOCOVERDIR is unset, which it is in the
+// helper: the tests give it their own environment, and -i empties it. It comes
+// from the Go toolchain, not from envx or the command, so it is not part of
+// the output under test.
+const coverageWarning = "warning: GOCOVERDIR not set, no coverage data emitted\n"
+
 // run executes the engine against buffers with a fixed inherited environment.
 func run(opts env.Options, environ []string, stdin string, args ...string) result {
 	var out, errb bytes.Buffer
 	e := env.New(opts, core.Streams{In: strings.NewReader(stdin), Out: &out, Err: &errb})
 	e.Environ = func() []string { return environ }
 	err := e.Run(args)
-	return result{out.String(), errb.String(), err}
+	return result{out.String(), strings.ReplaceAll(errb.String(), coverageWarning, ""), err}
 }
 
 // wantExit fails the test unless err is a silent exit with the given status.
