@@ -20,7 +20,7 @@ foldx --spaces [FILE]...
 
 ## Examples
 
-### Wrap at word boundaries
+### Wrap a commit message body at 72 columns without breaking words
 
 ```bash tab="bash" tab-group="shell"
 foldx -s -w 72 essay.txt
@@ -30,7 +30,7 @@ foldx -s -w 72 essay.txt
 foldx -s -w 72 essay.txt
 ```
 
-### Save a wrapped copy
+### Save a wrapped copy of a draft for an email client that does not wrap
 
 ```bash tab="bash" tab-group="shell"
 foldx -s -w 72 draft.txt > wrapped.txt

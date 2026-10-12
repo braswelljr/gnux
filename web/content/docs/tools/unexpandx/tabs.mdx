@@ -20,7 +20,7 @@ unexpandx --tabs=N, LIST [FILE]...
 
 ## Examples
 
-### Use 4-column tab stops (implies -a)
+### Convert 4-space indentation and alignment to tabs
 
 ```bash tab="bash" tab-group="shell"
 unexpandx -t 4 main.go
@@ -30,7 +30,7 @@ unexpandx -t 4 main.go
 unexpandx -t 4 main.go
 ```
 
-### Use 4-column stops but only for indentation
+### Retab a Go file for gofmt, leaving alignment inside lines alone
 
 ```bash tab="bash" tab-group="shell"
 unexpandx -t 4 --first-only main.go
@@ -40,7 +40,7 @@ unexpandx -t 4 --first-only main.go
 unexpandx -t 4 --first-only main.go
 ```
 
-### Put tab stops at specific columns
+### Retab a report laid out in fixed columns
 
 ```bash tab="bash" tab-group="shell"
 unexpandx -t 10,20,40 report.txt
@@ -50,7 +50,7 @@ unexpandx -t 10,20,40 report.txt
 unexpandx -t 10,20,40 report.txt
 ```
 
-### Round-trip a file through expandx
+### Edit with spaces, then hand the file back with tabs
 
 ```bash tab="bash" tab-group="shell"
 expandx -t 4 a.go | unexpandx -t 4 --first-only > b.go
@@ -60,7 +60,7 @@ expandx -t 4 a.go | unexpandx -t 4 --first-only > b.go
 expandx -t 4 a.go | unexpandx -t 4 --first-only > b.go
 ```
 
-### Save a converted copy
+### Restore the tabs a Makefile needs after an editor turned them into spaces
 
 ```bash tab="bash" tab-group="shell"
 unexpandx -t 8 spaces.mk > Makefile

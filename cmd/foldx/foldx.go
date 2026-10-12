@@ -51,57 +51,57 @@ func Meta() docmeta.Meta {
 		},
 		Examples: []docmeta.Example{
 			{
-				Description: "Wrap lines at 80 columns:",
+				Description: "Make a log with very long lines readable in an 80-column terminal:",
 				Bash:        "foldx notes.txt",
 				PowerShell:  "foldx notes.txt",
 			},
 			{
-				Description: "Wrap lines at 40 columns:",
+				Description: "Fit text into a narrow 40-column display or receipt printer:",
 				Bash:        "foldx -w 40 notes.txt",
 				PowerShell:  "foldx -w 40 notes.txt",
 			},
 			{
-				Description: "Wrap at word boundaries:",
+				Description: "Wrap a commit message body at 72 columns without breaking words:",
 				Bash:        "foldx -s -w 72 essay.txt",
 				PowerShell:  "foldx -s -w 72 essay.txt",
 			},
 			{
-				Description: "Use the obsolete width form:",
+				Description: "Run an old script that uses the obsolete width form:",
 				Bash:        "foldx -60 notes.txt",
 				PowerShell:  "foldx -60 notes.txt",
 			},
 			{
-				Description: "Split a long string into 64-byte lines:",
+				Description: "Break a one-line key or base64 blob into 64-byte lines:",
 				Bash:        "foldx -b -w 64 key.txt",
 				PowerShell:  "foldx -b -w 64 key.txt",
 			},
 			{
-				Description: "Wrap standard input:",
+				Description: "Wrap the output of another command:",
 				Bash:        "catx long.log | foldx -w 100",
 				PowerShell:  "catx long.log | foldx -w 100",
 			},
 			{
-				Description: "Break a word list into one character per line:",
+				Description: "Split a word into one character per line, to count or sort letters:",
 				Bash:        "echox abc | foldx -w 1",
 				PowerShell:  "echox abc | foldx -w 1",
 			},
 			{
-				Description: "Save a wrapped copy:",
+				Description: "Save a wrapped copy of a draft for an email client that does not wrap:",
 				Bash:        "foldx -s -w 72 draft.txt > wrapped.txt",
 				PowerShell:  "foldx -s -w 72 draft.txt > wrapped.txt",
 			},
 			{
-				Description: "Wrap several files in turn:",
+				Description: "Wrap several chapter files in one go:",
 				Bash:        "foldx -w 72 a.txt b.txt",
 				PowerShell:  "foldx -w 72 a.txt b.txt",
 			},
 			{
-				Description: "Count how many wrapped lines a file makes:",
+				Description: "Check how many screen lines a note will take once wrapped:",
 				Bash:        "foldx -w 72 notes.txt | wcx -l",
 				PowerShell:  "foldx -w 72 notes.txt | wcx -l",
 			},
 			{
-				Description: "Wrap in the portable gnux shell:",
+				Description: "Preview a wrapped file in the portable gnux shell, the same on every OS:",
 				Bash:        "gnux shell -c 'foldx -s -w 60 notes.txt | headx'",
 				PowerShell:  "gnux shell -c 'foldx -s -w 60 notes.txt | headx'",
 			},

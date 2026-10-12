@@ -42,7 +42,7 @@ Needs read permission on each FILE and search permission on the directories lead
 
 ### Examples
 
-Convert tabs to spaces with stops every 8 columns:
+Make a tab-indented C file look the same in every editor:
 
 ```bash
 expandx main.c
@@ -52,7 +52,7 @@ expandx main.c
 expandx main.c
 ```
 
-Use 4-column tab stops:
+Convert a Go file to 4-space indentation for a code review tool:
 
 ```bash
 expandx -t 4 main.go
@@ -62,7 +62,7 @@ expandx -t 4 main.go
 expandx -t 4 main.go
 ```
 
-Use the obsolete form:
+Run an old script that uses the obsolete form:
 
 ```bash
 expandx -4 main.go
@@ -72,7 +72,7 @@ expandx -4 main.go
 expandx -4 main.go
 ```
 
-Put tab stops at specific columns:
+Line a tab-separated report up in fixed columns for printing:
 
 ```bash
 expandx -t 10,20,40 table.tsv
@@ -82,7 +82,7 @@ expandx -t 10,20,40 table.tsv
 expandx -t 10,20,40 table.tsv
 ```
 
-Stops at 4 and then every multiple of 8:
+Indent the first level by 4 and the rest by 8:
 
 ```bash
 expandx -t 4,/8 data.txt
@@ -92,7 +92,7 @@ expandx -t 4,/8 data.txt
 expandx -t 4,/8 data.txt
 ```
 
-Convert only leading tabs:
+Fix YAML indentation (tabs are invalid there) without touching tabs inside values:
 
 ```bash
 expandx -i -t 2 config.yml
@@ -102,7 +102,7 @@ expandx -i -t 2 config.yml
 expandx -i -t 2 config.yml
 ```
 
-Convert standard input:
+See exactly where a tab lands:
 
 ```bash
 printfx 'a\tb\n' | expandx
@@ -112,7 +112,7 @@ printfx 'a\tb\n' | expandx
 printfx 'a\tb\n' | expandx
 ```
 
-Save a converted copy:
+Convert a Python file that mixes tabs and spaces:
 
 ```bash
 expandx -t 4 tabs.py > spaces.py
@@ -122,7 +122,7 @@ expandx -t 4 tabs.py > spaces.py
 expandx -t 4 tabs.py > spaces.py
 ```
 
-Line up tab-separated columns:
+Preview a TSV file with readable columns:
 
 ```bash
 expandx -t 16 report.tsv | headx
@@ -132,7 +132,7 @@ expandx -t 16 report.tsv | headx
 expandx -t 16 report.tsv | headx
 ```
 
-Convert several files as one stream:
+Combine several files into one, with tabs converted:
 
 ```bash
 expandx a.txt b.txt > combined.txt
@@ -142,7 +142,7 @@ expandx a.txt b.txt > combined.txt
 expandx a.txt b.txt > combined.txt
 ```
 
-Convert in the portable `gnux shell`:
+Find the longest line after expansion in the portable `gnux shell`:
 
 ```bash
 gnux shell -c 'expandx -t 4 main.go | wcx -L'

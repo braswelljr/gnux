@@ -60,3 +60,30 @@ export function AnimatedBackground({ variant = 'hero', className }: AnimatedBack
     </div>
   );
 }
+
+/**
+ * An aurora fixed to the viewport, behind every section: the hero's glows
+ * spread across the screen at about half their strength, so the whole page
+ * sits in the same light as its top. The three glows orbit the middle of the
+ * screen, a turn every 40 seconds, each still drifting on its own. It is
+ * decorative, ignores the pointer and holds still under reduced motion.
+ */
+export function ViewportGlow({ className }: { className?: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={cn(
+        'pointer-events-none fixed inset-0 -z-10 overflow-hidden opacity-45 dark:opacity-35',
+        className
+      )}
+    >
+      <div className="absolute top-1/2 left-1/2 size-[110vmin] -translate-x-1/2 -translate-y-1/2 animate-orbit">
+        {/* The orbit is sized to the screen's short side, so the glows stay in view as they
+            turn; three of them, a third of a turn apart, sweep round the middle. */}
+        <div className="absolute top-[-6%] left-[22%] aspect-square w-[56%] animate-aurora aurora-glow-cyan [animation-duration:38s]" />
+        <div className="absolute right-[-8%] bottom-[2%] aspect-square w-[56%] animate-aurora aurora-glow-violet [animation-delay:-12s] [animation-duration:44s]" />
+        <div className="absolute bottom-[2%] left-[-8%] aspect-square w-[56%] animate-aurora aurora-glow-amber opacity-80 [animation-delay:-24s] [animation-duration:50s]" />
+      </div>
+    </div>
+  );
+}

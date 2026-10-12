@@ -50,77 +50,17 @@ Needs read permission on each FILE (and, with `-c`, on the checksum lists and ev
 
 ### Examples
 
-Print the digest of a file:
+You downloaded an installer: print its digest to compare with the one on the website:
 
 ```bash
-sha256sumx file.iso
+sha256sumx ubuntu-24.04-desktop-amd64.iso
 ```
 
 ```powershell
-sha256sumx file.iso
+sha256sumx ubuntu-24.04-desktop-amd64.iso
 ```
 
-Digest several files:
-
-```bash
-sha256sumx *.tar.gz
-```
-
-```powershell
-sha256sumx (Get-ChildItem *.tar.gz -Name)
-```
-
-Digest standard input:
-
-```bash
-echox -n hello | sha256sumx
-```
-
-```powershell
-echox -n hello | sha256sumx
-```
-
-Save digests to a file:
-
-```bash
-sha256sumx *.iso > sha256.sums
-```
-
-```powershell
-sha256sumx (Get-ChildItem *.iso -Name) > sha256.sums
-```
-
-Verify files against saved digests:
-
-```bash
-sha256sumx -c sha256.sums
-```
-
-```powershell
-sha256sumx -c sha256.sums
-```
-
-Verify quietly, showing only failures:
-
-```bash
-sha256sumx -c --quiet sha256.sums
-```
-
-```powershell
-sha256sumx -c --quiet sha256.sums
-```
-
-Verify silently and branch on the result:
-
-```bash
-sha256sumx -c --status sha256.sums && echox verified
-```
-
-```powershell
-sha256sumx -c --status sha256.sums; if ($LASTEXITCODE -eq 0) { 'verified' }
-```
-
-Verify only the listed files that exist:
+Verify the download against the publisher's checksum file, which lists other files too:
 
 ```bash
 sha256sumx -c --ignore-missing sha256.sums
@@ -130,7 +70,90 @@ sha256sumx -c --ignore-missing sha256.sums
 sha256sumx -c --ignore-missing sha256.sums
 ```
 
-Fail on malformed lines in the list:
+Output:
+
+```text
+ubuntu-24.04-desktop-amd64.iso: OK
+```
+
+Publish checksums next to your release archives:
+
+```bash
+sha256sumx dist/*.tar.gz > dist/sha256.sums
+```
+
+```powershell
+sha256sumx (Get-ChildItem dist\*.zip -Name) > dist\sha256.sums
+```
+
+Check that a backup copied to a USB drive still matches the original:
+
+```bash
+sha256sumx photos.tar /media/usb/photos.tar
+```
+
+```powershell
+sha256sumx photos.tar E:\photos.tar
+```
+
+Find duplicate photos in a folder: files with the same digest have the same content:
+
+```bash
+sha256sumx *.jpg | sortx | uniqx -w 64 -D
+```
+
+```powershell
+sha256sumx (Get-ChildItem *.jpg -Name) | sortx | uniqx -w 64 -D
+```
+
+In CI, fail the build when a vendored file was changed by hand:
+
+```bash
+sha256sumx -c --status vendor.sha256sums || { echox 'vendored files changed' >&2; exit 1; }
+```
+
+```powershell
+sha256sumx -c --status vendor.sha256sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
+```
+
+Re-check a large archive set and show only what no longer matches:
+
+```bash
+sha256sumx -c --quiet sha256.sums
+```
+
+```powershell
+sha256sumx -c --quiet sha256.sums
+```
+
+Output:
+
+```text
+notes.txt: FAILED
+sha256sumx: WARNING: 1 computed checksum did NOT match
+```
+
+Hash a token from a variable, without the newline echo would add:
+
+```bash
+printfx '%s' "$TOKEN" | sha256sumx
+```
+
+```powershell
+printfx '%s' $env:TOKEN | sha256sumx
+```
+
+Write lines that name the algorithm, so a mixed list can be checked with `cksumx -c`:
+
+```bash
+sha256sumx --tag release.tar.gz >> CHECKSUMS
+```
+
+```powershell
+sha256sumx --tag release.zip >> CHECKSUMS
+```
+
+Refuse a checksum list with malformed lines instead of skipping them:
 
 ```bash
 sha256sumx -c --strict -w sha256.sums
@@ -140,27 +163,17 @@ sha256sumx -c --strict -w sha256.sums
 sha256sumx -c --strict -w sha256.sums
 ```
 
-Print BSD-style tagged lines:
+Match the '*' binary-mode lines produced by tools on Windows:
 
 ```bash
-sha256sumx --tag file.iso
+sha256sumx -b setup.exe
 ```
 
 ```powershell
-sha256sumx --tag file.iso
+sha256sumx -b setup.exe
 ```
 
-Mark the files as read in binary mode:
-
-```bash
-sha256sumx -b file.iso
-```
-
-```powershell
-sha256sumx -b file.iso
-```
-
-Digest in the portable `gnux shell`:
+Record a digest next to the file in the portable `gnux shell`, the same on every OS:
 
 ```bash
 gnux shell -c 'sha256sumx file.iso > file.iso.sha256sum'

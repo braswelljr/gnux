@@ -28,6 +28,8 @@ type TypingTerminalProps = {
    */
   takenOver?: string;
   className?: string;
+  /** Classes for the window frame, such as dropping its border to fill a monitor's screen. */
+  windowClassName?: string;
   /** Sets the screen's height; older lines scroll off the top. */
   screenClassName?: string;
 };
@@ -50,6 +52,7 @@ export function TypingTerminal({
   onStroke,
   takenOver,
   className,
+  windowClassName,
   screenClassName
 }: TypingTerminalProps) {
   const ref = useRef<HTMLElement>(null);
@@ -75,11 +78,12 @@ export function TypingTerminal({
         aria-hidden="true"
         title={title}
         glow={glow}
+        className={windowClassName}
         data-paused={!inView}
       >
         <div
           className={cn(
-            'flex h-56 flex-col justify-end overflow-hidden p-3 font-mono text-xs leading-relaxed sm:p-4 sm:text-sm',
+            'flex h-40 flex-col justify-end overflow-hidden p-3 font-mono text-xs leading-relaxed sm:h-56 sm:p-4 sm:text-sm',
             screenClassName
           )}
         >

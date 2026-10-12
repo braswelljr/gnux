@@ -4,11 +4,14 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-10-12
+
 ### Added
 
-- 52 more tools, bringing gnux to 81 and covering nearly all of coreutils:
-  - text: `pastex`, `joinx`, `commx`, `nlx`, `foldx`, `fmtx`, `expandx`, `unexpandx`, `tacx`,
-    `splitx`, `csplitx`, `shufx`, `odx`;
+- 59 more tools, bringing gnux from 22 to 81 and covering nearly all of coreutils:
+  - text: `sortx`, `uniqx`, `cutx`, `trx`, `teex`, `seqx`, `printfx`, `pastex`, `joinx`,
+    `commx`, `nlx`, `foldx`, `fmtx`, `expandx`, `unexpandx`, `tacx`, `splitx`, `csplitx`,
+    `shufx`, `odx`;
   - checksums and encoding: `md5sumx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`,
     `sha512sumx`, `b2sumx`, `cksumx`, `base32x`, `base64x`;
   - file attributes: `chmodx`, `chownx`, `chgrpx`, `statx`, `dux`, `dfx`, `mktempx`, `installx`,
@@ -21,29 +24,29 @@ Every notable change to gnux, release by release, newest first. The format follo
   `nohupx` detaches from the console on Windows, so both work there; `killx 1234 -9` never
   signals process group 9; `dfx`, `whox`, `uptimex` and `statx` report the same fields on Linux,
   macOS, FreeBSD and Windows without cgo.
+- Releases built by GoReleaser (`.goreleaser.yaml`), for four more platforms (`linux/riscv64`,
+  `freebsd/amd64`, `freebsd/arm64`, `windows/arm64`), with shell completions in every archive
+  and a build provenance attestation. Archive names are unchanged.
+- Homebrew cask (`brew install --cask braswelljr/tap/gnux`), Scoop and winget manifests,
+  published with each release.
+- setup-gnux, a GitHub Action (`uses: braswelljr/gnux@v0`) that installs a checksum-verified
+  release on Linux, macOS and Windows runners and puts every tool on `PATH`.
+- `gnux completion bash|zsh|fish|powershell`, listed in `gnux --help`.
 - Documentation examples can show their output (`docmeta.Example.Output`), rendered under the
-  commands in every reference page; the new tools' examples are written as real scenarios.
-- Website: an install page with numbered, copyable steps per platform (macOS, Windows, Linux
-  and FreeBSD, Go, GitHub Actions, Docker); a pausable marquee of every tool under the hero; a
-  "why gnux" strip; and, on every tool page, a GNU reference (manual and coreutils source) and
-  examples as scenarios with bash and PowerShell tabs that remember your choice.
-- `core.FlushOutput`, which reports a failed final write (`write error: No space left on
-  device`) instead of exiting 0.
-- `seqx` (GNU `seq`) and `printfx` (GNU `printf`): number sequences with `-f`, `-s` and `-w`, exact decimal steps and negative operands without `--`; and C-style formatting with every GNU conversion, flag, `*` width and precision, escape (`\u`, `\x`, octal), `%b`, `%q`, format reuse and GNU's numeric diagnostics.
-- `sortx`, GNU `sort`: sort, merge (`-m`) or check (`-c`, `-C`) lines, with keys (`-k`), field separators (`-t`), numeric, general-numeric, human-numeric, month and version ordering, `-u`, `-s`, `-o` (in place), `-z` and `--files0-from`.
-- `trx` (GNU `tr`) and `teex` (GNU `tee`): translate, squeeze and delete bytes with GNU's full SET syntax, and copy standard input to files with `-a`, `-p` and `--output-error`.
-- `cutx` (GNU `cut`) and `uniqx` (GNU `uniq`), with GNU's full flag surfaces: byte, character and field lists with `--complement` and `--output-delimiter`, and counting, duplicate selection, `--all-repeated` and `--group` with field, character and case-insensitive comparison.
-- Releases are built by GoReleaser (`.goreleaser.yaml`) and now also cover `linux/riscv64`, `freebsd/amd64`, `freebsd/arm64` and `windows/arm64`, with a build provenance attestation for every archive. Archive names are unchanged.
-- Homebrew cask (`brew install --cask braswelljr/tap/gnux`), Scoop and winget manifests, published with each release.
-- setup-gnux, a GitHub Action (`uses: braswelljr/gnux@v0`) that installs a verified release on Linux, macOS and Windows runners and puts every tool on `PATH`.
-- `gnux completion bash|zsh|fish|powershell`, now listed in `gnux --help`, with the scripts shipped in every release archive.
+  commands in every reference page.
+- Website: an install page with copyable steps per platform (macOS, Windows, Linux and FreeBSD,
+  Go, GitHub Actions, Docker); a pausable marquee of every tool; a "why gnux" strip; and, on
+  every tool page, a GNU reference and examples with bash and PowerShell tabs that remember your
+  choice.
+- Library: `core.FlushOutput`, which reports a failed final write (`write error: No space left
+  on device`) instead of exiting 0, and `shell.Shell.Glob`, the injection point for globbing.
 - Fuzz tests for the shell's parser and expansion, run in CI.
-- `shell.Shell.Glob`, the injection point for globbing (defaults to `filepath.Glob`), for hosts with their own filesystem and for tests.
 - `docs/requirements/checklist.md`, the list of planned tools and integrations.
 
 ### Changed
 
-- Release tags must be full versions (`v1.2.3`, `v1.2.3-rc.1`); each stable release moves its major tag (`v0`) for the GitHub Action.
+- Release tags must be full versions (`v1.2.3`, `v1.2.3-rc.1`); each stable release moves its
+  major tag (`v0`), which the GitHub Action is used by.
 - Dependabot also updates the website's pnpm packages.
 
 ## [0.0.1] - 2026-10-11
@@ -62,5 +65,6 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 - The project is now gnux, a portable implementation of the GNU core utilities. `rmx`, which it started as, was rewritten as one of its tools, with GNU's full `rm` flag surface.
 
-[Unreleased]: https://github.com/braswelljr/gnux/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/braswelljr/gnux/compare/v0.0.2...HEAD
+[0.0.2]: https://github.com/braswelljr/gnux/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/braswelljr/gnux/releases/tag/v0.0.1

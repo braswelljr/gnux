@@ -51,77 +51,17 @@ Needs read permission on each FILE (and, with `-c`, on the checksum lists and ev
 
 ### Examples
 
-Print the digest of a file:
+You downloaded an installer: print its digest to compare with the one on the website:
 
 ```bash
-b2sumx file.iso
+b2sumx ubuntu-24.04-desktop-amd64.iso
 ```
 
 ```powershell
-b2sumx file.iso
+b2sumx ubuntu-24.04-desktop-amd64.iso
 ```
 
-Digest several files:
-
-```bash
-b2sumx *.tar.gz
-```
-
-```powershell
-b2sumx (Get-ChildItem *.tar.gz -Name)
-```
-
-Digest standard input:
-
-```bash
-echox -n hello | b2sumx
-```
-
-```powershell
-echox -n hello | b2sumx
-```
-
-Save digests to a file:
-
-```bash
-b2sumx *.iso > b2.sums
-```
-
-```powershell
-b2sumx (Get-ChildItem *.iso -Name) > b2.sums
-```
-
-Verify files against saved digests:
-
-```bash
-b2sumx -c b2.sums
-```
-
-```powershell
-b2sumx -c b2.sums
-```
-
-Verify quietly, showing only failures:
-
-```bash
-b2sumx -c --quiet b2.sums
-```
-
-```powershell
-b2sumx -c --quiet b2.sums
-```
-
-Verify silently and branch on the result:
-
-```bash
-b2sumx -c --status b2.sums && echox verified
-```
-
-```powershell
-b2sumx -c --status b2.sums; if ($LASTEXITCODE -eq 0) { 'verified' }
-```
-
-Verify only the listed files that exist:
+Verify the download against the publisher's checksum file, which lists other files too:
 
 ```bash
 b2sumx -c --ignore-missing b2.sums
@@ -131,7 +71,90 @@ b2sumx -c --ignore-missing b2.sums
 b2sumx -c --ignore-missing b2.sums
 ```
 
-Fail on malformed lines in the list:
+Output:
+
+```text
+ubuntu-24.04-desktop-amd64.iso: OK
+```
+
+Publish checksums next to your release archives:
+
+```bash
+b2sumx dist/*.tar.gz > dist/b2.sums
+```
+
+```powershell
+b2sumx (Get-ChildItem dist\*.zip -Name) > dist\b2.sums
+```
+
+Check that a backup copied to a USB drive still matches the original:
+
+```bash
+b2sumx photos.tar /media/usb/photos.tar
+```
+
+```powershell
+b2sumx photos.tar E:\photos.tar
+```
+
+Find duplicate photos in a folder: files with the same digest have the same content:
+
+```bash
+b2sumx *.jpg | sortx | uniqx -w 128 -D
+```
+
+```powershell
+b2sumx (Get-ChildItem *.jpg -Name) | sortx | uniqx -w 128 -D
+```
+
+In CI, fail the build when a vendored file was changed by hand:
+
+```bash
+b2sumx -c --status vendor.b2sums || { echox 'vendored files changed' >&2; exit 1; }
+```
+
+```powershell
+b2sumx -c --status vendor.b2sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
+```
+
+Re-check a large archive set and show only what no longer matches:
+
+```bash
+b2sumx -c --quiet b2.sums
+```
+
+```powershell
+b2sumx -c --quiet b2.sums
+```
+
+Output:
+
+```text
+notes.txt: FAILED
+b2sumx: WARNING: 1 computed checksum did NOT match
+```
+
+Hash a token from a variable, without the newline echo would add:
+
+```bash
+printfx '%s' "$TOKEN" | b2sumx
+```
+
+```powershell
+printfx '%s' $env:TOKEN | b2sumx
+```
+
+Write lines that name the algorithm, so a mixed list can be checked with `cksumx -c`:
+
+```bash
+b2sumx --tag release.tar.gz >> CHECKSUMS
+```
+
+```powershell
+b2sumx --tag release.zip >> CHECKSUMS
+```
+
+Refuse a checksum list with malformed lines instead of skipping them:
 
 ```bash
 b2sumx -c --strict -w b2.sums
@@ -141,37 +164,27 @@ b2sumx -c --strict -w b2.sums
 b2sumx -c --strict -w b2.sums
 ```
 
-Print BSD-style tagged lines:
+Match the '*' binary-mode lines produced by tools on Windows:
 
 ```bash
-b2sumx --tag file.iso
+b2sumx -b setup.exe
 ```
 
 ```powershell
-b2sumx --tag file.iso
+b2sumx -b setup.exe
 ```
 
-Mark the files as read in binary mode:
+Use a shorter, 256-bit digest as a compact content ID for cache keys:
 
 ```bash
-b2sumx -b file.iso
+b2sumx -l 256 package-lock.json
 ```
 
 ```powershell
-b2sumx -b file.iso
+b2sumx -l 256 package-lock.json
 ```
 
-Print a 256-bit digest:
-
-```bash
-b2sumx -l 256 file.iso
-```
-
-```powershell
-b2sumx -l 256 file.iso
-```
-
-Digest in the portable `gnux shell`:
+Record a digest next to the file in the portable `gnux shell`, the same on every OS:
 
 ```bash
 gnux shell -c 'b2sumx file.iso > file.iso.b2sum'

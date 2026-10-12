@@ -19,7 +19,7 @@ joinx --check-order FILE1 FILE2
 
 ## Examples
 
-### Fail at the first line out of order
+### Make a script stop if an input was not sorted, rather than miss matches
 
 ```bash tab="bash" tab-group="shell"
 joinx --check-order a.txt b.txt || echox 'not sorted'

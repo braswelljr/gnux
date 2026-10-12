@@ -37,49 +37,49 @@ Examples
 
 ::
 
-    # Print the current date and time
+    # Check the date and time on a server
     datex
 
-    # Print the date in ISO 8601
+    # Get today's date in a sortable form for a file name
     datex -I
 
-    # Print an ISO 8601 timestamp to the second
+    # Stamp a log line with a precise, sortable time
     datex -Iseconds
 
-    # Print the time in UTC
+    # Check UTC when coordinating with people in other time zones
     datex -u
 
-    # Use a custom format
+    # Print the time the way your report needs it
     datex '+%Y-%m-%d %H:%M:%S'
 
-    # Name a backup after today's date
+    # Name tonight's database backup after today's date
     cpx db.sqlite "db-$(datex +%F).sqlite"
 
-    # Print the seconds since the epoch
+    # Get a Unix timestamp to store or compare
     datex +%s
 
-    # Convert epoch seconds to a date
+    # Read a Unix timestamp you found in a log or a database
     datex -u -d @1700000000
 
-    # Compute a relative date
+    # Find the date three days ago, to clean up older files
     datex -d '3 days ago' +%F
 
-    # Find next Friday's date
+    # Find the date of next Friday for a deadline
     datex -d 'next friday' +%A,%F
 
-    # Print a file's modification time
+    # See when a report was last saved
     datex -r report.txt
 
-    # Print the time in another zone
+    # See what time it is in Tokyo before calling a colleague
     TZ=Asia/Tokyo datex
 
-    # Print an RFC 3339 timestamp
+    # Produce a timestamp an API expects in RFC 3339
     datex --rfc-3339=seconds
 
-    # Convert a list of dates
+    # Convert a column of dates into timestamps for sorting
     datex -f dates.txt +%s
 
-    # Timestamp a log line in the portable gnux shell
+    # Timestamp a log line in the portable gnux shell, the same on every OS
     gnux shell -c 'datex -Iseconds >> run.log'
 
 Options

@@ -64,38 +64,38 @@ options:
       usage: |
         end each output line with NUL, not newline, and disable file name escaping
 example: |4-
-      # Print the digest of a file
-      sha224sumx file.iso
+      # You downloaded an installer: print its digest to compare with the one on the website
+      sha224sumx ubuntu-24.04-desktop-amd64.iso
 
-      # Digest several files
-      sha224sumx *.tar.gz
-
-      # Digest standard input
-      echox -n hello | sha224sumx
-
-      # Save digests to a file
-      sha224sumx *.iso > sha224.sums
-
-      # Verify files against saved digests
-      sha224sumx -c sha224.sums
-
-      # Verify quietly, showing only failures
-      sha224sumx -c --quiet sha224.sums
-
-      # Verify silently and branch on the result
-      sha224sumx -c --status sha224.sums && echox verified
-
-      # Verify only the listed files that exist
+      # Verify the download against the publisher's checksum file, which lists other files too
       sha224sumx -c --ignore-missing sha224.sums
 
-      # Fail on malformed lines in the list
+      # Publish checksums next to your release archives
+      sha224sumx dist/*.tar.gz > dist/sha224.sums
+
+      # Check that a backup copied to a USB drive still matches the original
+      sha224sumx photos.tar /media/usb/photos.tar
+
+      # Find duplicate photos in a folder: files with the same digest have the same content
+      sha224sumx *.jpg | sortx | uniqx -w 56 -D
+
+      # In CI, fail the build when a vendored file was changed by hand
+      sha224sumx -c --status vendor.sha224sums || { echox 'vendored files changed' >&2; exit 1; }
+
+      # Re-check a large archive set and show only what no longer matches
+      sha224sumx -c --quiet sha224.sums
+
+      # Hash a token from a variable, without the newline echo would add
+      printfx '%s' "$TOKEN" | sha224sumx
+
+      # Write lines that name the algorithm, so a mixed list can be checked with cksumx -c
+      sha224sumx --tag release.tar.gz >> CHECKSUMS
+
+      # Refuse a checksum list with malformed lines instead of skipping them
       sha224sumx -c --strict -w sha224.sums
 
-      # Print BSD-style tagged lines
-      sha224sumx --tag file.iso
+      # Match the '*' binary-mode lines produced by tools on Windows
+      sha224sumx -b setup.exe
 
-      # Mark the files as read in binary mode
-      sha224sumx -b file.iso
-
-      # Digest in the portable gnux shell
+      # Record a digest next to the file in the portable gnux shell, the same on every OS
       gnux shell -c 'sha224sumx file.iso > file.iso.sha224sum'

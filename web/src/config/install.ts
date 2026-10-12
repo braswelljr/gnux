@@ -101,7 +101,7 @@ lsx -la`
         detail:
           'Pick the archive for your platform from the releases page; the checksum file proves it arrived intact.',
         shell: 'Shell',
-        code: `v=v0.1.0
+        code: `v=v0.0.1
 curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/gnux-$v-linux-amd64.tar.gz"
 curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/checksums.txt"
 sha256sum --check --ignore-missing checksums.txt`

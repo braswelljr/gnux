@@ -48,57 +48,57 @@ func Meta() docmeta.Meta {
 		},
 		Examples: []docmeta.Example{
 			{
-				Description: "Print a file last line first:",
+				Description: "Read a log newest entry first:",
 				Bash:        "tacx app.log",
 				PowerShell:  "tacx app.log",
 			},
 			{
-				Description: "Show the newest ten log lines, newest first:",
+				Description: "See the ten most recent log entries, newest at the top:",
 				Bash:        "tacx app.log | headx",
 				PowerShell:  "tacx app.log | headx",
 			},
 			{
-				Description: "Reverse standard input:",
+				Description: "Count down instead of up:",
 				Bash:        "seqx 5 | tacx",
 				PowerShell:  "seqx 5 | tacx",
 			},
 			{
-				Description: "Reverse several files, each on its own:",
+				Description: "Reverse two logs, each kept separate:",
 				Bash:        "tacx a.txt b.txt",
 				PowerShell:  "tacx a.txt b.txt",
 			},
 			{
-				Description: "Reverse comma-separated records:",
+				Description: "Reverse items in a comma-separated list:",
 				Bash:        "printfx 'a,b,c,' | tacx -s ,",
 				PowerShell:  "printfx 'a,b,c,' | tacx -s ,",
 			},
 			{
-				Description: "Attach each separator to the following record:",
+				Description: "Reverse sections of a file that each start with a '---' line:",
 				Bash:        "tacx -b -s '---' notes.txt",
 				PowerShell:  "tacx -b -s '---' notes.txt",
 			},
 			{
-				Description: "Split records on a regular expression:",
+				Description: "Reverse records separated by numbers of any length:",
 				Bash:        "tacx -r -s '[0-9]+' data.txt",
 				PowerShell:  "tacx -r -s '[0-9]+' data.txt",
 			},
 			{
-				Description: "Save a reversed copy:",
+				Description: "Keep a newest-first copy of a history file:",
 				Bash:        "tacx history.txt > reversed.txt",
 				PowerShell:  "tacx history.txt > reversed.txt",
 			},
 			{
-				Description: "Undo a list of steps in reverse order:",
+				Description: "Get the order to undo a list of setup steps:",
 				Bash:        "tacx steps.txt | catx -n",
 				PowerShell:  "tacx steps.txt | catx -n",
 			},
 			{
-				Description: "Reverse a sorted list instead of sorting it again:",
+				Description: "Sort a list descending without a second sort:",
 				Bash:        "sortx names.txt | tacx",
 				PowerShell:  "sortx names.txt | tacx",
 			},
 			{
-				Description: "Reverse in the portable gnux shell:",
+				Description: "Show the five newest log lines in the portable gnux shell:",
 				Bash:        "gnux shell -c 'tacx app.log | headx -n 5'",
 				PowerShell:  "gnux shell -c 'tacx app.log | headx -n 5'",
 			},

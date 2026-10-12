@@ -19,7 +19,7 @@ sha256sumx --quiet [FILE]...
 
 ## Examples
 
-### Verify quietly, showing only failures
+### Re-check a large archive set and show only what no longer matches
 
 ```bash tab="bash" tab-group="shell"
 sha256sumx -c --quiet sha256.sums
@@ -27,6 +27,11 @@ sha256sumx -c --quiet sha256.sums
 
 ```powershell tab="PowerShell" tab-group="shell"
 sha256sumx -c --quiet sha256.sums
+```
+
+```text title="Output"
+notes.txt: FAILED
+sha256sumx: WARNING: 1 computed checksum did NOT match
 ```
 
 ## Help in the terminal

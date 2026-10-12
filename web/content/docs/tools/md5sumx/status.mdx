@@ -19,14 +19,14 @@ md5sumx --status [FILE]...
 
 ## Examples
 
-### Verify silently and branch on the result
+### In CI, fail the build when a vendored file was changed by hand
 
 ```bash tab="bash" tab-group="shell"
-md5sumx -c --status md5.sums && echox verified
+md5sumx -c --status vendor.md5sums || { echox 'vendored files changed' >&2; exit 1; }
 ```
 
 ```powershell tab="PowerShell" tab-group="shell"
-md5sumx -c --status md5.sums; if ($LASTEXITCODE -eq 0) { 'verified' }
+md5sumx -c --status vendor.md5sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
 ```
 
 ## Help in the terminal

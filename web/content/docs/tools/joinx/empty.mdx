@@ -20,7 +20,7 @@ joinx --empty=EMPTY FILE1 FILE2
 
 ## Examples
 
-### Full outer join, filling missing fields with NULL
+### Merge two inventories into one table, marking missing values as NULL
 
 ```bash tab="bash" tab-group="shell"
 joinx -a 1 -a 2 -e NULL -o auto a.txt b.txt

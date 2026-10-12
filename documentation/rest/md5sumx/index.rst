@@ -37,40 +37,40 @@ Examples
 
 ::
 
-    # Print the digest of a file
-    md5sumx file.iso
+    # You downloaded an installer: print its digest to compare with the one on the website
+    md5sumx ubuntu-24.04-desktop-amd64.iso
 
-    # Digest several files
-    md5sumx *.tar.gz
-
-    # Digest standard input
-    echox -n hello | md5sumx
-
-    # Save digests to a file
-    md5sumx *.iso > md5.sums
-
-    # Verify files against saved digests
-    md5sumx -c md5.sums
-
-    # Verify quietly, showing only failures
-    md5sumx -c --quiet md5.sums
-
-    # Verify silently and branch on the result
-    md5sumx -c --status md5.sums && echox verified
-
-    # Verify only the listed files that exist
+    # Verify the download against the publisher's checksum file, which lists other files too
     md5sumx -c --ignore-missing md5.sums
 
-    # Fail on malformed lines in the list
+    # Publish checksums next to your release archives
+    md5sumx dist/*.tar.gz > dist/md5.sums
+
+    # Check that a backup copied to a USB drive still matches the original
+    md5sumx photos.tar /media/usb/photos.tar
+
+    # Find duplicate photos in a folder: files with the same digest have the same content
+    md5sumx *.jpg | sortx | uniqx -w 32 -D
+
+    # In CI, fail the build when a vendored file was changed by hand
+    md5sumx -c --status vendor.md5sums || { echox 'vendored files changed' >&2; exit 1; }
+
+    # Re-check a large archive set and show only what no longer matches
+    md5sumx -c --quiet md5.sums
+
+    # Hash a token from a variable, without the newline echo would add
+    printfx '%s' "$TOKEN" | md5sumx
+
+    # Write lines that name the algorithm, so a mixed list can be checked with cksumx -c
+    md5sumx --tag release.tar.gz >> CHECKSUMS
+
+    # Refuse a checksum list with malformed lines instead of skipping them
     md5sumx -c --strict -w md5.sums
 
-    # Print BSD-style tagged lines
-    md5sumx --tag file.iso
+    # Match the '*' binary-mode lines produced by tools on Windows
+    md5sumx -b setup.exe
 
-    # Mark the files as read in binary mode
-    md5sumx -b file.iso
-
-    # Digest in the portable gnux shell
+    # Record a digest next to the file in the portable gnux shell, the same on every OS
     gnux shell -c 'md5sumx file.iso > file.iso.md5sum'
 
 Options

@@ -53,7 +53,7 @@ Needs read permission on FILE1 and FILE2 and search permission on the directorie
 
 ### Examples
 
-Join two files sorted on their first field:
+Combine a names list and an ages list that share an ID column:
 
 ```bash
 joinx names.txt ages.txt
@@ -63,7 +63,7 @@ joinx names.txt ages.txt
 joinx names.txt ages.txt
 ```
 
-Join comma-separated files:
+Attach each order to its customer from two CSV exports:
 
 ```bash
 joinx -t, users.csv orders.csv
@@ -73,7 +73,7 @@ joinx -t, users.csv orders.csv
 joinx -t, users.csv orders.csv
 ```
 
-Join on the second field of the first file and the first of the second:
+Look up customer names when the ID is the second column of the orders file:
 
 ```bash
 joinx -1 2 -2 1 orders.txt customers.txt
@@ -83,7 +83,7 @@ joinx -1 2 -2 1 orders.txt customers.txt
 joinx -1 2 -2 1 orders.txt customers.txt
 ```
 
-Also print the lines of the first file that have no match:
+Keep everyone in the names list, even those with no age recorded:
 
 ```bash
 joinx -a 1 names.txt ages.txt
@@ -93,7 +93,7 @@ joinx -a 1 names.txt ages.txt
 joinx -a 1 names.txt ages.txt
 ```
 
-Print only the keys of the first file missing from the second:
+Find the tasks in the full list that are not marked done yet:
 
 ```bash
 joinx -v 1 all.txt done.txt
@@ -103,7 +103,7 @@ joinx -v 1 all.txt done.txt
 joinx -v 1 all.txt done.txt
 ```
 
-Full outer `join`, filling missing fields with NULL:
+Merge two inventories into one table, marking missing values as NULL:
 
 ```bash
 joinx -a 1 -a 2 -e NULL -o auto a.txt b.txt
@@ -113,7 +113,7 @@ joinx -a 1 -a 2 -e NULL -o auto a.txt b.txt
 joinx -a 1 -a 2 -e NULL -o auto a.txt b.txt
 ```
 
-Choose the output fields:
+Build a report with just the columns you need, in your order:
 
 ```bash
 joinx -o 1.2,2.3,0 a.txt b.txt
@@ -123,7 +123,7 @@ joinx -o 1.2,2.3,0 a.txt b.txt
 joinx -o 1.2,2.3,0 a.txt b.txt
 ```
 
-Keep the header line of each file:
+Join two CSV exports that each start with a header row:
 
 ```bash
 joinx --header -t, users.csv orders.csv
@@ -133,7 +133,7 @@ joinx --header -t, users.csv orders.csv
 joinx --header -t, users.csv orders.csv
 ```
 
-Join unsorted files by sorting them first:
+Join two exports that came out of a database unsorted:
 
 ```bash
 sortx a.txt > a.sorted && sortx b.txt > b.sorted && joinx a.sorted b.sorted
@@ -143,7 +143,7 @@ sortx a.txt > a.sorted && sortx b.txt > b.sorted && joinx a.sorted b.sorted
 sortx a.txt > a.sorted; sortx b.txt > b.sorted; joinx a.sorted b.sorted
 ```
 
-Compare `join` fields without regard to case:
+Match user names written with different capitalization in two systems:
 
 ```bash
 joinx -i a.txt b.txt
@@ -153,7 +153,7 @@ joinx -i a.txt b.txt
 joinx -i a.txt b.txt
 ```
 
-Read the first file from standard input:
+Join the output of another command against a lookup file:
 
 ```bash
 sortx ids.txt | joinx - names.txt
@@ -163,7 +163,7 @@ sortx ids.txt | joinx - names.txt
 sortx ids.txt | joinx - names.txt
 ```
 
-Fail at the first line out of order:
+Make a script stop if an input was not sorted, rather than miss matches:
 
 ```bash
 joinx --check-order a.txt b.txt || echox 'not sorted'
@@ -173,7 +173,7 @@ joinx --check-order a.txt b.txt || echox 'not sorted'
 joinx --check-order a.txt b.txt; if ($LASTEXITCODE -ne 0) { 'not sorted' }
 ```
 
-Join in the portable `gnux shell`:
+Count matched orders in the portable `gnux shell`, the same on every OS:
 
 ```bash
 gnux shell -c 'joinx -t, users.csv orders.csv | wcx -l'

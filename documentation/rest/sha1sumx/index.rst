@@ -37,40 +37,40 @@ Examples
 
 ::
 
-    # Print the digest of a file
-    sha1sumx file.iso
+    # You downloaded an installer: print its digest to compare with the one on the website
+    sha1sumx ubuntu-24.04-desktop-amd64.iso
 
-    # Digest several files
-    sha1sumx *.tar.gz
-
-    # Digest standard input
-    echox -n hello | sha1sumx
-
-    # Save digests to a file
-    sha1sumx *.iso > sha1.sums
-
-    # Verify files against saved digests
-    sha1sumx -c sha1.sums
-
-    # Verify quietly, showing only failures
-    sha1sumx -c --quiet sha1.sums
-
-    # Verify silently and branch on the result
-    sha1sumx -c --status sha1.sums && echox verified
-
-    # Verify only the listed files that exist
+    # Verify the download against the publisher's checksum file, which lists other files too
     sha1sumx -c --ignore-missing sha1.sums
 
-    # Fail on malformed lines in the list
+    # Publish checksums next to your release archives
+    sha1sumx dist/*.tar.gz > dist/sha1.sums
+
+    # Check that a backup copied to a USB drive still matches the original
+    sha1sumx photos.tar /media/usb/photos.tar
+
+    # Find duplicate photos in a folder: files with the same digest have the same content
+    sha1sumx *.jpg | sortx | uniqx -w 40 -D
+
+    # In CI, fail the build when a vendored file was changed by hand
+    sha1sumx -c --status vendor.sha1sums || { echox 'vendored files changed' >&2; exit 1; }
+
+    # Re-check a large archive set and show only what no longer matches
+    sha1sumx -c --quiet sha1.sums
+
+    # Hash a token from a variable, without the newline echo would add
+    printfx '%s' "$TOKEN" | sha1sumx
+
+    # Write lines that name the algorithm, so a mixed list can be checked with cksumx -c
+    sha1sumx --tag release.tar.gz >> CHECKSUMS
+
+    # Refuse a checksum list with malformed lines instead of skipping them
     sha1sumx -c --strict -w sha1.sums
 
-    # Print BSD-style tagged lines
-    sha1sumx --tag file.iso
+    # Match the '*' binary-mode lines produced by tools on Windows
+    sha1sumx -b setup.exe
 
-    # Mark the files as read in binary mode
-    sha1sumx -b file.iso
-
-    # Digest in the portable gnux shell
+    # Record a digest next to the file in the portable gnux shell, the same on every OS
     gnux shell -c 'sha1sumx file.iso > file.iso.sha1sum'
 
 Options

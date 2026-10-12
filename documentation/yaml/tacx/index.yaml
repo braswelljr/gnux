@@ -39,35 +39,35 @@ options:
       default_value: "false"
       usage: output version information and exit
 example: |4-
-      # Print a file last line first
+      # Read a log newest entry first
       tacx app.log
 
-      # Show the newest ten log lines, newest first
+      # See the ten most recent log entries, newest at the top
       tacx app.log | headx
 
-      # Reverse standard input
+      # Count down instead of up
       seqx 5 | tacx
 
-      # Reverse several files, each on its own
+      # Reverse two logs, each kept separate
       tacx a.txt b.txt
 
-      # Reverse comma-separated records
+      # Reverse items in a comma-separated list
       printfx 'a,b,c,' | tacx -s ,
 
-      # Attach each separator to the following record
+      # Reverse sections of a file that each start with a '---' line
       tacx -b -s '---' notes.txt
 
-      # Split records on a regular expression
+      # Reverse records separated by numbers of any length
       tacx -r -s '[0-9]+' data.txt
 
-      # Save a reversed copy
+      # Keep a newest-first copy of a history file
       tacx history.txt > reversed.txt
 
-      # Undo a list of steps in reverse order
+      # Get the order to undo a list of setup steps
       tacx steps.txt | catx -n
 
-      # Reverse a sorted list instead of sorting it again
+      # Sort a list descending without a second sort
       sortx names.txt | tacx
 
-      # Reverse in the portable gnux shell
+      # Show the five newest log lines in the portable gnux shell
       gnux shell -c 'tacx app.log | headx -n 5'

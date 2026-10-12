@@ -47,7 +47,7 @@ Needs read permission on each FILE and search permission on the directories lead
 
 ### Examples
 
-Reformat a file to the default 75 columns:
+Tidy up a text file whose lines were edited into ragged lengths:
 
 ```bash
 fmtx notes.txt
@@ -57,7 +57,7 @@ fmtx notes.txt
 fmtx notes.txt
 ```
 
-Reformat to 72 columns:
+Rewrap a commit message to the 72 columns git log expects:
 
 ```bash
 fmtx -w 72 message.txt
@@ -67,7 +67,7 @@ fmtx -w 72 message.txt
 fmtx -w 72 message.txt
 ```
 
-Use the obsolete width form:
+Run an old script that uses the obsolete width form:
 
 ```bash
 fmtx -60 notes.txt
@@ -77,7 +77,7 @@ fmtx -60 notes.txt
 fmtx -60 notes.txt
 ```
 
-Split long lines but never `join` short ones:
+Shorten overlong lines in a script or list without merging its lines:
 
 ```bash
 fmtx -s -w 80 script.txt
@@ -87,7 +87,7 @@ fmtx -s -w 80 script.txt
 fmtx -s -w 80 script.txt
 ```
 
-Reflow a shell comment block:
+Reflow a block of shell comments after editing them:
 
 ```bash
 fmtx -p '#' -w 72 config.sh
@@ -97,7 +97,7 @@ fmtx -p '#' -w 72 config.sh
 fmtx -p '#' -w 72 config.sh
 ```
 
-Use uniform spacing:
+Normalize spacing in a document pasted from several sources:
 
 ```bash
 fmtx -u draft.txt
@@ -107,7 +107,7 @@ fmtx -u draft.txt
 fmtx -u draft.txt
 ```
 
-Keep a hanging indent:
+Reflow a list whose items have a hanging indent:
 
 ```bash
 fmtx -t list.txt
@@ -117,7 +117,7 @@ fmtx -t list.txt
 fmtx -t list.txt
 ```
 
-Keep the first two lines' indentation:
+Reflow a letter that indents its first line:
 
 ```bash
 fmtx -c letter.txt
@@ -127,7 +127,7 @@ fmtx -c letter.txt
 fmtx -c letter.txt
 ```
 
-Set the goal width as well as the maximum:
+Aim for even 70-column lines, never exceeding 80:
 
 ```bash
 fmtx -w 80 -g 70 notes.txt
@@ -137,7 +137,7 @@ fmtx -w 80 -g 70 notes.txt
 fmtx -w 80 -g 70 notes.txt
 ```
 
-Reformat standard input:
+Reflow text coming out of another command:
 
 ```bash
 catx a.txt b.txt | fmtx -w 66
@@ -147,7 +147,7 @@ catx a.txt b.txt | fmtx -w 66
 catx a.txt b.txt | fmtx -w 66
 ```
 
-Save a reformatted copy:
+Save a cleanly wrapped final copy of a draft:
 
 ```bash
 fmtx -w 72 draft.txt > final.txt
@@ -157,7 +157,7 @@ fmtx -w 72 draft.txt > final.txt
 fmtx -w 72 draft.txt > final.txt
 ```
 
-Reformat in the portable `gnux shell`:
+Preview a reflowed file in the portable `gnux shell`, the same on every OS:
 
 ```bash
 gnux shell -c 'fmtx -w 60 notes.txt | headx'

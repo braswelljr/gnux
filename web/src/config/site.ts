@@ -64,7 +64,7 @@ for t in $(gnux --list); do ln -sf gnux "$bin/$t"; done`
   {
     title: 'Release',
     summary: 'A prebuilt archive per platform, checked against checksums.txt.',
-    code: `v=v0.1.0
+    code: `v=v0.0.1
 curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/gnux-$v-linux-amd64.tar.gz"
 tar -xzf "gnux-$v-linux-amd64.tar.gz"
 sudo mv "gnux-$v-linux-amd64/gnux" /usr/local/bin/`

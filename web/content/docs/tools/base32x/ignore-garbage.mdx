@@ -20,14 +20,14 @@ base32x --ignore-garbage [FILE]
 
 ## Examples
 
-### Decode, skipping characters outside the alphabet
+### Decode text pasted from an email, where line breaks and stray characters crept in
 
 ```bash tab="bash" tab-group="shell"
-base32x -d -i messy.txt
+base32x -d -i pasted.txt > attachment.pdf
 ```
 
 ```powershell tab="PowerShell" tab-group="shell"
-base32x -d -i messy.txt
+base32x -d -i pasted.txt > attachment.pdf
 ```
 
 ## Help in the terminal

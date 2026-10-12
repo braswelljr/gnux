@@ -86,39 +86,39 @@ USE CASES.
 
 .SH EXAMPLE
 .EX
-  # Print the digest of a file
-  sha256sumx file.iso
+  # You downloaded an installer: print its digest to compare with the one on the website
+  sha256sumx ubuntu-24.04-desktop-amd64.iso
 
-  # Digest several files
-  sha256sumx *.tar.gz
-
-  # Digest standard input
-  echox -n hello | sha256sumx
-
-  # Save digests to a file
-  sha256sumx *.iso > sha256.sums
-
-  # Verify files against saved digests
-  sha256sumx -c sha256.sums
-
-  # Verify quietly, showing only failures
-  sha256sumx -c --quiet sha256.sums
-
-  # Verify silently and branch on the result
-  sha256sumx -c --status sha256.sums && echox verified
-
-  # Verify only the listed files that exist
+  # Verify the download against the publisher's checksum file, which lists other files too
   sha256sumx -c --ignore-missing sha256.sums
 
-  # Fail on malformed lines in the list
+  # Publish checksums next to your release archives
+  sha256sumx dist/*.tar.gz > dist/sha256.sums
+
+  # Check that a backup copied to a USB drive still matches the original
+  sha256sumx photos.tar /media/usb/photos.tar
+
+  # Find duplicate photos in a folder: files with the same digest have the same content
+  sha256sumx *.jpg | sortx | uniqx -w 64 -D
+
+  # In CI, fail the build when a vendored file was changed by hand
+  sha256sumx -c --status vendor.sha256sums || { echox 'vendored files changed' >&2; exit 1; }
+
+  # Re-check a large archive set and show only what no longer matches
+  sha256sumx -c --quiet sha256.sums
+
+  # Hash a token from a variable, without the newline echo would add
+  printfx '%s' "$TOKEN" | sha256sumx
+
+  # Write lines that name the algorithm, so a mixed list can be checked with cksumx -c
+  sha256sumx --tag release.tar.gz >> CHECKSUMS
+
+  # Refuse a checksum list with malformed lines instead of skipping them
   sha256sumx -c --strict -w sha256.sums
 
-  # Print BSD-style tagged lines
-  sha256sumx --tag file.iso
+  # Match the '*' binary-mode lines produced by tools on Windows
+  sha256sumx -b setup.exe
 
-  # Mark the files as read in binary mode
-  sha256sumx -b file.iso
-
-  # Digest in the portable gnux shell
+  # Record a digest next to the file in the portable gnux shell, the same on every OS
   gnux shell -c 'sha256sumx file.iso > file.iso.sha256sum'
 .EE

@@ -50,77 +50,17 @@ Needs read permission on each FILE (and, with `-c`, on the checksum lists and ev
 
 ### Examples
 
-Print the digest of a file:
+You downloaded an installer: print its digest to compare with the one on the website:
 
 ```bash
-sha384sumx file.iso
+sha384sumx ubuntu-24.04-desktop-amd64.iso
 ```
 
 ```powershell
-sha384sumx file.iso
+sha384sumx ubuntu-24.04-desktop-amd64.iso
 ```
 
-Digest several files:
-
-```bash
-sha384sumx *.tar.gz
-```
-
-```powershell
-sha384sumx (Get-ChildItem *.tar.gz -Name)
-```
-
-Digest standard input:
-
-```bash
-echox -n hello | sha384sumx
-```
-
-```powershell
-echox -n hello | sha384sumx
-```
-
-Save digests to a file:
-
-```bash
-sha384sumx *.iso > sha384.sums
-```
-
-```powershell
-sha384sumx (Get-ChildItem *.iso -Name) > sha384.sums
-```
-
-Verify files against saved digests:
-
-```bash
-sha384sumx -c sha384.sums
-```
-
-```powershell
-sha384sumx -c sha384.sums
-```
-
-Verify quietly, showing only failures:
-
-```bash
-sha384sumx -c --quiet sha384.sums
-```
-
-```powershell
-sha384sumx -c --quiet sha384.sums
-```
-
-Verify silently and branch on the result:
-
-```bash
-sha384sumx -c --status sha384.sums && echox verified
-```
-
-```powershell
-sha384sumx -c --status sha384.sums; if ($LASTEXITCODE -eq 0) { 'verified' }
-```
-
-Verify only the listed files that exist:
+Verify the download against the publisher's checksum file, which lists other files too:
 
 ```bash
 sha384sumx -c --ignore-missing sha384.sums
@@ -130,7 +70,90 @@ sha384sumx -c --ignore-missing sha384.sums
 sha384sumx -c --ignore-missing sha384.sums
 ```
 
-Fail on malformed lines in the list:
+Output:
+
+```text
+ubuntu-24.04-desktop-amd64.iso: OK
+```
+
+Publish checksums next to your release archives:
+
+```bash
+sha384sumx dist/*.tar.gz > dist/sha384.sums
+```
+
+```powershell
+sha384sumx (Get-ChildItem dist\*.zip -Name) > dist\sha384.sums
+```
+
+Check that a backup copied to a USB drive still matches the original:
+
+```bash
+sha384sumx photos.tar /media/usb/photos.tar
+```
+
+```powershell
+sha384sumx photos.tar E:\photos.tar
+```
+
+Find duplicate photos in a folder: files with the same digest have the same content:
+
+```bash
+sha384sumx *.jpg | sortx | uniqx -w 96 -D
+```
+
+```powershell
+sha384sumx (Get-ChildItem *.jpg -Name) | sortx | uniqx -w 96 -D
+```
+
+In CI, fail the build when a vendored file was changed by hand:
+
+```bash
+sha384sumx -c --status vendor.sha384sums || { echox 'vendored files changed' >&2; exit 1; }
+```
+
+```powershell
+sha384sumx -c --status vendor.sha384sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
+```
+
+Re-check a large archive set and show only what no longer matches:
+
+```bash
+sha384sumx -c --quiet sha384.sums
+```
+
+```powershell
+sha384sumx -c --quiet sha384.sums
+```
+
+Output:
+
+```text
+notes.txt: FAILED
+sha384sumx: WARNING: 1 computed checksum did NOT match
+```
+
+Hash a token from a variable, without the newline echo would add:
+
+```bash
+printfx '%s' "$TOKEN" | sha384sumx
+```
+
+```powershell
+printfx '%s' $env:TOKEN | sha384sumx
+```
+
+Write lines that name the algorithm, so a mixed list can be checked with `cksumx -c`:
+
+```bash
+sha384sumx --tag release.tar.gz >> CHECKSUMS
+```
+
+```powershell
+sha384sumx --tag release.zip >> CHECKSUMS
+```
+
+Refuse a checksum list with malformed lines instead of skipping them:
 
 ```bash
 sha384sumx -c --strict -w sha384.sums
@@ -140,27 +163,17 @@ sha384sumx -c --strict -w sha384.sums
 sha384sumx -c --strict -w sha384.sums
 ```
 
-Print BSD-style tagged lines:
+Match the '*' binary-mode lines produced by tools on Windows:
 
 ```bash
-sha384sumx --tag file.iso
+sha384sumx -b setup.exe
 ```
 
 ```powershell
-sha384sumx --tag file.iso
+sha384sumx -b setup.exe
 ```
 
-Mark the files as read in binary mode:
-
-```bash
-sha384sumx -b file.iso
-```
-
-```powershell
-sha384sumx -b file.iso
-```
-
-Digest in the portable `gnux shell`:
+Record a digest next to the file in the portable `gnux shell`, the same on every OS:
 
 ```bash
 gnux shell -c 'sha384sumx file.iso > file.iso.sha384sum'

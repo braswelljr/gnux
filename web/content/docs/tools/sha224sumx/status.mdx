@@ -19,14 +19,14 @@ sha224sumx --status [FILE]...
 
 ## Examples
 
-### Verify silently and branch on the result
+### In CI, fail the build when a vendored file was changed by hand
 
 ```bash tab="bash" tab-group="shell"
-sha224sumx -c --status sha224.sums && echox verified
+sha224sumx -c --status vendor.sha224sums || { echox 'vendored files changed' >&2; exit 1; }
 ```
 
 ```powershell tab="PowerShell" tab-group="shell"
-sha224sumx -c --status sha224.sums; if ($LASTEXITCODE -eq 0) { 'verified' }
+sha224sumx -c --status vendor.sha224sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
 ```
 
 ## Help in the terminal

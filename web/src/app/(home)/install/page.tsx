@@ -6,9 +6,11 @@ import {
   Badge,
   buttonVariants,
   CodeBlock,
-  Container,
+  Frame,
   GradientText,
+  GridCell,
   Heading,
+  pad2,
   Section
 } from '@/components/ui';
 import { installPlatforms } from '@/config/install';
@@ -30,93 +32,108 @@ export default function InstallPage() {
   return (
     <div className="relative isolate">
       <AnimatedBackground variant="subtle" />
-      <Container className="flex flex-col gap-6 pt-12 pb-4 sm:pt-16">
-        <header className="flex max-w-3xl flex-col gap-4">
-          <Heading
-            level={1}
-            size="3xl"
-          >
-            Install <GradientText>gnux</GradientText>.
-          </Heading>
-          <p className="text-lg text-pretty text-fd-muted-foreground">
-            One static binary carries all {toolCount} tools, with no runtime and nothing else to
-            install. Put it on your machine, link the tool names to it, and each one is a command of
-            its own.
-          </p>
-        </header>
-        <nav aria-label="Platforms">
-          <ul className="flex flex-wrap gap-2">
-            {installPlatforms.map((platform) => (
-              <li key={platform.id}>
-                <a
-                  href={`#${platform.id}`}
-                  className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
-                >
-                  <Badge>{platform.name}</Badge>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </Container>
+      <section aria-labelledby="install-title">
+        <Frame>
+          <div className="flex flex-col gap-6 px-4 pt-12 pb-10 sm:px-6 sm:pt-16">
+            <header className="flex max-w-3xl flex-col gap-4">
+              <Heading
+                level={1}
+                size="3xl"
+                id="install-title"
+              >
+                Install <GradientText>gnux</GradientText>.
+              </Heading>
+              <p className="text-lg text-pretty text-fd-muted-foreground">
+                One static binary carries all {toolCount} tools, with no runtime and nothing else to
+                install. Put it on your machine, link the tool names to it, and each one is a
+                command of its own.
+              </p>
+            </header>
+            <nav aria-label="Platforms">
+              <ul className="flex flex-wrap gap-2">
+                {installPlatforms.map((platform, i) => (
+                  <li key={platform.id}>
+                    <a
+                      href={`#${platform.id}`}
+                      className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
+                    >
+                      <Badge>
+                        <span className="text-faint">{pad2(i + 1)}</span> {platform.name}
+                      </Badge>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+        </Frame>
+      </section>
 
-      {installPlatforms.map((platform) => (
+      {installPlatforms.map((platform, p) => (
         <Section
           key={platform.id}
           id={platform.id}
           aria-labelledby={`${platform.id}-title`}
-          className="scroll-mt-20 py-8 sm:py-10"
-        >
-          <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
-            <div className="flex flex-col gap-2">
-              <Heading
-                level={2}
-                id={`${platform.id}-title`}
-              >
-                {platform.name}
-              </Heading>
-              <p className="text-sm text-pretty text-fd-muted-foreground">{platform.summary}</p>
-            </div>
-            <div className="flex min-w-0 flex-col gap-4">
-              <ol className="flex flex-col gap-4">
+          index={p + 1}
+          label={platform.name}
+          aside={`${platform.steps.length} step${platform.steps.length === 1 ? '' : 's'}`}
+          className="scroll-mt-14"
+          bleed={
+            <>
+              <ol className="grid gap-px border-t border-line bg-line">
                 {platform.steps.map((step, i) => (
                   <li
                     key={step.title}
-                    className="grid min-w-0 grid-cols-[2rem_minmax(0,1fr)] gap-3"
+                    className="min-w-0"
                   >
-                    <span
-                      aria-hidden="true"
-                      className="keycap grid size-8 place-items-center rounded-lg font-mono text-sm font-semibold keycap-mod [--cap-depth:3px]"
+                    <GridCell
+                      label={<span className="normal-case">{step.shell}</span>}
+                      index={i + 1}
                     >
-                      {i + 1}
-                    </span>
-                    <div className="flex min-w-0 flex-col gap-2">
-                      <Heading level={3}>
-                        <span className="sr-only">Step {i + 1}: </span>
-                        {step.title}
-                      </Heading>
-                      <p className="text-sm text-pretty text-fd-muted-foreground">{step.detail}</p>
-                      <CodeBlock
-                        title={step.shell}
-                        code={step.code}
-                        className="bg-fd-card"
-                      />
-                    </div>
+                      <div className="flex min-w-0 flex-col gap-2 p-4 sm:p-6">
+                        <Heading level={3}>
+                          <span className="sr-only">Step {i + 1}: </span>
+                          {step.title}
+                        </Heading>
+                        <p className="text-sm text-pretty text-fd-muted-foreground">
+                          {step.detail}
+                        </p>
+                        <CodeBlock
+                          title={step.shell}
+                          code={step.code}
+                          className="mt-2 bg-fd-card"
+                        />
+                      </div>
+                    </GridCell>
                   </li>
                 ))}
               </ol>
               {platform.note && (
-                <p className="rounded-lg border bg-fd-card/60 p-3 text-sm text-pretty text-fd-muted-foreground">
+                <p className="border-t border-line bg-fd-background/70 px-4 py-4 text-sm text-pretty text-fd-muted-foreground sm:px-6">
                   {platform.note}
                 </p>
               )}
-            </div>
-          </div>
+            </>
+          }
+        >
+          <Heading
+            level={2}
+            id={`${platform.id}-title`}
+            className="max-w-3xl"
+          >
+            <span className="sr-only">{platform.name}: </span>
+            {platform.summary}
+          </Heading>
         </Section>
       ))}
 
-      <Section aria-labelledby="next-title">
-        <div className="flex flex-col gap-4 rounded-2xl plate p-6 sm:p-8">
+      <Section
+        aria-labelledby="next-title"
+        index={installPlatforms.length + 1}
+        label="Next"
+        className="border-b border-line"
+      >
+        <div className="flex flex-col gap-4">
           <Heading
             level={2}
             id="next-title"

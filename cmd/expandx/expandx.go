@@ -52,57 +52,57 @@ func Meta() docmeta.Meta {
 		},
 		Examples: []docmeta.Example{
 			{
-				Description: "Convert tabs to spaces with stops every 8 columns:",
+				Description: "Make a tab-indented C file look the same in every editor:",
 				Bash:        "expandx main.c",
 				PowerShell:  "expandx main.c",
 			},
 			{
-				Description: "Use 4-column tab stops:",
+				Description: "Convert a Go file to 4-space indentation for a code review tool:",
 				Bash:        "expandx -t 4 main.go",
 				PowerShell:  "expandx -t 4 main.go",
 			},
 			{
-				Description: "Use the obsolete form:",
+				Description: "Run an old script that uses the obsolete form:",
 				Bash:        "expandx -4 main.go",
 				PowerShell:  "expandx -4 main.go",
 			},
 			{
-				Description: "Put tab stops at specific columns:",
+				Description: "Line a tab-separated report up in fixed columns for printing:",
 				Bash:        "expandx -t 10,20,40 table.tsv",
 				PowerShell:  "expandx -t 10,20,40 table.tsv",
 			},
 			{
-				Description: "Stops at 4 and then every multiple of 8:",
+				Description: "Indent the first level by 4 and the rest by 8:",
 				Bash:        "expandx -t 4,/8 data.txt",
 				PowerShell:  "expandx -t 4,/8 data.txt",
 			},
 			{
-				Description: "Convert only leading tabs:",
+				Description: "Fix YAML indentation (tabs are invalid there) without touching tabs inside values:",
 				Bash:        "expandx -i -t 2 config.yml",
 				PowerShell:  "expandx -i -t 2 config.yml",
 			},
 			{
-				Description: "Convert standard input:",
+				Description: "See exactly where a tab lands:",
 				Bash:        "printfx 'a\\tb\\n' | expandx",
 				PowerShell:  "printfx 'a\\tb\\n' | expandx",
 			},
 			{
-				Description: "Save a converted copy:",
+				Description: "Convert a Python file that mixes tabs and spaces:",
 				Bash:        "expandx -t 4 tabs.py > spaces.py",
 				PowerShell:  "expandx -t 4 tabs.py > spaces.py",
 			},
 			{
-				Description: "Line up tab-separated columns:",
+				Description: "Preview a TSV file with readable columns:",
 				Bash:        "expandx -t 16 report.tsv | headx",
 				PowerShell:  "expandx -t 16 report.tsv | headx",
 			},
 			{
-				Description: "Convert several files as one stream:",
+				Description: "Combine several files into one, with tabs converted:",
 				Bash:        "expandx a.txt b.txt > combined.txt",
 				PowerShell:  "expandx a.txt b.txt > combined.txt",
 			},
 			{
-				Description: "Convert in the portable gnux shell:",
+				Description: "Find the longest line after expansion in the portable gnux shell:",
 				Bash:        "gnux shell -c 'expandx -t 4 main.go | wcx -L'",
 				PowerShell:  "gnux shell -c 'expandx -t 4 main.go | wcx -L'",
 			},

@@ -1,5 +1,6 @@
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { docs } from 'lib/source';
+import { ViewportGlow } from '@/components/ui';
 import { baseOptions } from '@/config/layout';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -8,6 +9,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       tree={docs.getPageTree()}
       {...baseOptions()}
     >
+      <ViewportGlow />
       {children}
     </DocsLayout>
   );

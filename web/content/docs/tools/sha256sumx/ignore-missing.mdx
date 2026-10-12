@@ -19,7 +19,7 @@ sha256sumx --ignore-missing [FILE]...
 
 ## Examples
 
-### Verify only the listed files that exist
+### Verify the download against the publisher's checksum file, which lists other files too
 
 ```bash tab="bash" tab-group="shell"
 sha256sumx -c --ignore-missing sha256.sums
@@ -27,6 +27,10 @@ sha256sumx -c --ignore-missing sha256.sums
 
 ```powershell tab="PowerShell" tab-group="shell"
 sha256sumx -c --ignore-missing sha256.sums
+```
+
+```text title="Output"
+ubuntu-24.04-desktop-amd64.iso: OK
 ```
 
 ## Help in the terminal

@@ -70,11 +70,11 @@ export function TypingCode({ code, run, file, label, className }: TypingCodeProp
         title={file}
         data-paused={!inView}
       >
-        <pre className="h-44 overflow-hidden p-3 font-mono text-xs leading-relaxed sm:p-4 sm:text-sm">
+        <pre className="h-36 overflow-hidden p-3 font-mono text-xs leading-relaxed sm:h-44 sm:p-4 sm:text-sm">
           {tint(source?.command ?? '')}
           {source?.typing && <Caret blinking={false} />}
         </pre>
-        <div className="h-24 overflow-hidden border-t bg-fd-secondary/40 p-3 font-mono text-xs leading-relaxed sm:px-4">
+        <div className="h-20 overflow-hidden border-t bg-fd-secondary/40 p-3 font-mono text-xs leading-relaxed sm:h-24 sm:px-4">
           {command && (
             <>
               <p>

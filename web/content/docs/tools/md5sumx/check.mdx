@@ -20,37 +20,7 @@ md5sumx --check [FILE]...
 
 ## Examples
 
-### Verify files against saved digests
-
-```bash tab="bash" tab-group="shell"
-md5sumx -c md5.sums
-```
-
-```powershell tab="PowerShell" tab-group="shell"
-md5sumx -c md5.sums
-```
-
-### Verify quietly, showing only failures
-
-```bash tab="bash" tab-group="shell"
-md5sumx -c --quiet md5.sums
-```
-
-```powershell tab="PowerShell" tab-group="shell"
-md5sumx -c --quiet md5.sums
-```
-
-### Verify silently and branch on the result
-
-```bash tab="bash" tab-group="shell"
-md5sumx -c --status md5.sums && echox verified
-```
-
-```powershell tab="PowerShell" tab-group="shell"
-md5sumx -c --status md5.sums; if ($LASTEXITCODE -eq 0) { 'verified' }
-```
-
-### Verify only the listed files that exist
+### Verify the download against the publisher's checksum file, which lists other files too
 
 ```bash tab="bash" tab-group="shell"
 md5sumx -c --ignore-missing md5.sums
@@ -60,7 +30,36 @@ md5sumx -c --ignore-missing md5.sums
 md5sumx -c --ignore-missing md5.sums
 ```
 
-### Fail on malformed lines in the list
+```text title="Output"
+ubuntu-24.04-desktop-amd64.iso: OK
+```
+
+### In CI, fail the build when a vendored file was changed by hand
+
+```bash tab="bash" tab-group="shell"
+md5sumx -c --status vendor.md5sums || { echox 'vendored files changed' >&2; exit 1; }
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx -c --status vendor.md5sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
+```
+
+### Re-check a large archive set and show only what no longer matches
+
+```bash tab="bash" tab-group="shell"
+md5sumx -c --quiet md5.sums
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx -c --quiet md5.sums
+```
+
+```text title="Output"
+notes.txt: FAILED
+md5sumx: WARNING: 1 computed checksum did NOT match
+```
+
+### Refuse a checksum list with malformed lines instead of skipping them
 
 ```bash tab="bash" tab-group="shell"
 md5sumx -c --strict -w md5.sums

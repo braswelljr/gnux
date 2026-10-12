@@ -20,7 +20,7 @@ expandx --tabs=N, LIST [FILE]...
 
 ## Examples
 
-### Use 4-column tab stops
+### Convert a Go file to 4-space indentation for a code review tool
 
 ```bash tab="bash" tab-group="shell"
 expandx -t 4 main.go
@@ -30,7 +30,7 @@ expandx -t 4 main.go
 expandx -t 4 main.go
 ```
 
-### Put tab stops at specific columns
+### Line a tab-separated report up in fixed columns for printing
 
 ```bash tab="bash" tab-group="shell"
 expandx -t 10,20,40 table.tsv
@@ -40,7 +40,7 @@ expandx -t 10,20,40 table.tsv
 expandx -t 10,20,40 table.tsv
 ```
 
-### Stops at 4 and then every multiple of 8
+### Indent the first level by 4 and the rest by 8
 
 ```bash tab="bash" tab-group="shell"
 expandx -t 4,/8 data.txt
@@ -50,7 +50,7 @@ expandx -t 4,/8 data.txt
 expandx -t 4,/8 data.txt
 ```
 
-### Convert only leading tabs
+### Fix YAML indentation (tabs are invalid there) without touching tabs inside values
 
 ```bash tab="bash" tab-group="shell"
 expandx -i -t 2 config.yml
@@ -60,7 +60,7 @@ expandx -i -t 2 config.yml
 expandx -i -t 2 config.yml
 ```
 
-### Save a converted copy
+### Convert a Python file that mixes tabs and spaces
 
 ```bash tab="bash" tab-group="shell"
 expandx -t 4 tabs.py > spaces.py
@@ -70,7 +70,7 @@ expandx -t 4 tabs.py > spaces.py
 expandx -t 4 tabs.py > spaces.py
 ```
 
-### Line up tab-separated columns
+### Preview a TSV file with readable columns
 
 ```bash tab="bash" tab-group="shell"
 expandx -t 16 report.tsv | headx

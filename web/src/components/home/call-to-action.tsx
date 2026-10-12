@@ -3,7 +3,7 @@ import { ArrowRight, BookOpen } from 'lucide-react';
 import {
   AnimatedBackground,
   buttonVariants,
-  Container,
+  Frame,
   GradientText,
   Heading,
   Keycap,
@@ -16,10 +16,10 @@ export function CallToAction() {
   return (
     <section
       aria-labelledby="cta-title"
-      className="py-12 sm:py-20"
+      className="border-b border-line"
     >
-      <Container>
-        <Reveal>
+      <Frame>
+        <Reveal className="px-4 py-12 sm:px-6 sm:py-20">
           <div className="relative isolate overflow-hidden rounded-2xl plate px-6 py-14 text-center sm:px-12 sm:py-20">
             <AnimatedBackground variant="subtle" />
             {/* The name, spelled out on four keys; the x is the one that matters. */}
@@ -92,7 +92,7 @@ export function CallToAction() {
             </nav>
           </div>
         </Reveal>
-      </Container>
+      </Frame>
     </section>
   );
 }

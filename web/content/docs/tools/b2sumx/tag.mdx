@@ -19,14 +19,14 @@ b2sumx --tag [FILE]...
 
 ## Examples
 
-### Print BSD-style tagged lines
+### Write lines that name the algorithm, so a mixed list can be checked with cksumx -c
 
 ```bash tab="bash" tab-group="shell"
-b2sumx --tag file.iso
+b2sumx --tag release.tar.gz >> CHECKSUMS
 ```
 
 ```powershell tab="PowerShell" tab-group="shell"
-b2sumx --tag file.iso
+b2sumx --tag release.zip >> CHECKSUMS
 ```
 
 ## Help in the terminal

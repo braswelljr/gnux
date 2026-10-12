@@ -49,7 +49,7 @@ Printing needs no permissions; `-f` needs read permission on FILE and `-r` searc
 
 ### Examples
 
-Print the current `date` and time:
+Check the `date` and time on a server:
 
 ```bash
 datex
@@ -59,7 +59,7 @@ datex
 datex
 ```
 
-Print the `date` in ISO 8601:
+Get today's `date` in a sortable form for a file name:
 
 ```bash
 datex -I
@@ -69,7 +69,7 @@ datex -I
 datex -I
 ```
 
-Print an ISO 8601 timestamp to the second:
+Stamp a log line with a precise, sortable time:
 
 ```bash
 datex -Iseconds
@@ -79,7 +79,7 @@ datex -Iseconds
 datex -Iseconds
 ```
 
-Print the time in UTC:
+Check UTC when coordinating with people in other time zones:
 
 ```bash
 datex -u
@@ -89,7 +89,7 @@ datex -u
 datex -u
 ```
 
-Use a custom format:
+Print the time the way your report needs it:
 
 ```bash
 datex '+%Y-%m-%d %H:%M:%S'
@@ -99,7 +99,7 @@ datex '+%Y-%m-%d %H:%M:%S'
 datex '+%Y-%m-%d %H:%M:%S'
 ```
 
-Name a backup after today's `date`:
+Name tonight's database backup after today's `date`:
 
 ```bash
 cpx db.sqlite "db-$(datex +%F).sqlite"
@@ -109,7 +109,7 @@ cpx db.sqlite "db-$(datex +%F).sqlite"
 cpx db.sqlite "db-$(datex +%F).sqlite"
 ```
 
-Print the seconds since the epoch:
+Get a Unix timestamp to store or compare:
 
 ```bash
 datex +%s
@@ -119,7 +119,7 @@ datex +%s
 datex +%s
 ```
 
-Convert epoch seconds to a `date`:
+Read a Unix timestamp you found in a log or a database:
 
 ```bash
 datex -u -d @1700000000
@@ -129,7 +129,7 @@ datex -u -d @1700000000
 datex -u -d '@1700000000'
 ```
 
-Compute a relative `date`:
+Find the `date` three days ago, to clean up older files:
 
 ```bash
 datex -d '3 days ago' +%F
@@ -139,7 +139,7 @@ datex -d '3 days ago' +%F
 datex -d '3 days ago' +%F
 ```
 
-Find next Friday's `date`:
+Find the `date` of next Friday for a deadline:
 
 ```bash
 datex -d 'next friday' +%A,%F
@@ -149,7 +149,7 @@ datex -d 'next friday' +%A,%F
 datex -d 'next friday' +%A,%F
 ```
 
-Print a file's modification time:
+See when a report was last saved:
 
 ```bash
 datex -r report.txt
@@ -159,7 +159,7 @@ datex -r report.txt
 datex -r report.txt
 ```
 
-Print the time in another zone:
+See what time it is in Tokyo before calling a colleague:
 
 ```bash
 TZ=Asia/Tokyo datex
@@ -169,7 +169,7 @@ TZ=Asia/Tokyo datex
 envx TZ=Asia/Tokyo datex
 ```
 
-Print an RFC 3339 timestamp:
+Produce a timestamp an API expects in RFC 3339:
 
 ```bash
 datex --rfc-3339=seconds
@@ -179,7 +179,7 @@ datex --rfc-3339=seconds
 datex --rfc-3339=seconds
 ```
 
-Convert a list of dates:
+Convert a column of dates into timestamps for sorting:
 
 ```bash
 datex -f dates.txt +%s
@@ -189,7 +189,7 @@ datex -f dates.txt +%s
 datex -f dates.txt +%s
 ```
 
-Timestamp a log line in the portable `gnux shell`:
+Timestamp a log line in the portable `gnux shell`, the same on every OS:
 
 ```bash
 gnux shell -c 'datex -Iseconds >> run.log'

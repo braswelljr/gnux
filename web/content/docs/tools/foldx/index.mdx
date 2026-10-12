@@ -44,7 +44,7 @@ Needs read permission on each FILE and search permission on the directories lead
 
 ## Examples
 
-### Wrap lines at 80 columns
+### Make a log with very long lines readable in an 80-column terminal
 
 ```bash tab="bash" tab-group="shell"
 foldx notes.txt
@@ -54,7 +54,7 @@ foldx notes.txt
 foldx notes.txt
 ```
 
-### Wrap lines at 40 columns
+### Fit text into a narrow 40-column display or receipt printer
 
 ```bash tab="bash" tab-group="shell"
 foldx -w 40 notes.txt
@@ -64,7 +64,7 @@ foldx -w 40 notes.txt
 foldx -w 40 notes.txt
 ```
 
-### Wrap at word boundaries
+### Wrap a commit message body at 72 columns without breaking words
 
 ```bash tab="bash" tab-group="shell"
 foldx -s -w 72 essay.txt
@@ -74,7 +74,7 @@ foldx -s -w 72 essay.txt
 foldx -s -w 72 essay.txt
 ```
 
-### Use the obsolete width form
+### Run an old script that uses the obsolete width form
 
 ```bash tab="bash" tab-group="shell"
 foldx -60 notes.txt
@@ -84,7 +84,7 @@ foldx -60 notes.txt
 foldx -60 notes.txt
 ```
 
-### Split a long string into 64-byte lines
+### Break a one-line key or base64 blob into 64-byte lines
 
 ```bash tab="bash" tab-group="shell"
 foldx -b -w 64 key.txt
@@ -94,7 +94,7 @@ foldx -b -w 64 key.txt
 foldx -b -w 64 key.txt
 ```
 
-### Wrap standard input
+### Wrap the output of another command
 
 ```bash tab="bash" tab-group="shell"
 catx long.log | foldx -w 100
@@ -104,7 +104,7 @@ catx long.log | foldx -w 100
 catx long.log | foldx -w 100
 ```
 
-### Break a word list into one character per line
+### Split a word into one character per line, to count or sort letters
 
 ```bash tab="bash" tab-group="shell"
 echox abc | foldx -w 1
@@ -114,7 +114,7 @@ echox abc | foldx -w 1
 echox abc | foldx -w 1
 ```
 
-### Save a wrapped copy
+### Save a wrapped copy of a draft for an email client that does not wrap
 
 ```bash tab="bash" tab-group="shell"
 foldx -s -w 72 draft.txt > wrapped.txt
@@ -124,7 +124,7 @@ foldx -s -w 72 draft.txt > wrapped.txt
 foldx -s -w 72 draft.txt > wrapped.txt
 ```
 
-### Wrap several files in turn
+### Wrap several chapter files in one go
 
 ```bash tab="bash" tab-group="shell"
 foldx -w 72 a.txt b.txt
@@ -134,7 +134,7 @@ foldx -w 72 a.txt b.txt
 foldx -w 72 a.txt b.txt
 ```
 
-### Count how many wrapped lines a file makes
+### Check how many screen lines a note will take once wrapped
 
 ```bash tab="bash" tab-group="shell"
 foldx -w 72 notes.txt | wcx -l
@@ -144,7 +144,7 @@ foldx -w 72 notes.txt | wcx -l
 foldx -w 72 notes.txt | wcx -l
 ```
 
-### Wrap in the portable gnux shell
+### Preview a wrapped file in the portable gnux shell, the same on every OS
 
 ```bash tab="bash" tab-group="shell"
 gnux shell -c 'foldx -s -w 60 notes.txt | headx'

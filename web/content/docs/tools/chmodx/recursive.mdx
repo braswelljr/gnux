@@ -20,7 +20,7 @@ chmodx --recursive MODE[,MODE]... FILE...
 
 ## Examples
 
-### Give a group write access to a whole tree
+### Let your team edit everything in a project directory
 
 ```bash tab="bash" tab-group="shell"
 chmodx -R g+w project/
@@ -30,7 +30,7 @@ chmodx -R g+w project/
 chmodx -R g+w project\
 ```
 
-### Make directories searchable without making files executable
+### Make a website folder browsable without making every file executable
 
 ```bash tab="bash" tab-group="shell"
 chmodx -R a+X public/
@@ -40,7 +40,7 @@ chmodx -R a+X public/
 chmodx -R a+X public\
 ```
 
-### Show every file processed
+### Fix permissions on your docs and see every file processed
 
 ```bash tab="bash" tab-group="shell"
 chmodx -v -R u+rw docs/
