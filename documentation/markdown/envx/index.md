@@ -10,6 +10,11 @@ Mirrors GNU `env`. Run it as `envx`, or as `gnux envx`.
 envx [OPTION]... [-] [NAME=VALUE]... [COMMAND [ARG]...]
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: env invocation](https://www.gnu.org/software/coreutils/manual/html_node/env-invocation.html)
+- [Source: src/env.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/env.c)
+
 ### Description
 
 `envx` sets each NAME to VALUE in the environment and runs COMMAND with the remaining arguments; without a COMMAND it prints the resulting environment, one NAME=VALUE per line. `-i` (or a lone '-') starts from an empty environment, `-u` removes a variable, `-C` changes the working directory for the command and `-S` splits a single string into arguments, which is what makes options usable on a '#!' line. Printed variables keep their inherited order: assigning an existing name replaces it in place, and new names are appended. COMMAND is looked up on the PATH of the modified environment. Where GNU env replaces itself with the command, `envx` runs it as a child process connected to the same standard streams and exits with the command's status, so the behavior is identical on platforms that cannot replace a running process. The exit status is 125 if `envx` itself fails, 126 if COMMAND is found but cannot be run, 127 if COMMAND cannot be found, and otherwise the exit status of COMMAND (128 plus the signal number when a signal killed it).

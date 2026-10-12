@@ -1,14 +1,19 @@
 # Requirement enforced: a pushed version tag (v*) becomes a GitHub release with
 # a statically linked (CGO_ENABLED=0) gnux archive for every supported platform
-# - linux and darwin on amd64/arm64, windows on amd64 - each reporting the tag
-# as its version, plus a checksums file (FR-36, FR-38, NFR-1, NFR-2). Its notes
+# - linux on amd64/arm64/riscv64, darwin and freebsd on amd64/arm64, windows on
+# amd64/arm64 - each reporting the tag as its version, plus a checksums file
+# and a build provenance attestation (FR-36, FR-38, NFR-1, NFR-2). Its notes
 # are the tag's section of CHANGELOG.md, which a release must have; only a
-# prerelease without one falls back to notes generated from the commits.
+# prerelease without one falls back to notes generated from the commits. The
+# archives, checksums and package manifests (Homebrew, Scoop, winget) are
+# described in .goreleaser.yaml.
 name: Release
 
 on:
   push:
-    tags: ["v*"]
+    # Full versions only (v1.2.3, v1.2.3-rc.1): the major tags the setup-gnux
+    # action is used by (v0, v1) are moved by this workflow, not released.
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
 
 # Read-only by default (NFR-37); only the publishing job may write releases.
 permissions:
@@ -70,22 +75,21 @@ jobs:
           path: release-notes.md
           if-no-files-found: error
 
-  build:
+  release:
     needs: verify
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-          - { goos: linux, goarch: amd64 }
-          - { goos: linux, goarch: arm64 }
-          - { goos: darwin, goarch: amd64 }
-          - { goos: darwin, goarch: arm64 }
-          - { goos: windows, goarch: amd64 }
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # For the build provenance attestation.
+      id-token: write
+      attestations: write
 
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          # GoReleaser reads the previous tag for the fallback changelog.
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -93,92 +97,55 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Build and package ${{ matrix.goos }}/${{ matrix.goarch }}
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: "0"
-          VERSION: ${{ github.ref_name }}
-        run: |
-          name="gnux-${VERSION}-${GOOS}-${GOARCH}"
-          bin="gnux"
-          [ "$GOOS" = "windows" ] && bin="gnux.exe"
-          mkdir -p "dist/${name}"
-          go build -trimpath \
-            -ldflags "-s -w -X github.com/braswelljr/gnux/internal/common.Version=${VERSION}" \
-            -o "dist/${name}/${bin}" .
-          cp LICENSE README.md "dist/${name}/"
-          # The man pages ship with the Unix archives, where man can read them.
-          [ "$GOOS" != "windows" ] && cp -r documentation/man "dist/${name}/man"
-          cd dist
-          if [ "$GOOS" = "windows" ]; then
-            zip -qr "${name}.zip" "${name}"
-          else
-            tar -czf "${name}.tar.gz" "${name}"
-          fi
-
-      - name: Upload archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: archive-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: |
-            dist/*.tar.gz
-            dist/*.zip
-          if-no-files-found: error
-
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Download archives
-        uses: actions/download-artifact@v4
-        with:
-          pattern: archive-*
-          path: dist
-          merge-multiple: true
-
       - name: Download release notes
         uses: actions/download-artifact@v4
         with:
           name: release-notes
           path: notes
 
-      - name: Write checksums
-        working-directory: dist
-        run: sha256sum gnux-* > checksums.txt
-
-      # A tag with a hyphen (v1.0.0-rc.1) is published as a prerelease. The
-      # notes are the tag's CHANGELOG.md section, or, for a prerelease with
-      # none, generated from the commits since the previous tag. A release
-      # already drafted or published on GitHub for the tag (creating one in
-      # the web interface is what pushed the tag) is completed instead of
-      # failing: it gets the title, the notes and the archives.
-      - name: Create GitHub release
+      # Each package manager publishes to a repository of its own with a token
+      # stored as a secret; one whose secret is missing is skipped rather than
+      # failing the release.
+      - name: Choose what to publish
+        id: plan
         env:
-          GH_TOKEN: ${{ github.token }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+          SCOOP_BUCKET_GITHUB_TOKEN: ${{ secrets.SCOOP_BUCKET_GITHUB_TOKEN }}
+          WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+        run: |
+          skip=""
+          [ -z "$HOMEBREW_TAP_GITHUB_TOKEN" ] && skip="${skip},homebrew"
+          [ -z "$SCOOP_BUCKET_GITHUB_TOKEN" ] && skip="${skip},scoop"
+          [ -z "$WINGET_GITHUB_TOKEN" ] && skip="${skip},winget"
+          args="--clean"
+          [ -n "$skip" ] && args="$args --skip=${skip#,}"
+          [ -s notes/release-notes.md ] && args="$args --release-notes=notes/release-notes.md"
+          echo "args=$args" >> "$GITHUB_OUTPUT"
+
+      - name: Build and publish
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release ${{ steps.plan.outputs.args }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+          SCOOP_BUCKET_GITHUB_TOKEN: ${{ secrets.SCOOP_BUCKET_GITHUB_TOKEN }}
+          WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-checksums: dist/checksums.txt
+
+      # `uses: braswelljr/gnux@v0` follows the newest stable release of that
+      # major version; a prerelease leaves it where it is.
+      - name: Move the major version tag
+        if: ${{ !contains(github.ref_name, '-') }}
+        env:
           TAG: ${{ github.ref_name }}
         run: |
-          prerelease=""
-          case "$TAG" in *-*) prerelease="--prerelease" ;; esac
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            if [ -s notes/release-notes.md ]; then
-              gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" \
-                --title "gnux $TAG" --notes-file notes/release-notes.md $prerelease
-            else
-              gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --title "gnux $TAG" $prerelease
-            fi
-            gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
-            exit 0
-          fi
-          notes="--generate-notes"
-          if [ -s notes/release-notes.md ]; then
-            notes="--notes-file=notes/release-notes.md"
-          fi
-          gh release create "$TAG" dist/* \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "gnux $TAG" \
-            "$notes" \
-            $prerelease
+          major="${TAG%%.*}"
+          git tag -f "$major" "$TAG^{commit}"
+          git push -f origin "refs/tags/$major"

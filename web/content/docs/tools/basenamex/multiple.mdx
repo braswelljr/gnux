@@ -20,23 +20,23 @@ basenamex --multiple NAME [SUFFIX]
 
 ## Examples
 
-Treat every operand as a NAME:
+### Treat every operand as a NAME
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex -a /var/log/syslog /etc/hosts
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex -a C:\Windows\win.ini C:\Windows\System32\drivers\etc\hosts
 ```
 
-Separate the output with NUL bytes instead of newlines:
+### Separate the output with NUL bytes instead of newlines
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex -a -z a/b c/d | od -c
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex -a -z a\b c\d | Format-Hex
 ```
 

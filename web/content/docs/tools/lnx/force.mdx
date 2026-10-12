@@ -20,33 +20,33 @@ lnx --force TARGET... [LINK_NAME|DIRECTORY]
 
 ## Examples
 
-Repoint an existing symlink to a directory, in one atomic step:
+### Repoint an existing symlink to a directory, in one atomic step
 
-```bash
+```bash tab="bash" tab-group="shell"
 lnx -sfn releases/v3 current
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lnx -sfn releases\v3 current
 ```
 
-Replace an existing file with a link:
+### Replace an existing file with a link
 
-```bash
+```bash tab="bash" tab-group="shell"
 lnx -sf app-v2.conf app.conf
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lnx -sf app-v2.conf app.conf
 ```
 
-Create a release directory and point current at it with the `gnux shell`:
+### Create a release directory and point current at it with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
 ```
 

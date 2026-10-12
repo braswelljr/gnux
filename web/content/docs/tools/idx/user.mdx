@@ -1,0 +1,57 @@
+---
+title: "-u, --user"
+description: "Print only the effective user ID."
+---
+
+An option of [idx](/docs/tools/idx).
+
+## Usage
+
+```bash
+idx -u [USER]...
+idx --user [USER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-u` | `--user` | none |  | print only the effective user ID |
+
+## Examples
+
+### Print only the effective user ID
+
+```bash tab="bash" tab-group="shell"
+idx -u
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+idx -u
+```
+
+### Print your user name
+
+```bash tab="bash" tab-group="shell"
+idx -un
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+idx -un
+```
+
+### Print the real user ID rather than the effective one
+
+```bash tab="bash" tab-group="shell"
+idx -ru
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+idx -ru
+```
+
+## Help in the terminal
+
+```bash
+gnux help idx --user
+```

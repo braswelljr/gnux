@@ -20,23 +20,23 @@ realpathx --canonicalize-existing FILE...
 
 ## Examples
 
-Require the file to exist:
+### Require the file to exist
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx -e /usr/bin/python3
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx -e $env:WINDIR\System32\cmd.exe
 ```
 
-Test for existence quietly and branch on the exit status:
+### Test for existence quietly and branch on the exit status
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx -q -e config.yaml >/dev/null || echox 'config.yaml is missing'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx -q -e config.yaml > $null; if ($LASTEXITCODE -ne 0) { echox 'config.yaml is missing' }
 ```
 

@@ -4,6 +4,8 @@ import { Everywhere } from '@/components/home/everywhere';
 import { Hero } from '@/components/home/hero';
 import { Install } from '@/components/home/install';
 import { ToolGrid } from '@/components/home/tool-grid';
+import { ToolMarquee } from '@/components/home/tool-marquee';
+import { Values } from '@/components/home/values';
 import { WaysToUse } from '@/components/home/ways-to-use';
 import { JsonLd } from '@/components/shared/json-ld';
 import { project, siteConfig } from '@/config/site';
@@ -27,7 +29,7 @@ export default function HomePage() {
           description: siteConfig.description,
           url: absoluteUrl(siteConfig),
           applicationCategory: 'DeveloperApplication',
-          operatingSystem: 'Linux, macOS, Windows',
+          operatingSystem: 'Linux, macOS, FreeBSD, Windows',
           programmingLanguage: 'Go',
           codeRepository: project.github,
           license: project.license,
@@ -42,8 +44,10 @@ export default function HomePage() {
         }}
       />
       <Hero toolCount={tools.length} />
+      <ToolMarquee tools={tools} />
       <WaysToUse />
       <Everywhere />
+      <Values />
       <ToolGrid tools={tools} />
       <Install />
       <CallToAction />

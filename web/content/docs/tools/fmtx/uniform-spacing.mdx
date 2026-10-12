@@ -1,0 +1,37 @@
+---
+title: "-u, --uniform-spacing"
+description: "One space between words, two after sentences."
+---
+
+An option of [fmtx](/docs/tools/fmtx).
+
+## Usage
+
+```bash
+fmtx [-WIDTH] -u [FILE]...
+fmtx [-WIDTH] --uniform-spacing [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-u` | `--uniform-spacing` | none |  | one space between words, two after sentences |
+
+## Examples
+
+### Use uniform spacing
+
+```bash tab="bash" tab-group="shell"
+fmtx -u draft.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+fmtx -u draft.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help fmtx --uniform-spacing
+```

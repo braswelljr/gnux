@@ -11,13 +11,18 @@ Mirrors GNU `rmdir`. Run it as `rmdirx`, or as `gnux rmdirx`.
 rmdirx [OPTION]... DIRECTORY...
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: rmdir invocation](https://www.gnu.org/software/coreutils/manual/html_node/rmdir-invocation.html)
+- [Source: src/rmdir.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/rmdir.c)
+
 ## Description
 
 `rmdirx` removes each DIRECTORY, but only when it is empty: a directory that still has entries is reported and left untouched, and so is anything that is not a directory. That makes it the safe counterpart to a recursive delete - it can never destroy file contents. `-p` also removes each parent named in the operand, so '`rmdirx -p` a/b/c' behaves like '`rmdirx` a/b/c a/b a', stopping at the first one that cannot be removed. `--ignore-fail-on-non-empty` silences the not-empty failure (and only that one), and `-v` reports every directory processed.
 
 ## Permissions
 
-Removing a directory needs write and search permission on its parent, not on the directory itself. A symbolic link to a directory is not a directory: it is refused rather than followed.
+Removing a directory needs write and search permission on its parent, not on the directory itself. A symbolic `link` to a directory is not a directory: it is refused rather than followed.
 
 ## Use cases
 
@@ -41,113 +46,113 @@ Removing a directory needs write and search permission on its parent, not on the
 
 ## Examples
 
-Remove an empty directory:
+### Remove an empty directory
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx build
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx build
 ```
 
-Remove several empty directories at once:
+### Remove several empty directories at once
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx a b c
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx a b c
 ```
 
-Report each directory as it is removed:
+### Report each directory as it is removed
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx -v empty1 empty2
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx -v empty1 empty2
 ```
 
-Remove a directory and its now-empty parents, reporting each:
+### Remove a directory and its now-empty parents, reporting each
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx -pv out/reports/2024
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx -pv out\reports\2024
 ```
 
-Remove a chain of parents and confirm the top one is gone:
+### Remove a chain of parents and confirm the top one is gone
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx -p x/y/z && echox 'x is gone'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx -p x\y\z; if ($LASTEXITCODE -eq 0) { echox 'x is gone' }
 ```
 
-Clean up whatever is empty without failing on the rest:
+### Clean up whatever is empty without failing on the rest
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx --ignore-fail-on-non-empty cache logs tmp
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx --ignore-fail-on-non-empty cache logs tmp
 ```
 
-Prune parents as far as they are empty, stopping quietly at the first that is not:
+### Prune parents as far as they are empty, stopping quietly at the first that is not
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx -p --ignore-fail-on-non-empty keep/sub
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx -p --ignore-fail-on-non-empty keep\sub
 ```
 
-Refuse to remove a directory that still has files (exit status 1):
+### Refuse to remove a directory that still has files (exit status 1)
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx logs; echox "exit $?"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx logs; echox "exit $LASTEXITCODE"
 ```
 
-Use the failure as an emptiness test:
+### Use the failure as an emptiness test
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx logs 2>/dev/null || echox 'logs still has files'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx logs 2>$null; if ($LASTEXITCODE -ne 0) { echox 'logs still has files' }
 ```
 
-Remove every empty directory below a tree, deepest first:
+### Remove every empty directory below a tree, deepest first
 
-```bash
+```bash tab="bash" tab-group="shell"
 find tree -depth -type d -empty -exec rmdirx -v {} \;
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 Get-ChildItem tree -Directory -Recurse | Sort-Object { $_.FullName.Length } -Descending | Where-Object { -not (Get-ChildItem $_.FullName -Force) } | ForEach-Object { rmdirx -v $_.FullName }
 ```
 
-Create and then remove a temporary staging tree with the `gnux shell`:
+### Create and then remove a temporary staging tree with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'mkdirx -p staging/a && rmdirx -pv staging/a'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'mkdirx -p staging/a && rmdirx -pv staging/a'
 ```
 

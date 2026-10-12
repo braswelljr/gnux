@@ -278,7 +278,7 @@ a file in [rules](../rules/README.md).
 
 | ID  | Constraint                                                                                                                                 |
 |-----|--------------------------------------------------------------------------------------------------------------------------------------------|
-| C-1 | Written in Go, at the version pinned in `go.mod`, with the standard library plus cobra and pflag (command line) and go-isatty (terminals)   |
+| C-1 | Written in Go, at the version pinned in `go.mod`, with the standard library plus cobra and pflag (command line), go-isatty (terminals) and golang.org/x/sys and x/crypto (system calls, BLAKE2b) |
 | C-2 | No cgo anywhere. The binary must link statically and cross-compile for Linux, macOS, Windows and `js/wasm`                                  |
 | C-3 | Engines must not depend on the command-line framework                                                                                       |
 | C-4 | The command-line framework does not report the order in which options were given. A tool that needs it tracks it, or applies BRULE-3       |

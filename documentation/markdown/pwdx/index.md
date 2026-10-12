@@ -10,9 +10,14 @@ Mirrors GNU `pwd`. Run it as `pwdx`, or as `gnux pwdx`.
 pwdx [OPTION]...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: pwd invocation](https://www.gnu.org/software/coreutils/manual/html_node/pwd-invocation.html)
+- [Source: src/pwd.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/pwd.c)
+
 ### Description
 
-`pwdx` prints the absolute path of the current working directory. With `-P` (the default) every symbolic link in the path is resolved; with `-L` it prints the value of the PWD environment variable when that names the current directory, preserving the symlinks the shell walked through. If both are given, the last one wins in GNU `pwd`; `pwdx` prefers `-L`.
+`pwdx` prints the absolute path of the current working directory. With `-P` (the default) every symbolic `link` in the path is resolved; with `-L` it prints the value of the PWD environment variable when that names the current directory, preserving the symlinks the shell walked through. If both are given, the last one wins in GNU `pwd`; `pwdx` prefers `-L`.
 
 ### Permissions
 

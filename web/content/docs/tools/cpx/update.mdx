@@ -20,23 +20,23 @@ cpx --update[=string] SOURCE... DIRECTORY
 
 ## Examples
 
-Update a mirror, copying only files that are newer:
+### Update a mirror, copying only files that are newer
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx -ru src/. mirror/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx -ru src\. mirror
 ```
 
-Add missing default files without overwriting customized ones:
+### Add missing default files without overwriting customized ones
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx -r --update=none defaults/. config/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx -r --update=none defaults\. config
 ```
 

@@ -20,23 +20,23 @@ tailx --follow[=HOW] [FILE]...
 
 ## Examples
 
-Follow a log, printing only lines appended from now on:
+### Follow a log, printing only lines appended from now on
 
-```bash
+```bash tab="bash" tab-group="shell"
 tailx -n 0 -f app.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 tailx -n 0 -f app.log
 ```
 
-Follow by name and wait for a file that does not exist yet:
+### Follow by name and wait for a file that does not exist yet
 
-```bash
+```bash tab="bash" tab-group="shell"
 tailx --follow=name --retry service.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 tailx --follow=name --retry service.log
 ```
 

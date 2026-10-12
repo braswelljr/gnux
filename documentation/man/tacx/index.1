@@ -1,0 +1,93 @@
+.nh
+.TH "TACX" "1" "Jan 2024" "gnux" "gnux manual"
+
+.SH NAME
+tacx - Concatenate and print files in reverse.
+
+
+.SH SYNOPSIS
+\fBtacx [OPTION]... [FILE]...\fP
+
+
+.SH DESCRIPTION
+tacx writes each FILE to standard output last line first. With no FILE, or when FILE is -, it reads standard input. Each FILE is reversed on its own, and the files are written in the order given. A record ends with its separator, a newline by default, so a last line without one is joined to the line before it in the output, as in GNU. -s STRING uses STRING as the separator instead, and -b attaches the separator to the start of the record that follows it rather than to the end of the one before. -r treats the separator as a regular expression; gnux uses Go's RE2 syntax (close to POSIX extended regular expressions) rather than the GNU regex dialect, and reports an invalid expression in Go's words. Each input is read whole into memory before it is written.
+
+.PP
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+.PP
+HELP. tacx --help shows the options and the first examples; gnux help tacx prints the full manual, and gnux help tacx OPTION explains one option.
+
+.PP
+SEE ALSO. catx, tailx, sortx.
+
+.PP
+PERMISSIONS. Needs read permission on each FILE and search permission on the directories leading to it. Nothing is ever modified.
+
+.PP
+USE CASES.
+  - Reading a log newest entry first.
+  - Reversing the order of a list or a history file.
+  - Processing records last to first, such as undoing steps in reverse.
+  - Reversing records separated by something other than a newline with -s.
+  - Finding the last match in a file by reversing it before searching.
+
+
+.SH OPTIONS
+\fB-b\fP, \fB--before\fP[=false]
+	attach the separator before instead of after
+
+.PP
+\fB--help\fP[=false]
+	display this help and exit
+
+.PP
+\fB-r\fP, \fB--regex\fP[=false]
+	interpret the separator as a regular expression
+
+.PP
+\fB-s\fP, \fB--separator\fP=""
+	use \fBSTRING\fR as the separator instead of newline
+
+.PP
+\fB--version\fP[=false]
+	output version information and exit
+
+
+.SH EXAMPLE
+.EX
+  # Print a file last line first
+  tacx app.log
+
+  # Show the newest ten log lines, newest first
+  tacx app.log | headx
+
+  # Reverse standard input
+  seqx 5 | tacx
+
+  # Reverse several files, each on its own
+  tacx a.txt b.txt
+
+  # Reverse comma-separated records
+  printfx 'a,b,c,' | tacx -s ,
+
+  # Attach each separator to the following record
+  tacx -b -s '---' notes.txt
+
+  # Split records on a regular expression
+  tacx -r -s '[0-9]+' data.txt
+
+  # Save a reversed copy
+  tacx history.txt > reversed.txt
+
+  # Undo a list of steps in reverse order
+  tacx steps.txt | catx -n
+
+  # Reverse a sorted list instead of sorting it again
+  sortx names.txt | tacx
+
+  # Reverse in the portable gnux shell
+  gnux shell -c 'tacx app.log | headx -n 5'
+.EE

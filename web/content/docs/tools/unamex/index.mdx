@@ -1,0 +1,196 @@
+---
+title: "unamex"
+description: "Print system information."
+---
+
+Mirrors GNU `uname`. Run it as `unamex`, or as `gnux unamex`.
+
+## Synopsis
+
+```bash
+unamex [OPTION]...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: uname invocation](https://www.gnu.org/software/coreutils/manual/html_node/uname-invocation.html)
+- [Source: src/uname.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/uname.c)
+
+## Description
+
+`unamex` prints information about the machine and operating system. With no option it prints the kernel name, as `-s` does. The selected fields are printed on one line, separated by spaces, in a fixed order whatever the order of the options: kernel name (`-s`), network node host name (`-n`), kernel release (`-r`), kernel version (`-v`), machine hardware name (`-m`), processor type (`-p`), hardware platform (`-i`) and operating system (`-o`). `-a` prints them all, leaving out `-p` and `-i` when they are unknown, as GNU does. The values come from `uname`(2) on Linux, sysctl on macOS and FreeBSD, and the registry on Windows, so `unamex` prints the same fields on every platform: on Windows the kernel name is 'Windows_NT' and the operating system 'MS/Windows'; in the browser playground the fields describe the WebAssembly runtime.
+
+## Permissions
+
+Needs no permissions.
+
+## Use cases
+
+- Branching a portable script on the operating system or architecture.
+- Recording the platform in bug reports and build logs.
+- Picking the right download for the machine's architecture with `-m`.
+- Checking the kernel release before relying on a kernel feature.
+- Getting the same answer on Linux, macOS, FreeBSD and Windows.
+
+## Flags
+
+```text
+  -a, --all                 print all information, in the following order, except omit -p and -i if unknown
+  -i, --hardware-platform   print the hardware platform (non-portable)
+      --help                display this help and exit
+  -s, --kernel-name         print the kernel name
+  -r, --kernel-release      print the kernel release
+  -v, --kernel-version      print the kernel version
+  -m, --machine             print the machine hardware name
+  -n, --nodename            print the network node hostname
+  -o, --operating-system    print the operating system
+  -p, --processor           print the processor type (non-portable)
+      --version             output version information and exit
+```
+
+## Examples
+
+### Print the kernel name
+
+```bash tab="bash" tab-group="shell"
+unamex
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+unamex
+```
+
+### Print everything
+
+```bash tab="bash" tab-group="shell"
+unamex -a
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+unamex -a
+```
+
+### Print the machine architecture
+
+```bash tab="bash" tab-group="shell"
+unamex -m
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+unamex -m
+```
+
+### Print the kernel release
+
+```bash tab="bash" tab-group="shell"
+unamex -r
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+unamex -r
+```
+
+### Print the operating system
+
+```bash tab="bash" tab-group="shell"
+unamex -o
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+unamex -o
+```
+
+### Print the kernel name and release
+
+```bash tab="bash" tab-group="shell"
+unamex -sr
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+unamex -sr
+```
+
+### Print the host name
+
+```bash tab="bash" tab-group="shell"
+unamex -n
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+unamex -n
+```
+
+### Branch a script on the operating system
+
+```bash tab="bash" tab-group="shell"
+case "$(unamex -s)" in Linux) echox linux ;; Darwin) echox macos ;; esac
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+switch (unamex -s) { 'Linux' { 'linux' } 'Darwin' { 'macos' } 'Windows_NT' { 'windows' } }
+```
+
+### Pick a download for this machine
+
+```bash tab="bash" tab-group="shell"
+curl -LO "https://example.com/tool-$(unamex -s)-$(unamex -m).tar.gz"
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+Invoke-WebRequest "https://example.com/tool-$(unamex -s)-$(unamex -m).zip" -OutFile tool.zip
+```
+
+### Record the platform in a log
+
+```bash tab="bash" tab-group="shell"
+unamex -a >> build.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+unamex -a >> build.log
+```
+
+### Print system information in the portable gnux shell
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'unamex -srm'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'unamex -srm'
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-a, --all](/docs/tools/unamex/all): Print all information, in the following order, except omit `-p` and `-i` if unknown.
+- [-i, --hardware-platform](/docs/tools/unamex/hardware-platform): Print the hardware platform (non-portable).
+- [-s, --kernel-name](/docs/tools/unamex/kernel-name): Print the kernel name.
+- [-r, --kernel-release](/docs/tools/unamex/kernel-release): Print the kernel release.
+- [-v, --kernel-version](/docs/tools/unamex/kernel-version): Print the kernel version.
+- [-m, --machine](/docs/tools/unamex/machine): Print the machine hardware name.
+- [-n, --nodename](/docs/tools/unamex/nodename): Print the network node `hostname`.
+- [-o, --operating-system](/docs/tools/unamex/operating-system): Print the operating system.
+- [-p, --processor](/docs/tools/unamex/processor): Print the processor type (non-portable).
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+unamex --help                # options, first examples, exit status
+gnux help unamex             # this page: the full manual
+gnux help unamex --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [hostnamex](/docs/tools/hostnamex)
+- [nprocx](/docs/tools/nprocx)
+- [uptimex](/docs/tools/uptimex)

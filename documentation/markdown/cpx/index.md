@@ -10,6 +10,11 @@ Mirrors GNU `cp`. Run it as `cpx`, or as `gnux cpx`.
 cpx [OPTION]... SOURCE... DIRECTORY
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: cp invocation](https://www.gnu.org/software/coreutils/manual/html_node/cp-invocation.html)
+- [Source: src/cp.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/cp.c)
+
 ### Description
 
 `cpx` copies SOURCE to DEST, or several SOURCEs into DIRECTORY (also selectable with `-t`; `-T` forces the two-operand form). Directories are copied only with `-r`, and a directory is never copied into itself. A new file receives the source's permission bits filtered by the umask; `-p` or `--preserve`[=LIST] carries over mode, ownership, timestamps and hard links, and `-a` is shorthand for `-dR --preserve`=all. Symbolic links are followed unless copying recursively; `-P`/`-d` keep them as links, `-L` follows them everywhere and `-H` only on the command line. `-l` and `-s` create hard or symbolic links instead of copying data. Existing destinations are overwritten unless `-n` (never), `-u` (only when the source is newer) or `-i` (ask first) says otherwise; `-f` removes a destination that cannot be opened and tries again. GNU `cp` lets the last of conflicting options win; `cpx` cannot see option order, so it prefers the most cautious instead: `-n` overrides `-i`, and an explicit `-P`/`-d` overrides `-H`, which overrides `-L`.
@@ -160,7 +165,7 @@ cpx -al releases/v1 releases/v2
 cpx -al releases\v1 releases\v2
 ```
 
-Create a symbolic link instead of a copy (use an absolute source):
+Create a symbolic `link` instead of a copy (use an absolute source):
 
 ```bash
 cpx -s "$PWD/config.yml" config-link.yml
@@ -170,7 +175,7 @@ cpx -s "$PWD/config.yml" config-link.yml
 cpx -s "$PWD\config.yml" config-link.yml
 ```
 
-Copy a symbolic link as a link, rather than the file it points to:
+Copy a symbolic `link` as a `link`, rather than the file it points to:
 
 ```bash
 cpx -P current.yml saved-link.yml
@@ -180,7 +185,7 @@ cpx -P current.yml saved-link.yml
 cpx -P current.yml saved-link.yml
 ```
 
-Copy a tree, replacing every symbolic link with the file it points to:
+Copy a tree, replacing every symbolic `link` with the file it points to:
 
 ```bash
 cpx -rL vendor/ vendor-flat/

@@ -11,9 +11,14 @@ Mirrors GNU `realpath`. Run it as `realpathx`, or as `gnux realpathx`.
 realpathx [OPTION]... FILE...
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: realpath invocation](https://www.gnu.org/software/coreutils/manual/html_node/realpath-invocation.html)
+- [Source: src/realpath.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/realpath.c)
+
 ## Description
 
-`realpathx` prints the canonical absolute name of each FILE: every symbolic link is expanded and every '.', '..' and repeated separator is removed. By default all components but the last must exist; `-e` requires the whole name to exist and `-m` requires none of it to. Links are resolved as they are met (`-P`, the default), so '..' after a link refers to the parent of the link's target; `-L` collapses '..' first, and `-s` does not expand links at all. `--relative-to` prints each name relative to a directory, and `--relative-base` does so only for names under that directory, leaving the rest absolute. A name that cannot be resolved is reported (unless `-q`) and the remaining names are still processed.
+`realpathx` prints the canonical absolute name of each FILE: every symbolic `link` is expanded and every '.', '..' and repeated separator is removed. By default all components but the last must exist; `-e` requires the whole name to exist and `-m` requires none of it to. Links are resolved as they are met (`-P`, the default), so '..' after a `link` refers to the parent of the `link`'s target; `-L` collapses '..' first, and `-s` does not `expand` links at all. `--relative-to` prints each name relative to a directory, and `--relative-base` does so only for names under that directory, leaving the rest absolute. A name that cannot be resolved is reported (unless `-q`) and the remaining names are still processed.
 
 ## Permissions
 
@@ -27,7 +32,7 @@ Resolving a name needs search permission on every directory leading to it, inclu
 - Building the absolute name of a file that is about to be created.
 - Checking that a path exists in a script with `-e` and the exit status.
 - Cleaning up '.', '..' and doubled separators without touching symbolic links (`-s`).
-- Choosing how '..' after a symbolic link is read: physically (`-P`) or logically (`-L`).
+- Choosing how '..' after a symbolic `link` is read: physically (`-P`) or logically (`-L`).
 - Emitting NUL-terminated names with `-z` for names that may contain newlines.
 
 ## Flags
@@ -49,143 +54,143 @@ Resolving a name needs search permission on every directory leading to it, inclu
 
 ## Examples
 
-Resolve a path to its canonical absolute name:
+### Resolve a path to its canonical absolute name
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx ../lib/./util.go
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx ..\lib\.\util.go
 ```
 
-Print the absolute name of the current directory:
+### Print the absolute name of the current directory
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx .
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx .
 ```
 
-Follow a symbolic link to the file it points to:
+### Follow a symbolic link to the file it points to
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx bin/tool
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx bin\tool
 ```
 
-Require the file to exist:
+### Require the file to exist
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx -e /usr/bin/python3
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx -e $env:WINDIR\System32\cmd.exe
 ```
 
-Test for existence quietly and branch on the exit status:
+### Test for existence quietly and branch on the exit status
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx -q -e config.yaml >/dev/null || echox 'config.yaml is missing'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx -q -e config.yaml > $null; if ($LASTEXITCODE -ne 0) { echox 'config.yaml is missing' }
 ```
 
-Normalize a path that does not exist yet:
+### Normalize a path that does not exist yet
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx -m build/out/../report.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx -m build\out\..\report.txt
 ```
 
-Clean up a path without expanding symbolic links:
+### Clean up a path without expanding symbolic links
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx -s bin/tool
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx -s bin\tool
 ```
 
-Same thing, spelled out:
+### Same thing, spelled out
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx --no-symlinks bin/tool
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx --no-symlinks bin\tool
 ```
 
-Read '..' after a link logically (`-L`) rather than physically (`-P`, the default):
+### Read '..' after a link logically (-L) rather than physically (-P, the default)
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx -L src/tools/.. && realpathx -P src/tools/..
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx -L src\tools\..; realpathx -P src\tools\..
 ```
 
-Print a path relative to another directory:
+### Print a path relative to another directory
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx --relative-to=/usr/lib /usr/bin/sort
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx --relative-to=C:\Windows C:\Windows\System32\sort.exe
 ```
 
-Make names under the project relative, but leave outside ones absolute:
+### Make names under the project relative, but leave outside ones absolute
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx --relative-base=. lib/util.go /etc/hosts
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx --relative-base=. lib\util.go $env:WINDIR\System32\drivers\etc\hosts
 ```
 
-Separate the output with NUL bytes instead of newlines:
+### Separate the output with NUL bytes instead of newlines
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx -z lib/util.go src/app/main.go | od -c
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx -z lib\util.go src\app\main.go | Format-Hex
 ```
 
-Find the directory that really contains a file:
+### Find the directory that really contains a file
 
-```bash
+```bash tab="bash" tab-group="shell"
 dirnamex "$(realpathx scripts/run.sh)"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 dirnamex (realpathx scripts\run.sh)
 ```
 
-Print several paths relative to a source directory with the `gnux shell`:
+### Print several paths relative to a source directory with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'realpathx --relative-to=src lib/util.go bin/tool'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'realpathx --relative-to=src lib/util.go bin/tool'
 ```
 
@@ -196,12 +201,12 @@ Each option has a page of its own, with its usage and examples.
 - [-e, --canonicalize-existing](/docs/tools/realpathx/canonicalize-existing): All components of the path must exist.
 - [-m, --canonicalize-missing](/docs/tools/realpathx/canonicalize-missing): No path components need exist or be a directory.
 - [-L, --logical](/docs/tools/realpathx/logical): Resolve '..' components before symlinks.
-- [--no-symlinks](/docs/tools/realpathx/no-symlinks): Don't expand symlinks (same as `--strip`).
+- [--no-symlinks](/docs/tools/realpathx/no-symlinks): Don't `expand` symlinks (same as `--strip`).
 - [-P, --physical](/docs/tools/realpathx/physical): Resolve symlinks as encountered (default).
 - [-q, --quiet](/docs/tools/realpathx/quiet): Suppress most error messages.
 - [--relative-base](/docs/tools/realpathx/relative-base): Print absolute paths unless paths below DIR.
 - [--relative-to](/docs/tools/realpathx/relative-to): Print the resolved path relative to DIR.
-- [-s, --strip](/docs/tools/realpathx/strip): Don't expand symlinks.
+- [-s, --strip](/docs/tools/realpathx/strip): Don't `expand` symlinks.
 - [-z, --zero](/docs/tools/realpathx/zero): End each output line with NUL, not newline.
 
 ## Exit status

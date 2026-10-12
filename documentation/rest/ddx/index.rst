@@ -1,0 +1,88 @@
+.. _ddx:
+
+ddx
+---
+
+Convert and copy a file, block by block.
+
+Synopsis
+~~~~~~~~
+
+
+ddx copies its input to its output in blocks, optionally converting it, and reports what it copied on standard error. Operands are KEY=VALUE: if=FILE and of=FILE name the input and output (standard input and output by default); bs=N sets the block size for both and writes each block as read, while ibs=N and obs=N set them separately (512 by default) and reblock the output; cbs=N is the record size for conv=block and conv=unblock; skip=N (also iseek=N) skips N input blocks, seek=N (also oseek=N) skips N output blocks, and count=N copies only N input blocks. N may carry a suffix: c (1), w (2), b (512), kB, MB, GB, TB, PB, EB (powers of 1000) or K, M, G, T, P, E, alone or followed by iB (powers of 1024), and may be a product such as 2x512. conv= takes a comma-separated list: notrunc (do not truncate the output), noerror (continue after read errors), sync (pad short input blocks to ibs with NUL bytes, or spaces with block/unblock), fsync and fdatasync (flush the output before finishing), excl and nocreat (fail if the output exists, or does not), lcase and ucase, swab (swap each pair of bytes), block (newline-terminated lines to fixed cbs-sized records) and unblock (the reverse). iflag= accepts fullblock, count_bytes and skip_bytes; oflag= accepts seek_bytes and append; binary and text are accepted by both and ignored. status=none prints nothing but errors, status=noxfer omits the transfer line. The summary reads '1+0 records in / 1+0 records out / 512 bytes copied, 0.0001 s, 5.1 MB/s', where N+M counts full and partial blocks. Unless conv=notrunc, a regular output file is truncated at the seek offset; an output that cannot seek is advanced by writing NUL bytes. Differences from GNU dd: status=progress prints only the final statistics; the conversions ascii, ebcdic, ibm, sparse and nocache and the flags direct, dsync, sync, nonblock, noatime, noctty, nofollow and cio are not implemented and are refused as invalid; block and unblock do nothing without cbs; a closed output pipe ends ddx quietly instead of by SIGPIPE; and no statistics are printed on SIGINFO or SIGUSR1.
+
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+HELP. ddx --help shows the options and the first examples; gnux help ddx prints the full manual, and gnux help ddx OPTION explains one option.
+
+SEE ALSO. catx, headx, truncatex, wcx.
+
+PERMISSIONS. Needs read permission on the input file and write permission on the output file, or on its directory when ddx creates it (with mode 0666 less the umask). Writing to a device file such as a disk needs the permissions the operating system requires for it, usually root: ddx overwrites whatever is there, so check of= twice.
+
+USE CASES.
+  - Creating a file of a given size filled with zeros, for tests or swap space.
+  - Copying the first or last blocks of a file or device, such as a boot sector.
+  - Patching bytes in place in the middle of a file with seek= and conv=notrunc.
+  - Measuring raw read or write throughput with the transfer statistics.
+  - Converting fixed-length records to lines and back with conv=unblock and conv=block.
+  - Changing the case of a file or swapping byte order while copying it.
+  - Cutting a byte range out of a binary file with skip=, count= and the _bytes flags.
+
+::
+
+  ddx [OPERAND]...
+
+Examples
+~~~~~~~~
+
+::
+
+    # Create a 1 MiB file of zeros
+    ddx if=/dev/zero of=blank.img bs=1M count=1
+
+    # Copy a file in 4 KiB blocks
+    ddx if=disk.img of=copy.img bs=4K
+
+    # Save the first 512-byte block of a file
+    ddx if=disk.img of=mbr.bin bs=512 count=1
+
+    # Extract bytes 100 to 149 of a file
+    ddx if=data.bin of=part.bin skip=100 count=50 iflag=skip_bytes,count_bytes
+
+    # Overwrite four bytes at offset 16 without truncating the file
+    printfx 'ABCD' | ddx of=data.bin seek=16 oflag=seek_bytes conv=notrunc
+
+    # Upper-case a file while copying it
+    ddx if=notes.txt of=NOTES.txt conv=ucase
+
+    # Swap the byte order of 16-bit values
+    ddx if=le16.raw of=be16.raw conv=swab
+
+    # Turn 80-byte fixed records into lines
+    ddx if=cards.dat of=cards.txt cbs=80 conv=unblock
+
+    # Read whole blocks from a pipe
+    catx big.log | ddx of=chunk.log bs=64K count=1 iflag=fullblock
+
+    # Copy silently, refusing to overwrite an existing file
+    ddx if=src.bin of=dst.bin conv=excl status=none
+
+    # Append a file to another
+    ddx if=extra.log of=all.log oflag=append conv=notrunc
+
+    # Measure write throughput and flush to disk before finishing
+    ddx if=/dev/zero of=test.bin bs=1M count=256 conv=fsync
+
+    # Copy standard input to standard output in the gnux shell
+    gnux shell -c 'echox hello | ddx status=none'
+
+Options
+~~~~~~~
+
+::
+
+      --help      display this help and exit
+      --version   output version information and exit
+

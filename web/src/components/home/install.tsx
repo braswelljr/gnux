@@ -1,4 +1,7 @@
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import {
+  buttonVariants,
   Card,
   CardContent,
   CardDescription,
@@ -58,6 +61,13 @@ export function Install() {
           </li>
         ))}
       </ul>
+      <Link
+        href="/install"
+        className={buttonVariants({ variant: 'secondary', className: 'mt-6' })}
+      >
+        Every platform: Homebrew, winget, Scoop, GitHub Actions
+        <ArrowRight aria-hidden="true" />
+      </Link>
     </Section>
   );
 }

@@ -20,13 +20,13 @@ dirnamex --zero [OPTION] NAME...
 
 ## Examples
 
-Separate the output with NUL bytes instead of newlines:
+### Separate the output with NUL bytes instead of newlines
 
-```bash
+```bash tab="bash" tab-group="shell"
 dirnamex -z a/b c/d | od -c
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 dirnamex -z a\b c\d | Format-Hex
 ```
 

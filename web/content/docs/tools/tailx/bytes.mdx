@@ -20,23 +20,23 @@ tailx --bytes=[+]NUM [FILE]...
 
 ## Examples
 
-Print the last 100 bytes of a file:
+### Print the last 100 bytes of a file
 
-```bash
+```bash tab="bash" tab-group="shell"
 tailx -c 100 app.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 tailx -c 100 app.log
 ```
 
-Drop a 3-byte UTF-8 byte-order mark by starting at byte 4:
+### Drop a 3-byte UTF-8 byte-order mark by starting at byte 4
 
-```bash
+```bash tab="bash" tab-group="shell"
 tailx -c +4 with-bom.txt > clean.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'tailx -c +4 with-bom.txt > clean.txt'
 ```
 

@@ -20,63 +20,63 @@ mkdirx --parents DIRECTORY...
 
 ## Examples
 
-Create a nested tree, reporting each level:
+### Create a nested tree, reporting each level
 
-```bash
+```bash tab="bash" tab-group="shell"
 mkdirx -pv out/reports/2024
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mkdirx -pv out\reports\2024
 ```
 
-Scaffold a project layout, reporting every directory made:
+### Scaffold a project layout, reporting every directory made
 
-```bash
+```bash tab="bash" tab-group="shell"
 mkdirx -pv project/src project/tests project/docs
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mkdirx -pv project\src project\tests project\docs
 ```
 
-Create missing parents but give only the last directory an explicit mode:
+### Create missing parents but give only the last directory an explicit mode
 
-```bash
+```bash tab="bash" tab-group="shell"
 mkdirx -p -m 755 www/public
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mkdirx -p -m 755 www\public
 ```
 
-Run the next step only once the directory exists (safe to repeat):
+### Run the next step only once the directory exists (safe to repeat)
 
-```bash
+```bash tab="bash" tab-group="shell"
 mkdirx -p out/reports/2024 && echox ready
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mkdirx -p out\reports\2024; if ($LASTEXITCODE -eq 0) { echox ready }
 ```
 
-Create the directory a file is about to be written to:
+### Create the directory a file is about to be written to
 
-```bash
+```bash tab="bash" tab-group="shell"
 mkdirx -p "$(dirnamex out/reports/q1.csv)"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mkdirx -p (dirnamex out\reports\q1.csv)
 ```
 
-Keep an otherwise empty directory under version control:
+### Keep an otherwise empty directory under version control
 
-```bash
+```bash tab="bash" tab-group="shell"
 mkdirx -p cache && touchx cache/.keep && lsx -A cache
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mkdirx -p cache; touchx cache\.keep; lsx -A cache
 ```
 

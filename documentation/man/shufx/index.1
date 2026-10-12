@@ -1,0 +1,115 @@
+.nh
+.TH "SHUFX" "1" "Jan 2024" "gnux" "gnux manual"
+
+.SH NAME
+shufx - Generate random permutations.
+
+
+.SH SYNOPSIS
+\fBshufx [OPTION]... [FILE]\fP
+
+
+.SH DESCRIPTION
+shufx writes a random permutation of its input lines to standard output. The input is the lines of FILE, or of standard input when FILE is absent or -; with -e, each ARG operand is an input line instead (shufx -e [OPTION]... [ARG]...); with -i LO-HI, the numbers LO through HI are (shufx -i LO-HI [OPTION]...). -n COUNT writes at most COUNT lines (given more than once, the smallest COUNT wins, as in GNU shuf). -r draws with replacement, so lines may repeat, and with no -n it writes forever until its reader goes away. -o FILE writes to FILE instead of standard output; it is opened only after the input has been read, so FILE may also be the input. --random-source=FILE takes the random bytes from FILE, so the same FILE always gives the same order; without it the order comes from a generator seeded by the operating system's random source. -z uses NUL rather than newline as the line delimiter. Differences from GNU shuf: the permutation drawn from a given --random-source differs from the one GNU shuf draws from the same bytes, though it is just as reproducible.
+
+.PP
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+.PP
+HELP. shufx --help shows the options and the first examples; gnux help shufx prints the full manual, and gnux help shufx OPTION explains one option.
+
+.PP
+SEE ALSO. sortx, headx, seqx.
+
+.PP
+PERMISSIONS. Needs read permission on FILE and on the --random-source file, and search permission on the directories leading to them. With -o, needs write permission on the output file, or on its directory when it does not exist yet.
+
+.PP
+USE CASES.
+  - Putting the lines of a file in random order.
+  - Picking a random sample of N lines with -n.
+  - Choosing one item at random from a list of operands with -e -n 1.
+  - Generating random numbers in a range with -i, with or without repeats.
+  - Shuffling a playlist, a deck or a test order.
+  - Getting a reproducible shuffle in tests with --random-source.
+  - Producing an endless stream of random choices with -r.
+  - Splitting a data set into random training and test portions.
+
+
+.SH OPTIONS
+\fB-e\fP, \fB--echo\fP[=false]
+	treat each ARG as an input line
+
+.PP
+\fB-n\fP, \fB--head-count\fP=[]
+	output at most \fBCOUNT\fR lines
+
+.PP
+\fB--help\fP[=false]
+	display this help and exit
+
+.PP
+\fB-i\fP, \fB--input-range\fP=""
+	treat each number \fBLO-HI\fR as an input line
+
+.PP
+\fB-o\fP, \fB--output\fP=""
+	write result to \fBFILE\fR instead of standard output
+
+.PP
+\fB--random-source\fP=""
+	get random bytes from \fBFILE\fR
+
+.PP
+\fB-r\fP, \fB--repeat\fP[=false]
+	output lines can be repeated
+
+.PP
+\fB--version\fP[=false]
+	output version information and exit
+
+.PP
+\fB-z\fP, \fB--zero-terminated\fP[=false]
+	line delimiter is NUL, not newline
+
+
+.SH EXAMPLE
+.EX
+  # Shuffle the lines of a file
+  shufx names.txt
+
+  # Pick three random lines
+  shufx -n 3 names.txt
+
+  # Pick one of several words
+  shufx -e -n 1 red green blue
+
+  # Shuffle the numbers 1 to 10
+  shufx -i 1-10
+
+  # Roll a die five times (numbers may repeat)
+  shufx -i 1-6 -r -n 5
+
+  # Shuffle standard input
+  seqx 5 | shufx
+
+  # Shuffle a file in place
+  shufx -o deck.txt deck.txt
+
+  # A reproducible order for tests
+  shufx --random-source=seed.bin cases.txt
+
+  # Pick a random file from a NUL-separated list
+  find . -type f -print0 | shufx -z -n 1
+
+  # An endless stream of coin flips, cut short by headx
+  shufx -r -e heads tails | headx -n 4
+
+  # Sample 100 lines for a quick look at a large log
+  shufx -n 100 access.log > sample.log
+
+  # Shuffle in the portable gnux shell
+  gnux shell -c 'lsx -1 | shufx -n 2'
+.EE

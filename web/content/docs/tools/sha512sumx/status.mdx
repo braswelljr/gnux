@@ -1,0 +1,36 @@
+---
+title: "--status"
+description: "Don't output anything, status code shows success."
+---
+
+An option of [sha512sumx](/docs/tools/sha512sumx).
+
+## Usage
+
+```bash
+sha512sumx --status [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--status` | none |  | don't output anything, status code shows success |
+
+## Examples
+
+### Verify silently and branch on the result
+
+```bash tab="bash" tab-group="shell"
+sha512sumx -c --status sha512.sums && echox verified
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sha512sumx -c --status sha512.sums; if ($LASTEXITCODE -eq 0) { 'verified' }
+```
+
+## Help in the terminal
+
+```bash
+gnux help sha512sumx --status
+```

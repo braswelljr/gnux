@@ -10,9 +10,14 @@ Mirrors GNU `ls`. Run it as `lsx`, or as `gnux lsx`.
 lsx [OPTION]... [FILE]...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: ls invocation](https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html)
+- [Source: src/ls.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/ls.c)
+
 ### Description
 
-`lsx` lists each FILE, or the current directory when none is given. Operands that are not directories are listed first, then the contents of each directory under a 'dir:' header. Entries whose names start with '.' are hidden unless `-a` or `-A` is given. On a terminal the names are arranged in columns sized to the window; when the output is piped or redirected there is one name per line. `-l` selects the long format (mode, link count, owner, group, size, timestamp and name), where timestamps from the last six months show the time of day and older ones show the year. Entries are sorted by name using plain byte comparison - the C locale's collation, so uppercase sorts before lowercase regardless of the environment's locale - or by time (`-t`), size (`-S`), extension (`-X`) or version (`-v`), optionally reversed with `-r`. When several flags of one family are given (`-l`/-1/`-C`/`-x`/`-m`, the sort keys, `-a`/`-A`, `-c`/`-u`/`--time`, …) the last one on the command line wins, as in GNU `ls`. The exit status is 0 on success, 1 for minor problems such as an entry that cannot be examined, and 2 for serious trouble such as an operand that cannot be accessed.
+`lsx` lists each FILE, or the current directory when none is given. Operands that are not directories are listed first, then the contents of each directory under a 'dir:' header. Entries whose names start with '.' are hidden unless `-a` or `-A` is given. On a terminal the names are arranged in columns sized to the window; when the output is piped or redirected there is one name per line. `-l` selects the long format (mode, `link` count, owner, group, size, timestamp and name), where timestamps from the last six months show the time of day and older ones show the year. Entries are sorted by name using plain byte comparison - the C locale's collation, so uppercase sorts before lowercase regardless of the environment's locale - or by time (`-t`), size (`-S`), extension (`-X`) or version (`-v`), optionally reversed with `-r`. When several flags of one family are given (`-l`/-1/`-C`/`-x`/`-m`, the sort keys, `-a`/`-A`, `-c`/`-u`/`--time`, …) the last one on the command line wins, as in GNU `ls`. The exit status is 0 on success, 1 for minor problems such as an entry that cannot be examined, and 2 for serious trouble such as an operand that cannot be accessed.
 
 ### Permissions
 

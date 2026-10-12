@@ -10,6 +10,11 @@ Mirrors GNU `true`. Run it as `truex`, or as `gnux truex`.
 truex [ignored command line arguments]
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: true invocation](https://www.gnu.org/software/coreutils/manual/html_node/true-invocation.html)
+- [Source: src/true.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/true.c)
+
 ### Description
 
 `truex` exits with status 0 and does nothing else: it reads no input, writes no output and ignores every argument it is given. The only exceptions are `--help` and `--version`, which are honored when they are the sole argument. It exists so scripts have a portable command whose result is always success.

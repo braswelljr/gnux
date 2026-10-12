@@ -20,23 +20,23 @@ touchx --modification-time FILE...
 
 ## Examples
 
-Set only the modification time to a specific date:
+### Set only the modification time to a specific date
 
-```bash
+```bash tab="bash" tab-group="shell"
 touchx -m -d '2024-01-02 15:04:05' report.pdf
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 touchx -m -d '2024-01-02 15:04:05' report.pdf
 ```
 
-Copy just the modification time, and only to files that already exist:
+### Copy just the modification time, and only to files that already exist
 
-```bash
+```bash tab="bash" tab-group="shell"
 touchx -c -m -r original.jpg edited.jpg report.pdf
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 touchx -c -m -r original.jpg edited.jpg report.pdf
 ```
 

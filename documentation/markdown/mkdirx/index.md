@@ -10,9 +10,14 @@ Mirrors GNU `mkdir`. Run it as `mkdirx`, or as `gnux mkdirx`.
 mkdirx [OPTION]... DIRECTORY...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: mkdir invocation](https://www.gnu.org/software/coreutils/manual/html_node/mkdir-invocation.html)
+- [Source: src/mkdir.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/mkdir.c)
+
 ### Description
 
-`mkdirx` creates each DIRECTORY in the order given. Without options the parent must already exist and the directory must not, otherwise the operand is reported and the rest are still processed. `-p` creates any missing parents along the way and treats a directory that is already there as success, which makes the command safe to repeat. `-m` sets the permissions of the new directory using either an octal mode (755) or a chmod-style symbolic one (u=rwx,go=rx), and `-v` reports each directory as it is created.
+`mkdirx` creates each DIRECTORY in the order given. Without options the parent must already exist and the directory must not, otherwise the operand is reported and the rest are still processed. `-p` creates any missing parents along the way and treats a directory that is already there as success, which makes the command safe to repeat. `-m` sets the permissions of the new directory using either an octal mode (755) or a `chmod``-style` symbolic one (u=rwx,go=rx), and `-v` reports each directory as it is created.
 
 ### Permissions
 

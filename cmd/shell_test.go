@@ -109,7 +109,7 @@ func TestShellHelpAndGnux(t *testing.T) {
 		{"help rmx", "rmx (GNU rm) - Remove"},
 		{"help rm -f", "rmx force - "},
 		{"gnux help catx", "catx (GNU cat)"},
-		{"gnux --list | headx -1", "basenamex\n"},
+		{"gnux --list | headx -1", "b2sumx\n"},
 		{"help", "Builtins: cd [DIR], exit [STATUS], help [TOOL [OPTION]]."},
 	}
 	for _, tt := range tests {

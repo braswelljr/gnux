@@ -1,0 +1,47 @@
+---
+title: "-t, --separator"
+description: "Use CHAR as input and output field separator."
+---
+
+An option of [joinx](/docs/tools/joinx).
+
+## Usage
+
+```bash
+joinx -t CHAR FILE1 FILE2
+joinx --separator=CHAR FILE1 FILE2
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-t` | `--separator` | `CHAR` |  | use CHAR as input and output field separator |
+
+## Examples
+
+### Join comma-separated files
+
+```bash tab="bash" tab-group="shell"
+joinx -t, users.csv orders.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+joinx -t, users.csv orders.csv
+```
+
+### Keep the header line of each file
+
+```bash tab="bash" tab-group="shell"
+joinx --header -t, users.csv orders.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+joinx --header -t, users.csv orders.csv
+```
+
+## Help in the terminal
+
+```bash
+gnux help joinx --separator
+```

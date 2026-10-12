@@ -10,9 +10,14 @@ Mirrors GNU `realpath`. Run it as `realpathx`, or as `gnux realpathx`.
 realpathx [OPTION]... FILE...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: realpath invocation](https://www.gnu.org/software/coreutils/manual/html_node/realpath-invocation.html)
+- [Source: src/realpath.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/realpath.c)
+
 ### Description
 
-`realpathx` prints the canonical absolute name of each FILE: every symbolic link is expanded and every '.', '..' and repeated separator is removed. By default all components but the last must exist; `-e` requires the whole name to exist and `-m` requires none of it to. Links are resolved as they are met (`-P`, the default), so '..' after a link refers to the parent of the link's target; `-L` collapses '..' first, and `-s` does not expand links at all. `--relative-to` prints each name relative to a directory, and `--relative-base` does so only for names under that directory, leaving the rest absolute. A name that cannot be resolved is reported (unless `-q`) and the remaining names are still processed.
+`realpathx` prints the canonical absolute name of each FILE: every symbolic `link` is expanded and every '.', '..' and repeated separator is removed. By default all components but the last must exist; `-e` requires the whole name to exist and `-m` requires none of it to. Links are resolved as they are met (`-P`, the default), so '..' after a `link` refers to the parent of the `link`'s target; `-L` collapses '..' first, and `-s` does not `expand` links at all. `--relative-to` prints each name relative to a directory, and `--relative-base` does so only for names under that directory, leaving the rest absolute. A name that cannot be resolved is reported (unless `-q`) and the remaining names are still processed.
 
 ### Permissions
 
@@ -26,7 +31,7 @@ Resolving a name needs search permission on every directory leading to it, inclu
 - Building the absolute name of a file that is about to be created.
 - Checking that a path exists in a script with `-e` and the exit status.
 - Cleaning up '.', '..' and doubled separators without touching symbolic links (`-s`).
-- Choosing how '..' after a symbolic link is read: physically (`-P`) or logically (`-L`).
+- Choosing how '..' after a symbolic `link` is read: physically (`-P`) or logically (`-L`).
 - Emitting NUL-terminated names with `-z` for names that may contain newlines.
 
 ### Flags
@@ -68,7 +73,7 @@ realpathx .
 realpathx .
 ```
 
-Follow a symbolic link to the file it points to:
+Follow a symbolic `link` to the file it points to:
 
 ```bash
 realpathx bin/tool
@@ -128,7 +133,7 @@ realpathx --no-symlinks bin/tool
 realpathx --no-symlinks bin\tool
 ```
 
-Read '..' after a link logically (`-L`) rather than physically (`-P`, the default):
+Read '..' after a `link` logically (`-L`) rather than physically (`-P`, the default):
 
 ```bash
 realpathx -L src/tools/.. && realpathx -P src/tools/..

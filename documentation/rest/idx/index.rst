@@ -1,0 +1,88 @@
+.. _idx:
+
+idx
+---
+
+Print real and effective user and group IDs.
+
+Synopsis
+~~~~~~~~
+
+
+idx prints the user and group IDs of the current process, or of each USER (a name or a numeric ID), in GNU's default format: 'uid=1000(alice) gid=1000(alice) groups=1000(alice),27(sudo)', with euid= and egid= added when they differ from the real IDs. -u, -g and -G print only the effective user ID, the effective group ID or every group ID; -n prints names instead of numbers and -r the real IDs instead of the effective ones, with one of those three; -z ends each entry with NUL. -a is accepted and ignored, as in GNU. -Z (SELinux context) is not supported and fails, as GNU id does on a kernel without SELinux. An unknown USER is reported ('no such user') and the remaining USERs are still printed. On Windows the IDs are security identifiers (SIDs) and the names come from the account database.
+
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+HELP. idx --help shows the options and the first examples; gnux help idx prints the full manual, and gnux help idx OPTION explains one option.
+
+SEE ALSO. whoamix, chownx, chgrpx, whox.
+
+PERMISSIONS. Needs no permissions; names are read from the system's user and group databases.
+
+USE CASES.
+  - Checking which user and groups a script or service runs as.
+  - Getting the numeric UID and GID to pass to chownx or a container.
+  - Checking whether a user belongs to a group, such as docker or sudo.
+  - Refusing to run a script as root by testing idx -u.
+  - Listing a user's groups by name.
+
+::
+
+  idx [OPTION]... [USER]...
+
+Examples
+~~~~~~~~
+
+::
+
+    # Print your user and group IDs
+    idx
+
+    # Print another user's IDs
+    idx alice
+
+    # Print only the effective user ID
+    idx -u
+
+    # Print your user name
+    idx -un
+
+    # Print the effective group ID
+    idx -g
+
+    # List your groups by name
+    idx -Gn
+
+    # Print the real user ID rather than the effective one
+    idx -ru
+
+    # Refuse to run as root
+    [ "$(idx -u)" -eq 0 ] && { echox 'do not run as root' >&2; exit 1; }
+
+    # Check membership of a group
+    idx -Gn | trx ' ' '\n' | grep -qx docker && echox member
+
+    # Pass your IDs to a container
+    docker run --user "$(idx -u):$(idx -g)" image
+
+    # Print IDs in the portable gnux shell
+    gnux shell -c 'idx -un && idx -Gn'
+
+Options
+~~~~~~~
+
+::
+
+  -a, --all       ignore, for compatibility with other versions
+  -Z, --context   print only the security context of the process (not supported)
+  -g, --group     print only the effective group ID
+  -G, --groups    print all group IDs
+      --help      display this help and exit
+  -n, --name      print a name instead of a number, for -u,-g,-G
+  -r, --real      print the real ID instead of the effective ID, with -u,-g,-G
+  -u, --user      print only the effective user ID
+      --version   output version information and exit
+  -z, --zero      delimit entries with NUL characters, not whitespace; not permitted in default format
+

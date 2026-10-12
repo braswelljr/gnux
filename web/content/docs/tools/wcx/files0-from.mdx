@@ -19,23 +19,23 @@ wcx --files0-from=F [FILE]...
 
 ## Examples
 
-Read the list of files to count from a NUL-separated file:
+### Read the list of files to count from a NUL-separated file
 
-```bash
+```bash tab="bash" tab-group="shell"
 wcx -l --files0-from=sources.lst
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -l --files0-from=sources.lst
 ```
 
-Print only the grand total for a list of files found elsewhere:
+### Print only the grand total for a list of files found elsewhere
 
-```bash
+```bash tab="bash" tab-group="shell"
 find . -name '*.go' -print0 | wcx -l --files0-from=- --total=only
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -l --total=only (Get-ChildItem -Recurse *.go).FullName
 ```
 

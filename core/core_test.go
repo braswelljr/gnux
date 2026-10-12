@@ -1,6 +1,8 @@
 package core_test
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -32,5 +34,30 @@ func TestErrText(t *testing.T) {
 				t.Fatalf("ErrText = %q, want %q", got, tt.want)
 			}
 		})
+	}
+}
+
+type failWriter struct{ err error }
+
+func (f failWriter) Write([]byte) (int, error) { return 0, f.err }
+
+func TestFlushOutput(t *testing.T) {
+	var errb bytes.Buffer
+	d := core.NewDiag("x", core.Streams{Err: &errb})
+	w := bufio.NewWriter(failWriter{syscall.ENOSPC})
+	_, _ = w.WriteString("data")
+	var err error
+	core.FlushOutput(w, d, &err)
+	if !errors.Is(err, core.ErrFailed) || errb.String() != "x: write error: No space left on device\n" {
+		t.Fatalf("err = %v, stderr = %q", err, errb.String())
+	}
+
+	errb.Reset()
+	w = bufio.NewWriter(failWriter{syscall.EPIPE})
+	_, _ = w.WriteString("data")
+	err = nil
+	core.FlushOutput(w, d, &err)
+	if err != nil || errb.Len() != 0 {
+		t.Fatalf("closed pipe: err = %v, stderr = %q", err, errb.String())
 	}
 }

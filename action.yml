@@ -1,0 +1,144 @@
+# setup-gnux: install a released gnux on a GitHub Actions runner and put every
+# tool (rmx, cpx, lsx, ...) on PATH, so one workflow step runs the same on
+# Linux, macOS and Windows runners.
+#
+#   - uses: braswelljr/gnux@v0
+#   - run: rmx -rf build && mkdirx -p build && cpx -r assets build/
+#
+# The archive is the release's own, checked against the release's
+# checksums.txt before it is unpacked.
+name: setup-gnux
+description: Install gnux, the GNU core utilities in one portable binary, and put every tool on PATH.
+author: braswelljr
+branding:
+  icon: terminal
+  color: green
+
+inputs:
+  version:
+    description: The release to install, as a tag (v0.1.0), or latest.
+    required: false
+    default: latest
+  links:
+    description: Link every tool name (rmx, cpx, ...) to gnux so each runs as a command of its own.
+    required: false
+    default: "true"
+  gnu-names:
+    description: >-
+      Also link the GNU names (rm, cp, ls, ...). They come first on PATH, so they
+      shadow the runner's own tools for the rest of the job.
+    required: false
+    default: "false"
+
+outputs:
+  version:
+    description: The installed release tag.
+    value: ${{ steps.install.outputs.version }}
+  path:
+    description: The directory added to PATH, holding gnux and its links.
+    value: ${{ steps.install.outputs.path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install gnux
+      id: install
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+        LINKS: ${{ inputs.links }}
+        GNU_NAMES: ${{ inputs.gnu-names }}
+      run: |
+        set -euo pipefail
+        repo="braswelljr/gnux"
+
+        case "$RUNNER_OS" in
+          Linux) os=linux ;;
+          macOS) os=darwin ;;
+          Windows) os=windows ;;
+          *) echo "::error::setup-gnux does not support runner OS '$RUNNER_OS'"; exit 1 ;;
+        esac
+        case "$RUNNER_ARCH" in
+          X64) arch=amd64 ;;
+          ARM64) arch=arm64 ;;
+          *) echo "::error::setup-gnux does not support runner architecture '$RUNNER_ARCH'"; exit 1 ;;
+        esac
+
+        # "latest" is resolved from the redirect GitHub serves for it, which
+        # needs no API token and has no rate limit.
+        tag="$VERSION"
+        if [ "$tag" = "latest" ]; then
+          url="$(curl -fsSLI -o /dev/null -w '%{url_effective}' "https://github.com/$repo/releases/latest")"
+          tag="${url##*/}"
+        fi
+        case "$tag" in
+          v*) ;;
+          *) echo "::error::cannot resolve gnux version '$VERSION' (got '$tag')"; exit 1 ;;
+        esac
+
+        name="gnux-${tag}-${os}-${arch}"
+        ext="tar.gz"
+        exe=""
+        if [ "$os" = "windows" ]; then ext="zip"; exe=".exe"; fi
+        archive="${name}.${ext}"
+        base="https://github.com/$repo/releases/download/$tag"
+
+        work="$RUNNER_TEMP/setup-gnux-$tag"
+        rm -rf "$work"
+        mkdir -p "$work"
+        cd "$work"
+        echo "Downloading $archive"
+        curl -fsSLO "$base/$archive"
+        curl -fsSLO "$base/checksums.txt"
+
+        line="$(grep " ${archive}\$" checksums.txt || true)"
+        if [ -z "$line" ]; then
+          echo "::error::$archive is not listed in the release's checksums.txt"
+          exit 1
+        fi
+        if command -v sha256sum > /dev/null 2>&1; then
+          echo "$line" | sha256sum -c -
+        else
+          echo "$line" | shasum -a 256 -c -
+        fi
+
+        if [ "$ext" = "zip" ]; then
+          if command -v unzip > /dev/null 2>&1; then
+            unzip -q "$archive"
+          else
+            pwsh -NoProfile -Command "Expand-Archive -LiteralPath '$archive' -DestinationPath ."
+          fi
+        else
+          tar -xzf "$archive"
+        fi
+
+        bin="$work/$name"
+        gnux="$bin/gnux$exe"
+        [ -x "$gnux" ] || chmod +x "$gnux"
+
+        # On Windows a copy named after the tool works where a symbolic link
+        # may not (it needs Developer Mode); gnux dispatches on its own name.
+        link() {
+          if [ "$os" = "windows" ]; then
+            cp "$gnux" "$bin/$1$exe"
+          else
+            ln -sf "gnux" "$bin/$1"
+          fi
+        }
+        count=0
+        if [ "$LINKS" = "true" ]; then
+          for t in $("$gnux" --list | tr -d '\r'); do
+            link "$t"
+            count=$((count + 1))
+            if [ "$GNU_NAMES" = "true" ]; then
+              link "${t%x}"
+            fi
+          done
+        fi
+
+        path="$bin"
+        if command -v cygpath > /dev/null 2>&1; then path="$(cygpath -w "$bin")"; fi
+        echo "$path" >> "$GITHUB_PATH"
+        echo "version=$tag" >> "$GITHUB_OUTPUT"
+        echo "path=$path" >> "$GITHUB_OUTPUT"
+        echo "Installed gnux $tag ($os/$arch) with $count tool links in $path"

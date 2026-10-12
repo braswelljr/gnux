@@ -1,0 +1,79 @@
+.. _nprocx:
+
+nprocx
+------
+
+Print the number of processing units available.
+
+Synopsis
+~~~~~~~~
+
+
+nprocx prints the number of processing units available to the current process. As in GNU nproc, the OMP_NUM_THREADS environment variable (its first value, when it is a comma-separated list) replaces that count when it is a positive number, and OMP_THREAD_LIMIT caps the result. --all prints the number of installed processors instead and ignores both variables. --ignore=N subtracts N, but the result is never less than 1. gnux has no cgo, so both counts come from Go's runtime.NumCPU: the processors this process may run on. A machine with processors taken offline, or a process restricted to fewer of them, prints the same number with and without --all.
+
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+HELP. nprocx --help shows the options and the first examples; gnux help nprocx prints the full manual, and gnux help nprocx OPTION explains one option.
+
+SEE ALSO. unamex, envx.
+
+PERMISSIONS. Needs no permissions. Reads only the process's CPU affinity and its environment.
+
+USE CASES.
+  - Choosing how many parallel jobs a build should run.
+  - Leaving a core free for the rest of the system with --ignore=1.
+  - Respecting OMP_NUM_THREADS when a job scheduler has set it.
+  - Reporting the machine's size in a CI log or a bug report.
+  - Sizing a worker pool in a portable script.
+
+::
+
+  nprocx [OPTION]...
+
+Examples
+~~~~~~~~
+
+::
+
+    # Print the number of processing units
+    nprocx
+
+    # Print the number of installed processors
+    nprocx --all
+
+    # Leave one core free
+    nprocx --ignore=1
+
+    # Run a build with one job per core
+    make -j"$(nprocx)"
+
+    # Respect an OpenMP thread count
+    OMP_NUM_THREADS=4 nprocx
+
+    # Cap the count with OMP_THREAD_LIMIT
+    OMP_THREAD_LIMIT=2 nprocx
+
+    # Set the count through envx, on any platform
+    envx OMP_NUM_THREADS=3 nprocx
+
+    # Save the count in a variable
+    jobs=$(nprocx --ignore=2); echox "using $jobs jobs"
+
+    # Print the count with a label
+    printfx 'cores: %d\n' "$(nprocx)"
+
+    # Show the count in the portable gnux shell
+    gnux shell -c 'nprocx --all'
+
+Options
+~~~~~~~
+
+::
+
+      --all        print the number of installed processors
+      --help       display this help and exit
+      --ignore N   if possible, exclude N processing units (default "0")
+      --version    output version information and exit
+

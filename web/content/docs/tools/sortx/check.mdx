@@ -1,0 +1,37 @@
+---
+title: "-c, --check"
+description: "Check for sorted input; do not sort. WHEN (diagnose-first, quiet, silent) says whether to report the first disorder."
+---
+
+An option of [sortx](/docs/tools/sortx).
+
+## Usage
+
+```bash
+sortx -c [FILE]...
+sortx --check[=WHEN] [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-c` | `--check` | `WHEN` (optional) |  | check for sorted input; do not sort. WHEN (diagnose-first, quiet, silent) says whether to report the first disorder |
+
+## Examples
+
+### Report the first line out of order
+
+```bash tab="bash" tab-group="shell"
+sortx -c names.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sortx -c names.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help sortx --check
+```

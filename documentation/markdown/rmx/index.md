@@ -1,6 +1,6 @@
 ## rmx
 
-Remove (unlink) files and directories.
+Remove (`unlink`) files and directories.
 
 Mirrors GNU `rm`. Run it as `rmx`, or as `gnux rmx`.
 
@@ -9,6 +9,11 @@ Mirrors GNU `rm`. Run it as `rmx`, or as `gnux rmx`.
 ```bash
 rmx [OPTION]... [FILE]...
 ```
+
+### GNU reference
+
+- [GNU coreutils manual: rm invocation](https://www.gnu.org/software/coreutils/manual/html_node/rm-invocation.html)
+- [Source: src/rm.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/rm.c)
 
 ### Description
 

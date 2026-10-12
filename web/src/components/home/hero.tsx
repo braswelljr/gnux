@@ -69,6 +69,12 @@ export function Hero({ toolCount }: { toolCount: number }) {
             Read the docs
           </Link>
         </Reveal>
+        <Reveal delay={0.18}>
+          <p className="font-mono text-xs text-fd-muted-foreground">
+            <span className="sr-only">Runs on </span>
+            Linux · macOS · FreeBSD · Windows · the browser · Go programs
+          </p>
+        </Reveal>
         <Reveal
           delay={0.2}
           className="mt-8 w-full sm:mt-12"

@@ -20,13 +20,13 @@ tailx --sleep-interval=N [FILE]...
 
 ## Examples
 
-Follow a log across rotations, polling twice a second:
+### Follow a log across rotations, polling twice a second
 
-```bash
+```bash tab="bash" tab-group="shell"
 tailx -F -s 0.5 /var/log/app.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 tailx -F -s 0.5 C:\logs\app.log
 ```
 

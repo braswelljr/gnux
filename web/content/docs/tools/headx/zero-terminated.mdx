@@ -20,13 +20,13 @@ headx --zero-terminated [FILE]...
 
 ## Examples
 
-Take the first two entries of a NUL-separated list:
+### Take the first two entries of a NUL-separated list
 
-```bash
+```bash tab="bash" tab-group="shell"
 find . -name '*.txt' -print0 | headx -z -n 2 | xargs -0 wcx -l
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -z -n 2 names.lst
 ```
 

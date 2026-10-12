@@ -20,33 +20,33 @@ rmdirx --verbose DIRECTORY...
 
 ## Examples
 
-Report each directory as it is removed:
+### Report each directory as it is removed
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx -v empty1 empty2
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx -v empty1 empty2
 ```
 
-Remove a directory and its now-empty parents, reporting each:
+### Remove a directory and its now-empty parents, reporting each
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx -pv out/reports/2024
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx -pv out\reports\2024
 ```
 
-Create and then remove a temporary staging tree with the `gnux shell`:
+### Create and then remove a temporary staging tree with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'mkdirx -p staging/a && rmdirx -pv staging/a'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'mkdirx -p staging/a && rmdirx -pv staging/a'
 ```
 

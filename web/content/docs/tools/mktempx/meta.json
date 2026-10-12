@@ -1,0 +1,12 @@
+{
+  "title": "mktempx",
+  "pages": [
+    "dir",
+    "directory",
+    "dry-run",
+    "in-tmpdir",
+    "quiet",
+    "suffix",
+    "tmpdir"
+  ]
+}

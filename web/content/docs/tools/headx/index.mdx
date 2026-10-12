@@ -11,6 +11,11 @@ Mirrors GNU `head`. Run it as `headx`, or as `gnux headx`.
 headx [OPTION]... [FILE]...
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: head invocation](https://www.gnu.org/software/coreutils/manual/html_node/head-invocation.html)
+- [Source: src/head.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/head.c)
+
 ## Description
 
 `headx` prints the first 10 lines of each FILE to standard output. With no FILE, or when FILE is -, it reads standard input. `-n` NUM changes the number of lines and `-c` NUM switches to bytes; a leading '-' on NUM inverts the selection and prints everything except the last NUM lines or bytes. NUM accepts a multiplier suffix: b is 512, K, M, G, T, P and E are powers of 1024 (also written KiB, MiB, ...), and KB, MB, ... are powers of 1000. With more than one FILE each is preceded by a '==> name \<==' header; `-q` suppresses the headers and `-v` forces them. `-z` makes NUL the line delimiter. The historical '`headx -NUM`' spelling of '`-n` NUM' is accepted. Reading stops as soon as enough has been seen, so `headx` is cheap on huge files.
@@ -46,163 +51,163 @@ Needs read permission on each FILE and search permission on the directories lead
 
 ## Examples
 
-Print the first 10 lines of a file:
+### Print the first 10 lines of a file
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx access.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx access.log
 ```
 
-Print the first 3 lines of each file, with headers:
+### Print the first 3 lines of each file, with headers
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -n 3 a.txt b.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -n 3 a.txt b.txt
 ```
 
-Print only the header row of a CSV file:
+### Print only the header row of a CSV file
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -n 1 data.csv
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -n 1 data.csv
 ```
 
-Print the first line of every CSV file without the file name headers:
+### Print the first line of every CSV file without the file name headers
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -q -n 1 *.csv
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -q -n 1 (Get-ChildItem *.csv -Name)
 ```
 
-Show the file name header even for a single file (`--silent` is the long spelling of `-q`):
+### Show the file name header even for a single file (--silent is the long spelling of -q)
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -v -n 2 config.ini
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -v -n 2 config.ini
 ```
 
-Print the first kibibyte of a file:
+### Print the first kibibyte of a file
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -c 1K image.png > start.bin
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'headx -c 1K image.png > start.bin'
 ```
 
-Check a file's magic number from its first bytes:
+### Check a file's magic number from its first bytes
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -c 4 image.png | catx -v
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -c 4 image.png | catx -v
 ```
 
-Copy the first megabyte (10^6 bytes) of a large file:
+### Copy the first megabyte (10^6 bytes) of a large file
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -c 1MB disk.img > sample.img
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'headx -c 1MB disk.img > sample.img'
 ```
 
-Print everything except the last 2 lines:
+### Print everything except the last 2 lines
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -n -2 report.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -n -2 report.txt
 ```
 
-Strip the final byte, such as a trailing newline:
+### Strip the final byte, such as a trailing newline
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -c -1 version.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -c -1 version.txt
 ```
 
-Keep the first 5 lines of a pipeline, using the historical `-NUM` form:
+### Keep the first 5 lines of a pipeline, using the historical -NUM form
 
-```bash
+```bash tab="bash" tab-group="shell"
 lsx -t | headx -5
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lsx -t | headx -5
 ```
 
-Print lines 11 to 20 of a file:
+### Print lines 11 to 20 of a file
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -n 20 app.log | tailx -n 10
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -n 20 app.log | tailx -n 10
 ```
 
-Cut an endless stream down to three lines:
+### Cut an endless stream down to three lines
 
-```bash
+```bash tab="bash" tab-group="shell"
 yesx ok | headx -n 3
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 yesx ok | headx -n 3
 ```
 
-Take the first two entries of a NUL-separated list:
+### Take the first two entries of a NUL-separated list
 
-```bash
+```bash tab="bash" tab-group="shell"
 find . -name '*.txt' -print0 | headx -z -n 2 | xargs -0 wcx -l
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -z -n 2 names.lst
 ```
 
-Fail a script when a file cannot be read:
+### Fail a script when a file cannot be read
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -n 1 missing.txt || echox "exit status $?"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -n 1 missing.txt; if ($LASTEXITCODE -ne 0) { "exit status $LASTEXITCODE" }
 ```
 
-Preview the start of every log in the portable `gnux shell`:
+### Preview the start of every log in the portable gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'headx -n 3 *.log'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'headx -n 3 *.log'
 ```
 

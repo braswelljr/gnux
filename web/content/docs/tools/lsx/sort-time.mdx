@@ -20,33 +20,33 @@ lsx --sort-time [FILE]...
 
 ## Examples
 
-Newest files first, in the long format:
+### Newest files first, in the long format
 
-```bash
+```bash tab="bash" tab-group="shell"
 lsx -lt /var/log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lsx -lt $env:TEMP
 ```
 
-Sort by last access time (`-u`) or status change time (`-c`), showing that time:
+### Sort by last access time (-u) or status change time (-c), showing that time
 
-```bash
+```bash tab="bash" tab-group="shell"
 lsx -ltu cache/ && lsx -lt --time=ctime cache/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lsx -ltu cache; lsx -lt --time=ctime cache
 ```
 
-Print the name of the most recently modified file:
+### Print the name of the most recently modified file
 
-```bash
+```bash tab="bash" tab-group="shell"
 lsx -t | headx -n 1
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lsx -t | headx -n 1
 ```
 

@@ -1,0 +1,36 @@
+---
+title: "--tag"
+description: "Create a BSD-style checksum."
+---
+
+An option of [b2sumx](/docs/tools/b2sumx).
+
+## Usage
+
+```bash
+b2sumx --tag [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--tag` | none |  | create a BSD-style checksum |
+
+## Examples
+
+### Print BSD-style tagged lines
+
+```bash tab="bash" tab-group="shell"
+b2sumx --tag file.iso
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+b2sumx --tag file.iso
+```
+
+## Help in the terminal
+
+```bash
+gnux help b2sumx --tag
+```

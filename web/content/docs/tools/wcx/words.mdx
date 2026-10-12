@@ -20,33 +20,33 @@ wcx --words [FILE]...
 
 ## Examples
 
-Count the words of an essay:
+### Count the words of an essay
 
-```bash
+```bash tab="bash" tab-group="shell"
 wcx -w essay.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -w essay.txt
 ```
 
-Print lines and words together (always in that order, whatever the flag order):
+### Print lines and words together (always in that order, whatever the flag order)
 
-```bash
+```bash tab="bash" tab-group="shell"
 wcx -wl essay.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -wl essay.txt
 ```
 
-Count the words of text from standard input:
+### Count the words of text from standard input
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'the quick brown fox' | wcx -w
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'the quick brown fox' | wcx -w
 ```
 

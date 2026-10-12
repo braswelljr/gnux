@@ -1,0 +1,240 @@
+---
+title: "statx"
+description: "Display file or file system status."
+---
+
+Mirrors GNU `stat`. Run it as `statx`, or as `gnux statx`.
+
+## Synopsis
+
+```bash
+statx [OPTION]... FILE...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: stat invocation](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html)
+- [Source: src/stat.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/stat.c)
+
+## Description
+
+`statx` prints everything the system records about each FILE: its type, size, blocks, device, inode, links, permissions, owner and group, and its access, modification, change and birth times. A symbolic `link` is described itself unless `-L` follows it. `-f` describes the file system holding FILE instead: its type, block sizes, and total, free and available blocks and inodes. `-t` prints the same fields on one line, for scripts. `-c` FORMAT prints only what FORMAT asks for, followed by a newline; --`printf` FORMAT does the same but interprets backslash escapes (\n, \t, \x41, \101) and adds no newline; when both are given, the last wins. FORMAT takes GNU's directives: %n (name), %N (quoted name, with its target for a `link`), %s (size), %F (file type), %a and %A (permissions in octal and as rwx), %u %U %g %G (owner and group), %h (links), %i (inode), %b %B %o (blocks, block unit, I/O size), %d %D %Hd %Ld (device), %r %R %t %T %Hr %Lr (device type of a special file), %m (mount point), %w %x %y %z (birth, access, modification and change times) and %W %X %Y %Z (the same as seconds since the epoch, which take a precision: %.3Y), with `printf` flags and widths (%-10s, %04a). With `-f`: %n %i %l %t %T %s %S %b %f %a %c %d. Names are quoted only when a shell would need it. The device is shown as major,minor, as GNU `stat` 9 shows it. Missing data is reported honestly rather than invented: the birth time prints '-' where the system does not record it (Linux without `statx`), and on Windows, which has no numeric owners, %u and %g print '?'. SELinux contexts (%C) are not supported. `--cached` is accepted for compatibility and has no effect.
+
+## Permissions
+
+Needs search permission on the directories leading to each FILE; the FILE itself need not be readable. Owner and group names are read from the system's account databases.
+
+## Use cases
+
+- Finding out exactly when a file was last modified, accessed or created.
+- Getting a file's size or permissions in a script without parsing `lsx -l`.
+- Checking which file system, and how much free space, a path is on.
+- Comparing inodes and devices to tell whether two paths are the same file.
+- Auditing ownership and permissions of sensitive files.
+
+## Flags
+
+```text
+      --cached string   specify how to use cached attributes (always, never or default); accepted, no effect
+  -L, --dereference     follow links
+  -f, --file-system     display file system status instead of file status
+  -c, --format FORMAT   use the specified FORMAT instead of the default; output a newline after each use of FORMAT
+      --help            display this help and exit
+      --printf FORMAT   like --format, but interpret backslash escapes, and do not output a mandatory trailing newline
+  -t, --terse           print the information in terse form
+      --version         output version information and exit
+```
+
+## Examples
+
+### See everything about a config file before editing it
+
+```bash tab="bash" tab-group="shell"
+statx /etc/hosts
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+statx C:\Windows\System32\drivers\etc\hosts
+```
+
+```text title="Output"
+  File: /etc/hosts
+  Size: 221       	Blocks: 8          IO Block: 4096   regular file
+Device: 259,2	Inode: 1835014     Links: 1
+Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)
+Access: 2026-10-12 08:02:11.120375871 +0000
+Modify: 2026-09-30 17:44:02.006417455 +0000
+Change: 2026-09-30 17:44:02.006417455 +0000
+ Birth: 2026-03-01 10:15:40.773102148 +0000
+```
+
+### Get a file's size in bytes in a script, without parsing lsx -l
+
+```bash tab="bash" tab-group="shell"
+size=$(statx -c %s backup.tar.gz)
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+$size = statx -c %s backup.tar.gz
+```
+
+```text title="Output"
+1073741824
+```
+
+### Check that an SSH key is private before ssh refuses to use it
+
+```bash tab="bash" tab-group="shell"
+statx -c '%a %U %n' ~/.ssh/id_ed25519
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+statx -c '%a %U %n' $HOME\.ssh\id_ed25519
+```
+
+```text title="Output"
+600 alice /home/alice/.ssh/id_ed25519
+```
+
+### Find out when a log file last changed, as seconds since the epoch, to alert if it went quiet
+
+```bash tab="bash" tab-group="shell"
+[ $(( $(datex +%s) - $(statx -c %Y app.log) )) -gt 600 ] && echox 'app.log silent for 10 minutes'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+if (((datex +%s) - (statx -c %Y app.log)) -gt 600) { 'app.log silent for 10 minutes' }
+```
+
+### List several files with their permissions and owners, aligned
+
+```bash tab="bash" tab-group="shell"
+statx -c '%-25n %A %U:%G' /etc/passwd /etc/shadow /etc/sudoers
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+statx -c '%-25n %A' (Get-ChildItem *.ps1 -Name)
+```
+
+```text title="Output"
+/etc/passwd               -rw-r--r-- root:root
+/etc/shadow               -rw-r----- root:shadow
+/etc/sudoers              -r--r----- root:root
+```
+
+### Tell whether two paths are the same file (same device and inode)
+
+```bash tab="bash" tab-group="shell"
+[ "$(statx -L -c %d:%i a)" = "$(statx -L -c %d:%i b)" ] && echox 'same file'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+if ((statx -L -c %d:%i a) -eq (statx -L -c %d:%i b)) { 'same file' }
+```
+
+### See where a symbolic link points
+
+```bash tab="bash" tab-group="shell"
+statx -c %N /usr/bin/python3
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+statx -c %N link
+```
+
+```text title="Output"
+/usr/bin/python3 -> python3.12
+```
+
+### Check the file system type and free space under a directory
+
+```bash tab="bash" tab-group="shell"
+statx -f /var/lib/docker
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+statx -f C:\
+```
+
+### Print modification times with millisecond precision, tab-separated
+
+```bash tab="bash" tab-group="shell"
+statx --printf '%n\t%.3Y\n' *.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+statx --printf '%n\t%.3Y\n' (Get-ChildItem *.csv -Name)
+```
+
+```text title="Output"
+jan.csv	1767225600.123
+feb.csv	1769904000.456
+```
+
+### Find a file's mount point
+
+```bash tab="bash" tab-group="shell"
+statx -c %m ~/Downloads/movie.mkv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+statx -c %m $HOME\Downloads\movie.mkv
+```
+
+```text title="Output"
+/home
+```
+
+### Record a file's full status on one line, for a log or a diff
+
+```bash tab="bash" tab-group="shell"
+statx -t release.zip >> inventory.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+statx -t release.zip >> inventory.txt
+```
+
+### Show file details in the portable gnux shell, the same on every OS
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'statx -c "%n: %s bytes, modified %y" report.pdf'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'statx -c "%n: %s bytes, modified %y" report.pdf'
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [--cached](/docs/tools/statx/cached): Specify how to use cached attributes (always, never or default); accepted, no effect.
+- [-L, --dereference](/docs/tools/statx/dereference): Follow links.
+- [-f, --file-system](/docs/tools/statx/file-system): Display file system status instead of file status.
+- [-c, --format](/docs/tools/statx/format): Use the specified FORMAT instead of the default; output a newline after each use of FORMAT.
+- [--printf](/docs/tools/statx/printf): Like `--format`, but interpret backslash escapes, and do not output a mandatory trailing newline.
+- [-t, --terse](/docs/tools/statx/terse): Print the information in terse form.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+statx --help                # options, first examples, exit status
+gnux help statx             # this page: the full manual
+gnux help statx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [lsx](/docs/tools/lsx)
+- [dfx](/docs/tools/dfx)
+- [dux](/docs/tools/dux)
+- [chmodx](/docs/tools/chmodx)
+- [touchx](/docs/tools/touchx)

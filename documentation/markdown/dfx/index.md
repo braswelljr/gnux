@@ -1,0 +1,243 @@
+## dfx
+
+Report file system space usage.
+
+Mirrors GNU `df`. Run it as `dfx`, or as `gnux dfx`.
+
+### Synopsis
+
+```bash
+dfx [OPTION]... [FILE]...
+```
+
+### GNU reference
+
+- [GNU coreutils manual: df invocation](https://www.gnu.org/software/coreutils/manual/html_node/df-invocation.html)
+- [Source: src/df.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/df.c)
+
+### Description
+
+`dfx` shows, for each mounted file system, its size, the space used and available, the percentage used and where it is mounted. With FILE operands it shows only the file systems holding them. Sizes are in 1024-byte blocks by default; `-h` prints them like 23G (`--si`/`-H` in powers of 1000), `-k` and `-m` use KiB and MiB, and `-B` SIZE any unit. Use% is used/(used+available), rounded up, so space reserved for the superuser shows as used. `-i` reports inodes instead of blocks, `-T` adds the file system type, `-P` uses the POSIX format, and `--output`=FIELDS chooses the columns (source, fstype, itotal, iused, iavail, ipcent, size, used, avail, pcent, file, target). `-t` TYPE and `-x` TYPE select or exclude file system types, `-l` leaves out network file systems, and `--total` adds a grand total. Without `-a`, pseudo file systems (proc, sysfs, devfs, ...), file systems with no blocks and duplicate mounts of the same device are left out; `-a` shows them all, with '-' for any that cannot be examined. The block size defaults to DF_BLOCK_SIZE, BLOCK_SIZE or BLOCKSIZE when set. GNU `df` only runs where coreutils is installed; `dfx` reports the mounted file systems on Linux, macOS and FreeBSD, and on Windows lists every drive (C:\, D:\, network drives) with the same columns, quietly skipping a card reader or DVD drive with no medium. `--sync` and `--no-sync` are accepted and have no effect, and `-v` is ignored, as in GNU.
+
+### Permissions
+
+Needs no special permission; a mount point the user cannot examine is left out (or shown with '-' under `-a`).
+
+### Use cases
+
+- Checking how much free space is left before a large download, build or backup.
+- Finding which disk is filling up on a server.
+- Checking which file system a directory lives on, and its type.
+- Running out of inodes despite free space: checking with `-i`.
+- Alerting from a script when a disk passes a usage threshold.
+
+### Flags
+
+```text
+  -a, --all                     include pseudo, duplicate, inaccessible file systems
+  -B, --block-size SIZE         scale sizes by SIZE before printing them; e.g., '-BM' prints sizes in units of 1,048,576 bytes
+  -x, --exclude-type TYPE       limit listing to file systems not of type TYPE
+      --help                    display this help and exit
+  -h, --human-readable          print sizes in powers of 1024 (e.g., 1023M)
+  -i, --inodes                  list inode information instead of block usage
+  -k, --kilobytes               like --block-size=1K
+  -l, --local                   limit listing to local file systems
+      --no-sync                 do not invoke sync before getting usage info (default)
+      --output FIELD_LIST[= ]   use the output format defined by FIELD_LIST, or print all fields if FIELD_LIST is omitted
+  -P, --portability             use the POSIX output format
+  -T, --print-type              print file system type
+  -H, --si                      print sizes in powers of 1000 (e.g., 1.1G)
+      --sync                    invoke sync before getting usage info (no effect)
+  -v, --sysv                    (ignored)
+      --total                   elide all entries insignificant to available space, and produce a grand total
+  -t, --type TYPE               limit listing to file systems of type TYPE
+      --version                 output version information and exit
+```
+
+### Examples
+
+See at a glance how full every disk is:
+
+```bash
+dfx -h
+```
+
+```powershell
+dfx -h
+```
+
+Output:
+
+```text
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p2  469G  301G  145G  68% /
+/dev/nvme0n1p1  511M  6.1M  505M   2% /boot/efi
+/dev/sda1       1.8T  1.6T  163G  91% /mnt/backup
+```
+
+Before a 20 GB download, check the free space where it will land:
+
+```bash
+dfx -h ~/Downloads
+```
+
+```powershell
+dfx -h $HOME\Downloads
+```
+
+Output:
+
+```text
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p2  469G  301G  145G  68% /
+```
+
+Show only real local disks, with their file system types:
+
+```bash
+dfx -hlT
+```
+
+```powershell
+dfx -hlT
+```
+
+Output:
+
+```text
+Filesystem     Type  Size  Used Avail Use% Mounted on
+/dev/nvme0n1p2 ext4  469G  301G  145G  68% /
+```
+
+A server says 'No space left on device' but `df` shows free space: check the inodes:
+
+```bash
+dfx -i /var
+```
+
+```powershell
+dfx -i C:\
+```
+
+Output:
+
+```text
+Filesystem      Inodes   IUsed IFree IUse% Mounted on
+/dev/sda2      1310720 1310720     0  100% /
+```
+
+Alert from a cron job when the root disk passes 90%:
+
+```bash
+[ "$(dfx --output=pcent / | tailx -n 1 | trx -dc 0-9)" -gt 90 ] && echox 'root disk above 90%'
+```
+
+```powershell
+if ([int]((dfx --output=pcent C:\ | tailx -n 1) -replace '\D','') -gt 90) { 'C: above 90%' }
+```
+
+Print just the available space, in megabytes, for a script:
+
+```bash
+dfx -BM --output=avail /data | tailx -n 1
+```
+
+```powershell
+dfx -BM --output=avail D:\ | tailx -n 1
+```
+
+Output:
+
+```text
+  48213M
+```
+
+See which device and file system type a directory is on:
+
+```bash
+dfx --output=source,fstype,target /var/lib/docker
+```
+
+```powershell
+dfx --output=source,fstype,target C:\Users
+```
+
+Output:
+
+```text
+Filesystem     Type Mounted on
+/dev/nvme0n1p2 ext4 /
+```
+
+Total the space across all local disks:
+
+```bash
+dfx -hl --total
+```
+
+```powershell
+dfx -hl --total
+```
+
+Check only the network shares:
+
+```bash
+dfx -h -t nfs -t cifs
+```
+
+```powershell
+dfx -h
+```
+
+Leave temporary file systems out of the report:
+
+```bash
+dfx -h -x tmpfs -x devtmpfs
+```
+
+```powershell
+dfx -h
+```
+
+Produce stable, parseable output with the POSIX format:
+
+```bash
+dfx -P | tailx -n +2
+```
+
+```powershell
+dfx -P | tailx -n +2
+```
+
+Show disk space in the portable `gnux shell`, the same on every OS:
+
+```bash
+gnux shell -c 'dfx -h . && dux -sh .'
+```
+
+```powershell
+gnux shell -c 'dfx -h . && dux -sh .'
+```
+
+### Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+### Help in the terminal
+
+```bash
+dfx --help                # options, first examples, exit status
+gnux help dfx             # this page: the full manual
+gnux help dfx --OPTION    # one option in depth, with its examples
+```
+
+### See also
+
+- [dux](../dux/index.md)
+- [statx](../statx/index.md)
+- [lsx](../lsx/index.md)
+- [gnux](../index.md) - every tool in the bundle
+- [guide](../guide.md) - installation and usage

@@ -166,9 +166,16 @@ func matchWord[T comparable](context, arg string, table []word[T]) (T, error) {
 		problem = "ambiguous"
 	}
 	var b strings.Builder
-	b.WriteString(problem + " argument '" + arg + "' for '" + context + "'\nValid arguments are:")
+	b.WriteString(problem)
+	b.WriteString(" argument '")
+	b.WriteString(arg)
+	b.WriteString("' for '")
+	b.WriteString(context)
+	b.WriteString("'\nValid arguments are:")
 	for _, w := range table {
-		b.WriteString("\n  - '" + w.name + "'")
+		b.WriteString("\n  - '")
+		b.WriteString(w.name)
+		b.WriteString("'")
 	}
 	var zero T
 	return zero, core.Usagef("%s", b.String())

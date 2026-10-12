@@ -115,7 +115,7 @@ func writeOverview(w io.Writer, st tool.Style) {
 	fmt.Fprintln(w, "  Project or the FSF. It complements GNU coreutils; it does not replace them.")
 
 	tools := Tools()
-	width, gnuWidth := 0, 0
+	width, gnuWidth := len("completion"), 0
 	for _, t := range Commands() {
 		width = max(width, len(t.Name()))
 		gnuWidth = max(gnuWidth, len(t.GNU))
@@ -131,6 +131,7 @@ func writeOverview(w io.Writer, st tool.Style) {
 		fmt.Fprintf(w, "  %s  %s  %s\n", command(st, pad(t.Name(), width)), pad("", gnuWidth), t.Meta.Short)
 	}
 	fmt.Fprintf(w, "  %s  %s  %s\n", command(st, pad("help", width)), pad("", gnuWidth), "Show the full manual for a tool, or one of its options.")
+	fmt.Fprintf(w, "  %s  %s  %s\n", command(st, pad("completion", width)), pad("", gnuWidth), "Print the completion script for bash, zsh, fish or powershell.")
 
 	fmt.Fprintf(w, "\n%s\n", heading(st, "Options:"))
 	fmt.Fprintln(w, "      --help      display this help and exit")
@@ -144,6 +145,7 @@ func writeOverview(w io.Writer, st tool.Style) {
 		{"The same script on every platform", "gnux shell -e -c 'mkdirx -p dist && cpx -r assets dist/'"},
 		{"Read a tool's full manual", "gnux help rmx"},
 		{"Read about one option", "gnux help lsx -l"},
+		{"Enable tab completion in bash", "source <(gnux completion bash)"},
 	} {
 		fmt.Fprintf(w, "  %s\n  $ %s\n\n", dim(st, "# "+e[0]), command(st, e[1]))
 	}

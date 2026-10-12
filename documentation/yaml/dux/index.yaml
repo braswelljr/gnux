@@ -1,0 +1,162 @@
+name: dux
+synopsis: Estimate file space usage.
+description: |-
+    dux shows how much disk space each directory under each FILE (the current directory by default) takes, including everything below it, in 1024-byte blocks rounded up. -a lists files too, -s only the operands, and -d N only N levels down; -c adds a grand total. -h prints sizes like 1.5K, 23M and 4.0G (--si in powers of 1000), -k and -m use KiB and MiB, -b bytes, and -B SIZE any unit ('-BM' prints the unit too). --apparent-size counts the bytes files hold rather than the blocks allocated to them, which differs for sparse and compressed files. --inodes counts files instead of space. -S leaves subdirectories out of a directory's total, -x stays on one file system, -l counts a hard-linked file every time it is met (by default it is counted once), -L follows symbolic links and -H only those given as operands. -t SIZE hides entries smaller than SIZE (or, negative, larger). --exclude=PATTERN and -X FILE skip matching paths. --time adds the latest modification (or --time=atime, ctime) time in each subtree, formatted by --time-style. --files0-from=F reads NUL-separated operands from F, and -0 ends output lines with NUL. Where GNU du reads one directory at a time and prints entries in whatever order the file system returns them, dux reads directories in parallel, which is much faster on large trees and network drives, and then adds everything up in name order, so the output, and which path a hard-linked file is counted under, is the same every run. The block size defaults to DU_BLOCK_SIZE, BLOCK_SIZE or BLOCKSIZE when set. Names are quoted only when output goes to a terminal.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. dux --help shows the options and the first examples; gnux help dux prints the full manual, and gnux help dux OPTION explains one option.
+
+    SEE ALSO. dfx, lsx, statx, sortx.
+
+    PERMISSIONS. Needs read and search permission on every directory measured; an unreadable directory is reported and its own size still counted.
+
+    USE CASES.
+      - Finding which directories fill a disk.
+      - Checking how big a project, cache or build output has grown.
+      - Comparing disk usage with apparent size to spot sparse files.
+      - Counting files (inodes) where a file system runs out of inodes before space.
+      - Monitoring a directory's size in a script or cron job.
+usage: dux [OPTION]... [FILE]...
+options:
+    - name: all
+      shorthand: a
+      default_value: "false"
+      usage: write counts for all files, not just directories
+    - name: apparent-size
+      shorthand: A
+      default_value: "false"
+      usage: print apparent sizes rather than device usage
+    - name: block-size
+      shorthand: B
+      usage: |
+        scale sizes by SIZE before printing them; e.g., '-BM' prints sizes in units of 1,048,576 bytes
+    - name: bytes
+      shorthand: b
+      usage: equivalent to '--apparent-size --block-size=1'
+    - name: count-links
+      shorthand: l
+      default_value: "false"
+      usage: count sizes many times if hard linked
+    - name: dereference
+      shorthand: L
+      default_value: "false"
+      usage: dereference all symbolic links
+    - name: dereference-args
+      shorthand: D
+      default_value: "false"
+      usage: |
+        dereference only symlinks that are listed on the command line
+    - name: dereference-args-h
+      shorthand: H
+      default_value: "false"
+      usage: equivalent to --dereference-args (-D)
+    - name: exclude
+      default_value: '[]'
+      usage: exclude files that match `PATTERN`
+    - name: exclude-from
+      shorthand: X
+      default_value: '[]'
+      usage: exclude files that match any pattern in `FILE`
+    - name: files0-from
+      usage: |
+        summarize device usage of the NUL-terminated file names specified in file `F`; if F is -, then read names from standard input
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: human-readable
+      shorthand: h
+      usage: print sizes in human readable format (e.g., 1K 234M 2G)
+    - name: inodes
+      default_value: "false"
+      usage: list inode usage information instead of block usage
+    - name: kilobytes
+      shorthand: k
+      usage: like --block-size=1K
+    - name: max-depth
+      shorthand: d
+      usage: |
+        print the total for a directory (or file, with --all) only if it is `N` or fewer levels below the command line argument
+    - name: megabytes
+      shorthand: m
+      usage: like --block-size=1M
+    - name: no-dereference
+      shorthand: P
+      default_value: "false"
+      usage: don't follow any symbolic links (this is the default)
+    - name: "null"
+      shorthand: "0"
+      default_value: "false"
+      usage: end each output line with NUL, not newline
+    - name: one-file-system
+      shorthand: x
+      default_value: "false"
+      usage: skip directories on different file systems
+    - name: separate-dirs
+      shorthand: S
+      default_value: "false"
+      usage: for directories do not include size of subdirectories
+    - name: si
+      usage: like -h, but use powers of 1000 not 1024
+    - name: summarize
+      shorthand: s
+      default_value: "false"
+      usage: display only a total for each argument
+    - name: threshold
+      shorthand: t
+      usage: |
+        exclude entries smaller than `SIZE` if positive, or entries greater than SIZE if negative
+    - name: time
+      usage: |
+        show time of the last modification of any file in the directory, or any of its subdirectories; with `WORD`: atime, access, use, ctime or status
+    - name: time-style
+      usage: |
+        show times using `STYLE`, which can be: full-iso, long-iso, iso, or +FORMAT
+    - name: total
+      shorthand: c
+      default_value: "false"
+      usage: produce a grand total
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # Your disk is nearly full: list the 10 biggest directories in your home, largest first
+      dux -h -d 1 ~ | sortx -h -r | headx -n 11
+
+      # Show the total size of a project, in human-readable units
+      dux -sh ~/projects/website
+
+      # See how much node_modules folders take across all your projects
+      dux -sch ~/projects/*/node_modules
+
+      # Measure a repository without its .git history
+      dux -sh --exclude=.git ~/projects/website
+
+      # Find files over 100 MB to clean up
+      dux -a -t 100M -h ~/Downloads
+
+      # Spot a sparse VM disk image: it takes far less space than its size
+      dux -h vm.qcow2 && dux -h --apparent-size vm.qcow2
+
+      # Find which directory holds millions of tiny files (out of inodes)
+      dux --inodes -d 1 /var | sortx -n -r | headx
+
+      # Get a byte count for a script, without units
+      bytes=$(dux -sb dist | cutx -f1)
+
+      # Check only the root file system, not mounted drives under it
+      sudo dux -xh -d 1 /
+
+      # See which log directories changed most recently
+      dux -sh --time /var/log/*
+
+      # Report sizes in megabytes with the unit shown
+      dux -BM -d 1 /srv
+
+      # Measure a list of paths produced by another program
+      find . -name '*.log' -print0 | dux -ch --files0-from=-
+
+      # Show the biggest folders in the portable gnux shell, the same on every OS
+      gnux shell -c 'dux -h -d 1 . | sortx -h -r | headx -n 5'

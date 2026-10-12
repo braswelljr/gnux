@@ -20,23 +20,23 @@ cpx --verbose SOURCE... DIRECTORY
 
 ## Examples
 
-Copy several files into a directory, reporting each one:
+### Copy several files into a directory, reporting each one
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx -v a.txt b.txt backup/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx -v a.txt b.txt backup
 ```
 
-Copy every .conf file into a fresh directory with the `gnux shell`:
+### Copy every .conf file into a fresh directory with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'mkdirx -p confbak && cpx -v *.conf confbak/'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'mkdirx -p confbak && cpx -v *.conf confbak/'
 ```
 

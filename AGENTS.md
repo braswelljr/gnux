@@ -81,14 +81,22 @@ gnux/
     requirements/          # Hand-written SRS + business / functional / non-functional registers
     workflows/             # Hand-written: how each process runs inside the code
     rules/                 # Hand-written: the cross-cutting rules, one file each (indexed below)
-  .github/workflows/       # test.yml, build.yml, lint.yml, docs.yml, web.yml, release.yml
+  action.yml               # setup-gnux: the composite GitHub Action (uses: braswelljr/gnux@v0)
+  .goreleaser.yaml         # What a release is: archives, checksums, Homebrew/Scoop/winget manifests
+  .github/workflows/       # test.yml, build.yml, lint.yml, docs.yml, web.yml, action.yml, release.yml
 ```
 
 ## Tools
 
-`basenamex`, `catx`, `cpx`, `dirnamex`, `echox`, `envx`, `falsex`, `headx`, `lnx`, `lsx`,
-`mkdirx`, `mvx`, `pwdx`, `realpathx`, `rmx`, `rmdirx`, `sleepx`, `tailx`, `touchx`, `truex`,
-`wcx`, `yesx`. The README's roadmap lists what is not implemented yet.
+`b2sumx`, `base32x`, `base64x`, `basenamex`, `catx`, `chgrpx`, `chmodx`, `chownx`, `cksumx`,
+`commx`, `cpx`, `csplitx`, `cutx`, `datex`, `ddx`, `dfx`, `dirnamex`, `dux`, `echox`, `envx`,
+`expandx`, `exprx`, `falsex`, `fmtx`, `foldx`, `headx`, `hostnamex`, `idx`, `installx`, `joinx`,
+`killx`, `linkx`, `lnx`, `lsx`, `md5sumx`, `mkdirx`, `mktempx`, `mvx`, `nicex`, `nlx`, `nohupx`,
+`nprocx`, `odx`, `pastex`, `printenvx`, `printfx`, `pwdx`, `readlinkx`, `realpathx`, `rmdirx`,
+`rmx`, `seqx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `shufx`,
+`sleepx`, `sortx`, `splitx`, `statx`, `tacx`, `tailx`, `teex`, `testx`, `timeoutx`, `touchx`,
+`truex`, `truncatex`, `trx`, `ttyx`, `unamex`, `unexpandx`, `uniqx`, `unlinkx`, `uptimex`, `wcx`,
+`whoamix`, `whox`, `yesx`. The README's roadmap lists what is not implemented yet.
 
 ## Development Commands
 
@@ -107,6 +115,9 @@ make web/wasm      # compile gnux to web/public/gnux.wasm (+ wasm_exec.js)
 make web/dev       # wasm + docs content, then `pnpm dev` in web/
 make web/test      # test the playground's in-memory fs against the real wasm
 make web/build     # production build of the website
+make release/check # validate .goreleaser.yaml (needs goreleaser v2)
+make release/snapshot # every release archive and manifest into dist/, nothing published
+make completions   # bash/zsh/fish/PowerShell completion scripts into completions/
 
 # Version is injected at link time:
 go build -ldflags "-X github.com/braswelljr/gnux/internal/common.Version=$(git describe --tags --always)" -o bin/gnux .
@@ -121,7 +132,8 @@ go build -ldflags "-X github.com/braswelljr/gnux/internal/common.Version=$(git d
   docs (`documentation/` and `web/content/docs/`) do not match the code.
 - **Node.js 22.18+ and pnpm**, only for `web/` (pinned in `web/package.json`).
 - No cgo anywhere: the binary must stay statically linked and cross-compile for linux, darwin,
-  windows **and js/wasm** (the playground). Anything platform-specific needs a fallback that
+  freebsd, windows **and js/wasm** (the playground). Releases cover linux amd64/arm64/riscv64,
+  darwin and freebsd amd64/arm64, and windows amd64/arm64. Anything platform-specific needs a fallback that
   compiles everywhere - prefer the `unix` / `!unix` build tags over listing operating systems.
 
 These are mirrored for users in the README's Requirements section and the guide's
@@ -132,6 +144,8 @@ These are mirrored for users in the README's Requirements section and the guide'
 - **Go 1.25** - module path `github.com/braswelljr/gnux`
 - **Cobra / pflag** - CLI framework; `cobra/doc` for reference generation
 - **mattn/go-isatty** - terminal detection
+- **golang.org/x/sys** - Windows and BSD system calls the standard library lacks (statfs,
+  sysctl, priority classes, sessions); **golang.org/x/crypto** - BLAKE2b for `b2sumx`
 - **syscall** - permission, device and stat details; always build-tagged
 - Tests use the standard library only (`testing`, `t.TempDir()`, injected funcs)
 
@@ -423,20 +437,21 @@ cleanup, and best-effort `fmt.Fprint*` diagnostic writes. `_test.go` files are e
 
 | File        | What it does                                                                            |
 |-------------|-----------------------------------------------------------------------------------------|
-| `test.yml`  | `go vet` + `go test -race` on ubuntu/macos/windows, a multi-call smoke test, wasm build |
-| `build.yml` | cross-compiles `gnux` for linux/darwin/windows and uploads the binaries                 |
+| `test.yml`  | `go vet` + `go test -race` on ubuntu/macos/windows, a multi-call smoke test, wasm build, 30s fuzzing of the shell |
+| `build.yml` | cross-compiles `gnux` for every release platform and uploads the binaries               |
 | `lint.yml`  | `golangci-lint` (pinned v2 release)                                                     |
 | `docs.yml`  | regenerates `documentation/` and `web/content/docs/`; fails if the committed copies are stale |
 | `web.yml`   | builds the wasm, then lints, type-checks, tests and builds the website                  |
-| `release.yml` | on a `v*` tag: re-runs vet/test/docs checks, requires the tag's `CHANGELOG.md` section, builds per-platform archives, publishes a GitHub release with `checksums.txt` and that section as its notes |
+| `action.yml` | runs the setup-gnux action (`action.yml` at the root) on linux/macos/windows runners and uses the tools |
+| `release.yml` | on a `vX.Y.Z` tag: re-runs vet/test/docs checks, requires the tag's `CHANGELOG.md` section, then GoReleaser (`.goreleaser.yaml`) builds per-platform archives with completions, publishes a GitHub release with `checksums.txt`, a provenance attestation and that section as its notes, updates the Homebrew/Scoop/winget manifests whose token secret is set, and moves the `vX` major tag |
 
 Every notable change goes into `CHANGELOG.md` under `## [Unreleased]` in the same change
 (Keep a Changelog: Added, Changed, Fixed, Removed). It is published as `/docs/changelog`. To
 release, turn that section into `## [X.Y.Z] - YYYY-MM-DD`, open a new empty Unreleased above it,
 update the link definitions, commit, then `git tag -a vX.Y.Z && git push origin vX.Y.Z`; a tag
 with a hyphen is a prerelease. The release's notes are that section (`go run
-./tools/changelog vX.Y.Z` prints them), and a release tag without one fails before it builds. Every workflow is `permissions: contents: read`; only the release's publish job gets
-`contents: write`. Without link flags, `common.Version` falls back to the build-info module
+./tools/changelog vX.Y.Z` prints them), and a release tag without one fails before it builds. Every workflow is `permissions: contents: read`; only the release's `release` job gets
+`contents: write` (plus `id-token`/`attestations: write` for the attestation). Without link flags, `common.Version` falls back to the build-info module
 version, so `go install ...@vX.Y.Z` reports the tag.
 
 All read the Go toolchain from `go.mod` via `go-version-file: go.mod` - keep it there rather

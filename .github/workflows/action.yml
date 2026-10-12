@@ -1,0 +1,57 @@
+# Requirement enforced: the setup-gnux action (action.yml at the repository
+# root) installs a released gnux on Linux, macOS and Windows runners, checks
+# the archive against the release's checksums, and puts gnux and every tool
+# name on PATH, in bash and in PowerShell.
+name: Action
+
+on:
+  push:
+    branches: [main]
+    paths: [action.yml, .github/workflows/action.yml]
+  pull_request:
+    branches: [main]
+    paths: [action.yml, .github/workflows/action.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+        version: [latest, v0.0.1]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up gnux
+        id: gnux
+        uses: ./
+        with:
+          version: ${{ matrix.version }}
+          gnu-names: "true"
+
+      - name: Use the tools from bash
+        shell: bash
+        run: |
+          echo "installed ${{ steps.gnux.outputs.version }} in ${{ steps.gnux.outputs.path }}"
+          gnux --version
+          rmx --version
+          mkdirx -p out/a/b && touchx out/a/b/f && lsx -R out | wcx -l
+          rmx -r out
+          [ ! -e out ]
+          case "${{ matrix.version }}" in v*) gnux --version | grep -F "${{ matrix.version }}" ;; esac
+
+      - name: Use the tools from PowerShell
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          gnux --list
+          mkdirx -p out\a
+          echox hello | catx
+          rmx -r out
+          if (Test-Path out) { exit 1 }

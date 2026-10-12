@@ -15,27 +15,27 @@ lsx --time-style=TIME_STYLE [FILE]...
 
 | Short | Long | Value | Default | Meaning |
 | --- | --- | --- | --- | --- |
-|  | `--time-style` | `TIME_STYLE` |  | time/date format with `-l`, TIME_STYLE: full-iso, long-iso, iso, locale, or +FORMAT |
+|  | `--time-style` | `TIME_STYLE` |  | time/`date` format with `-l`, TIME_STYLE: full-iso, long-iso, iso, locale, or +FORMAT |
 
 ## Examples
 
-List a directory itself rather than its contents, with ISO timestamps:
+### List a directory itself rather than its contents, with ISO timestamps
 
-```bash
+```bash tab="bash" tab-group="shell"
 lsx -ld --time-style=long-iso ~/projects
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lsx -ld --time-style=long-iso $HOME\projects
 ```
 
-Show complete timestamps, or a custom format:
+### Show complete timestamps, or a custom format
 
-```bash
+```bash tab="bash" tab-group="shell"
 lsx --full-time notes.txt && lsx -l --time-style=+%Y-%m-%d notes.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lsx --full-time notes.txt; lsx -l --time-style=+%Y-%m-%d notes.txt
 ```
 

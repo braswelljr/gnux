@@ -1,0 +1,37 @@
+---
+title: "-t, --field-separator"
+description: "Use SEP instead of non-blank to blank transition."
+---
+
+An option of [sortx](/docs/tools/sortx).
+
+## Usage
+
+```bash
+sortx -t SEP [FILE]...
+sortx --field-separator=SEP [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-t` | `--field-separator` | `SEP` |  | use SEP instead of non-blank to blank transition |
+
+## Examples
+
+### Sort a colon-separated file numerically on its third field
+
+```bash tab="bash" tab-group="shell"
+sortx -t : -k 3,3n /etc/passwd
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sortx -t : -k 3,3n users.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help sortx --field-separator
+```

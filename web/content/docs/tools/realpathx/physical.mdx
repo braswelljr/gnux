@@ -20,13 +20,13 @@ realpathx --physical FILE...
 
 ## Examples
 
-Read '..' after a link logically (`-L`) rather than physically (`-P`, the default):
+### Read '..' after a link logically (-L) rather than physically (-P, the default)
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx -L src/tools/.. && realpathx -P src/tools/..
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx -L src\tools\..; realpathx -P src\tools\..
 ```
 

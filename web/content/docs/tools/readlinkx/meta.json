@@ -1,0 +1,13 @@
+{
+  "title": "readlinkx",
+  "pages": [
+    "canonicalize",
+    "canonicalize-existing",
+    "canonicalize-missing",
+    "no-newline",
+    "quiet",
+    "silent",
+    "verbose",
+    "zero"
+  ]
+}

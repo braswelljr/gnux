@@ -1,0 +1,37 @@
+---
+title: "-d, --repeated"
+description: "Only print duplicate lines, one for each group."
+---
+
+An option of [uniqx](/docs/tools/uniqx).
+
+## Usage
+
+```bash
+uniqx -d [INPUT [OUTPUT]]
+uniqx --repeated [INPUT [OUTPUT]]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-d` | `--repeated` | none |  | only print duplicate lines, one for each group |
+
+## Examples
+
+### Print only the lines that are repeated
+
+```bash tab="bash" tab-group="shell"
+uniqx -d sorted.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+uniqx -d sorted.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help uniqx --repeated
+```

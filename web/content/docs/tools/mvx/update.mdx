@@ -20,23 +20,23 @@ mvx --update[=string] SOURCE... DIRECTORY
 
 ## Examples
 
-Replace the destination only when the source is newer:
+### Replace the destination only when the source is newer
 
-```bash
+```bash tab="bash" tab-group="shell"
 mvx -u staging/index.html public/index.html
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mvx -u staging\index.html public\index.html
 ```
 
-Skip files that already exist at the destination, using `--update`:
+### Skip files that already exist at the destination, using --update
 
-```bash
+```bash tab="bash" tab-group="shell"
 mvx --update=none -v incoming/*.csv data/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mvx --update=none -v (Get-ChildItem incoming\*.csv).FullName data
 ```
 

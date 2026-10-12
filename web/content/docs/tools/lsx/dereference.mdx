@@ -16,17 +16,17 @@ lsx --dereference [FILE]...
 
 | Short | Long | Value | Default | Meaning |
 | --- | --- | --- | --- | --- |
-| `-L` | `--dereference` | none |  | when showing file information for a symbolic link, show information for the file the link references rather than for the link itself |
+| `-L` | `--dereference` | none |  | when showing file information for a symbolic `link`, show information for the file the `link` references rather than for the `link` itself |
 
 ## Examples
 
-Follow symbolic links: those named on the command line (`-H`), or all of them (`-L`):
+### Follow symbolic links: those named on the command line (-H), or all of them (-L)
 
-```bash
+```bash tab="bash" tab-group="shell"
 lsx -lH current && lsx -lL lib/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lsx -lH current; lsx -lL lib
 ```
 

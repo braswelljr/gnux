@@ -233,7 +233,8 @@ func mdxTool(t tool.Spec, flags *pflag.FlagSet, options []flagPage) string {
 		fmt.Fprintf(&b, "Mirrors GNU `%s`. Run it as `%s`, or as `%s %s`.\n\n", t.GNU, m.Name, common.AppName, m.Name)
 	}
 	fmt.Fprintf(&b, "## Synopsis\n\n```bash\n%s\n```\n\n", use)
-	b.WriteString(topicBody(m, flags, 2))
+	b.WriteString(gnuReference(t, "##"))
+	b.WriteString(topicBody(m, flags, 2, true))
 	if len(options) > 0 {
 		b.WriteString("\n## Options\n\nEach option has a page of its own, with its usage and examples.\n\n")
 		for _, o := range options {

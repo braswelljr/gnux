@@ -7,11 +7,11 @@ description: "Requirements, installation, usage and workflows."
 
 ## Requirements
 
-Running `gnux` needs nothing but the binary: it is statically linked, has no runtime dependencies, and supports Linux and macOS on amd64 and arm64 and Windows on amd64.
+Running `gnux` needs nothing but the binary: it is statically linked, has no runtime dependencies, and supports Linux on amd64, arm64 and riscv64, macOS and FreeBSD on amd64 and arm64, and Windows on amd64 and arm64.
 
 Installing with `go install`, building from source, or importing the engines as a library needs Go 1.25 or newer, plus git.
 
-The per-tool commands are links to the one binary, so they need a filesystem with symbolic links and the install directory on PATH; on Windows, where creating a symlink needs Developer Mode or an elevated shell, copy `gnux`.exe to the tool's name instead.
+The per-tool commands are links to the one binary, so they need a filesystem with symbolic links and the `install` directory on PATH; on Windows, where creating a symlink needs Developer Mode or an elevated shell, copy `gnux`.exe to the tool's name instead.
 
 make, bash and Docker are optional conveniences. Working on the website additionally needs Node.js 22.18 or newer and pnpm.
 
@@ -19,13 +19,17 @@ make, bash and Docker are optional conveniences. Working on the website addition
 
 Install the latest version with `go install`, or build from source with `make build` (the binary lands in ./bin) or `make install`. The version string is injected at build time and reported by `--version`.
 
-To make each tool a command of its own, link the binary to the tool names: `make links` does this for a source build, `make install`/links and install.sh do it next to the installed binary, and the examples show the loop to run by hand.
+To make each tool a command of its own, `link` the binary to the tool names: `make links` does this for a source build, `make install`/links and `install`.sh do it next to the installed binary, and the examples show the loop to run by hand.
+
+Each release is also published as an archive per platform with a checksums file, to Homebrew (brew `install --cask` braswelljr/tap/`gnux`), Scoop and winget (winget `install` braswelljr.`gnux`). In GitHub Actions, the step uses: braswelljr/`gnux`@v0 installs a release on any runner and puts every tool on PATH.
+
+`gnux` completion SHELL prints a tab-completion script for bash, zsh, fish or powershell; the release archives carry them pre-generated.
 
 ## Usage
 
-There are two ways to run a tool. As a subcommand, pass the tool name first: `gnux rmx -rf` build. As a command of its own, invoke the binary under the tool's name: `gnux` looks at the name it was started with, so a link (or copy) of `gnux` called `rmx` behaves as `rmx`.
+There are two ways to run a tool. As a subcommand, pass the tool name first: `gnux rmx -rf` build. As a command of its own, invoke the binary under the tool's name: `gnux` looks at the name it was started with, so a `link` (or copy) of `gnux` called `rmx` behaves as `rmx`.
 
-Both forms also answer to the GNU name, so scripts written for the GNU tools run unchanged through a link called `rm`. Every tool accepts `--help` and `--version`; `gnux --list` prints the name of every tool.
+Both forms also answer to the GNU name, so scripts written for the GNU tools run unchanged through a `link` called `rm`. Every tool accepts `--help` and `--version`; `gnux --list` prints the name of every tool.
 
 `gnux` help TOOL prints a tool's full manual in the terminal: synopsis, description, every option, permissions, use cases, every example for bash and PowerShell, exit status and related tools. `gnux` help TOOL OPTION (`gnux` help `rmx` force, `gnux` help `lsx -l`) explains one option with the examples that use it, and `gnux` help on its own lists every command. Help is colored on a terminal and plain when piped or when NO_COLOR is set.
 
@@ -49,7 +53,7 @@ Tools whose status carries more meaning keep it: `lsx` exits 2 on serious troubl
 
 ## Workflows
 
-Everyday use: install once, link the tool names, then use `rmx`, `cpx`, `lsx` and the rest exactly as you would the GNU originals - including on Windows, where they are otherwise missing.
+Everyday use: `install` once, `link` the tool names, then use `rmx`, `cpx`, `lsx` and the rest exactly as you would the GNU originals - including on Windows, where they are otherwise missing.
 
 Cross-platform scripting: put the steps of a build, clean or packaging job in a script and run it with `gnux shell -e`. The only thing a machine needs is the `gnux` binary, so the same script serves a developer laptop and every CI runner.
 

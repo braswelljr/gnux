@@ -16,17 +16,17 @@ cpx --link SOURCE... DIRECTORY
 
 | Short | Long | Value | Default | Meaning |
 | --- | --- | --- | --- | --- |
-| `-l` | `--link` | none |  | hard link files instead of copying |
+| `-l` | `--link` | none |  | hard `link` files instead of copying |
 
 ## Examples
 
-Make a new release tree of hard links that share the old one's data:
+### Make a new release tree of hard links that share the old one's data
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx -al releases/v1 releases/v2
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx -al releases\v1 releases\v2
 ```
 

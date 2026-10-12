@@ -28,6 +28,12 @@ export function SiteFooter() {
             Docs
           </Link>
           <Link
+            href="/install"
+            className={linkClass}
+          >
+            Install
+          </Link>
+          <Link
             href="/playground"
             className={linkClass}
           >

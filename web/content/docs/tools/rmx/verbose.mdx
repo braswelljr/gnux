@@ -35,53 +35,53 @@ rmx --verbose [FILE]...
 
 ## Examples
 
-Remove several files, printing a line per file:
+### Remove several files, printing a line per file
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -v a.txt b.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -v a.txt b.txt
 ```
 
-Recursively remove a directory, reporting each removal:
+### Recursively remove a directory, reporting each removal
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rv dist/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -rv dist
 ```
 
-Save the removal report to a log file:
+### Save the removal report to a log file
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rv cache/ > cleanup.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -rv cache | Out-File cleanup.log
 ```
 
-Count the entries removed:
+### Count the entries removed
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rv tmp/ | wcx -l
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -rv tmp | wcx -l
 ```
 
-Report removals of files that may not exist, with the `gnux shell`:
+### Report removals of files that may not exist, with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'rmx -fv *.bak'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'rmx -fv *.bak'
 ```
 

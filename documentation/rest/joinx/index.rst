@@ -1,0 +1,99 @@
+.. _joinx:
+
+joinx
+-----
+
+Join lines of two files on a common field.
+
+Synopsis
+~~~~~~~~
+
+
+joinx prints, for each pair of input lines with identical join fields, one line made of the join field followed by the remaining fields of both lines. By default the join field is the first, fields are separated by blanks (leading blanks are ignored) and output fields by a single space. Either FILE may be - for standard input, but not both. Both files must be sorted on the join field, as sortx (or LC_ALL=C sort) sorts them; lines are compared byte by byte, as in the C locale, whatever LANG says. -1 FIELD and -2 FIELD pick the join field of each file and -j FIELD both. -a FILENUM also prints the unpairable lines of that file, and -v FILENUM prints only them. -o FORMAT lists the output fields as FILENUM.FIELD or 0 (the join field), separated by commas or blanks; -o auto takes the number of fields from the first line of each file. -e EMPTY fills missing fields. -t CHAR separates fields on input and output with CHAR, and -t '' makes the whole line one field. -i ignores case when comparing join fields. --header pairs the first lines of the files as headers without checking their order. By default joinx warns once per file when it finds a line out of order after an unpairable line and then exits with status 1; --check-order fails at the first line out of order, and --nocheck-order never checks. -z makes NUL the line delimiter. When both --check-order and --nocheck-order are given, --check-order wins. GNU's obsolescent -j1 FIELD and -j2 FIELD forms are not accepted; use -1 and -2.
+
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+HELP. joinx --help shows the options and the first examples; gnux help joinx prints the full manual, and gnux help joinx OPTION explains one option.
+
+SEE ALSO. commx, pastex, sortx, cutx, uniqx.
+
+PERMISSIONS. Needs read permission on FILE1 and FILE2 and search permission on the directories leading to them. Nothing is ever modified.
+
+USE CASES.
+  - Combining two tables that share a key column, like a relational join.
+  - Attaching names to IDs, or prices to product codes, from a lookup file.
+  - Finding the keys present in one list but missing from another with -v.
+  - Building a full outer join of two CSV files with -a 1 -a 2 and -e.
+  - Merging two reports on a column other than the first with -1 and -2.
+
+::
+
+  joinx [OPTION]... FILE1 FILE2
+
+Examples
+~~~~~~~~
+
+::
+
+    # Join two files sorted on their first field
+    joinx names.txt ages.txt
+
+    # Join comma-separated files
+    joinx -t, users.csv orders.csv
+
+    # Join on the second field of the first file and the first of the second
+    joinx -1 2 -2 1 orders.txt customers.txt
+
+    # Also print the lines of the first file that have no match
+    joinx -a 1 names.txt ages.txt
+
+    # Print only the keys of the first file missing from the second
+    joinx -v 1 all.txt done.txt
+
+    # Full outer join, filling missing fields with NULL
+    joinx -a 1 -a 2 -e NULL -o auto a.txt b.txt
+
+    # Choose the output fields
+    joinx -o 1.2,2.3,0 a.txt b.txt
+
+    # Keep the header line of each file
+    joinx --header -t, users.csv orders.csv
+
+    # Join unsorted files by sorting them first
+    sortx a.txt > a.sorted && sortx b.txt > b.sorted && joinx a.sorted b.sorted
+
+    # Compare join fields without regard to case
+    joinx -i a.txt b.txt
+
+    # Read the first file from standard input
+    sortx ids.txt | joinx - names.txt
+
+    # Fail at the first line out of order
+    joinx --check-order a.txt b.txt || echox 'not sorted'
+
+    # Join in the portable gnux shell
+    gnux shell -c 'joinx -t, users.csv orders.csv | wcx -l'
+
+Options
+~~~~~~~
+
+::
+
+      --check-order                 check that the input is correctly sorted, even if all input lines are pairable
+  -e, --empty EMPTY                 replace missing input fields with EMPTY
+  -1, --field1 FIELD                join on this FIELD of file 1
+  -2, --field2 FIELD                join on this FIELD of file 2
+      --header                      treat the first line in each file as field headers, print them without trying to pair them
+      --help                        display this help and exit
+  -i, --ignore-case                 ignore differences in case when comparing fields
+  -j, --join-field stringArray      equivalent to '-1 FIELD -2 FIELD'
+      --nocheck-order               do not check that the input is correctly sorted
+  -v, --only-unpaired stringArray   like -a FILENUM, but suppress joined output lines
+  -o, --output-format FORMAT        obey FORMAT while constructing output line
+  -t, --separator CHAR              use CHAR as input and output field separator
+  -a, --unpaired FILENUM            also print unpairable lines from file FILENUM, where FILENUM is 1 or 2
+      --version                     output version information and exit
+  -z, --zero-terminated             line delimiter is NUL, not newline
+

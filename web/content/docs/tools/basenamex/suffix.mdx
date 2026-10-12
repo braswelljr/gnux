@@ -20,33 +20,33 @@ basenamex --suffix=SUFFIX NAME [SUFFIX]
 
 ## Examples
 
-Remove a multi-part extension:
+### Remove a multi-part extension
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex --suffix=.tar.gz release/gnux-1.0.tar.gz
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex --suffix=.tar.gz release\gnux-1.0.tar.gz
 ```
 
-Strip a suffix from several names at once:
+### Strip a suffix from several names at once
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex -s .go cmd/main.go core/core.go
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex -s .go cmd\main.go core\core.go
 ```
 
-Strip an extension from every match of a glob:
+### Strip an extension from every match of a glob
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex -s .jpg photos/*.jpg
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex -s .jpg (Get-ChildItem photos\*.jpg)
 ```
 

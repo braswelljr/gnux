@@ -1,0 +1,18 @@
+{
+  "title": "cksumx",
+  "pages": [
+    "algorithm",
+    "base64",
+    "check",
+    "ignore-missing",
+    "length",
+    "quiet",
+    "raw",
+    "status",
+    "strict",
+    "tag",
+    "untagged",
+    "warn",
+    "zero"
+  ]
+}

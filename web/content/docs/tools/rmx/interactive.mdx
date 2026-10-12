@@ -41,63 +41,63 @@ On a terminal, a write-protected file normally prompts 'remove write-protected .
 
 ## Examples
 
-Ask before removing a single file:
+### Ask before removing a single file
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -i notes.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -i notes.txt
 ```
 
-Ask once, then recursively remove a project directory:
+### Ask once, then recursively remove a project directory
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -I -r project/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -I -r project
 ```
 
-Delete without any prompt, equivalent to `-f` for prompting:
+### Delete without any prompt, equivalent to -f for prompting
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx --interactive=never old.tmp
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx --interactive=never old.tmp
 ```
 
-Ask once before removing more than three files:
+### Ask once before removing more than three files
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx --interactive=once a.log b.log c.log d.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx --interactive=once a.log b.log c.log d.log
 ```
 
-`-i` wins over `-f`, so every removal is still confirmed:
+### -i wins over -f, so every removal is still confirmed
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -fi draft.md
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -fi draft.md
 ```
 
-Answer yes to every prompt from a pipeline:
+### Answer yes to every prompt from a pipeline
 
-```bash
+```bash tab="bash" tab-group="shell"
 yesx | rmx -iv a.tmp b.tmp
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 yesx | rmx -iv a.tmp b.tmp
 ```
 

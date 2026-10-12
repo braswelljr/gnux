@@ -1,7 +1,8 @@
 # Requirement enforced: the code vets and passes its tests under the race
 # detector on Linux, macOS and Windows with the Go version pinned in go.mod,
-# the built binary dispatches on its own name, and every tool still compiles
-# for js/wasm (the web playground).
+# the built binary dispatches on its own name, every tool still compiles for
+# js/wasm (the web playground), and the shell's parser and expansion survive
+# a short fuzzing run.
 name: Test
 
 on:
@@ -66,6 +67,14 @@ jobs:
           GOOS: js
           GOARCH: wasm
         run: go build -o /dev/null ./tools/wasm
+
+      # The shell reads untrusted script text; a short run of each fuzz target
+      # catches a panic before it ships. Seeds also run in the test step.
+      - name: Fuzz the shell
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          go test -run='^$' -fuzz='^FuzzParse$' -fuzztime=30s ./core/shell
+          go test -run='^$' -fuzz='^FuzzExpand$' -fuzztime=30s ./core/shell
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest'
