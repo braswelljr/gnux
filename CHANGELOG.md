@@ -15,6 +15,7 @@ Every notable change to gnux, release by release, newest first. The format follo
 - setup-gnux, a GitHub Action (`uses: braswelljr/gnux@v0`) that installs a verified release on Linux, macOS and Windows runners and puts every tool on `PATH`.
 - `gnux completion bash|zsh|fish|powershell`, now listed in `gnux --help`, with the scripts shipped in every release archive.
 - Fuzz tests for the shell's parser and expansion, run in CI.
+- `shell.Shell.Glob`, the injection point for globbing (defaults to `filepath.Glob`), for hosts with their own filesystem and for tests.
 - `docs/requirements/checklist.md`, the list of planned tools and integrations.
 
 ### Changed

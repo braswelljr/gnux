@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -63,9 +64,28 @@ func FuzzParse(f *testing.F) {
 	})
 }
 
+// fakeFiles is the filesystem FuzzExpand globs against. A pattern such as
+// /*/*/*/* against the real one would walk all of /proc on a Linux runner and
+// stall the fuzzer, so matching runs filepath.Match over this list instead.
+var fakeFiles = []string{"a", "b c", "dir/x.go", "dir/y.txt", "/etc/hosts", "[x]", "*"}
+
+func fakeGlob(pattern string) ([]string, error) {
+	var out []string
+	for _, f := range fakeFiles {
+		ok, err := filepath.Match(pattern, f)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			out = append(out, f)
+		}
+	}
+	return out, nil
+}
+
 // FuzzExpand checks that expanding any parsed word, with variables set and
-// unset, never panics. Expansion only reads the filesystem (globbing), so it
-// is safe to run in parallel fuzz workers.
+// unset, never panics and always yields at least one argument. Globbing uses
+// fakeGlob, never the disk.
 func FuzzExpand(f *testing.F) {
 	for _, s := range seeds {
 		f.Add(s)
@@ -79,12 +99,15 @@ func FuzzExpand(f *testing.F) {
 		sh := New(Options{}, exec, core.Discard())
 		sh.Getenv = func(string) string { return "" }
 		sh.HomeDir = func() (string, error) { return "/home/fuzz", nil }
+		sh.Glob = fakeGlob
 		sh.Set("NAME", "a b*")
 		sh.Set("A", strings.Repeat("x", 8))
 		for _, st := range steps {
 			for _, c := range st.pipeline {
 				for _, w := range c.words {
-					_ = sh.expand(w)
+					if got := sh.expand(w); len(got) == 0 {
+						t.Fatalf("expand(%q) produced no arguments", line)
+					}
 				}
 				for _, r := range c.redirects {
 					_ = sh.expand(r.target)

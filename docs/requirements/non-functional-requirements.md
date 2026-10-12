@@ -398,7 +398,9 @@ No script text may make the shell's lexer, parser or expansion panic.
 - **Rationale.** `gnux shell` reads scripts it did not write, including whatever a visitor
   types into the playground.
 - **Measure.** `FuzzParse` and `FuzzExpand` (`core/shell/fuzz_test.go`) find no failure; an
-  accepted line always yields non-empty pipelines and commands.
+  accepted line always yields non-empty pipelines and commands, and every word at least one
+  argument. `FuzzExpand` globs through `Shell.Glob` against an in-memory file list: a pattern
+  such as `/*/*/*/*` against a real Linux runner's disk walks `/proc` and stalls the fuzzer.
 - **Verified by.** The seeds run in every `go test`; the Test workflow fuzzes each target for
   30 seconds on Linux.
 

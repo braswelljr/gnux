@@ -346,3 +346,23 @@ func TestEvalKeepsState(t *testing.T) {
 		t.Fatalf("out = %q", got)
 	}
 }
+
+// TestGlobInjection checks that globbing goes through Shell.Glob, so a host
+// with its own filesystem (or a test) decides what a pattern matches.
+func TestGlobInjection(t *testing.T) {
+	var seen []string
+	glob := func(pattern string) ([]string, error) {
+		seen = append(seen, pattern)
+		if pattern == "*.md" {
+			return []string{"b.md", "a.md"}, nil
+		}
+		return nil, nil
+	}
+	_, out, _ := run(t, shell.Options{}, `echo *.md "*.md" none*`, func(sh *shell.Shell) { sh.Glob = glob })
+	if want := "a.md b.md *.md none*\n"; out != want {
+		t.Fatalf("stdout = %q, want %q", out, want)
+	}
+	if want := []string{"*.md", "none*"}; strings.Join(seen, ",") != strings.Join(want, ",") {
+		t.Fatalf("Glob called with %q, want %q (a quoted pattern is not globbed)", seen, want)
+	}
+}

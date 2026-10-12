@@ -30,6 +30,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -76,6 +77,11 @@ type Shell struct {
 	Getenv  func(string) string
 	HomeDir func() (string, error)
 
+	// Glob lists the files an unquoted pattern matches; it defaults to
+	// filepath.Glob. It is the injection point for a host that supplies its
+	// own filesystem, and for tests that must not walk the real one.
+	Glob func(pattern string) ([]string, error)
+
 	streams core.Streams
 	diag    *core.Diag
 	vars    map[string]string
@@ -90,6 +96,7 @@ func New(opts Options, exec ExecFunc, s core.Streams) *Shell {
 		Exec:    exec,
 		Getenv:  os.Getenv,
 		HomeDir: os.UserHomeDir,
+		Glob:    filepath.Glob,
 		streams: s,
 		diag:    core.NewDiag(Name, s),
 		vars:    map[string]string{},
