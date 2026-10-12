@@ -5,6 +5,24 @@ description: "Every notable change to gnux, release by release, newest first. Th
 
 ## [Unreleased]
 
+### Added
+
+- `seqx` (GNU `seq`) and `printfx` (GNU `printf`): number sequences with `-f`, `-s` and `-w`, exact decimal steps and negative operands without `--`; and C-style formatting with every GNU conversion, flag, `*` width and precision, escape (`\u`, `\x`, octal), `%b`, `%q`, format reuse and GNU's numeric diagnostics.
+- `sortx`, GNU `sort`: sort, merge (`-m`) or check (`-c`, `-C`) lines, with keys (`-k`), field separators (`-t`), numeric, general-numeric, human-numeric, month and version ordering, `-u`, `-s`, `-o` (in place), `-z` and `--files0-from`.
+- `trx` (GNU `tr`) and `teex` (GNU `tee`): translate, squeeze and delete bytes with GNU's full SET syntax, and copy standard input to files with `-a`, `-p` and `--output-error`.
+- `cutx` (GNU `cut`) and `uniqx` (GNU `uniq`), with GNU's full flag surfaces: byte, character and field lists with `--complement` and `--output-delimiter`, and counting, duplicate selection, `--all-repeated` and `--group` with field, character and case-insensitive comparison.
+- Releases are built by GoReleaser (`.goreleaser.yaml`) and now also cover `linux/riscv64`, `freebsd/amd64`, `freebsd/arm64` and `windows/arm64`, with a build provenance attestation for every archive. Archive names are unchanged.
+- Homebrew cask (`brew install --cask braswelljr/tap/gnux`), Scoop and winget manifests, published with each release.
+- setup-gnux, a GitHub Action (`uses: braswelljr/gnux@v0`) that installs a verified release on Linux, macOS and Windows runners and puts every tool on `PATH`.
+- `gnux completion bash|zsh|fish|powershell`, now listed in `gnux --help`, with the scripts shipped in every release archive.
+- Fuzz tests for the shell's parser and expansion, run in CI.
+- `docs/requirements/checklist.md`, the list of planned tools and integrations.
+
+### Changed
+
+- Release tags must be full versions (`v1.2.3`, `v1.2.3-rc.1`); each stable release moves its major tag (`v0`) for the GitHub Action.
+- Dependabot also updates the website's pnpm packages.
+
 ## [0.0.1] - 2026-10-11
 
 ### Added

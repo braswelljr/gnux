@@ -1,0 +1,169 @@
+# GoReleaser configuration: what a release consists of. The Release workflow
+# (.github/workflows/release.yml) runs it on a v* tag after the same checks a
+# pull request passes, and `make release/snapshot` runs it locally without
+# publishing anything.
+#
+# Every archive keeps the naming the first releases used,
+# gnux-<tag>-<os>-<arch>.tar.gz (.zip on Windows), unpacking into a directory of
+# the same name, so install instructions and the setup-gnux action keep working
+# (FR-36, FR-38, NFR-1, NFR-2).
+version: 2
+
+project_name: gnux
+
+before:
+  hooks:
+    # Shell completion scripts, generated from the command itself, ship in
+    # every archive and are installed by the Homebrew cask.
+    - sh -c 'mkdir -p completions && for s in bash zsh fish; do go run . completion "$s" > "completions/gnux.$s"; done && go run . completion powershell > completions/gnux.ps1'
+
+builds:
+  # Unix-like targets. Split from Windows only so that each family's archive
+  # can carry its own extra files (man pages here).
+  - id: unix
+    main: .
+    binary: gnux
+    env: [CGO_ENABLED=0]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/braswelljr/gnux/internal/common.Version={{ .Tag }}
+    goos: [linux, darwin, freebsd]
+    goarch: [amd64, arm64, riscv64]
+    ignore:
+      - { goos: darwin, goarch: riscv64 }
+      - { goos: freebsd, goarch: riscv64 }
+
+  - id: windows
+    main: .
+    binary: gnux
+    env: [CGO_ENABLED=0]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/braswelljr/gnux/internal/common.Version={{ .Tag }}
+    goos: [windows]
+    goarch: [amd64, arm64]
+
+archives:
+  - id: unix
+    ids: [unix]
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
+    wrap_in_directory: true
+    files:
+      - LICENSE
+      - README.md
+      - completions/gnux.bash
+      - completions/gnux.zsh
+      - completions/gnux.fish
+      # The man pages ship with the Unix archives, where man can read them.
+      - src: documentation/man/**/*
+        dst: man
+        strip_parent: false
+
+  - id: windows
+    ids: [windows]
+    formats: [zip]
+    name_template: "{{ .ProjectName }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
+    wrap_in_directory: true
+    files:
+      - LICENSE
+      - README.md
+      - completions/gnux.ps1
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+# The notes come from CHANGELOG.md (passed with --release-notes); this is the
+# fallback for a prerelease that has no section there.
+changelog:
+  use: github
+  sort: asc
+
+release:
+  github:
+    owner: braswelljr
+    name: gnux
+  name_template: "gnux {{ .Tag }}"
+  # A tag with a hyphen (v1.0.0-rc.1) is published as a prerelease.
+  prerelease: auto
+  # A release already drafted on GitHub for the tag (creating one in the web
+  # interface is what pushed the tag) is completed instead of failing.
+  mode: replace
+  replace_existing_artifacts: true
+
+# Package managers. Each publishes to a repository of its own and needs a
+# token with write access to it; the Release workflow skips any whose secret
+# is not configured, so a fork can release without them.
+homebrew_casks:
+  - name: gnux
+    ids: [unix]
+    repository:
+      owner: braswelljr
+      name: homebrew-tap
+      token: '{{ envOrDefault "HOMEBREW_TAP_GITHUB_TOKEN" "" }}'
+    commit_author:
+      name: braswelljr
+      email: braswelljr@users.noreply.github.com
+    homepage: https://github.com/braswelljr/gnux
+    description: GNU core utilities in one portable, multi-call binary
+    license: MIT
+    binaries: [gnux]
+    completions:
+      bash: completions/gnux.bash
+      zsh: completions/gnux.zsh
+      fish: completions/gnux.fish
+    caveats: |
+      Every tool also runs as a command of its own (rmx, cpx, lsx, ...) when
+      linked to gnux under that name:
+        for t in $(gnux --list); do ln -sf "$(brew --prefix)/bin/gnux" "$(brew --prefix)/bin/$t"; done
+    hooks:
+      post:
+        # The binary is not notarized; clear the quarantine flag Gatekeeper
+        # would otherwise refuse it with.
+        install: |
+          if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/gnux"]
+          end
+
+scoops:
+  - name: gnux
+    ids: [windows]
+    repository:
+      owner: braswelljr
+      name: scoop-bucket
+      token: '{{ envOrDefault "SCOOP_BUCKET_GITHUB_TOKEN" "" }}'
+    commit_author:
+      name: braswelljr
+      email: braswelljr@users.noreply.github.com
+    homepage: https://github.com/braswelljr/gnux
+    description: GNU core utilities in one portable, multi-call binary
+    license: MIT
+
+winget:
+  - name: gnux
+    package_identifier: braswelljr.gnux
+    publisher: braswelljr
+    publisher_url: https://github.com/braswelljr
+    ids: [windows]
+    short_description: GNU core utilities in one portable, multi-call binary
+    description: |
+      gnux is a portable, GNU-compatible implementation of the GNU core
+      utilities: one binary carrying rmx, cpx, lsx and the rest, with GNU's
+      flags, messages and exit statuses, plus a small portable shell.
+    homepage: https://github.com/braswelljr/gnux
+    license: MIT
+    license_url: https://github.com/braswelljr/gnux/blob/main/LICENSE
+    release_notes_url: https://github.com/braswelljr/gnux/releases/tag/{{ .Tag }}
+    tags: [coreutils, gnu, cli, shell, portable]
+    repository:
+      owner: braswelljr
+      name: winget-pkgs
+      branch: "gnux-{{ .Version }}"
+      token: '{{ envOrDefault "WINGET_GITHUB_TOKEN" "" }}'
+      pull_request:
+        enabled: true
+        base:
+          owner: microsoft
+          name: winget-pkgs
+          branch: master

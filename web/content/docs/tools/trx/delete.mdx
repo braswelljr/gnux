@@ -1,0 +1,67 @@
+---
+title: "-d, --delete"
+description: "Delete characters in SET1, do not translate."
+---
+
+An option of [trx](/docs/tools/trx).
+
+## Usage
+
+```bash
+trx -d STRING1 [STRING2]
+trx --delete STRING1 [STRING2]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-d` | `--delete` | none |  | delete characters in SET1, do not translate |
+
+## Examples
+
+Strip Windows carriage returns from a file:
+
+```bash
+trx -d '\r' < dos.txt > unix.txt
+```
+
+```powershell
+Get-Content -Raw dos.txt | trx -d '\r' | Set-Content -NoNewline unix.txt
+```
+
+Delete every digit:
+
+```bash
+echox 'r2d2 c3po' | trx -d '[:digit:]'
+```
+
+```powershell
+'r2d2 c3po' | trx -d '[:digit:]'
+```
+
+Keep only the printable characters and newlines:
+
+```bash
+trx -cd '[:print:]\n' < binary.log
+```
+
+```powershell
+catx binary.log | trx -cd '[:print:]\n'
+```
+
+Delete digits and squeeze the spaces left behind:
+
+```bash
+echox 'a 1 2 b' | trx -ds '[:digit:]' ' '
+```
+
+```powershell
+'a 1 2 b' | trx -ds '[:digit:]' ' '
+```
+
+## Help in the terminal
+
+```bash
+gnux help trx --delete
+```

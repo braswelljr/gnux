@@ -1,0 +1,37 @@
+---
+title: "-w, --check-chars"
+description: "Compare no more than N characters in lines."
+---
+
+An option of [uniqx](/docs/tools/uniqx).
+
+## Usage
+
+```bash
+uniqx -w N [INPUT [OUTPUT]]
+uniqx --check-chars=N [INPUT [OUTPUT]]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-w` | `--check-chars` | `N` |  | compare no more than N characters in lines |
+
+## Examples
+
+Treat lines that share their first 8 characters as equal:
+
+```bash
+uniqx -w 8 commits.txt
+```
+
+```powershell
+uniqx -w 8 commits.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help uniqx --check-chars
+```

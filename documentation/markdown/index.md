@@ -44,6 +44,7 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux basenamex](basenamex/index.md)	 - Strip the directory and suffix from file names.
 * [gnux catx](catx/index.md)	 - Concatenate files and print them on standard output.
 * [gnux cpx](cpx/index.md)	 - Copy files and directories.
+* [gnux cutx](cutx/index.md)	 - Remove sections from each line of files.
 * [gnux dirnamex](dirnamex/index.md)	 - Strip the last component from file names.
 * [gnux echox](echox/index.md)	 - Display a line of text.
 * [gnux envx](envx/index.md)	 - Run a program in a modified environment, or print the environment.
@@ -53,15 +54,21 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux lsx](lsx/index.md)	 - List information about files and directory contents.
 * [gnux mkdirx](mkdirx/index.md)	 - Create the DIRECTORY(ies), if they do not already exist.
 * [gnux mvx](mvx/index.md)	 - Move (rename) files and directories.
+* [gnux printfx](printfx/index.md)	 - Format and print data.
 * [gnux pwdx](pwdx/index.md)	 - Print the full name of the current working directory.
 * [gnux realpathx](realpathx/index.md)	 - Print the resolved absolute file name.
 * [gnux rmdirx](rmdirx/index.md)	 - Remove the DIRECTORY(ies), if they are empty.
 * [gnux rmx](rmx/index.md)	 - Remove (unlink) files and directories.
+* [gnux seqx](seqx/index.md)	 - Print a sequence of numbers.
 * [gnux shell](shell/index.md)	 - Run a portable shell whose commands are the `gnux` tools.
 * [gnux sleepx](sleepx/index.md)	 - Delay for a specified amount of time.
+* [gnux sortx](sortx/index.md)	 - Sort lines of text files.
 * [gnux tailx](tailx/index.md)	 - Print the last part of each file, optionally following it as it grows.
+* [gnux teex](teex/index.md)	 - Copy standard input to each FILE, and also to standard output.
 * [gnux touchx](touchx/index.md)	 - Update the access and modification times of each FILE to the current time.
 * [gnux truex](truex/index.md)	 - Do nothing, successfully.
+* [gnux trx](trx/index.md)	 - Translate, squeeze, and/or delete characters from standard input.
+* [gnux uniqx](uniqx/index.md)	 - Report or omit repeated lines.
 * [gnux wcx](wcx/index.md)	 - Print newline, word, and byte counts for each file.
 * [gnux yesx](yesx/index.md)	 - Output a string repeatedly until killed.
 

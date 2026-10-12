@@ -41,6 +41,7 @@ against an in-memory filesystem.
 | `basenamex` | `basename` | Strip directory and suffix from file names         |
 | `catx`      | `cat`      | Concatenate files and print them                   |
 | `cpx`       | `cp`       | Copy files and directories                         |
+| `cutx`      | `cut`      | Remove sections from each line of files            |
 | `dirnamex`  | `dirname`  | Strip the last component from file names           |
 | `echox`     | `echo`     | Print a line of text                               |
 | `envx`      | `env`      | Run a program in a modified environment            |
@@ -50,14 +51,20 @@ against an in-memory filesystem.
 | `lsx`       | `ls`       | List directory contents                            |
 | `mkdirx`    | `mkdir`    | Create directories                                 |
 | `mvx`       | `mv`       | Move (rename) files                                |
+| `printfx`   | `printf`   | Format and print data                              |
 | `pwdx`      | `pwd`      | Print the current working directory                |
 | `realpathx` | `realpath` | Print the resolved absolute path                   |
-| `rmx`       | `rm`       | Remove files and directories                       |
 | `rmdirx`    | `rmdir`    | Remove empty directories                           |
+| `rmx`       | `rm`       | Remove files and directories                       |
+| `seqx`      | `seq`      | Print a sequence of numbers                        |
 | `sleepx`    | `sleep`    | Pause for a given time                             |
+| `sortx`     | `sort`     | Sort, merge or check lines of text files           |
 | `tailx`     | `tail`     | Print the last part of files, optionally following |
+| `teex`      | `tee`      | Copy standard input to files and standard output   |
 | `touchx`    | `touch`    | Change file timestamps, creating files as needed   |
 | `truex`     | `true`     | Do nothing, successfully                           |
+| `trx`       | `tr`       | Translate, squeeze or delete characters            |
+| `uniqx`     | `uniq`     | Report or omit repeated lines                      |
 | `wcx`       | `wc`       | Count lines, words and bytes                       |
 | `yesx`      | `yes`      | Print a string repeatedly                          |
 
@@ -68,7 +75,8 @@ coreutils is on the [roadmap](#roadmap).
 
 **To run gnux**
 
-- Linux or macOS on amd64 or arm64, or Windows on amd64 (the platforms CI builds). The binary
+- Linux on amd64, arm64 or riscv64, macOS or FreeBSD on amd64 or arm64, or Windows on amd64 or
+  arm64 (the platforms CI builds and releases). The binary
   is statically linked (no cgo) and has no runtime dependencies - nothing else needs to be
   installed.
 - For the per-tool commands (`rmx`, `cpx`, …): a filesystem that supports symbolic links, and
@@ -114,6 +122,35 @@ sha256sum --check --ignore-missing checksums.txt
 tar -xzf "gnux-$v-linux-amd64.tar.gz" && sudo mv "gnux-$v-linux-amd64/gnux" /usr/local/bin/
 ```
 
+### Package managers
+
+Starting with the first release after v0.0.1, each release is also published to Homebrew (macOS
+and Linux), Scoop and winget (Windows):
+
+```bash
+brew install --cask braswelljr/tap/gnux    # also installs bash, zsh and fish completion
+scoop bucket add braswelljr https://github.com/braswelljr/scoop-bucket
+scoop install braswelljr/gnux
+winget install braswelljr.gnux
+```
+
+These install the `gnux` binary; link the tool names to it as shown under `go install` below,
+or run each tool as `gnux rmx ...`.
+
+### In GitHub Actions
+
+The repository is also a GitHub Action, setup-gnux. It installs a release on a Linux, macOS or
+Windows runner, checks it against the release's checksums and puts gnux and every tool name on
+`PATH`:
+
+```yaml
+- uses: braswelljr/gnux@v0
+  with:
+    version: latest       # or a tag, such as v0.1.0
+    gnu-names: false      # true also links rm, cp, ls, ... ahead of the runner's own
+- run: rmx -rf build && mkdirx -p build && cpx -r assets build/
+```
+
 ### With `go install`
 
 ```bash
@@ -143,6 +180,21 @@ git clone https://github.com/braswelljr/gnux.git
 cd gnux
 make install/links   # install gnux and link every tool next to it
 # or: make links && ./bin/lsx -la
+```
+
+### Shell completion
+
+`gnux completion SHELL` prints a completion script for bash, zsh, fish or powershell; the
+release archives carry them pre-generated in `completions/`.
+
+```bash
+source <(gnux completion bash)                    # bash, this session
+gnux completion zsh > "${fpath[1]}/_gnux"         # zsh, permanently
+gnux completion fish > ~/.config/fish/completions/gnux.fish
+```
+
+```powershell
+gnux completion powershell | Out-String | Invoke-Expression
 ```
 
 ### Docker
@@ -277,12 +329,13 @@ doc. Commit the regenerated files with your change.
 
 | Workflow | Checks                                                                                                   |
 |----------|----------------------------------------------------------------------------------------------------------|
-| Test     | `go vet` and `go test -race` on Linux, macOS and Windows; a multi-call smoke test; the WebAssembly build |
-| Build    | cross-compiles `gnux` for Linux, macOS and Windows and uploads the binaries                              |
+| Test     | `go vet` and `go test -race` on Linux, macOS and Windows; a multi-call smoke test; the WebAssembly build; a short fuzzing run of the shell |
+| Build    | cross-compiles `gnux` for Linux, macOS, FreeBSD and Windows and uploads the binaries                     |
 | Lint     | `golangci-lint`                                                                                          |
 | Docs     | regenerates `documentation/` and `web/content/docs/` and fails if the committed copies are stale         |
 | Web      | builds the WebAssembly binary, then lints, type-checks, tests and builds the website                     |
-| Release  | on a `v*` tag: re-runs the checks, builds an archive per platform, publishes them with checksums and the tag's [`CHANGELOG.md`](CHANGELOG.md) section as notes |
+| Action   | installs a release with the setup-gnux action (`action.yml`) on Linux, macOS and Windows runners and uses the tools |
+| Release  | on a `v*` tag: re-runs the checks, then GoReleaser (`.goreleaser.yaml`) builds an archive per platform, publishes them with checksums, a provenance attestation and the tag's [`CHANGELOG.md`](CHANGELOG.md) section as notes, and updates the Homebrew, Scoop and winget manifests |
 
 ## Documentation
 
@@ -343,12 +396,14 @@ to add a tool.
 
 ## Roadmap
 
-Not yet implemented, roughly in priority order:
+Not yet implemented, roughly in priority order. The full list of planned tools, distribution
+channels and integrations, ticked off as they land, is
+[`docs/requirements/checklist.md`](docs/requirements/checklist.md).
 
 - **File attributes:** `chmod`, `chown`, `chgrp`, `stat`, `du`, `df`, `mktemp`, `install`,
   `truncate`, `readlink`, `link`, `unlink`
-- **Text:** `sort`, `uniq`, `cut`, `tr`, `tee`, `paste`, `join`, `nl`, `fold`, `fmt`, `expand`,
-  `unexpand`, `tac`, `split`, `csplit`, `comm`, `shuf`, `seq`, `printf`, `od`
+- **Text:** `paste`, `join`, `nl`, `fold`, `fmt`, `expand`, `unexpand`, `tac`, `split`, `csplit`,
+  `comm`, `shuf`, `od`
 - **Checksums and encoding:** `md5sum`, `sha1sum`, `sha256sum`, `sha512sum`, `b2sum`, `cksum`,
   `base32`, `base64`
 - **System:** `date`, `uname`, `whoami`, `id`, `hostname`, `nproc`, `printenv`, `tty`, `who`,

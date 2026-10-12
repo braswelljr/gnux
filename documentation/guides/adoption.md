@@ -1,6 +1,6 @@
 # Adoption
 
-How to adopt gnux next to the GNU coreutils you already know. gnux does not replace them: it brings the same interface to the places they are missing (Windows, containers without coreutils, the browser, Go programs), so the GNU tools stay where they are and gnux is added where it helps. This guide sets the two side by side: how each of the 22 gnux tools maps onto its GNU counterpart, which flags it supports, every documented deviation (the places where gnux must choose differently because it cannot see option order, or because Windows cannot express a feature), the GNU options that are not implemented yet, and what the rest of coreutils looks like on the roadmap. If a behavior is not listed here as a difference, gnux aims to match GNU exactly, down to the wording of its diagnostics and its exit statuses.
+How to adopt gnux next to the GNU coreutils you already know. gnux does not replace them: it brings the same interface to the places they are missing (Windows, containers without coreutils, the browser, Go programs), so the GNU tools stay where they are and gnux is added where it helps. This guide sets the two side by side: how each of the 29 gnux tools maps onto its GNU counterpart, which flags it supports, every documented deviation (the places where gnux must choose differently because it cannot see option order, or because Windows cannot express a feature), the GNU options that are not implemented yet, and what the rest of coreutils looks like on the roadmap. If a behavior is not listed here as a difference, gnux aims to match GNU exactly, down to the wording of its diagnostics and its exit statuses.
 
 ## The short version
 
@@ -16,6 +16,7 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `basename` | `basenamex` | `-a`, `-s SUFFIX`, `-z` | [basenamex](../markdown/basenamex/index.md) |
 | `cat` | `catx` | `-A`, `-b`, `-e`, `-E`, `-n`, `-s`, `-t`, `-T`, `-u`, `-v` | [catx](../markdown/catx/index.md) |
 | `cp` | `cpx` | `-a`, `-d`, `-f`, `-H`, `-i`, `-l`, `-L`, `-n`, `-p`, `-P`, `-r`/`-R`, `-s`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `-x`, `--parents`, `--preserve[=LIST]`, `--no-preserve=LIST`, `--strip-trailing-slashes` | [cpx](../markdown/cpx/index.md) |
+| `cut` | `cutx` | `-b LIST`, `-c LIST`, `-d DELIM`, `-f LIST`, `-n`, `-s`, `-z`, `--complement`, `--output-delimiter=STRING` | [cutx](../markdown/cutx/index.md) |
 | `dirname` | `dirnamex` | `-z` | [dirnamex](../markdown/dirnamex/index.md) |
 | `echo` | `echox` | `-n`, `-e`, `-E` | [echox](../markdown/echox/index.md) |
 | `env` | `envx` | `-0`, `-a ARG`, `-C DIR`, `-i`/`-`, `-S STRING`, `-u NAME`, `-v` | [envx](../markdown/envx/index.md) |
@@ -25,18 +26,24 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `ls` | `lsx` | `-1`, `-a`, `-A`, `-B`, `-b`, `-c`, `-C`, `-d`, `-F`, `-g`, `-G`, `-h`, `-H`, `-i`, `-I`, `-l`, `-L`, `-m`, `-n`, `-o`, `-p`, `-q`, `-Q`, `-r`, `-R`, `-s`, `-S`, `-t`, `-T`, `-u`, `-U`, `-v`, `-w`, `-x`, `-X`, `--color`, `--file-type`, `--full-time`, `--group-directories-first`, `--hide`, `--si`, `--sort`, `--time`, `--time-style` | [lsx](../markdown/lsx/index.md) |
 | `mkdir` | `mkdirx` | `-m MODE`, `-p`, `-v` | [mkdirx](../markdown/mkdirx/index.md) |
 | `mv` | `mvx` | `-f`, `-i`, `-n`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `--strip-trailing-slashes` | [mvx](../markdown/mvx/index.md) |
+| `printf` | `printfx` | FORMAT [ARGUMENT]... (no options) | [printfx](../markdown/printfx/index.md) |
 | `pwd` | `pwdx` | `-L`, `-P` | [pwdx](../markdown/pwdx/index.md) |
 | `realpath` | `realpathx` | `-e`, `-L`, `-m`, `-P`, `-q`, `-s`/`--no-symlinks`, `-z`, `--relative-to`, `--relative-base` | [realpathx](../markdown/realpathx/index.md) |
 | `rm` | `rmx` | `-d`, `-f`, `-i`, `-I`, `-r`/`-R`, `-v`, `--interactive[=WHEN]`, `--one-file-system`, `--preserve-root`, `--no-preserve-root` | [rmx](../markdown/rmx/index.md) |
 | `rmdir` | `rmdirx` | `-p`, `-v`, `--ignore-fail-on-non-empty` | [rmdirx](../markdown/rmdirx/index.md) |
+| `seq` | `seqx` | `-f FORMAT`, `-s STRING`, `-w` | [seqx](../markdown/seqx/index.md) |
 | `sleep` | `sleepx` | NUMBER with `s`, `m`, `h`, `d`; fractions, exponents, hex floats, `infinity` | [sleepx](../markdown/sleepx/index.md) |
+| `sort` | `sortx` | `-b`, `-c`/`--check[=WHEN]`, `-C`, `-d`, `-f`, `-g`, `-h`, `-i`, `-k KEYDEF`, `-m`, `-M`, `-n`, `-o FILE`, `-r`, `-s`, `-t SEP`, `-u`, `-V`, `-z`, `--files0-from=F`, `--sort=WORD`; `-S`, `-T`, `--parallel`, `--batch-size`, `--compress-program` accepted and ignored | [sortx](../markdown/sortx/index.md) |
 | `tail` | `tailx` | `-c [+]NUM`, `-f[=HOW]`, `-F`, `-n [+]NUM`, `-q`, `-s N`, `-v`, `-z`, `--pid`, `--retry`, size suffixes | [tailx](../markdown/tailx/index.md) |
+| `tee` | `teex` | `-a`, `-i`, `-p`, `--output-error[=MODE]` | [teex](../markdown/teex/index.md) |
 | `touch` | `touchx` | `-a`, `-c`, `-d STRING`, `-h`, `-m`, `-r FILE`, `-t STAMP`, `--time=WORD` | [touchx](../markdown/touchx/index.md) |
+| `tr` | `trx` | `-c`/`-C`, `-d`, `-s`, `-t`; SET ranges, escapes, `[:CLASS:]`, `[=C=]`, `[C*N]`, `[C*]` | [trx](../markdown/trx/index.md) |
 | `true` | `truex` | none (arguments ignored) | [truex](../markdown/truex/index.md) |
+| `uniq` | `uniqx` | `-c`, `-d`, `-D`, `-f N`, `-i`, `-s N`, `-u`, `-w N`, `-z`, `--all-repeated[=METHOD]`, `--group[=METHOD]` | [uniqx](../markdown/uniqx/index.md) |
 | `wc` | `wcx` | `-c`, `-l`, `-L`, `-m`, `-w`, `--files0-from=F`, `--total=WHEN` | [wcx](../markdown/wcx/index.md) |
 | `yes` | `yesx` | STRING... (no options) | [yesx](../markdown/yesx/index.md) |
 
-Every tool also takes `--help` and `--version`. For `echox`, `truex`, `falsex` and `yesx`, as in GNU, they are honored only as the sole argument.
+Every tool also takes `--help` and `--version`. For `echox`, `printfx`, `truex`, `falsex` and `yesx`, as in GNU, they are honored only as the sole argument.
 
 ## Documented deviations
 
@@ -65,17 +72,23 @@ The rule is in the project's [rules](../../docs/rules/README.md) as "conflicts r
 |------|------------|
 | `catx` | `-e`, `-t` and `-u` also answer to the long names `--show-nonprinting-ends`, `--show-nonprinting-tabs` and `--unbuffered`, which GNU does not have |
 | `cpx` | Option precedence as above. `-d`, `-H` and `-p` also answer to `--no-dereference-links`, `--dereference-args` and `--preserve-default`. On Windows only the read-only attribute and the modification time are carried over |
+| `cutx` | `-c` counts bytes, as GNU's cut does. The same kind of list given twice keeps the last instead of refusing |
 | `envx` | GNU `env` replaces itself with the command; `envx` runs it as a child process on the same streams and exits with its status (128 plus the signal number when a signal killed it), so it behaves the same on platforms that cannot replace a running process |
 | `lnx` | Option precedence as above. On Windows, symbolic links need Developer Mode or an elevated prompt, a link's target is stored with backslashes, and replacing a link to a directory (`-sfn`) is not atomic: the old link is removed before the new one is renamed in |
 | `lsx` | Names sort by plain byte comparison (the C locale) whatever `LANG` says, so uppercase sorts before lowercase. On Windows the owner, group, inode and block columns hold placeholders, and every directory is colored as a plain directory (Windows has no other-writable or sticky bits). Several single-letter options also have gnux long names: `--long`, `--one-per-line`, `--sort-size`, `--sort-time`, `--sort-version`, `--sort-extension`, `--unsorted`, `--columns`, `--across`, `--commas`, `--slash`, `--ctime`, `--atime`, `--long-no-owner`, `--long-no-group` |
 | `mkdirx` | On Windows only the read-only attribute is representable, so most of a `-m` mode has no effect |
 | `mvx` | Option precedence as above |
+| `printfx` | Floating-point values are held in double precision, not long double. `\c` ends output with the status the run already had rather than always 0. `%b` and `%q` also accept a width and precision |
 | `pwdx` | `-L` wins when both are given |
 | `realpathx` | `-e` wins over `-m` |
 | `rmx` | Option precedence as above. `-i` and `-I` also answer to `--prompt-each` and `--prompt-once`. Off Unix, `--one-file-system` has no effect (no device numbers). Independent arguments are removed concurrently when nothing is prompted or printed |
+| `seqx` | `-f` values are formatted from double precision, not long double. An infinite FIRST or INCREMENT is refused as an invalid argument |
+| `sortx` | Comparison follows the C locale (byte order) whatever `LANG` says. `-S`, `-T`, `--parallel`, `--batch-size` and `--compress-program` are accepted and ignored. `-c` wins over `-C` when both are given |
 | `tailx` | Following is done by polling at the `-s` interval (no inotify). `-F` also answers to `--follow-retry` |
+| `teex` | `-i` is accepted but has no effect (tools run in-process). An explicit `--output-error=MODE` wins over `-p` in either order. A closed pipe without `--output-error` ends quietly with status 0 instead of SIGPIPE |
 | `touchx` | `-d` accepts `YYYY-MM-DD`, `YYYY-MM-DD hh:mm[:ss]`, RFC 3339, `@SECONDS` and `now`, not GNU's free-form date phrases such as `yesterday` or `next tuesday`. `-h` works only on Linux; elsewhere the link is reported rather than its target touched. `-a`, `-m` and `-t` also answer to `--access-time`, `--modification-time` and `--stamp` |
-| `basenamex`, `dirnamex`, `echox`, `falsex`, `headx`, `rmdirx`, `sleepx`, `truex`, `wcx`, `yesx` | None known |
+| `uniqx` | `-s` and `-w` count bytes and `-i` folds ASCII letters only (GNU's C locale) |
+| `basenamex`, `dirnamex`, `echox`, `falsex`, `headx`, `rmdirx`, `sleepx`, `trx`, `truex`, `wcx`, `yesx` | None known |
 
 ## Not implemented yet
 
@@ -91,8 +104,10 @@ These GNU options are refused with `unknown flag`:
 | `mvx` | `--backup`, `-b`, `--suffix`, `-S`, `-Z`, `--context`, `--no-copy`, `--exchange`, `--debug` |
 | `realpathx` | `-E`, `--canonicalize` (the default behavior anyway) |
 | `rmx` | `--preserve-root=all` |
+| `sortx` | `-R`, `--random-sort`, `--random-source`, `--debug` |
 | `tailx` | `--max-unchanged-stats` |
 | `touchx` | `-f` (GNU accepts and ignores it) |
+| `uniqx` | the obsolete `-N` and `+N` forms of `-f` and `-s` |
 | `wcx` | `--debug` |
 
 If a script uses one, the fix is usually simple: drop `--backup` and copy first with `cpx -n`; replace `ls -f` with `lsx -aU`; replace `--format=long` with `-l`.
@@ -114,10 +129,10 @@ If a script uses one, the fix is usually simple: drop `--backup` and copy first 
 
 ## What is not in gnux yet
 
-gnux covers 22 tools today. The rest of coreutils is on the [roadmap in the README](../../README.md#roadmap), roughly in this order:
+gnux covers 29 tools today. The rest of coreutils is on the [roadmap in the README](../../README.md#roadmap), roughly in this order:
 
 - **File attributes:** `chmod`, `chown`, `chgrp`, `stat`, `du`, `df`, `mktemp`, `install`, `truncate`, `readlink`, `link`, `unlink`
-- **Text:** `sort`, `uniq`, `cut`, `tr`, `tee`, `paste`, `join`, `nl`, `fold`, `fmt`, `expand`, `unexpand`, `tac`, `split`, `csplit`, `comm`, `shuf`, `seq`, `printf`, `od`
+- **Text:** `paste`, `join`, `nl`, `fold`, `fmt`, `expand`, `unexpand`, `tac`, `split`, `csplit`, `comm`, `shuf`, `od`
 - **Checksums and encoding:** `md5sum`, `sha1sum`, `sha256sum`, `sha512sum`, `b2sum`, `cksum`, `base32`, `base64`
 - **System:** `date`, `uname`, `whoami`, `id`, `hostname`, `nproc`, `printenv`, `tty`, `who`, `uptime`, `timeout`, `nice`, `nohup`, `kill`, `test`, `expr`, `dd`
 

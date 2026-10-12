@@ -1,0 +1,47 @@
+---
+title: "-c, --complement"
+description: "Use the complement of SET1."
+---
+
+An option of [trx](/docs/tools/trx).
+
+## Usage
+
+```bash
+trx -c STRING1 [STRING2]
+trx --complement STRING1 [STRING2]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-c` | `--complement` | none |  | use the complement of SET1 |
+
+## Examples
+
+Put each word on a line of its own:
+
+```bash
+catx essay.txt | trx -cs '[:alnum:]' '\n'
+```
+
+```powershell
+catx essay.txt | trx -cs '[:alnum:]' '\n'
+```
+
+Keep only the printable characters and newlines:
+
+```bash
+trx -cd '[:print:]\n' < binary.log
+```
+
+```powershell
+catx binary.log | trx -cd '[:print:]\n'
+```
+
+## Help in the terminal
+
+```bash
+gnux help trx --complement
+```

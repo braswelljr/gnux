@@ -4,6 +4,7 @@ import (
 	"github.com/braswelljr/gnux/cmd/basenamex"
 	"github.com/braswelljr/gnux/cmd/catx"
 	"github.com/braswelljr/gnux/cmd/cpx"
+	"github.com/braswelljr/gnux/cmd/cutx"
 	"github.com/braswelljr/gnux/cmd/dirnamex"
 	"github.com/braswelljr/gnux/cmd/echox"
 	"github.com/braswelljr/gnux/cmd/envx"
@@ -13,14 +14,20 @@ import (
 	"github.com/braswelljr/gnux/cmd/lsx"
 	"github.com/braswelljr/gnux/cmd/mkdirx"
 	"github.com/braswelljr/gnux/cmd/mvx"
+	"github.com/braswelljr/gnux/cmd/printfx"
 	"github.com/braswelljr/gnux/cmd/pwdx"
 	"github.com/braswelljr/gnux/cmd/realpathx"
 	"github.com/braswelljr/gnux/cmd/rmdirx"
 	"github.com/braswelljr/gnux/cmd/rmx"
+	"github.com/braswelljr/gnux/cmd/seqx"
 	"github.com/braswelljr/gnux/cmd/sleepx"
+	"github.com/braswelljr/gnux/cmd/sortx"
 	"github.com/braswelljr/gnux/cmd/tailx"
+	"github.com/braswelljr/gnux/cmd/teex"
 	"github.com/braswelljr/gnux/cmd/touchx"
 	"github.com/braswelljr/gnux/cmd/truex"
+	"github.com/braswelljr/gnux/cmd/trx"
+	"github.com/braswelljr/gnux/cmd/uniqx"
 	"github.com/braswelljr/gnux/cmd/wcx"
 	"github.com/braswelljr/gnux/cmd/yesx"
 	"github.com/braswelljr/gnux/internal/tool"
@@ -34,6 +41,7 @@ func Tools() []tool.Spec {
 		basenamex.Spec(),
 		catx.Spec(),
 		cpx.Spec(),
+		cutx.Spec(),
 		dirnamex.Spec(),
 		echox.Spec(),
 		envx.Spec(),
@@ -43,14 +51,20 @@ func Tools() []tool.Spec {
 		lsx.Spec(),
 		mkdirx.Spec(),
 		mvx.Spec(),
+		printfx.Spec(),
 		pwdx.Spec(),
 		realpathx.Spec(),
 		rmdirx.Spec(),
 		rmx.Spec(),
+		seqx.Spec(),
 		sleepx.Spec(),
+		sortx.Spec(),
 		tailx.Spec(),
+		teex.Spec(),
 		touchx.Spec(),
 		truex.Spec(),
+		trx.Spec(),
+		uniqx.Spec(),
 		wcx.Spec(),
 		yesx.Spec(),
 	}

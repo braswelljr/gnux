@@ -137,8 +137,8 @@ multi-section pages with language-tagged code blocks: it writes the summary, the
 "Mirrors GNU `rm`" line, a `bash` synopsis, `topicBody` (description, permissions, use cases,
 the flag table and per-shell examples), links to the per-flag pages and a "See also" section.
 
-A run against the current tree writes 33 files per format: `index`, `guide`, 23 command pages
-(22 tools and `shell`) and 8 `rmx` flag pages.
+A run against the current tree writes 40 files per format: `index`, `guide`, 30 command pages
+(29 tools and `shell`) and 8 `rmx` flag pages.
 
 ```text
 $ go run ./tools/gendocs "$OUT" all

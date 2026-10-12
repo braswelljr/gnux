@@ -1,17 +1,18 @@
 # CI and Release
 
-What each GitHub Actions workflow in `.github/workflows/` does, step by step: when it triggers, which jobs and steps it runs, which requirements it enforces, how to reproduce it locally with the Makefile, and what its common failures mean. Five workflows guard every change (Test, Build, Lint, Docs, Web) and a sixth (Release) turns a pushed `v*` tag into a GitHub release carrying a statically linked archive per platform and a `checksums.txt`. The page ends with where the version string a binary reports comes from, which differs between `make`, `go build`, `go install ...@vX` and a release.
+What each GitHub Actions workflow in `.github/workflows/` does, step by step: when it triggers, which jobs and steps it runs, which requirements it enforces, how to reproduce it locally with the Makefile, and what its common failures mean. Five workflows guard every change (Test, Build, Lint, Docs, Web), a sixth (Action) exercises the setup-gnux GitHub Action, and a seventh (Release) turns a pushed `v*` tag, through GoReleaser, into a GitHub release carrying a statically linked archive per platform, a `checksums.txt` and a provenance attestation, and updates the Homebrew, Scoop and winget manifests. The page ends with where the version string a binary reports comes from, which differs between `make`, `go build`, `go install ...@vX` and a release.
 
 ## Overview
 
 | Workflow   | File          | Triggers                                                         | Enforces                                            | Reproduce locally                     |
 |------------|---------------|------------------------------------------------------------------|-----------------------------------------------------|---------------------------------------|
-| Test       | `test.yml`    | push and PR to `main`                                            | NFR-1, NFR-3, NFR-4, NFR-15, NFR-31, FR-19, FR-29, FR-37 | `make vet test`, `make links`, the wasm build |
+| Test       | `test.yml`    | push and PR to `main`                                            | NFR-1, NFR-3, NFR-4, NFR-15, NFR-31, NFR-48, FR-19, FR-29, FR-37 | `make vet test`, `make links`, the wasm build, `go test -fuzz` |
 | Build      | `build.yml`   | push and PR to `main`                                            | NFR-1, NFR-2, NFR-4, FR-17, FR-36                   | `CGO_ENABLED=0 make build/all`        |
 | Lint       | `lint.yml`    | push and PR to `main` and `staging`                              | NFR-28, NFR-42                                      | `make lint`                           |
 | Docs       | `docs.yml`    | push and PR to `main` touching Go, `docs/`, `web/content/docs/`, `tools/` or `go.mod` | FR-41, FR-46, FR-82, NFR-29 | `make docs/check`              |
 | Web        | `web.yml`     | push and PR to `main` touching `web/`, Go, `go.mod` or the workflow | NFR-3, NFR-11, NFR-19, NFR-33, FR-47, FR-84, FR-85 | `make web/test`, then `pnpm` steps |
-| Release    | `release.yml` | push of a tag matching `v*`                                      | FR-36, FR-38, NFR-1, NFR-2, NFR-37                  | `make ci`, then a manual archive build |
+| Action     | `action.yml`  | push and PR to `main` touching `action.yml` or the workflow      | FR-36                                               | the install script with `RUNNER_*` set |
+| Release    | `release.yml` | push of a tag matching `v*`                                      | FR-36, FR-38, FR-95, NFR-1, NFR-2, NFR-37           | `make ci`, then `make release/snapshot` |
 
 `make ci` runs `vet`, `lint`, `test` and `docs/check`: the Go half of the gates, on the host
 platform only.
@@ -22,12 +23,13 @@ platform only.
   `go-version-file: go.mod` with `cache: true`, so bumping the `go` line in `go.mod` upgrades CI
   everywhere at once (NFR-41). Never hard-code a version in a workflow.
 - **Read-only by default.** Every workflow declares `permissions: contents: read`; only Release's
-  `publish` job raises it to `contents: write` (NFR-37).
+  `release` job raises it to `contents: write`, plus `id-token: write` and `attestations: write`
+  for the provenance attestation (NFR-37).
 - **A header comment states the requirement enforced.** When a requirement changes, the
   workflow, the README's Requirements section and the guide (`cmd/docs/guide.go`) change
   together.
 - **Dependencies are proposed by Dependabot** (`.github/dependabot.yml`): Go modules weekly,
-  GitHub Actions daily (NFR-20).
+  GitHub Actions daily, the website's pnpm packages weekly as one grouped update (NFR-20).
 
 ## Test (`test.yml`)
 
@@ -43,6 +45,7 @@ reinterpret the coverage arguments.
 | Test (race + coverage)             | `go test -race -covermode=atomic -coverprofile=coverage.out ./...`       | the race detector is always on (NFR-15, NFR-31) |
 | Smoke test (multi-call dispatch)   | build `bin/gnux[.exe]`, copy it to `bin/pwdx[.exe]`, run `gnux --list`, `gnux pwdx`, `./bin/pwdx` | proves `argv[0]` dispatch with a real binary on every OS; a copy, not a symlink, so it works on Windows (FR-19, FR-37) |
 | Build for WebAssembly (ubuntu only) | `GOOS=js GOARCH=wasm go build -o /dev/null ./tools/wasm`                 | every tool must keep compiling for the playground (NFR-3, NFR-4) |
+| Fuzz the shell (ubuntu only)       | `go test -run='^$' -fuzz='^FuzzParse$' -fuzztime=30s ./core/shell`, then `FuzzExpand` | no script text panics the lexer, parser or expansion (NFR-48) |
 | Upload coverage (ubuntu only)      | artifact `coverage`                                                      |                                              |
 
 Running the suite on three operating systems is what verifies that platform code is isolated
@@ -70,8 +73,9 @@ GOOS=js GOARCH=wasm go build -o /dev/null ./tools/wasm
 
 ## Build (`build.yml`)
 
-**Job `build`**, matrix of five targets on `ubuntu-latest`: `linux/amd64`, `linux/arm64`,
-`darwin/amd64`, `darwin/arm64`, `windows/amd64`, `fail-fast: false`.
+**Job `build`**, matrix of nine targets on `ubuntu-latest`: `linux/amd64`, `linux/arm64`,
+`linux/riscv64`, `darwin/amd64`, `darwin/arm64`, `freebsd/amd64`, `freebsd/arm64`,
+`windows/amd64`, `windows/arm64`, `fail-fast: false`.
 
 ```bash
 version="$(git describe --tags --always --dirty 2>/dev/null || echo dev)"
@@ -91,7 +95,7 @@ with `CGO_ENABLED=0` set in the step's environment, then each binary is uploaded
 **Locally:**
 
 ```bash
-CGO_ENABLED=0 make build/all    # the same five targets into bin/gnux-<os>-<arch>[.exe]
+CGO_ENABLED=0 make build/all    # the same nine targets into bin/gnux-<os>-<arch>[.exe]
 ```
 
 `make build/all` exports `CGO_ENABLED=0` for every target, as CI does. Cross-compiling would
@@ -207,18 +211,47 @@ cd web && pnpm lint && pnpm format:check && pnpm typecheck && pnpm build && pnpm
 | A wasm test fails but `go test` passes                     | A difference between the OS and `MemFS` semantics, or a `!unix` fallback | Reproduce with `make web/test`; check `memfs.ts` and `core/fs_other.go` |
 | `pnpm build` fails on an MDX page                          | Stale `web/content/docs`, or an unbalanced code fence in a hand-written doc | `make web/docs` (or `make docs`)    |
 
+## Action (`action.yml`)
+
+The repository root's `action.yml` is a composite GitHub Action, setup-gnux, used as
+`uses: braswelljr/gnux@v0`. Its one bash step:
+
+1. Maps `RUNNER_OS` / `RUNNER_ARCH` to `<os>-<arch>` (`linux`, `darwin`, `windows`; `amd64`,
+   `arm64`), and resolves `version: latest` from the redirect of `/releases/latest`, which
+   needs no API token.
+2. Downloads `gnux-<tag>-<os>-<arch>.tar.gz` (`.zip` on Windows) and `checksums.txt` into
+   `$RUNNER_TEMP`, and checks the archive's line with `sha256sum -c` (`shasum -a 256` on macOS).
+3. Unpacks it and, with `links: true` (the default), links every name `gnux --list` prints to
+   the binary; on Windows each is a copy (`rmx.exe`), which needs no Developer Mode.
+   `gnu-names: true` adds the GNU names (`rm`, `cp`) too.
+4. Appends the directory to `$GITHUB_PATH` (converted with `cygpath -w` on Windows) and sets the
+   `version` and `path` outputs.
+
+**Workflow `action.yml`** runs the action from the checkout (`uses: ./`) on `ubuntu-latest`,
+`ubuntu-24.04-arm`, `macos-latest` and `windows-latest`, for `latest` and a pinned tag, then
+uses the tools from bash and, on Windows, PowerShell.
+
+**Locally:** the step is plain bash. Extract it and run it with the runner's variables set:
+
+```bash
+RUNNER_OS=macOS RUNNER_ARCH=ARM64 RUNNER_TEMP=/tmp/rt GITHUB_PATH=/tmp/rt/path \
+GITHUB_OUTPUT=/tmp/rt/out VERSION=latest LINKS=true GNU_NAMES=false bash setup.sh
+```
+
 ## Release (`release.yml`)
 
-A release is: **push a `v*` tag, the Release workflow verifies the tagged commit, builds one
-archive per platform, and publishes a GitHub release with every archive and a
-`checksums.txt`.**
+A release is: **push a `v*` tag, the Release workflow verifies the tagged commit, then
+GoReleaser builds one archive per platform, publishes a GitHub release with every archive, a
+`checksums.txt` and a provenance attestation, and updates the package manager manifests.**
+What is built and published is described once, in `.goreleaser.yaml`.
 
 ```mermaid
 flowchart LR
     T["git push origin v0.1.0"] --> V["verify<br/>go vet, go test -race,<br/>docs freshness,<br/>CHANGELOG.md section"]
-    V --> B["build (matrix x5)<br/>CGO_ENABLED=0, Version=tag<br/>tar.gz or zip"]
-    B --> P["publish (contents: write)<br/>sha256sum > checksums.txt<br/>gh release create"]
-    P --> R["GitHub release v0.1.0<br/>5 archives + checksums.txt"]
+    V --> G["release (contents: write)<br/>goreleaser release<br/>9 archives, checksums.txt"]
+    G --> R["GitHub release v0.1.0"]
+    G --> M["Homebrew cask, Scoop manifest,<br/>winget pull request"]
+    G --> A["build provenance attestation"]
 ```
 
 ### Trigger
@@ -226,10 +259,13 @@ flowchart LR
 ```yaml
 on:
   push:
-    tags: ["v*"]
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
 ```
 
-Workflow-level permissions are `contents: read`; only `publish` writes (NFR-37).
+Only full versions (`v0.1.0`, `v1.0.0-rc.1`) release. The major tags (`v0`, `v1`) that
+`uses: braswelljr/gnux@v0` resolves are not releases: the last step of `release` moves the
+major tag to each stable release (a prerelease leaves it alone). Workflow-level permissions are
+`contents: read`; only `release` writes (NFR-37).
 
 ### Job `verify`
 
@@ -244,46 +280,47 @@ artifact. A release tag with no section, or an empty one, fails here, before any
 a prerelease tag (one with a hyphen) without one gets an empty file and generated notes. It does not repeat Lint, the Windows and macOS test
 legs, or Web; those are expected to be green on `main` before tagging.
 
-### Job `build`
+### Job `release`
 
-`needs: verify`. The same five-target matrix as Build, but `fail-fast: true`: a release missing
-one platform is not published at all. For each target:
+`needs: verify`, with `contents: write`, `id-token: write` and `attestations: write`:
 
-```bash
-name="gnux-${VERSION}-${GOOS}-${GOARCH}"          # VERSION = github.ref_name, e.g. v0.1.0
-go build -trimpath \
-  -ldflags "-s -w -X github.com/braswelljr/gnux/internal/common.Version=${VERSION}" \
-  -o "dist/${name}/${bin}" .
-cp LICENSE README.md "dist/${name}/"
-[ "$GOOS" != "windows" ] && cp -r documentation/man "dist/${name}/man"   # man pages on Unix only
-# windows: zip -qr "${name}.zip" "${name}"   otherwise: tar -czf "${name}.tar.gz" "${name}"
-```
-
-with `CGO_ENABLED=0` (NFR-2). The archives are uploaded as `archive-<os>-<arch>`. Shipping the
-man pages relies on the committed `documentation/man/`, which `verify` has just proven current.
-
-### Job `publish`
-
-`needs: build`, `permissions: contents: write`:
-
-1. Download every `archive-*` artifact into `dist/` (`merge-multiple: true`), and the
-   `release-notes` artifact into `notes/`.
-2. `sha256sum gnux-* > checksums.txt` in `dist/`.
-3. `gh release create "$TAG" dist/* --title "gnux $TAG" --notes-file=notes/release-notes.md`,
-   or `--generate-notes` when that file is empty (a prerelease with no changelog section),
-   adding `--prerelease` when the tag contains a hyphen (`v1.0.0-rc.1`). If a release for the tag
-   already exists (made in GitHub's web interface, which is also what pushed the tag), it is
-   completed instead: `gh release edit` sets the title and the notes, and `gh release upload
-   --clobber` attaches the archives and `checksums.txt`.
+1. Check out with full history (GoReleaser reads the previous tag for generated notes), set up
+   Go from `go.mod`, and download the `release-notes` artifact.
+2. **Choose what to publish.** Each package manager is pushed to a repository of its own with a
+   token stored as a secret: `HOMEBREW_TAP_GITHUB_TOKEN` (`braswelljr/homebrew-tap`),
+   `SCOOP_BUCKET_GITHUB_TOKEN` (`braswelljr/scoop-bucket`) and `WINGET_GITHUB_TOKEN` (a fork,
+   `braswelljr/winget-pkgs`, from which a pull request to `microsoft/winget-pkgs` is opened).
+   A missing secret adds that publisher to `--skip`, so a fork can still release. The notes
+   file is passed as `--release-notes` when it is not empty.
+3. **Build and publish** with `goreleaser/goreleaser-action@v6` (GoReleaser v2):
+   - the `before` hook writes `completions/gnux.{bash,zsh,fish,ps1}` with `go run . completion`;
+   - builds `unix` (linux amd64/arm64/riscv64, darwin and freebsd amd64/arm64) and `windows`
+     (amd64/arm64), each `CGO_ENABLED=0`, `-trimpath`, `-s -w` and `Version={{ .Tag }}`;
+   - archives `gnux-<tag>-<os>-<arch>`, wrapped in a directory of the same name, with
+     `LICENSE`, `README.md` and the completions, plus `man/` from `documentation/man` on Unix;
+     `.tar.gz` on Unix and `.zip` on Windows, the naming every earlier release used;
+   - `checksums.txt` (SHA-256);
+   - the release, titled `gnux <tag>`, a prerelease when the tag has a hyphen, and with
+     `mode: replace` so a release already drafted in GitHub's web interface is completed;
+   - the Homebrew cask (installs the completions and clears the quarantine flag), the Scoop
+     manifest and the winget manifests.
+4. **Attest build provenance** with `actions/attest-build-provenance@v2` over every file in
+   `checksums.txt`; `gh attestation verify <archive> --repo braswelljr/gnux` checks one.
+5. **Move the major version tag** (`v0` for `v0.1.0`) to the release, unless it is a prerelease,
+   so the setup-gnux action's `@v0` follows the newest stable release.
 
 The result, for `v0.1.0`:
 
 ```text
-gnux-v0.1.0-linux-amd64.tar.gz
-gnux-v0.1.0-linux-arm64.tar.gz
 gnux-v0.1.0-darwin-amd64.tar.gz
 gnux-v0.1.0-darwin-arm64.tar.gz
+gnux-v0.1.0-freebsd-amd64.tar.gz
+gnux-v0.1.0-freebsd-arm64.tar.gz
+gnux-v0.1.0-linux-amd64.tar.gz
+gnux-v0.1.0-linux-arm64.tar.gz
+gnux-v0.1.0-linux-riscv64.tar.gz
 gnux-v0.1.0-windows-amd64.zip
+gnux-v0.1.0-windows-arm64.zip
 checksums.txt
 ```
 
@@ -306,37 +343,32 @@ git tag -a v0.1.0 -m "gnux v0.1.0"
 git push origin main v0.1.0
 ```
 
-### Reproducing one archive locally
+### Reproducing a release locally
 
-The build step is plain shell, so one leg can be run by hand. Done for the host platform in a
-scratch directory, with a test version:
+`make release/check` validates `.goreleaser.yaml`, and `make release/snapshot` runs the whole
+build without publishing (`goreleaser release --snapshot --clean --skip=publish`): every
+archive, `checksums.txt`, and the generated cask, Scoop manifest and winget manifests, in
+`dist/`. Both need [GoReleaser](https://goreleaser.com/install/) v2 on `PATH`.
 
 ```text
-$ VERSION=v0.0.0-test; name="gnux-${VERSION}-darwin-arm64"
-$ GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -trimpath \
-    -ldflags "-s -w -X github.com/braswelljr/gnux/internal/common.Version=${VERSION}" \
-    -o "dist/${name}/gnux" .
-$ cp LICENSE README.md "dist/${name}/" && cp -r documentation/man "dist/${name}/man"
-$ (cd dist && tar -czf "${name}.tar.gz" "${name}" && shasum -a 256 gnux-*.tar.gz > checksums.txt)
-$ (cd dist && shasum -a 256 -c checksums.txt)
-gnux-v0.0.0-test-darwin-arm64.tar.gz: OK
-$ tar -tzf "dist/${name}.tar.gz" | head -6
-gnux-v0.0.0-test-darwin-arm64/
-gnux-v0.0.0-test-darwin-arm64/man/
-gnux-v0.0.0-test-darwin-arm64/LICENSE
-gnux-v0.0.0-test-darwin-arm64/README.md
-gnux-v0.0.0-test-darwin-arm64/gnux
-gnux-v0.0.0-test-darwin-arm64/man/index.1
-$ "dist/${name}/gnux" --version
-gnux v0.0.0-test
-$ "dist/${name}/gnux" rmx --version
-rmx (gnux) v0.0.0-test
+$ make release/snapshot
+$ ls dist/*.tar.gz dist/*.zip | wc -l
+9
+$ tar -tzf dist/gnux-v0.1.0-darwin-arm64.tar.gz | head -6
+gnux-v0.1.0-darwin-arm64/LICENSE
+gnux-v0.1.0-darwin-arm64/README.md
+gnux-v0.1.0-darwin-arm64/completions/gnux.bash
+gnux-v0.1.0-darwin-arm64/completions/gnux.fish
+gnux-v0.1.0-darwin-arm64/completions/gnux.zsh
+gnux-v0.1.0-darwin-arm64/man/basenamex/index.1
+$ cat dist/homebrew/Casks/gnux.rb dist/scoop/gnux.json    # the manifests that would be pushed
 ```
 
-(`shasum -a 256` is the macOS spelling of `sha256sum`.) Users verify a download the same way:
+Users verify a download with the checksums, or with the attestation:
 
 ```bash
 sha256sum --check --ignore-missing checksums.txt
+gh attestation verify gnux-v0.1.0-linux-amd64.tar.gz --repo braswelljr/gnux
 ```
 
 ### Common failures
@@ -344,8 +376,10 @@ sha256sum --check --ignore-missing checksums.txt
 | Symptom                                       | Cause                                                        | Fix                                                        |
 |-----------------------------------------------|--------------------------------------------------------------|------------------------------------------------------------|
 | `verify` fails                                | The tagged commit fails a test or has stale docs             | Fix on `main`, delete the tag (`git push --delete origin v0.1.0`), tag again |
-| One `build` leg fails and nothing is published | `fail-fast: true`, by design                                | Fix the platform problem; re-tag                           |
-| `gh release create` fails: release already exists | The tag was released before                              | Delete the release, or tag a new version                   |
+| GoReleaser fails to build one target and nothing is published | A platform-specific compile error                | Fix it (`make build/all` reproduces it); re-tag            |
+| GoReleaser: "git is in a dirty state"          | A step wrote into the checkout before GoReleaser ran       | Write into `dist/` or a gitignored path (`completions/` is ignored) |
+| A package manager is not updated               | Its token secret is not set, so it was skipped              | Add the secret; the next release publishes it              |
+| Homebrew/Scoop push fails with 403/404         | The tap or bucket repository is missing, or the token cannot write to it | Create the repository; give the token `contents: write` on it |
 | Man pages in the archive carry "Jan 2024"     | `docs.ManDate` is pinned for reproducibility, and nothing sets it per release | Known gap                                 |
 
 ## Where the version comes from

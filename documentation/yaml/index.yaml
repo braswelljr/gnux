@@ -35,6 +35,7 @@ see_also:
     - gnux basenamex - Strip the directory and suffix from file names.
     - gnux catx - Concatenate files and print them on standard output.
     - gnux cpx - Copy files and directories.
+    - gnux cutx - Remove sections from each line of files.
     - gnux dirnamex - Strip the last component from file names.
     - gnux echox - Display a line of text.
     - gnux envx - Run a program in a modified environment, or print the environment.
@@ -44,14 +45,20 @@ see_also:
     - gnux lsx - List information about files and directory contents.
     - gnux mkdirx - Create the DIRECTORY(ies), if they do not already exist.
     - gnux mvx - Move (rename) files and directories.
+    - gnux printfx - Format and print data.
     - gnux pwdx - Print the full name of the current working directory.
     - gnux realpathx - Print the resolved absolute file name.
     - gnux rmdirx - Remove the DIRECTORY(ies), if they are empty.
     - gnux rmx - Remove (unlink) files and directories.
+    - gnux seqx - Print a sequence of numbers.
     - gnux shell - Run a portable shell whose commands are the gnux tools.
     - gnux sleepx - Delay for a specified amount of time.
+    - gnux sortx - Sort lines of text files.
     - gnux tailx - Print the last part of each file, optionally following it as it grows.
+    - gnux teex - Copy standard input to each FILE, and also to standard output.
     - gnux touchx - Update the access and modification times of each FILE to the current time.
     - gnux truex - Do nothing, successfully.
+    - gnux trx - Translate, squeeze, and/or delete characters from standard input.
+    - gnux uniqx - Report or omit repeated lines.
     - gnux wcx - Print newline, word, and byte counts for each file.
     - gnux yesx - Output a string repeatedly until killed.

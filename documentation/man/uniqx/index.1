@@ -1,0 +1,137 @@
+.nh
+.TH "UNIQX" "1" "Jan 2024" "gnux" "gnux manual"
+
+.SH NAME
+uniqx - Report or omit repeated lines.
+
+
+.SH SYNOPSIS
+\fBuniqx [OPTION]... [INPUT [OUTPUT]]\fP
+
+
+.SH DESCRIPTION
+uniqx filters adjacent matching lines from INPUT (or standard input), writing to OUTPUT (or standard output). With no options, matching lines are merged to the first occurrence. Only adjacent lines are compared, so a file is usually sorted first. -c prefixes each line with its number of occurrences, -d prints one copy of each repeated line, -u only the lines that are not repeated, and -D every line of each repeated group, with --all-repeated=METHOD (none, prepend, separate) putting an empty line before or between the groups. --group=METHOD
+\[la]separate, prepend, append, both\[ra] prints every line with the groups delimited by an empty line, and cannot be combined with -c, -d, -D or -u; -D cannot be combined with -c either. The comparison skips the first N fields with -f (a field is a run of blanks then non-blanks), then N characters with -s, and compares at most N characters with -w. -z makes NUL the line delimiter, and the output always ends each line with it. Deviations from GNU: characters for -s and -w are bytes, as in GNU's C locale, and -i folds ASCII letters only. The obsolete -N and +N forms of -f and -s are not accepted. METHOD arguments may be abbreviated, as in GNU.
+
+.PP
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+.PP
+HELP. uniqx --help shows the options and the first examples; gnux help uniqx prints the full manual, and gnux help uniqx OPTION explains one option.
+
+.PP
+SEE ALSO. cutx, wcx, catx, headx.
+
+.PP
+PERMISSIONS. Needs read permission on INPUT and search permission on the directories leading to it. When OUTPUT is given it is created or truncated, which needs write permission on it if it exists, or on its directory if it does not. INPUT itself is never modified.
+
+.PP
+USE CASES.
+  - Removing duplicate lines from sorted output.
+  - Counting how often each value occurs with sort and -c, a frequency table.
+  - Listing only the values that appear more than once with -d.
+  - Finding the values that appear exactly once with -u.
+  - Grouping related lines visually with --group.
+  - Comparing lines while ignoring a leading timestamp or ID with -f or -s.
+  - Treating lines as equal when they share a prefix with -w.
+  - Deduplicating NUL-separated file lists safely with -z.
+
+
+.SH OPTIONS
+\fB-D\fP, \fB--all-repeated\fP[=""]
+	print all duplicate lines; groups can be delimited with an empty line; \fBMETHOD\fR is none (the default), prepend or separate
+
+.PP
+\fB-w\fP, \fB--check-chars\fP=""
+	compare no more than \fBN\fR characters in lines
+
+.PP
+\fB-c\fP, \fB--count\fP[=false]
+	prefix lines by the number of occurrences
+
+.PP
+\fB--group\fP[=""]
+	show all items, separating groups with an empty line; \fBMETHOD\fR is separate (the default), prepend, append or both
+
+.PP
+\fB--help\fP[=false]
+	display this help and exit
+
+.PP
+\fB-i\fP, \fB--ignore-case\fP[=false]
+	ignore differences in case when comparing
+
+.PP
+\fB-d\fP, \fB--repeated\fP[=false]
+	only print duplicate lines, one for each group
+
+.PP
+\fB-s\fP, \fB--skip-chars\fP=""
+	avoid comparing the first \fBN\fR characters
+
+.PP
+\fB-f\fP, \fB--skip-fields\fP=""
+	avoid comparing the first \fBN\fR fields
+
+.PP
+\fB-u\fP, \fB--unique\fP[=false]
+	only print unique lines
+
+.PP
+\fB--version\fP[=false]
+	output version information and exit
+
+.PP
+\fB-z\fP, \fB--zero-terminated\fP[=false]
+	line delimiter is NUL, not newline
+
+
+.SH EXAMPLE
+.EX
+  # Remove adjacent duplicate lines
+  uniqx names.txt
+
+  # Write the result to another file
+  uniqx names.txt unique-names.txt
+
+  # Count the occurrences of each line
+  uniqx -c sorted.txt
+
+  # Print only the lines that are repeated
+  uniqx -d sorted.txt
+
+  # Print only the lines that are not repeated
+  uniqx -u sorted.txt
+
+  # Print every repeated line, the groups separated by an empty line
+  uniqx --all-repeated=separate sorted.txt
+
+  # Print all lines with each group of equal lines set apart
+  uniqx --group sorted.txt
+
+  # Compare without regard to case
+  uniqx -i words.txt
+
+  # Ignore the first field (a timestamp, say) when comparing
+  uniqx -f 1 events.log
+
+  # Ignore the first 4 characters when comparing
+  uniqx -s 4 ids.txt
+
+  # Treat lines that share their first 8 characters as equal
+  uniqx -w 8 commits.txt
+
+  # Deduplicate a NUL-separated list
+  uniqx -z files.lst
+
+  # Remove duplicates from a pipeline's output
+  catx a.txt b.txt | uniqx
+
+  # Count the distinct lines of a file
+  uniqx sorted.txt | wcx -l
+
+  # Deduplicate in the portable gnux shell
+  gnux shell -c 'catx sorted.txt | uniqx -c'
+.EE

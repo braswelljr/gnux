@@ -55,7 +55,7 @@ inside the code is in [workflows](../workflows/README.md).
    rmx --version
    ```
 
-**Outcome.** `gnux` is on `PATH`, and each of the 22 tools is a command of its own that reports
+**Outcome.** `gnux` is on `PATH`, and each of the 29 tools is a command of its own that reports
 `TOOL (gnux) VERSION`.
 
 **Failure paths.**

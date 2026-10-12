@@ -36,11 +36,13 @@ platform, so a change that breaks another is found by the Test workflow, not bef
 
 ### NFR-1: supported platforms
 
-gnux must run on Linux and macOS (amd64 and arm64) and Windows (amd64).
+gnux must run on Linux (amd64, arm64 and riscv64), macOS and FreeBSD (amd64 and arm64) and
+Windows (amd64 and arm64).
 
-- **Measure.** Five targets: `linux/amd64`, `linux/arm64`, `darwin/amd64`, `darwin/arm64`,
-  `windows/amd64`.
-- **Verified by.** The Build workflow compiles all five. The Test workflow runs the suite on
+- **Measure.** Nine targets: `linux/amd64`, `linux/arm64`, `linux/riscv64`, `darwin/amd64`,
+  `darwin/arm64`, `freebsd/amd64`, `freebsd/arm64`, `windows/amd64`, `windows/arm64`.
+- **Verified by.** The Build workflow compiles all nine, and the Release workflow
+  (`.goreleaser.yaml`) archives all nine. The Test workflow runs the suite on
   `ubuntu-latest`, `macos-latest` and `windows-latest`; the architecture of each is whatever
   GitHub's runner is, so not every target's tests are executed.
 
@@ -388,6 +390,17 @@ The playground's filesystem must be tested against the real WebAssembly build.
 
 - **Verified by.** `web/test/wasm.test.ts`, run by `make web/test` and the Web workflow after
   `make web/wasm`.
+
+### NFR-48: the shell survives arbitrary input
+
+No script text may make the shell's lexer, parser or expansion panic.
+
+- **Rationale.** `gnux shell` reads scripts it did not write, including whatever a visitor
+  types into the playground.
+- **Measure.** `FuzzParse` and `FuzzExpand` (`core/shell/fuzz_test.go`) find no failure; an
+  accepted line always yields non-empty pipelines and commands.
+- **Verified by.** The seeds run in every `go test`; the Test workflow fuzzes each target for
+  30 seconds on Linux.
 
 ### NFR-43: a new tool is covered on registration
 

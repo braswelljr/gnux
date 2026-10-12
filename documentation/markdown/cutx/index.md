@@ -1,0 +1,200 @@
+## cutx
+
+Remove sections from each line of files.
+
+Mirrors GNU `cut`. Run it as `cutx`, or as `gnux cutx`.
+
+### Synopsis
+
+```bash
+cutx OPTION... [FILE]...
+```
+
+### Description
+
+`cutx` prints selected parts of each line of each FILE to standard output. With no FILE, or when FILE is -, it reads standard input. Exactly one of `-b` (bytes), `-c` (characters) or `-f` (fields) must be given, with a LIST of positions: N, N- (from N to the end of the line), N-M, or `-M` (from the first to M), separated by commas or blanks. Positions are numbered from 1, and the selection is printed in input order whatever the order of the LIST, each position at most once. With `-f` the line is split on TAB, or on the single character given with `-d` (`-d` '' means NUL); a line with no delimiter is printed whole, unless `-s` suppresses it. `--complement` selects everything the LIST does not. `--output-delimiter`=STRING is written between the selected fields (the input delimiter by default), and with `-b` or `-c` between non-overlapping ranges. `-z` makes NUL the line delimiter. Every output line ends with the line delimiter. As in GNU cut, `-c` counts bytes, not multibyte characters, so `-c` and `-b` are the same, and `-n` is accepted and ignored. One difference from GNU: giving the same kind of list twice (`-f1 -f2`) keeps the last one instead of refusing.
+
+### Permissions
+
+Needs read permission on each FILE and search permission on the directories leading to it. Nothing is ever modified.
+
+### Use cases
+
+- Extracting columns from CSV, TSV or colon-separated files such as /etc/passwd.
+- Taking a fixed-width slice of every line, such as a date prefix of a log.
+- Dropping a column with `--complement`.
+- Turning a delimited file into another delimiter with `--output-delimiter`.
+- Skipping header or comment lines that have no delimiter with `-s`.
+- Pulling one value out of each line of a command's output in a script.
+- Splitting NUL-separated records safely with `-z`.
+
+### Flags
+
+```text
+  -b, --bytes string              select only these bytes
+  -c, --characters string         select only these characters
+      --complement                complement the set of selected bytes, characters or fields
+  -d, --delimiter DELIM           use DELIM instead of TAB for field delimiter
+  -f, --fields string             select only these fields; also print any line that contains no delimiter character, unless the -s option is specified
+      --help                      display this help and exit
+  -s, --only-delimited            do not print lines not containing delimiters
+      --output-delimiter STRING   use STRING as the output delimiter; the default is to use the input delimiter
+      --version                   output version information and exit
+  -z, --zero-terminated           line delimiter is NUL, not newline
+```
+
+### Examples
+
+Print the first field of each line of a TAB-separated file:
+
+```bash
+cutx -f 1 data.tsv
+```
+
+```powershell
+cutx -f 1 data.tsv
+```
+
+Print the user names and shells from a colon-separated file:
+
+```bash
+cutx -d : -f 1,7 /etc/passwd
+```
+
+```powershell
+cutx -d : -f 1,7 passwd.txt
+```
+
+Print the second and third columns of a CSV file:
+
+```bash
+cutx -d , -f 2-3 people.csv
+```
+
+```powershell
+cutx -d , -f 2-3 people.csv
+```
+
+Print every column from the third on:
+
+```bash
+cutx -d , -f 3- people.csv
+```
+
+```powershell
+cutx -d , -f 3- people.csv
+```
+
+Drop the second column, keeping the rest:
+
+```bash
+cutx -d , -f 2 --complement people.csv
+```
+
+```powershell
+cutx -d , -f 2 --complement people.csv
+```
+
+Print the first 10 bytes of each line:
+
+```bash
+cutx -b 1-10 app.log
+```
+
+```powershell
+cutx -b 1-10 app.log
+```
+
+Print characters 5 to 8 of each line:
+
+```bash
+cutx -c 5-8 codes.txt
+```
+
+```powershell
+cutx -c 5-8 codes.txt
+```
+
+Convert a CSV file to TAB-separated output:
+
+```bash
+cutx -d , -f 1- --output-delimiter=$'\t' people.csv
+```
+
+```powershell
+cutx -d , -f 1- --output-delimiter="`t" people.csv
+```
+
+Join the selected columns with a custom separator:
+
+```bash
+cutx -d : -f 1,3 --output-delimiter=' -> ' passwd.txt
+```
+
+```powershell
+cutx -d : -f 1,3 --output-delimiter=' -> ' passwd.txt
+```
+
+Skip lines that contain no delimiter, such as comments:
+
+```bash
+cutx -s -d = -f 2 settings.ini
+```
+
+```powershell
+cutx -s -d = -f 2 settings.ini
+```
+
+Pull one field out of a command's output:
+
+```bash
+echox 'key=value' | cutx -d = -f 2
+```
+
+```powershell
+'key=value' | cutx -d = -f 2
+```
+
+Process NUL-separated records:
+
+```bash
+cutx -z -d / -f 1 paths.lst
+```
+
+```powershell
+cutx -z -d / -f 1 paths.lst
+```
+
+Count the distinct values of a column in the portable `gnux shell`:
+
+```bash
+gnux shell -c 'cutx -d , -f 1 people.csv | uniqx -c'
+```
+
+```powershell
+gnux shell -c 'cutx -d , -f 1 people.csv | uniqx -c'
+```
+
+### Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+### Help in the terminal
+
+```bash
+cutx --help                # options, first examples, exit status
+gnux help cutx             # this page: the full manual
+gnux help cutx --OPTION    # one option in depth, with its examples
+```
+
+### See also
+
+- [uniqx](../uniqx/index.md)
+- [headx](../headx/index.md)
+- [tailx](../tailx/index.md)
+- [wcx](../wcx/index.md)
+- [gnux](../index.md) - every tool in the bundle
+- [guide](../guide.md) - installation and usage

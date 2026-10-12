@@ -1,7 +1,7 @@
 # Functional Requirements
 
 Functional requirements define what gnux must do: the behavior every tool shares, the options
-each of the 22 tools must support, the safeguards on destructive operations, how a tool is
+each of the 29 tools must support, the safeguards on destructive operations, how a tool is
 invoked, the portable shell, the Go library, installation, the generated documentation, the
 website, the playground and its discoverability. Each requirement has a stable identifier
 (`FR-n`), a rationale, acceptance criteria and the check that verifies it.
@@ -17,8 +17,9 @@ reason not to, **may** is optional.
 ## How to read this register
 
 - **Identifiers are stable, not sequential.** `FR-1` to `FR-50` come from the first draft of
-  this register and keep their numbers. `FR-51` to `FR-72` are the 22 tools, in alphabetical
-  order. `FR-73` onward are requirements added since. The document is ordered by area, so the
+  this register and keep their numbers. `FR-51` to `FR-72` are the first 22 tools, in alphabetical
+  order, and `FR-88` to `FR-94` the text tools added after them. `FR-73` onward are the other
+  requirements added since. The document is ordered by area, so the
   numbers do not run in order down the page.
 - **"Verified by" names something that exists.** A test file, a CI workflow, or the word
   "review" where nothing automated checks the requirement. A requirement with no automated
@@ -283,6 +284,38 @@ cpx [OPTION]... SOURCE... DIRECTORY
   `--remove-destination`, `--copy-contents`, `--keep-directory-symlink`, `-Z` and `--context`,
   `--debug`.
 - **Verified by.** `core/cp/cp_test.go`, `cmd/cpx/cpx_test.go`.
+
+### FR-90: cutx
+
+`cutx` must print selected parts of each line, as GNU `cut` does.
+
+```text
+cutx OPTION... [FILE]...
+```
+
+| Option                      | Meaning                                                                      |
+|-----------------------------|------------------------------------------------------------------------------|
+| `-b`, `--bytes=LIST`        | Select only these bytes                                                      |
+| `-c`, `--characters=LIST`   | Select only these characters                                                 |
+| `-d`, `--delimiter=DELIM`   | Use DELIM instead of TAB for field delimiter                                 |
+| `-f`, `--fields=LIST`       | Select only these fields; lines with no delimiter are printed whole          |
+| `-n`                        | Ignored                                                                      |
+| `--complement`              | Complement the set of selected bytes, characters or fields                   |
+| `-s`, `--only-delimited`    | Do not print lines not containing delimiters                                 |
+| `--output-delimiter=STRING` | Use STRING as the output delimiter                                           |
+| `-z`, `--zero-terminated`   | Line delimiter is NUL, not newline                                           |
+
+- **Behavior.** Exactly one of `-b`, `-c`, `-f` is required. LIST is N, N-, N-M or -M,
+  separated by commas or blanks, numbered from 1; the selection is printed in input order,
+  each position once. `-d ''` means NUL. The output delimiter defaults to the input delimiter
+  for `-f`, and for `-b`/`-c` is written only when given, between non-overlapping ranges. List
+  and option errors are usage errors in GNU's words (`fields are numbered from 1`,
+  `invalid decreasing range`, `the delimiter must be a single character`,
+  `only one type of list may be specified`, ...). Every output line ends with the line
+  delimiter.
+- **Deviations.** As in GNU, `-c` counts bytes. Giving the same kind of list twice keeps the
+  last instead of refusing.
+- **Verified by.** `core/cut/cut_test.go`, `cmd/cutx/cutx_test.go`.
 
 ### FR-54: dirnamex
 
@@ -555,6 +588,33 @@ mvx [OPTION]... SOURCE... DIRECTORY
   `--exchange`, `--debug`.
 - **Verified by.** `core/mv/mv_test.go`, `cmd/mvx/mvx_test.go`.
 
+### FR-94: printfx
+
+`printfx` must format and print data, as GNU `printf` does.
+
+```text
+printfx FORMAT [ARGUMENT]...
+```
+
+- **Behavior.** It has no options of its own; a leading `--` is skipped. FORMAT is printed with
+  backslash escapes interpreted (`\"`, `\\`, `\a`, `\b`, `\c`, `\e`, `\f`, `\n`, `\r`, `\t`,
+  `\v`, `\NNN`, `\xHH`, `\uHHHH`, `\UHHHHHHHH`) and each conversion (`%d %i %o %u %x %X %f %F %e
+  %E %g %G %a %A %c %s %b %q %%`, with the flags `- + space # 0`, a width and a precision,
+  either of which may be `*`) replaced by the next ARGUMENT. FORMAT is reused while it consumes
+  arguments and some remain; a missing argument reads as an empty string or zero. A numeric
+  argument may be decimal, `0x` hexadecimal, `0` octal (integers) or a quote followed by a
+  character (its code). An argument that is not a number is diagnosed (`expected a numeric
+  value`, `value not completely converted`, `Numerical result out of range`), printed as far as
+  it converted, and makes the exit status 1 without stopping the output. An invalid conversion
+  or escape is diagnosed and stops at once with status 1. When FORMAT consumes no argument and
+  some were given, `warning: ignoring excess arguments, starting with 'X'` is printed and the
+  status is unaffected. No FORMAT is the usage error `missing operand`. `\c`, in FORMAT or in a
+  `%b` argument, ends all output.
+- **Deviations.** Floating-point values are held in double precision rather than long double.
+  `\c` ends output with the status the run already had rather than always 0. `%b` and `%q`
+  accept a width and precision.
+- **Verified by.** `core/printf/printf_test.go`, `cmd/printfx/printfx_test.go`.
+
 ### FR-63: pwdx
 
 `pwdx` must print the current working directory, as GNU `pwd` does.
@@ -657,6 +717,36 @@ rmx [OPTION]... [FILE]...
   available. Not implemented: `--preserve-root=all`.
 - **Verified by.** `core/rm/rm_test.go`, `cmd/rmx/rmx_test.go`.
 
+### FR-93: seqx
+
+`seqx` must print a sequence of numbers, as GNU `seq` does.
+
+```text
+seqx [OPTION]... LAST
+seqx [OPTION]... FIRST LAST
+seqx [OPTION]... FIRST INCREMENT LAST
+```
+
+| Option                  | Meaning                                                              |
+|-------------------------|----------------------------------------------------------------------|
+| `-f`, `--format=FORMAT` | Use a printf-style floating-point FORMAT (`%e`, `%f`, `%g` or `%a`)  |
+| `-s`, `--separator=STRING` | Use STRING to separate numbers (default: newline)                 |
+| `-w`, `--equal-width`   | Equalize width by padding with leading zeros                         |
+
+- **Behavior.** FIRST and INCREMENT default to 1; a negative INCREMENT counts down, and nothing
+  is printed when FIRST is already past LAST. Options come first; an argument that starts with
+  `-` followed by a digit or `.` is a number, so negative operands need no `--`. Without `-f`,
+  numbers have as many decimal places as FIRST and INCREMENT (after any exponent), and the
+  arithmetic is exact (`seqx 0.1 0.1 0.3` ends at `0.3`); integers that fit in 64 bits take a
+  fast path. LAST may be `inf`, and the sequence then ends quietly when its reader goes away.
+  `-w` cannot be combined with `-f`. Errors are usage errors in GNU's words: `missing operand`,
+  `extra operand 'X'`, `invalid floating point argument: 'X'`, `invalid 'not-a-number'
+  argument: 'X'`, `invalid Zero increment value: 'X'`, and for `-f`, `format 'F' has no %
+  directive`, `has too many % directives`, `has unknown %C directive` or `ends in %`.
+- **Deviations.** `-f` values are formatted from double precision rather than long double. An
+  infinite FIRST or INCREMENT is refused as an invalid floating point argument.
+- **Verified by.** `core/seq/seq_test.go`, `cmd/seqx/seqx_test.go`.
+
 ### FR-67: sleepx
 
 `sleepx` must pause for a given time, as GNU `sleep` does.
@@ -672,6 +762,57 @@ sleepx NUMBER[SUFFIX]...
   No operand, or an invalid one, is a usage error.
 - **Deviations.** None known.
 - **Verified by.** `core/sleep/sleep_test.go`, `cmd/sleepx/sleepx_test.go`.
+
+### FR-88: sortx
+
+`sortx` must sort, merge or check the lines of text files, as GNU `sort` does.
+
+```text
+sortx [OPTION]... [FILE]...
+```
+
+| Option                          | Meaning                                                                        |
+|---------------------------------|--------------------------------------------------------------------------------|
+| `-b`, `--ignore-leading-blanks` | Ignore leading blanks                                                          |
+| `-d`, `--dictionary-order`      | Consider only blanks and alphanumeric characters                               |
+| `-f`, `--ignore-case`           | Fold lower case to upper case characters                                       |
+| `-g`, `--general-numeric-sort`  | Compare according to general numerical value                                   |
+| `-i`, `--ignore-nonprinting`    | Consider only printable characters                                             |
+| `-M`, `--month-sort`            | Compare (unknown) < JAN < ... < DEC                                            |
+| `-h`, `--human-numeric-sort`    | Compare human readable numbers (2K, 1G)                                        |
+| `-n`, `--numeric-sort`          | Compare according to string numerical value                                    |
+| `-r`, `--reverse`               | Reverse the result of comparisons                                              |
+| `--sort=WORD`                   | general-numeric, human-numeric, month, numeric or version                      |
+| `-V`, `--version-sort`          | Natural sort of (version) numbers within text                                  |
+| `-c`, `--check[=WHEN]`          | Check for sorted input and report the first disorder; WHEN: diagnose-first, quiet, silent |
+| `-C`                            | Check for sorted input without reporting                                       |
+| `--files0-from=F`               | Read input from the files named, NUL-terminated, in file F; `-` is standard input |
+| `-k`, `--key=KEYDEF`            | Sort via a key, `F[.C][OPTS][,F[.C][OPTS]]`; may be repeated                   |
+| `-m`, `--merge`                 | Merge already sorted files; do not sort                                        |
+| `-o`, `--output=FILE`           | Write the result to FILE instead of standard output                            |
+| `-s`, `--stable`                | Disable the last-resort comparison                                             |
+| `-t`, `--field-separator=SEP`   | Use SEP instead of the non-blank to blank transition                           |
+| `-u`, `--unique`                | Output only the first of an equal run                                          |
+| `-z`, `--zero-terminated`       | Line delimiter is NUL, not newline                                             |
+| `-S`, `-T`, `--parallel`, `--batch-size`, `--compress-program` | Accepted and ignored                          |
+
+- **Behavior.** With no key the whole line is compared byte by byte. A key with no ordering
+  letters inherits the global options; one with letters uses only its own. Without `-t`, a field
+  is a run of blanks followed by non-blanks, so it keeps its leading blanks unless `b` is given.
+  When the keys compare equal, the whole lines are compared, unless `-s` or `-u`. `-u` keeps the
+  first line of each equal run. Ordering options that contradict each other (`-n` with `-g`,
+  `-d` with `-n`, ...) are refused with `options '-gn' are incompatible`. With `-c`, the first
+  line out of order is reported as `sortx: FILE:LINE: disorder: TEXT` and the status is 1; `-C`
+  is silent. Every input is checked to be readable before `-o` opens its file, and the file is
+  emptied only after all input is read, so `-o` may name an input. Unlike most tools, trouble
+  with any input or the output stops the run with status 2, as in GNU `sort`; a command-line
+  mistake is also status 2.
+- **Deviations.** Comparison always uses the C locale (byte order, ASCII case folding and month
+  names, `.` as the decimal point). `-S`, `-T`, `--parallel`, `--batch-size` and
+  `--compress-program` are accepted and ignored; sorting is done in memory. When `-c` and `-C`
+  are both given, `-c` wins in either order. Not implemented: `-R`, `--random-sort`,
+  `--random-source`, `--debug`.
+- **Verified by.** `core/sort/sort_test.go`, `cmd/sortx/sortx_test.go`.
 
 ### FR-68: tailx
 
@@ -703,6 +844,34 @@ tailx [OPTION]... [FILE]...
 - **Deviations.** Following is done by polling at the sleep interval. `-F` also answers to the
   long name `--follow-retry`. Not implemented: `--max-unchanged-stats`.
 - **Verified by.** `core/tail/tail_test.go`, `cmd/tailx/tailx_test.go`.
+
+### FR-92: teex
+
+`teex` must copy standard input to standard output and to each FILE, as GNU `tee` does.
+
+```text
+teex [OPTION]... [FILE]...
+```
+
+| Option                       | Meaning                                                                    |
+|------------------------------|----------------------------------------------------------------------------|
+| `-a`, `--append`             | Append to the FILEs, do not overwrite                                      |
+| `-i`, `--ignore-interrupts`  | Ignore interrupt signals (accepted, no effect; see Deviations)             |
+| `-p`                         | Same as `--output-error=warn-nopipe`                                       |
+| `--output-error[=MODE]`      | On a write error: warn, warn-nopipe (the default MODE), exit, exit-nopipe  |
+
+- **Behavior.** Each chunk read is written at once to standard output and then to every FILE,
+  in order. FILEs are created with mode 0666 masked by the umask, truncated unless `-a`. A FILE
+  named `-` is a file of that name (GNU 9). A FILE that cannot be opened is reported and the
+  rest still receive the data; the status is then 1. Without `--output-error` a failing output
+  is reported and dropped and a closed pipe stops `teex` quietly; `warn` reports every error and
+  continues, the `-nopipe` modes drop a closed pipe silently, `exit` modes stop at the first
+  reported error. Reading stops once no output is left. An invalid MODE is a usage error.
+- **Deviations.** `-i` is accepted but has no effect, because gnux runs tools in-process (also
+  inside `gnux shell` and the playground). When `-p` and `--output-error=MODE` are both given,
+  MODE wins in either order (GNU: the last one). A closed pipe in the default mode ends with
+  status 0 rather than death by SIGPIPE.
+- **Verified by.** `core/tee/tee_test.go`, `cmd/teex/teex_test.go`.
 
 ### FR-69: touchx
 
@@ -746,6 +915,65 @@ truex [ignored command line arguments]
   argument. It has no options of its own.
 - **Deviations.** None. `truex` has no engine package: the adapter is the whole tool.
 - **Verified by.** `cmd/truex/truex_test.go`.
+
+### FR-91: trx
+
+`trx` must translate, squeeze and delete bytes from standard input, as GNU `tr` does.
+
+```text
+trx [OPTION]... STRING1 [STRING2]
+```
+
+| Option                     | Meaning                                                                    |
+|----------------------------|----------------------------------------------------------------------------|
+| `-c`, `-C`, `--complement` | Use the complement of SET1                                                 |
+| `-d`, `--delete`           | Delete the bytes in SET1, do not translate                                 |
+| `-s`, `--squeeze-repeats`  | Squeeze each run of a repeated byte from the last SET given into one       |
+| `-t`, `--truncate-set1`    | First truncate SET1 to the length of SET2                                  |
+
+- **Behavior.** Reads only standard input and writes standard output. Translating needs two
+  SETs; `-d` alone takes one, `-d -s` two, `-s` one or two. SET2 is padded with its last byte
+  to the length of SET1 unless `-t`; a byte repeated in SET1 takes its last mapping. SETs
+  accept `\NNN`, `\\`, `\a` `\b` `\f` `\n` `\r` `\t` `\v`, ranges, `[:CLASS:]` (the twelve POSIX
+  classes), `[=C=]`, `[C*N]` and, in SET2 only, `[C*]`. When translating, SET2 may hold only
+  `[:upper:]`/`[:lower:]`, aligned with a case class in SET1. Wrong operand counts are usage
+  errors with GNU's second line ("Two strings must be given when translating."); an invalid
+  SET (reversed range, unknown class, misaligned case class, empty SET2) is a diagnostic with
+  status 1. A trailing backslash and an over-range octal escape draw GNU's warnings.
+- **Deviations.** None known in the options listed. Like GNU `tr`, it is byte-oriented: a
+  multibyte UTF-8 character is several bytes and the classes are the C locale's (ASCII).
+- **Verified by.** `core/tr/tr_test.go`, `cmd/trx/trx_test.go`.
+
+### FR-89: uniqx
+
+`uniqx` must report or omit repeated adjacent lines, as GNU `uniq` does.
+
+```text
+uniqx [OPTION]... [INPUT [OUTPUT]]
+```
+
+| Option                         | Meaning                                                                      |
+|--------------------------------|------------------------------------------------------------------------------|
+| `-c`, `--count`                | Prefix lines by the number of occurrences                                    |
+| `-d`, `--repeated`             | Only print duplicate lines, one for each group                               |
+| `-D`, `--all-repeated[=METHOD]`| Print all duplicate lines; METHOD: none (default), prepend, separate        |
+| `-f`, `--skip-fields=N`        | Avoid comparing the first N fields                                           |
+| `--group[=METHOD]`             | Show all lines, groups delimited; METHOD: separate (default), prepend, append, both |
+| `-i`, `--ignore-case`          | Ignore differences in case when comparing                                    |
+| `-s`, `--skip-chars=N`         | Avoid comparing the first N characters                                       |
+| `-u`, `--unique`               | Only print unique lines                                                      |
+| `-z`, `--zero-terminated`      | Line delimiter is NUL, not newline                                           |
+| `-w`, `--check-chars=N`        | Compare no more than N characters in lines                                   |
+
+- **Behavior.** Only adjacent lines are compared. The comparison skips N fields (blanks then
+  non-blanks), then N characters, then compares at most N characters. OUTPUT, when given, is
+  created or truncated; `-` for INPUT or OUTPUT is the standard stream. Every output line ends
+  with the line delimiter. `--group` cannot be combined with `-c`, `-d`, `-D` or `-u`, and
+  `-D` cannot be combined with `-c`; both are usage errors in GNU's words. METHOD arguments may
+  be abbreviated. With `-D` the comparison anchor moves to each line, as in GNU.
+- **Deviations.** Characters for `-s` and `-w` are bytes (GNU's C locale) and `-i` folds ASCII
+  letters only. Not implemented: the obsolete `-N` and `+N` forms of `-f` and `-s`.
+- **Verified by.** `core/uniq/uniq_test.go`, `cmd/uniqx/uniqx_test.go`.
 
 ### FR-71: wcx
 
@@ -930,6 +1158,18 @@ generated from.
 - **Verified by.** `TestHelpManualForEveryCommand`, `TestHelpForEveryOption`,
   `TestHelpTopicsAreShownInFull`, `TestHelpErrors`, `TestHelpHelp` in `cmd/help_test.go`;
   `TestUsesFlag`, `TestFlagLabel`, `TestColorOnlyWhenAsked` in `internal/tool/help_test.go`.
+
+### FR-95: shell completion
+
+`gnux completion SHELL` must print a tab-completion script for bash, zsh, fish and PowerShell.
+
+- **Rationale.** Completion makes the tool and option names discoverable where they are typed,
+  and package managers install it alongside the binary.
+- **Acceptance.** Each of the four shells gets a non-empty script; `gnux --help` lists the
+  `completion` command; the release archives carry the scripts in `completions/` and the
+  Homebrew cask installs them.
+- **Verified by.** `TestCompletion` in `cmd/completion_test.go`; the archive contents by
+  `make release/snapshot`.
 
 ### FR-75: unknown tools
 
@@ -1143,9 +1383,18 @@ container image.
 - **Acceptance.** `go install github.com/braswelljr/gnux@latest`; `make build` and
   `make install`; `./install.sh` with `--from-source` and `--no-links`; `docker build`.
 - **Acceptance (archives).** A pushed `v*` tag publishes a GitHub release carrying one archive
-  per supported platform and a `checksums.txt` of their SHA-256 sums.
-- **Verified by.** The Build workflow covers compilation for every platform, and the Release
-  workflow builds and publishes the archives. The install
+  per supported platform, named `gnux-<tag>-<os>-<arch>` (`.tar.gz`, `.zip` on Windows), each
+  with the tool's completion scripts, a `checksums.txt` of their SHA-256 sums and a build
+  provenance attestation.
+- **Acceptance (package managers).** The same release updates a Homebrew cask
+  (`braswelljr/homebrew-tap`), a Scoop manifest (`braswelljr/scoop-bucket`) and a winget
+  manifest (a pull request to `microsoft/winget-pkgs`), each when its token is configured.
+- **Acceptance (GitHub Actions).** `uses: braswelljr/gnux@v0` (`action.yml`) installs a release
+  on a Linux, macOS or Windows runner, verifies it against `checksums.txt` and puts gnux and
+  every tool name on `PATH`.
+- **Verified by.** The Build workflow covers compilation for every platform, the Release
+  workflow builds and publishes the archives and manifests (`make release/snapshot` builds them
+  locally), and the Action workflow runs `action.yml` on every runner OS. The install
   script, the Makefile's install targets and the Docker image are not exercised by CI; they are
   checked by review.
 

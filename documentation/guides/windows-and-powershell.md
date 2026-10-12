@@ -35,7 +35,7 @@ foreach ($t in gnux --list) { Copy-Item "$bin\gnux.exe" "$bin\$t.exe" -Force }
 rmx --version
 ```
 
-Costs 22 times the binary's size on disk. Rerun the loop after every upgrade.
+Costs 29 times the binary's size on disk. Rerun the loop after every upgrade.
 
 ### Hard links (no privilege needed, no extra space)
 

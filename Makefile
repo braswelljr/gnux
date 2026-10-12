@@ -28,12 +28,31 @@ build: ## Build the gnux binary for the host platform into bin/
 
 .PHONY: build/all
 build/all: export CGO_ENABLED = 0
-build/all: ## Cross-compile for linux/darwin/windows (amd64+arm64), statically
-	GOOS=linux   GOARCH=amd64 go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-linux-amd64 .
-	GOOS=linux   GOARCH=arm64 go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-linux-arm64 .
-	GOOS=darwin  GOARCH=amd64 go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-darwin-amd64 .
-	GOOS=darwin  GOARCH=arm64 go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-darwin-arm64 .
-	GOOS=windows GOARCH=amd64 go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-windows-amd64.exe .
+build/all: ## Cross-compile every release platform, statically, into bin/
+	GOOS=linux   GOARCH=amd64   go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-linux-amd64 .
+	GOOS=linux   GOARCH=arm64   go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-linux-arm64 .
+	GOOS=linux   GOARCH=riscv64 go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-linux-riscv64 .
+	GOOS=darwin  GOARCH=amd64   go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-darwin-amd64 .
+	GOOS=darwin  GOARCH=arm64   go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-darwin-arm64 .
+	GOOS=freebsd GOARCH=amd64   go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-freebsd-amd64 .
+	GOOS=freebsd GOARCH=arm64   go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-freebsd-arm64 .
+	GOOS=windows GOARCH=amd64   go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-windows-amd64.exe .
+	GOOS=windows GOARCH=arm64   go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-windows-arm64.exe .
+
+.PHONY: release/check
+release/check: ## Validate .goreleaser.yaml
+	goreleaser check
+
+.PHONY: release/snapshot
+release/snapshot: ## Build every release archive into dist/ without publishing
+	goreleaser release --snapshot --clean --skip=publish
+
+.PHONY: completions
+completions: ## Write bash/zsh/fish/PowerShell completion scripts into completions/
+	@mkdir -p completions
+	@for s in bash zsh fish; do go run . completion $$s > completions/gnux.$$s; done
+	@go run . completion powershell > completions/gnux.ps1
+	@echo "wrote completions/gnux.{bash,zsh,fish,ps1}"
 
 .PHONY: links
 links: build ## Link every tool name (rmx, cpx, ...) to bin/gnux

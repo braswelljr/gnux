@@ -1,0 +1,47 @@
+---
+title: "-a, --append"
+description: "Append to the given FILEs, do not overwrite."
+---
+
+An option of [teex](/docs/tools/teex).
+
+## Usage
+
+```bash
+teex -a [FILE]...
+teex --append [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-a` | `--append` | none |  | append to the given FILEs, do not overwrite |
+
+## Examples
+
+Append to a log instead of overwriting it:
+
+```bash
+echox 'build started' | teex -a build.log
+```
+
+```powershell
+'build started' | teex -a build.log
+```
+
+Log a script's steps in the portable `gnux shell`:
+
+```bash
+gnux shell -c 'lsx -1 | teex -a files.log | wcx -l'
+```
+
+```powershell
+gnux shell -c 'lsx -1 | teex -a files.log | wcx -l'
+```
+
+## Help in the terminal
+
+```bash
+gnux help teex --append
+```
