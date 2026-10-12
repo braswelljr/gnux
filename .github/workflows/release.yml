@@ -135,7 +135,7 @@ jobs:
           WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-checksums: dist/checksums.txt
 
