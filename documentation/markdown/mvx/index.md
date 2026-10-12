@@ -10,6 +10,11 @@ Mirrors GNU `mv`. Run it as `mvx`, or as `gnux mvx`.
 mvx [OPTION]... SOURCE... DIRECTORY
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: mv invocation](https://www.gnu.org/software/coreutils/manual/html_node/mv-invocation.html)
+- [Source: src/mv.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/mv.c)
+
 ### Description
 
 `mvx` renames SOURCE to DEST, or moves several SOURCEs into DIRECTORY (also selectable with `-t`; `-T` forces the two-operand form). Within one filesystem a move is an atomic rename. Across filesystems `mvx` copies the source with all of its attributes, symbolic links and hard links intact and removes the original only after the copy has fully succeeded. An existing destination is replaced unless `-n` (never), `-u` (only when the source is newer) or `-i` (ask first) says otherwise; a directory is never moved into itself, and a directory only replaces an empty directory. GNU `mv` lets the last of `-f`, `-i` and `-n` win; `mvx` cannot see option order, so it prefers the most cautious instead: `-n` over `-i` over `-f`.

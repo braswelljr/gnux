@@ -8,7 +8,7 @@ When removing a hierarchy recursively, `--one-file-system` skips any subdirector
 
 ### Permissions
 
-The flag compares device IDs (via stat) and needs no extra permissions beyond those recursive removal already requires. Skipped mount points are reported on stderr and are not treated as errors.
+The flag compares device IDs (via `stat`) and needs no extra permissions beyond those recursive removal already requires. Skipped mount points are reported on stderr and are not treated as errors.
 
 ### Use cases
 

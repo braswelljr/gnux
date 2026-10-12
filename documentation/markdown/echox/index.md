@@ -10,6 +10,11 @@ Mirrors GNU `echo`. Run it as `echox`, or as `gnux echox`.
 echox [SHORT-OPTION]... [STRING]...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: echo invocation](https://www.gnu.org/software/coreutils/manual/html_node/echo-invocation.html)
+- [Source: src/echo.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/echo.c)
+
 ### Description
 
 `echox` writes each STRING to standard output, separated by single spaces and followed by a newline. `-n` omits the trailing newline, `-e` enables interpretation of backslash escapes (\\, \a, \b, \c, \e, \f, \n, \r, \t, \v, \0NNN, \xHH) and `-E` (the default) disables it; \c stops all further output, the newline included. As in GNU echo, options are recognized only as leading arguments made up solely of those letters (`-n`, `-ne`, `-En`, ...): the first argument that is anything else, such as `-x` or --, ends option parsing and is printed literally. `--help` and `--version` are honored only when they are the sole argument.
@@ -24,7 +29,7 @@ Needs no filesystem permissions; it only writes to standard output.
 - Emitting text without a trailing newline with `-n`, for prompts or piping.
 - Producing tabs, newlines or arbitrary bytes with `-e`, identically on every platform.
 - Creating or appending to small files with redirection, such as config stubs or notes.
-- Feeding a known string into another tool (`wcx`, `headx`, `catx`) to test or demonstrate it.
+- Feeding a known string into another tool (`wcx`, `headx`, `catx`) to `test` or demonstrate it.
 - Reporting the result of a previous command, such as its exit status.
 - Printing text that starts with a dash or contains backslashes verbatim, which is awkward with the shell's own echo.
 - Writing the same output in bash, PowerShell and the `gnux shell`, where built-in echo commands differ.

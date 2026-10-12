@@ -16,17 +16,17 @@ realpathx --strip FILE...
 
 | Short | Long | Value | Default | Meaning |
 | --- | --- | --- | --- | --- |
-| `-s` | `--strip` | none |  | don't expand symlinks |
+| `-s` | `--strip` | none |  | don't `expand` symlinks |
 
 ## Examples
 
-Clean up a path without expanding symbolic links:
+### Clean up a path without expanding symbolic links
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx -s bin/tool
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx -s bin\tool
 ```
 

@@ -88,9 +88,15 @@ gnux/
 
 ## Tools
 
-`basenamex`, `catx`, `cpx`, `cutx`, `dirnamex`, `echox`, `envx`, `falsex`, `headx`, `lnx`, `lsx`,
-`mkdirx`, `mvx`, `printfx`, `pwdx`, `realpathx`, `rmdirx`, `rmx`, `seqx`, `sleepx`, `sortx`,
-`tailx`, `teex`, `touchx`, `truex`, `trx`, `uniqx`, `wcx`, `yesx`. The README's roadmap lists what is not implemented yet.
+`b2sumx`, `base32x`, `base64x`, `basenamex`, `catx`, `chgrpx`, `chmodx`, `chownx`, `cksumx`,
+`commx`, `cpx`, `csplitx`, `cutx`, `datex`, `ddx`, `dfx`, `dirnamex`, `dux`, `echox`, `envx`,
+`expandx`, `exprx`, `falsex`, `fmtx`, `foldx`, `headx`, `hostnamex`, `idx`, `installx`, `joinx`,
+`killx`, `linkx`, `lnx`, `lsx`, `md5sumx`, `mkdirx`, `mktempx`, `mvx`, `nicex`, `nlx`, `nohupx`,
+`nprocx`, `odx`, `pastex`, `printenvx`, `printfx`, `pwdx`, `readlinkx`, `realpathx`, `rmdirx`,
+`rmx`, `seqx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `shufx`,
+`sleepx`, `sortx`, `splitx`, `statx`, `tacx`, `tailx`, `teex`, `testx`, `timeoutx`, `touchx`,
+`truex`, `truncatex`, `trx`, `ttyx`, `unamex`, `unexpandx`, `uniqx`, `unlinkx`, `uptimex`, `wcx`,
+`whoamix`, `whox`, `yesx`. The README's roadmap lists what is not implemented yet.
 
 ## Development Commands
 
@@ -138,6 +144,8 @@ These are mirrored for users in the README's Requirements section and the guide'
 - **Go 1.25** - module path `github.com/braswelljr/gnux`
 - **Cobra / pflag** - CLI framework; `cobra/doc` for reference generation
 - **mattn/go-isatty** - terminal detection
+- **golang.org/x/sys** - Windows and BSD system calls the standard library lacks (statfs,
+  sysctl, priority classes, sessions); **golang.org/x/crypto** - BLAKE2b for `b2sumx`
 - **syscall** - permission, device and stat details; always build-tagged
 - Tests use the standard library only (`testing`, `t.TempDir()`, injected funcs)
 

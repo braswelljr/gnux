@@ -10,13 +10,18 @@ Mirrors GNU `touch`. Run it as `touchx`, or as `gnux touchx`.
 touchx [OPTION]... FILE...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: touch invocation](https://www.gnu.org/software/coreutils/manual/html_node/touch-invocation.html)
+- [Source: src/touch.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/touch.c)
+
 ### Description
 
-`touchx` sets the access and modification times of each FILE to the current time, creating an empty file for any FILE that does not exist unless `-c` is given. An existing file's contents are never changed. `-a` and `-m` (or `--time`) restrict the update to one of the two timestamps and leave the other exactly as it was. The time to apply can come from somewhere other than the clock: `-d` takes a date string (2024-01-02, '2024-01-02 15:04:05', an RFC 3339 timestamp, @SECONDS since the epoch, or now), `-t` takes a [[CC]YY]MMDDhhmm[.ss] stamp, and `-r` copies the times of another file. `-h` acts on a symbolic link itself rather than the file it points to.
+`touchx` sets the access and modification times of each FILE to the current time, creating an empty file for any FILE that does not exist unless `-c` is given. An existing file's contents are never changed. `-a` and `-m` (or `--time`) restrict the update to one of the two timestamps and leave the other exactly as it was. The time to apply can come from somewhere other than the clock: `-d` takes a `date` string (2024-01-02, '2024-01-02 15:04:05', an RFC 3339 timestamp, @SECONDS since the epoch, or now), `-t` takes a [[CC]YY]MMDDhhmm[.ss] stamp, and `-r` copies the times of another file. `-h` acts on a symbolic `link` itself rather than the file it points to.
 
 ### Permissions
 
-Setting a file's times to the current time needs write permission on it; setting them to any other time (`-d`, `-t`, `-r`) needs ownership of the file. Creating a missing file needs write and search permission on its directory. Changing the times of a symbolic link itself (`-h`) is only possible on Linux; elsewhere `touchx` reports the link rather than silently touching its target.
+Setting a file's times to the current time needs write permission on it; setting them to any other time (`-d`, `-t`, `-r`) needs ownership of the file. Creating a missing file needs write and search permission on its directory. Changing the times of a symbolic `link` itself (`-h`) is only possible on Linux; elsewhere `touchx` reports the `link` rather than silently touching its target.
 
 ### Use cases
 
@@ -26,7 +31,7 @@ Setting a file's times to the current time needs write permission on it; setting
 - Copying timestamps from one file to another with `-r`.
 - Refreshing the timestamps of existing files only, without creating strays, with `-c`.
 - Recording when a step ran by touching a marker file that later steps compare against.
-- Backdating a file with `-d` or `-t` to test retention or cleanup rules.
+- Backdating a file with `-d` or `-t` to `test` retention or cleanup rules.
 - Changing only the access time (`-a`) or only the modification time (`-m`).
 
 ### Flags
@@ -76,7 +81,7 @@ touchx -c build/*.o
 touchx -c (Get-ChildItem build\*.o)
 ```
 
-Set only the modification time to a specific date:
+Set only the modification time to a specific `date`:
 
 ```bash
 touchx -m -d '2024-01-02 15:04:05' report.pdf
@@ -156,7 +161,7 @@ touchx -c -m -r original.jpg edited.jpg report.pdf
 touchx -c -m -r original.jpg edited.jpg report.pdf
 ```
 
-Stamp all sources with one fixed date for a reproducible archive:
+Stamp all sources with one fixed `date` for a reproducible archive:
 
 ```bash
 touchx -d 2024-01-01 src/*.go
@@ -166,7 +171,7 @@ touchx -d 2024-01-01 src/*.go
 touchx -d 2024-01-01 (Get-ChildItem src\*.go)
 ```
 
-Change the times of a symbolic link itself, not its target (Linux only):
+Change the times of a symbolic `link` itself, not its target (Linux only):
 
 ```bash
 touchx -h -d 2024-01-01 link.txt

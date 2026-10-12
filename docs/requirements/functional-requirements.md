@@ -1,7 +1,7 @@
 # Functional Requirements
 
 Functional requirements define what gnux must do: the behavior every tool shares, the options
-each of the 29 tools must support, the safeguards on destructive operations, how a tool is
+each of the 81 tools must support, the safeguards on destructive operations, how a tool is
 invoked, the portable shell, the Go library, installation, the generated documentation, the
 website, the playground and its discoverability. Each requirement has a stable identifier
 (`FR-n`), a rationale, acceptance criteria and the check that verifies it.
@@ -18,7 +18,8 @@ reason not to, **may** is optional.
 
 - **Identifiers are stable, not sequential.** `FR-1` to `FR-50` come from the first draft of
   this register and keep their numbers. `FR-51` to `FR-72` are the first 22 tools, in alphabetical
-  order, and `FR-88` to `FR-94` the text tools added after them. `FR-73` onward are the other
+  order, `FR-88` to `FR-94` the text tools added after them, and `FR-96` to `FR-147` the
+  remaining coreutils tools, in alphabetical order. `FR-73` onward are the other
   requirements added since. The document is ordered by area, so the
   numbers do not run in order down the page.
 - **"Verified by" names something that exists.** A test file, a CI workflow, or the word
@@ -189,6 +190,89 @@ Several GNU options exist only as a single letter. The command-line framework re
 name for every option, so those letters also answer to a long name of gnux's own, which is
 shown in the tables and noted as a deviation.
 
+### FR-96: b2sumx
+
+`b2sumx` must print or check BLAKE2b (RFC 7693) (512-bit) checksums, as GNU `b2sum` does.
+
+```text
+b2sumx [OPTION]... [FILE]...
+```
+
+| Option             | Meaning |
+|--------------------|---------|
+| `-b`, `--binary`   | Read in binary mode |
+| `-c`, `--check`    | Read checksums from the FILEs and check them |
+| `--ignore-missing` | Don't fail or report status for missing files |
+| `-l`, `--length`   | Digest length in bits; must not exceed the maximum for the blake2 algorithm and must be a multiple of 8 |
+| `--quiet`          | Don't print OK for each successfully verified file |
+| `--status`         | Don't output anything, status code shows success |
+| `--strict`         | Exit non-zero for improperly formatted checksum lines |
+| `--tag`            | Create a BSD-style checksum |
+| `-t`, `--text`     | Read in text mode (default) |
+| `-w`, `--warn`     | Warn about improperly formatted checksum lines |
+| `-z`, `--zero`     | End each output line with NUL, not newline, and disable file name escaping |
+
+- **Behavior.** b2sumx prints or checks BLAKE2b (RFC 7693) message digests (512 bits). For each
+  FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode,
+  '*' with -b), and the file name. With no FILE, or when FILE is -, it reads standard input. Files
+  are always read as bytes, so -b and -t change only the mark; when both are given, -t wins. --tag
+  prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a
+  backslash, newline or carriage return is escaped and its line starts with a backslash, unless -z
+  ends lines with NUL instead. -c reads such lines (in either style) from the FILEs and checks
+  each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches,
+  unreadable files and improperly formatted lines; --quiet drops the OK lines, --status prints
+  nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly
+  formatted line and --strict fails because of them. The exit status is 0 when everything was read
+  (and, with -c, matched), 1 otherwise. -l BITS shortens the digest to BITS bits, a multiple of 8
+  up to 512; tagged lines then name the length ('BLAKE2b-256').
+- **Verified by.** `core/b2sum/b2sum_test.go`, `cmd/b2sumx/b2sumx_test.go`.
+
+### FR-97: base32x
+
+`base32x` must base32 encode or decode FILE, or standard input, to standard output, as GNU `base32` does.
+
+```text
+base32x [OPTION]... [FILE]
+```
+
+| Option                   | Meaning |
+|--------------------------|---------|
+| `-d`, `--decode`         | Decode data |
+| `-i`, `--ignore-garbage` | When decoding, ignore non-alphabet characters |
+| `-w`, `--wrap`           | Wrap encoded lines after COLS character (default 76); use 0 to disable line wrapping |
+
+- **Behavior.** base32x encodes FILE in base32 (RFC 4648, with padding) and writes the result to
+  standard output, or with -d decodes it. With no FILE, or when FILE is -, it reads standard
+  input; at most one FILE is accepted. Encoded output is wrapped every 76 characters and ends with
+  a newline; -w COLS wraps at COLS instead, and -w 0 writes one line with no newline at all. When
+  decoding, newlines are ignored, and -i also ignores every other character outside the alphabet;
+  any other stray character, or a truncated input, stops decoding with 'invalid input' and exit
+  status 1, after the data decoded so far has been written.
+- **Verified by.** `core/base32/base32_test.go`, `cmd/base32x/base32x_test.go`.
+
+### FR-98: base64x
+
+`base64x` must base64 encode or decode FILE, or standard input, to standard output, as GNU `base64` does.
+
+```text
+base64x [OPTION]... [FILE]
+```
+
+| Option                   | Meaning |
+|--------------------------|---------|
+| `-d`, `--decode`         | Decode data |
+| `-i`, `--ignore-garbage` | When decoding, ignore non-alphabet characters |
+| `-w`, `--wrap`           | Wrap encoded lines after COLS character (default 76); use 0 to disable line wrapping |
+
+- **Behavior.** base64x encodes FILE in base64 (RFC 4648, with padding) and writes the result to
+  standard output, or with -d decodes it. With no FILE, or when FILE is -, it reads standard
+  input; at most one FILE is accepted. Encoded output is wrapped every 76 characters and ends with
+  a newline; -w COLS wraps at COLS instead, and -w 0 writes one line with no newline at all. When
+  decoding, newlines are ignored, and -i also ignores every other character outside the alphabet;
+  any other stray character, or a truncated input, stops decoding with 'invalid input' and exit
+  status 1, after the data decoded so far has been written.
+- **Verified by.** `core/base64/base64_test.go`, `cmd/base64x/base64x_test.go`.
+
 ### FR-51: basenamex
 
 `basenamex` must strip the directory and, optionally, a suffix from file names, as GNU
@@ -238,6 +322,198 @@ catx [OPTION]... [FILE]...
   `--show-nonprinting-tabs` and `--unbuffered`, which GNU does not have.
 - **Verified by.** `core/cat/cat_test.go`, `cmd/catx/catx_test.go`.
 
+### FR-99: chgrpx
+
+`chgrpx` must change group ownership, as GNU `chgrp` does.
+
+```text
+chgrpx [OPTION]... GROUP FILE...
+```
+
+| Option                     | Meaning |
+|----------------------------|---------|
+| `-c`, `--changes`          | Like verbose but report only when a change is made |
+| `--dereference`            | Affect the referent of each symbolic link (this is the default), rather than the symbolic link itself |
+| `-L`, `--dereference-all`  | With -R, traverse every symbolic link to a directory encountered |
+| `-H`, `--dereference-args` | With -R, follow symbolic links to directories given on the command line |
+| `-h`, `--no-dereference`   | Affect symbolic links instead of any referenced file |
+| `--no-preserve-root`       | Do not treat '/' specially |
+| `-P`, `--physical`         | With -R, do not traverse any symbolic links (default) |
+| `--preserve-root`          | Fail to operate recursively on '/' (the default) |
+| `--quiet`                  | Same as --silent |
+| `-R`, `--recursive`        | Operate on files and directories recursively |
+| `--reference`              | Use RFILE's group rather than specifying a GROUP value |
+| `-f`, `--silent`           | Suppress most error messages |
+| `-v`, `--verbose`          | Output a diagnostic for every file processed |
+
+- **Behavior.** chgrpx changes the group of each FILE to GROUP, a group name or numeric ID. An
+  empty GROUP changes nothing but still checks that each FILE exists. --reference=RFILE takes the
+  group from RFILE instead, and then every operand is a FILE. A symbolic link given as a FILE is
+  followed, and its referent changed, unless -h is given; when both -h and --dereference are
+  given, -h wins. -R changes directory trees, following no symbolic link by default (-P); -H
+  follows the ones given on the command line and -L every one, and when several are given the most
+  cautious wins (-P, then -H, then -L). -c reports each change, -v every file, and -f suppresses
+  most error messages. Unlike GNU chgrp, which leaves the safeguard off unless --preserve-root is
+  given, chgrpx refuses to work recursively on '/' unless --no-preserve-root is given; when both
+  are given, --preserve-root wins. On Windows, which has no Unix groups, every change fails with
+  'Operation not supported'.
+- **Verified by.** `core/chgrp/chgrp_test.go`, `cmd/chgrpx/chgrpx_test.go`.
+
+### FR-100: chmodx
+
+`chmodx` must change file mode bits, as GNU `chmod` does.
+
+```text
+chmodx [OPTION]... MODE[,MODE]... FILE...
+```
+
+| Option                     | Meaning |
+|----------------------------|---------|
+| `-c`, `--changes`          | Like verbose but report only when a change is made |
+| `-L`, `--dereference-all`  | With -R, follow every symbolic link to a directory |
+| `-H`, `--dereference-args` | With -R, follow symbolic links given on the command line (the default) |
+| `-P`, `--no-dereference`   | With -R, do not follow any symbolic links |
+| `--no-preserve-root`       | Do not treat '/' specially |
+| `--preserve-root`          | Fail to operate recursively on '/' (the default) |
+| `--quiet`                  | Same as --silent |
+| `-R`, `--recursive`        | Change files and directories recursively |
+| `--reference`              | Use RFILE's mode instead of specifying MODE values |
+| `-f`, `--silent`           | Suppress most error messages |
+| `-v`, `--verbose`          | Output a diagnostic for every file processed |
+
+- **Behavior.** chmodx changes the permission bits of each FILE to MODE, which is either an octal
+  number (755, 0644, 4755) or a comma-separated list of symbolic changes. Each change names who
+  (u, g, o or a for user, group, others or all), an operator (+ adds, - removes, = sets exactly)
+  and permissions: r, w, x, X (execute only on directories and on files already executable by
+  someone), s (setuid/setgid) and t (sticky), or u, g or o to copy another class's bits. A
+  symbolic change without a who honors the umask. --reference=RFILE copies RFILE's mode instead,
+  and then every operand is a FILE. -R changes directory trees; -H (the default) follows symbolic
+  links given on the command line, -L follows every symbolic link and -P none, and when several
+  are given the most cautious wins (-P, then -H, then -L). Symbolic links met while recursing are
+  never changed. -c reports each change, -v every file, and -f suppresses most error messages. A
+  mode may also be written as an option, as in 'chmodx -w FILE'; several such options combine as
+  if joined with commas, and then, as in GNU, a file left with bits the mode would have cleared
+  but for the umask is reported ('new permissions are ..., not ...') and counts as a failure.
+  Unlike GNU chmod, which leaves the safeguard off unless --preserve-root is given, chmodx refuses
+  to work recursively on '/' unless --no-preserve-root is given; when both are given,
+  --preserve-root wins. GNU chmod 9.6's -h and --dereference are not implemented. On Windows only
+  the owner's write bit maps onto the file system (the read-only attribute), so the other bits are
+  accepted but have no effect.
+- **Verified by.** `core/chmod/chmod_test.go`, `cmd/chmodx/chmodx_test.go`.
+
+### FR-101: chownx
+
+`chownx` must change file owner and group, as GNU `chown` does.
+
+```text
+chownx [OPTION]... [OWNER][:[GROUP]] FILE...
+```
+
+| Option                     | Meaning |
+|----------------------------|---------|
+| `-c`, `--changes`          | Like verbose but report only when a change is made |
+| `--dereference`            | Affect the referent of each symbolic link (this is the default), rather than the symbolic link itself |
+| `-L`, `--dereference-all`  | With -R, traverse every symbolic link to a directory encountered |
+| `-H`, `--dereference-args` | With -R, follow symbolic links to directories given on the command line |
+| `--from`                   | Change the ownership of each file only if its current owner and/or group match those specified here; either may be omitted (CURRENT_OWNER:CURRENT_GROUP) |
+| `-h`, `--no-dereference`   | Affect symbolic links instead of any referenced file |
+| `--no-preserve-root`       | Do not treat '/' specially |
+| `-P`, `--physical`         | With -R, do not traverse any symbolic links (default) |
+| `--preserve-root`          | Fail to operate recursively on '/' (the default) |
+| `--quiet`                  | Same as --silent |
+| `-R`, `--recursive`        | Operate on files and directories recursively |
+| `--reference`              | Use RFILE's ownership rather than specifying values |
+| `-f`, `--silent`           | Suppress most error messages |
+| `-v`, `--verbose`          | Output a diagnostic for every file processed |
+
+- **Behavior.** chownx changes the owner and/or group of each FILE. OWNER and GROUP are names or
+  numeric IDs: 'OWNER' changes the owner only, 'OWNER:GROUP' both, 'OWNER:' the owner and the
+  group to OWNER's login group, and ':GROUP' the group only; an empty spec changes nothing but
+  still checks that each FILE exists. --reference=RFILE takes the owner and group from RFILE
+  instead, and then every operand is a FILE. --from=CURRENT_OWNER:CURRENT_GROUP changes only the
+  files currently owned as stated (either part may be omitted). A symbolic link given as a FILE is
+  followed, and its referent changed, unless -h is given; when both -h and --dereference are
+  given, -h wins. -R changes directory trees, following no symbolic link by default (-P); -H
+  follows the ones given on the command line and -L every one, and when several are given the most
+  cautious wins (-P, then -H, then -L). -c reports each change, -v every file, and -f suppresses
+  most error messages. Unlike GNU chown, which leaves the safeguard off unless --preserve-root is
+  given, chownx refuses to work recursively on '/' unless --no-preserve-root is given; when both
+  are given, --preserve-root wins. On Windows, which has no Unix owners, every change fails with
+  'Operation not supported'.
+- **Verified by.** `core/chown/chown_test.go`, `cmd/chownx/chownx_test.go`.
+
+### FR-102: cksumx
+
+`cksumx` must print or check checksums and byte counts, as GNU `cksum` does.
+
+```text
+cksumx [OPTION]... [FILE]...
+```
+
+| Option              | Meaning |
+|---------------------|---------|
+| `-a`, `--algorithm` | Select the digest TYPE to use: sysv, bsd, crc, crc32b, md5, sha1, sha224, sha256, sha384, sha512, blake2b |
+| `--base64`          | Emit base64-encoded digests, not hexadecimal |
+| `-c`, `--check`     | Read checksums from the FILEs and check them |
+| `--ignore-missing`  | Don't fail or report status for missing files |
+| `-l`, `--length`    | Digest length in bits; must not exceed the maximum for the blake2 algorithm and must be a multiple of 8 |
+| `--quiet`           | Don't print OK for each successfully verified file |
+| `--raw`             | Emit a raw binary digest, not hexadecimal |
+| `--status`          | Don't output anything, status code shows success |
+| `--strict`          | Exit non-zero for improperly formatted checksum lines |
+| `--tag`             | Create a BSD-style checksum (the default) |
+| `--untagged`        | Create a reversed style checksum, without digest type |
+| `-w`, `--warn`      | Warn about improperly formatted checksum lines |
+| `-z`, `--zero`      | End each output line with NUL, not newline, and disable file name escaping |
+
+- **Behavior.** cksumx prints a checksum and the byte count of each FILE. With no FILE, or when
+  FILE is -, it reads standard input (and, with no FILE at all, prints no name). By default it
+  computes the POSIX CRC (the 'crc' algorithm), as plain cksum always has. -a ALGORITHM picks
+  another: sysv and bsd (the legacy sum checksums, with a block count rather than a byte count),
+  crc32b (the CRC-32 of zlib and gzip), or the message digests md5, sha1, sha224, sha256, sha384,
+  sha512 and blake2b. Digests are printed as BSD-style tagged lines ('SHA256 (FILE) = DIGEST');
+  --untagged prints them in the md5sumx style instead, and when both --tag and --untagged are
+  given, --tag wins. --base64 prints digests in base64, --raw writes the bare binary checksum of a
+  single input, -l BITS shortens a blake2b digest, and -z ends lines with NUL. -c checks the files
+  listed in tagged or untagged digest lines, detecting the algorithm from each tagged line when -a
+  is not given, with --ignore-missing, --quiet, --status, --strict and -w as in md5sumx. The
+  legacy algorithms cannot be checked.
+- **Verified by.** `core/cksum/cksum_test.go`, `cmd/cksumx/cksumx_test.go`.
+
+### FR-103: commx
+
+`commx` must compare two sorted files line by line, as GNU `comm` does.
+
+```text
+commx [OPTION]... FILE1 FILE2
+```
+
+| Option                    | Meaning |
+|---------------------------|---------|
+| `--check-order`           | Check that the input is correctly sorted, even if all input lines are pairable |
+| `--nocheck-order`         | Do not check that the input is correctly sorted |
+| `--output-delimiter`      | Separate columns with STR |
+| `-3`, `--suppress-common` | Suppress column 3 (lines that appear in both files) |
+| `-1`, `--suppress-file1`  | Suppress column 1 (lines unique to FILE1) |
+| `-2`, `--suppress-file2`  | Suppress column 2 (lines unique to FILE2) |
+| `--total`                 | Output a summary |
+| `-z`, `--zero-terminated` | Line delimiter is NUL, not newline |
+
+- **Behavior.** commx compares two sorted files, FILE1 and FILE2, line by line. With no options it
+  prints three columns: lines only in FILE1, lines only in FILE2, and lines in both, each column
+  indented by one more TAB than the one before. -1, -2 and -3 suppress the matching column, so -12
+  prints the common lines and -23 the lines only in FILE1. Either FILE may be - for standard
+  input. Both files must be sorted: by default commx warns once per file when it finds a line out
+  of order after a line that appears in only one file, and then exits with status 1; --check-order
+  fails at the first line out of order, and --nocheck-order never checks. --output-delimiter=STR
+  separates the columns with STR (an empty STR writes a NUL byte), --total adds a final line with
+  the three counts and the word 'total', and -z makes NUL the line delimiter. Lines are compared
+  byte by byte, as in the C locale, whatever LANG says, so sort the inputs with sortx (or LC_ALL=C
+  sort). The framework requires a long name for every option, so -1, -2 and -3 also answer to
+  gnux's own --suppress-file1, --suppress-file2 and --suppress-common. When both --check-order and
+  --nocheck-order are given, --check-order wins.
+- **Verified by.** `core/comm/comm_test.go`, `cmd/commx/commx_test.go`.
+
 ### FR-53: cpx
 
 `cpx` must copy files and directories, as GNU `cp` does.
@@ -285,6 +561,41 @@ cpx [OPTION]... SOURCE... DIRECTORY
   `--debug`.
 - **Verified by.** `core/cp/cp_test.go`, `cmd/cpx/cpx_test.go`.
 
+### FR-104: csplitx
+
+`csplitx` must split a file into sections determined by context lines, as GNU `csplit` does.
+
+```text
+csplitx [OPTION]... FILE PATTERN...
+```
+
+| Option                      | Meaning |
+|-----------------------------|---------|
+| `-n`, `--digits`            | Use specified number of digits instead of 2 |
+| `-z`, `--elide-empty-files` | Suppress generation of empty output files |
+| `-k`, `--keep-files`        | Do not remove output files on errors |
+| `-f`, `--prefix`            | Use PREFIX instead of 'xx' |
+| `-s`, `--quiet`             | Do not print counts of output file sizes |
+| `-q`, `--silent`            | Same as --quiet |
+| `-b`, `--suffix-format`     | Use sprintf FORMAT instead of %02d |
+| `--suppress-matched`        | Suppress the lines matching PATTERN |
+
+- **Behavior.** csplitx copies FILE (- for standard input) into files xx00, xx01, ..., starting a
+  new file at each PATTERN, and prints the size in bytes of each file it makes. A PATTERN is a
+  line number N (the next file starts at line N), /REGEXP/ (the next file starts at the next line
+  matching the POSIX basic regular expression REGEXP), or %REGEXP% (the lines up to that match are
+  skipped, not written). A regular expression may be followed by an offset, +N or -N, that moves
+  the split that many lines after or before the matching line. A pattern followed by {N} is
+  repeated N more times, and by {*} as many times as it matches; a line number repeated advances
+  by its own value each time. The lines after the last split go to a final file. -f PREFIX
+  replaces xx, -n N uses N digits, and -b FORMAT names the files with a printf format holding one
+  integer conversion (%02d.txt, %03x). -s (or -q) does not print the sizes, -z removes empty files
+  (and reuses their number), and --suppress-matched leaves the matching lines out. If a pattern
+  cannot be satisfied (a line number past the end, a regular expression that never matches),
+  csplitx reports it and removes every file it made, so a failed run leaves nothing half-done
+  behind; -k keeps them. Lines are compared as bytes.
+- **Verified by.** `core/csplit/csplit_test.go`, `cmd/csplitx/csplitx_test.go`.
+
 ### FR-90: cutx
 
 `cutx` must print selected parts of each line, as GNU `cut` does.
@@ -317,6 +628,124 @@ cutx OPTION... [FILE]...
   last instead of refusing.
 - **Verified by.** `core/cut/cut_test.go`, `cmd/cutx/cutx_test.go`.
 
+### FR-105: datex
+
+`datex` must print the date and time, as GNU `date` does.
+
+```text
+datex [OPTION]... [+FORMAT]
+```
+
+| Option              | Meaning |
+|---------------------|---------|
+| `-d`, `--date`      | Display time described by STRING, not 'now' |
+| `-f`, `--file`      | Like --date; once for each line of DATEFILE |
+| `-I`, `--iso-8601`  | Output date/time in ISO 8601 format. FMT='date' for date only (the default), 'hours', 'minutes', 'seconds', or 'ns' |
+| `-r`, `--reference` | Display the last modification time of FILE |
+| `--rfc-3339`        | Output date/time in RFC 3339 format. FMT='date', 'seconds', or 'ns' |
+| `-R`, `--rfc-email` | Output date and time in RFC 5322 format |
+| `-s`, `--set`       | Set time described by STRING (not supported) |
+| `--universal`       | Same as --utc |
+| `-u`, `--utc`       | Print or set Coordinated Universal Time (UTC) |
+
+- **Behavior.** datex prints the current date and time, or the one -d STRING describes, in the C
+  locale's default format ('Mon Jan 2 15:04:05 UTC 2006') or in +FORMAT. FORMAT takes GNU's
+  conversions: %Y %m %d %H %M %S and friends, %a %A %b %B %p (in English), %s (seconds since the
+  epoch), %N (nanoseconds), %z %:z %::z %:::z and %Z (zones), %j %U %W %V %G %u %w (day and week
+  numbers), %F %T %D %R %r %c %x %X %h %e %k %l %C %y %g %n %t %%, and the flags -, _, 0, ^ and #
+  with a field width (%-d, %_H, %10s). -I[FMT] prints ISO 8601 (date, hours, minutes, seconds or
+  ns; date by default), --rfc-3339=FMT RFC 3339 (date, seconds or ns) and -R RFC 5322; only one
+  output format may be given. -u uses UTC, and otherwise the TZ environment variable or the local
+  zone applies. -d STRING accepts the forms GNU date accepts most often: 'now', 'today',
+  'yesterday', 'tomorrow', '@SECONDS', ISO 8601 and RFC 3339 dates and times, MM/DD/YYYY, 'Jan 2
+  2006', '2 Jan 2006', times of day (14:30, 2:30pm, noon, midnight) with UTC, Z or a numeric
+  offset, weekdays ('next friday', 'last monday') and relative items ('3 days ago', '+2 hours',
+  'next month', 'fortnight'), combined as in '2026-01-31 +1 month' or 'tomorrow 09:00'. Anything
+  else is reported as an invalid date, where GNU's grammar is larger still. -f FILE prints one
+  date per line of FILE (- for standard input) and -r FILE the last modification time of FILE.
+  gnux never changes system settings, so -s and a MMDDhhmm[[CC]YY][.ss] operand fail with 'cannot
+  set date: Operation not supported'. --debug and --resolution are not implemented.
+- **Verified by.** `core/date/date_test.go`, `cmd/datex/datex_test.go`.
+
+### FR-106: ddx
+
+`ddx` must convert and copy a file, block by block, as GNU `dd` does.
+
+```text
+ddx [OPERAND]...
+```
+
+`ddx` takes no options besides `--help` and `--version`.
+
+- **Behavior.** ddx copies its input to its output in blocks, optionally converting it, and
+  reports what it copied on standard error. Operands are KEY=VALUE: if=FILE and of=FILE name the
+  input and output (standard input and output by default); bs=N sets the block size for both and
+  writes each block as read, while ibs=N and obs=N set them separately (512 by default) and
+  reblock the output; cbs=N is the record size for conv=block and conv=unblock; skip=N (also
+  iseek=N) skips N input blocks, seek=N (also oseek=N) skips N output blocks, and count=N copies
+  only N input blocks. N may carry a suffix: c (1), w (2), b (512), kB, MB, GB, TB, PB, EB (powers
+  of 1000) or K, M, G, T, P, E, alone or followed by iB (powers of 1024), and may be a product
+  such as 2x512. conv= takes a comma-separated list: notrunc (do not truncate the output), noerror
+  (continue after read errors), sync (pad short input blocks to ibs with NUL bytes, or spaces with
+  block/unblock), fsync and fdatasync (flush the output before finishing), excl and nocreat (fail
+  if the output exists, or does not), lcase and ucase, swab (swap each pair of bytes), block
+  (newline-terminated lines to fixed cbs-sized records) and unblock (the reverse). iflag= accepts
+  fullblock, count_bytes and skip_bytes; oflag= accepts seek_bytes and append; binary and text are
+  accepted by both and ignored. status=none prints nothing but errors, status=noxfer omits the
+  transfer line. The summary reads '1+0 records in / 1+0 records out / 512 bytes copied, 0.0001 s,
+  5.1 MB/s', where N+M counts full and partial blocks. Unless conv=notrunc, a regular output file
+  is truncated at the seek offset; an output that cannot seek is advanced by writing NUL bytes.
+  Differences from GNU dd: status=progress prints only the final statistics; the conversions
+  ascii, ebcdic, ibm, sparse and nocache and the flags direct, dsync, sync, nonblock, noatime,
+  noctty, nofollow and cio are not implemented and are refused as invalid; block and unblock do
+  nothing without cbs; a closed output pipe ends ddx quietly instead of by SIGPIPE; and no
+  statistics are printed on SIGINFO or SIGUSR1.
+- **Verified by.** `core/dd/dd_test.go`.
+
+### FR-107: dfx
+
+`dfx` must report file system space usage, as GNU `df` does.
+
+```text
+dfx [OPTION]... [FILE]...
+```
+
+| Option                   | Meaning |
+|--------------------------|---------|
+| `-a`, `--all`            | Include pseudo, duplicate, inaccessible file systems |
+| `-B`, `--block-size`     | Scale sizes by SIZE before printing them; e.g., '-BM' prints sizes in units of 1,048,576 bytes |
+| `-x`, `--exclude-type`   | Limit listing to file systems not of type TYPE |
+| `-h`, `--human-readable` | Print sizes in powers of 1024 (e.g., 1023M) |
+| `-i`, `--inodes`         | List inode information instead of block usage |
+| `-k`, `--kilobytes`      | Like --block-size=1K |
+| `-l`, `--local`          | Limit listing to local file systems |
+| `--no-sync`              | Do not invoke sync before getting usage info (default) |
+| `--output`               | Use the output format defined by FIELD_LIST, or print all fields if FIELD_LIST is omitted |
+| `-P`, `--portability`    | Use the POSIX output format |
+| `-T`, `--print-type`     | Print file system type |
+| `-H`, `--si`             | Print sizes in powers of 1000 (e.g., 1.1G) |
+| `--sync`                 | Invoke sync before getting usage info (no effect) |
+| `-v`, `--sysv`           | (ignored) |
+| `--total`                | Elide all entries insignificant to available space, and produce a grand total |
+| `-t`, `--type`           | Limit listing to file systems of type TYPE |
+
+- **Behavior.** dfx shows, for each mounted file system, its size, the space used and available,
+  the percentage used and where it is mounted. With FILE operands it shows only the file systems
+  holding them. Sizes are in 1024-byte blocks by default; -h prints them like 23G (--si/-H in
+  powers of 1000), -k and -m use KiB and MiB, and -B SIZE any unit. Use% is used/(used+available),
+  rounded up, so space reserved for the superuser shows as used. -i reports inodes instead of
+  blocks, -T adds the file system type, -P uses the POSIX format, and --output=FIELDS chooses the
+  columns (source, fstype, itotal, iused, iavail, ipcent, size, used, avail, pcent, file, target).
+  -t TYPE and -x TYPE select or exclude file system types, -l leaves out network file systems, and
+  --total adds a grand total. Without -a, pseudo file systems (proc, sysfs, devfs, ...), file
+  systems with no blocks and duplicate mounts of the same device are left out; -a shows them all,
+  with '-' for any that cannot be examined. The block size defaults to DF_BLOCK_SIZE, BLOCK_SIZE
+  or BLOCKSIZE when set. GNU df only runs where coreutils is installed; dfx reports the mounted
+  file systems on Linux, macOS and FreeBSD, and on Windows lists every drive (C:\, D:\, network
+  drives) with the same columns, quietly skipping a card reader or DVD drive with no medium.
+  --sync and --no-sync are accepted and have no effect, and -v is ignored, as in GNU.
+- **Verified by.** `core/df/df_test.go`, `cmd/dfx/dfx_test.go`.
+
 ### FR-54: dirnamex
 
 `dirnamex` must strip the last component from file names, as GNU `dirname` does.
@@ -334,6 +763,62 @@ dirnamex [OPTION] NAME...
   collapsed. The filesystem is never touched. No operand is a usage error.
 - **Deviations.** None known.
 - **Verified by.** `core/dirname/dirname_test.go`, `cmd/dirnamex/dirnamex_test.go`.
+
+### FR-108: dux
+
+`dux` must estimate file space usage, as GNU `du` does.
+
+```text
+dux [OPTION]... [FILE]...
+```
+
+| Option                     | Meaning |
+|----------------------------|---------|
+| `-a`, `--all`              | Write counts for all files, not just directories |
+| `-A`, `--apparent-size`    | Print apparent sizes rather than device usage |
+| `-B`, `--block-size`       | Scale sizes by SIZE before printing them; e.g., '-BM' prints sizes in units of 1,048,576 bytes |
+| `-b`, `--bytes`            | Equivalent to '--apparent-size --block-size=1' |
+| `-l`, `--count-links`      | Count sizes many times if hard linked |
+| `-L`, `--dereference`      | Dereference all symbolic links |
+| `-D`, `--dereference-args` | Dereference only symlinks that are listed on the command line |
+| `--exclude`                | Exclude files that match PATTERN |
+| `-X`, `--exclude-from`     | Exclude files that match any pattern in FILE |
+| `--files0-from`            | Summarize device usage of the NUL-terminated file names specified in file F; if F is -, then read names from standard input |
+| `-h`, `--human-readable`   | Print sizes in human readable format (e.g., 1K 234M 2G) |
+| `--inodes`                 | List inode usage information instead of block usage |
+| `-k`, `--kilobytes`        | Like --block-size=1K |
+| `-d`, `--max-depth`        | Print the total for a directory (or file, with --all) only if it is N or fewer levels below the command line argument |
+| `-m`, `--megabytes`        | Like --block-size=1M |
+| `-P`, `--no-dereference`   | Don't follow any symbolic links (this is the default) |
+| `-0`, `--null`             | End each output line with NUL, not newline |
+| `-x`, `--one-file-system`  | Skip directories on different file systems |
+| `-S`, `--separate-dirs`    | For directories do not include size of subdirectories |
+| `--si`                     | Like -h, but use powers of 1000 not 1024 |
+| `-s`, `--summarize`        | Display only a total for each argument |
+| `-t`, `--threshold`        | Exclude entries smaller than SIZE if positive, or entries greater than SIZE if negative |
+| `--time`                   | Show time of the last modification of any file in the directory, or any of its subdirectories; with WORD: atime, access, use, ctime or status |
+| `--time-style`             | Show times using STYLE, which can be: full-iso, long-iso, iso, or +FORMAT |
+| `-c`, `--total`            | Produce a grand total |
+
+- **Behavior.** dux shows how much disk space each directory under each FILE (the current
+  directory by default) takes, including everything below it, in 1024-byte blocks rounded up. -a
+  lists files too, -s only the operands, and -d N only N levels down; -c adds a grand total. -h
+  prints sizes like 1.5K, 23M and 4.0G (--si in powers of 1000), -k and -m use KiB and MiB, -b
+  bytes, and -B SIZE any unit ('-BM' prints the unit too). --apparent-size counts the bytes files
+  hold rather than the blocks allocated to them, which differs for sparse and compressed files.
+  --inodes counts files instead of space. -S leaves subdirectories out of a directory's total, -x
+  stays on one file system, -l counts a hard-linked file every time it is met (by default it is
+  counted once), -L follows symbolic links and -H only those given as operands. -t SIZE hides
+  entries smaller than SIZE (or, negative, larger). --exclude=PATTERN and -X FILE skip matching
+  paths. --time adds the latest modification (or --time=atime, ctime) time in each subtree,
+  formatted by --time-style. --files0-from=F reads NUL-separated operands from F, and -0 ends
+  output lines with NUL. Where GNU du reads one directory at a time and prints entries in whatever
+  order the file system returns them, dux reads directories in parallel, which is much faster on
+  large trees and network drives, and then adds everything up in name order, so the output, and
+  which path a hard-linked file is counted under, is the same every run. The block size defaults
+  to DU_BLOCK_SIZE, BLOCK_SIZE or BLOCKSIZE when set. Names are quoted only when output goes to a
+  terminal.
+- **Verified by.** `core/du/du_test.go`, `cmd/dux/dux_test.go`.
 
 ### FR-55: echox
 
@@ -390,6 +875,62 @@ envx [OPTION]... [-] [NAME=VALUE]... [COMMAND [ARG]...]
 - **Verified by.** `core/env/env_test.go`, `core/env/env_unix_test.go`,
   `cmd/envx/envx_test.go`.
 
+### FR-109: expandx
+
+`expandx` must convert tabs to spaces, as GNU `expand` does.
+
+```text
+expandx [OPTION]... [FILE]...
+```
+
+| Option            | Meaning |
+|-------------------|---------|
+| `-i`, `--initial` | Do not convert tabs after non blanks |
+| `-t`, `--tabs`    | Have tabs N characters apart, not 8, or use comma separated list of explicit tab positions |
+
+- **Behavior.** expandx writes each FILE to standard output with every tab replaced by the spaces
+  that reach the next tab stop. With no FILE, or when FILE is -, it reads standard input. Tab
+  stops are every 8 columns unless -t says otherwise: -t N puts them every N columns, and -t LIST
+  (numbers separated by commas or blanks, in ascending order) puts them at those columns; the last
+  number may be written /N for a stop at every multiple of N after it, or +N for a stop every N
+  columns after it. Past the last listed stop a tab becomes one space. Several -t options add to
+  one list, and the obsolete -N form (expandx -4) is a list of its own, in the order given; GNU's
+  comma form -4,8 is not accepted, and the digits of two -N options in a row run together (-4 -8
+  reads as -48), so write -t 4,8 instead. -i converts only the tabs before the first non-blank
+  character of each line. A backspace moves back one column. Like GNU expand in the C locale,
+  expandx counts bytes rather than characters.
+- **Verified by.** `core/expand/expand_test.go`, `cmd/expandx/expandx_test.go`.
+
+### FR-110: exprx
+
+`exprx` must evaluate an expression and print its value, as GNU `expr` does.
+
+```text
+exprx EXPRESSION
+```
+
+`exprx` takes no options besides `--help` and `--version`.
+
+- **Behavior.** exprx evaluates EXPRESSION, given as separate arguments, and prints its value.
+  From the loosest binding: A | B is A if it is neither empty nor 0, otherwise B (or 0); A & B is
+  A if neither is empty nor 0, otherwise 0; A = B (also ==), A != B, and the orderings compare as
+  integers when both sides are integers and as strings otherwise, giving 1 or 0; + and - add and
+  subtract; * / and % multiply, divide (truncating toward zero) and take the remainder; STRING :
+  REGEX matches. Integers are an optional minus sign and decimal digits, of any size. A match is
+  anchored at the start of STRING: when REGEX has a \( \) group the value is the text the first
+  group matched (or empty), otherwise the number of bytes matched (or 0). REGEX is a POSIX basic
+  regular expression with GNU's \+, \? and \| extensions and character classes such as
+  [[:digit:]]. The keywords match STRING REGEX, substr STRING POS LENGTH, index STRING CHARS and
+  length STRING do the same as their names, and + TOKEN takes TOKEN as a string even if it is a
+  keyword or an operator. Parentheses group. Operators must be separate arguments, and shell
+  characters such as * | & ( ) must be quoted. A leading -- is skipped. The exit status is 0 when
+  the value is neither empty nor 0, 1 when it is, 2 for an invalid expression (syntax error,
+  non-integer argument, division by zero, a bad regular expression) and 3 for other errors.
+  Differences from GNU expr: strings are measured and sliced in bytes and compared byte by byte
+  (the C locale), and back references (\1) and the [= =] and [. .] bracket forms are not supported
+  in a REGEX.
+- **Verified by.** `core/expr/expr_test.go`.
+
 ### FR-57: falsex
 
 `falsex` must do nothing, unsuccessfully, as GNU `false` does.
@@ -402,6 +943,66 @@ falsex [ignored command line arguments]
   argument. It has no options of its own.
 - **Deviations.** None. `falsex` has no engine package: the adapter is the whole tool.
 - **Verified by.** `cmd/falsex/falsex_test.go`.
+
+### FR-111: fmtx
+
+`fmtx` must reformat each paragraph of text, as GNU `fmt` does.
+
+```text
+fmtx [-WIDTH] [OPTION]... [FILE]...
+```
+
+| Option                     | Meaning |
+|----------------------------|---------|
+| `-c`, `--crown-margin`     | Preserve indentation of first two lines |
+| `-g`, `--goal`             | Goal width (default of 93% of width) |
+| `-p`, `--prefix`           | Reformat only lines beginning with STRING, reattaching the prefix to reformatted lines |
+| `-s`, `--split-only`       | Split long lines, but do not refill |
+| `-t`, `--tagged-paragraph` | Indentation of first line different from second |
+| `-u`, `--uniform-spacing`  | One space between words, two after sentences |
+| `-w`, `--width`            | Maximum line width (default of 75 columns) |
+
+- **Behavior.** fmtx fills and joins the lines of each paragraph so that they come as close as
+  possible to a goal width without exceeding the maximum width, and writes the result to standard
+  output. With no FILE, or when FILE is -, it reads standard input. Paragraphs are separated by
+  blank lines and by changes of indentation; the indentation of each paragraph is kept. The line
+  breaks are chosen as GNU fmt chooses them, minimizing raggedness over the whole paragraph and
+  avoiding breaking after the first word of a sentence or before its last. -w WIDTH sets the
+  maximum width (75 by default, at most 2500), also written -WIDTH; -g WIDTH sets the goal (93% of
+  the maximum by default, and without -w the maximum becomes the goal plus 10). -c (crown margin)
+  keeps the indentation of the first two lines and aligns the rest with the second; -t (tagged
+  paragraph) is the same, except that a first line indented like the second is a paragraph of its
+  own. -s only splits long lines and never joins short ones, which suits code. -u puts one space
+  between words and two after sentences. -p STRING reformats only the lines that begin with STRING
+  (after any indentation) and puts it back on each output line; the other lines are copied
+  unchanged. A sentence ends at '.', '?' or '!' followed by the end of the line or two spaces, as
+  in GNU fmt.
+- **Verified by.** `core/fmt/fmt_test.go`, `cmd/fmtx/fmtx_test.go`.
+
+### FR-112: foldx
+
+`foldx` must wrap each input line to fit in a specified width, as GNU `fold` does.
+
+```text
+foldx [OPTION]... [FILE]...
+```
+
+| Option           | Meaning |
+|------------------|---------|
+| `-b`, `--bytes`  | Count bytes rather than columns |
+| `-s`, `--spaces` | Break at spaces |
+| `-w`, `--width`  | Use WIDTH columns instead of 80 |
+
+- **Behavior.** foldx writes each FILE to standard output, breaking any line longer than 80
+  columns into several. With no FILE, or when FILE is -, it reads standard input. -w WIDTH sets
+  the width; the obsolete form -WIDTH (foldx -72) is accepted too, and whichever is given last
+  wins. Columns are counted as a terminal would: a tab advances to the next multiple of 8, a
+  backspace moves back one column and a carriage return goes back to column 0. -b counts bytes
+  instead, so every byte takes one position. -s breaks a long line after the last blank that fits,
+  rather than exactly at the width, so words are not split unless one is longer than the width.
+  Like GNU fold in the C locale, foldx counts bytes rather than characters, so a multibyte UTF-8
+  character takes more than one column.
+- **Verified by.** `core/fold/fold_test.go`, `cmd/foldx/foldx_test.go`.
 
 ### FR-58: headx
 
@@ -427,6 +1028,181 @@ headx [OPTION]... [FILE]...
   in GNU. Reading stops as soon as enough has been seen.
 - **Deviations.** None known.
 - **Verified by.** `core/head/head_test.go`, `cmd/headx/headx_test.go`.
+
+### FR-113: hostnamex
+
+`hostnamex` must print the name of the current host system, as GNU `hostname` does.
+
+```text
+hostnamex [NAME]
+```
+
+`hostnamex` takes no options besides `--help` and `--version`.
+
+- **Behavior.** hostnamex prints the name of the current host, as the operating system reports it.
+  GNU coreutils hostname also sets the name when given NAME (with sethostname(2), as root); gnux
+  never changes system settings, so hostnamex refuses NAME with 'cannot set name to NAME:
+  Operation not supported' and exits 1. Use the system's own tool (hostnamectl, scutil,
+  Rename-Computer) to set it. Note that the hostname program shipped by many Linux distributions
+  is not the coreutils one and has options such as -f and -I; hostnamex has none of them.
+- **Verified by.** `core/hostname/hostname_test.go`, `cmd/hostnamex/hostnamex_test.go`.
+
+### FR-114: idx
+
+`idx` must print real and effective user and group IDs, as GNU `id` does.
+
+```text
+idx [OPTION]... [USER]...
+```
+
+| Option            | Meaning |
+|-------------------|---------|
+| `-a`, `--all`     | Ignore, for compatibility with other versions |
+| `-Z`, `--context` | Print only the security context of the process (not supported) |
+| `-g`, `--group`   | Print only the effective group ID |
+| `-G`, `--groups`  | Print all group IDs |
+| `-n`, `--name`    | Print a name instead of a number, for -u,-g,-G |
+| `-r`, `--real`    | Print the real ID instead of the effective ID, with -u,-g,-G |
+| `-u`, `--user`    | Print only the effective user ID |
+| `-z`, `--zero`    | Delimit entries with NUL characters, not whitespace; not permitted in default format |
+
+- **Behavior.** idx prints the user and group IDs of the current process, or of each USER (a name
+  or a numeric ID), in GNU's default format: 'uid=1000(alice) gid=1000(alice)
+  groups=1000(alice),27(sudo)', with euid= and egid= added when they differ from the real IDs. -u,
+  -g and -G print only the effective user ID, the effective group ID or every group ID; -n prints
+  names instead of numbers and -r the real IDs instead of the effective ones, with one of those
+  three; -z ends each entry with NUL. -a is accepted and ignored, as in GNU. -Z (SELinux context)
+  is not supported and fails, as GNU id does on a kernel without SELinux. An unknown USER is
+  reported ('no such user') and the remaining USERs are still printed. On Windows the IDs are
+  security identifiers (SIDs) and the names come from the account database.
+- **Verified by.** `core/id/id_test.go`, `cmd/idx/idx_test.go`.
+
+### FR-115: installx
+
+`installx` must copy files into place and set their mode, owner and group, as GNU `install` does.
+
+```text
+installx [OPTION]... SOURCE... DEST
+```
+
+| Option                        | Meaning |
+|-------------------------------|---------|
+| `-C`, `--compare`             | Compare content of source and destination files, and if no change to content, ownership, and permissions, do not modify the destination at all |
+| `-c`, `--copy`                | Ignored; for compatibility with old Unix versions of install |
+| `-D`, `--create-leading`      | Create all leading components of DEST except the last, or all components of --target-directory, then copy SOURCE to DEST |
+| `-d`, `--directory`           | Treat all arguments as directory names; create all components of the specified directories |
+| `-g`, `--group`               | Set group ownership, instead of process' current group, to GROUP |
+| `-m`, `--mode`                | Set permission mode (as in chmod) to MODE, instead of rwxr-xr-x |
+| `-T`, `--no-target-directory` | Treat DEST as a normal file |
+| `-o`, `--owner`               | Set ownership (super-user only) to OWNER |
+| `-p`, `--preserve-timestamps` | Apply access/modification times of SOURCE files to corresponding destination files |
+| `-s`, `--strip`               | Strip symbol tables (not supported: warns and installs unstripped) |
+| `-t`, `--target-directory`    | Copy all SOURCE arguments into DIRECTORY |
+| `-v`, `--verbose`             | Print the name of each created file or directory |
+
+- **Behavior.** installx copies SOURCE to DEST, or several SOURCE files into the existing
+  directory DEST (or into -t DIRECTORY), and then sets each copy's permission mode (755 unless -m
+  gives another, octal or symbolic) and, with -o and -g, its owner and group. An existing DEST is
+  removed and replaced, not rewritten, so a running program keeps its copy. With -d every operand
+  is a directory to create, with its missing parents; the mode applies to the named directories,
+  and parents get 755 minus the umask. -D creates the leading directories of DEST (or the -t
+  directory) first. -T treats DEST as a file even if it is a directory. -C leaves a destination
+  alone when it already has the same content, mode, owner and group. -p gives each copy its
+  source's modification time (the access time is set to the same value). -v reports each file and
+  directory. -s is accepted, but stripping symbol tables needs a strip program, so it only warns
+  that files are installed unstripped. -c is accepted and ignored, as in GNU. -D also answers to
+  the gnux long name --create-leading. A symbolic -m starts from no permissions (u=rwx,go=rx is
+  755), as GNU install does.
+- **Verified by.** `core/install/install_test.go`, `cmd/installx/installx_test.go`.
+
+### FR-116: joinx
+
+`joinx` must join lines of two files on a common field, as GNU `join` does.
+
+```text
+joinx [OPTION]... FILE1 FILE2
+```
+
+| Option                    | Meaning |
+|---------------------------|---------|
+| `--check-order`           | Check that the input is correctly sorted, even if all input lines are pairable |
+| `-e`, `--empty`           | Replace missing input fields with EMPTY |
+| `-1`, `--field1`          | Join on this FIELD of file 1 |
+| `-2`, `--field2`          | Join on this FIELD of file 2 |
+| `--header`                | Treat the first line in each file as field headers, print them without trying to pair them |
+| `-i`, `--ignore-case`     | Ignore differences in case when comparing fields |
+| `-j`, `--join-field`      | Equivalent to '-1 FIELD -2 FIELD' |
+| `--nocheck-order`         | Do not check that the input is correctly sorted |
+| `-v`, `--only-unpaired`   | Like -a FILENUM, but suppress joined output lines |
+| `-o`, `--output-format`   | Obey FORMAT while constructing output line |
+| `-t`, `--separator`       | Use CHAR as input and output field separator |
+| `-a`, `--unpaired`        | Also print unpairable lines from file FILENUM, where FILENUM is 1 or 2 |
+| `-z`, `--zero-terminated` | Line delimiter is NUL, not newline |
+
+- **Behavior.** joinx prints, for each pair of input lines with identical join fields, one line
+  made of the join field followed by the remaining fields of both lines. By default the join field
+  is the first, fields are separated by blanks (leading blanks are ignored) and output fields by a
+  single space. Either FILE may be - for standard input, but not both. Both files must be sorted
+  on the join field, as sortx (or LC_ALL=C sort) sorts them; lines are compared byte by byte, as
+  in the C locale, whatever LANG says. -1 FIELD and -2 FIELD pick the join field of each file and
+  -j FIELD both. -a FILENUM also prints the unpairable lines of that file, and -v FILENUM prints
+  only them. -o FORMAT lists the output fields as FILENUM.FIELD or 0 (the join field), separated
+  by commas or blanks; -o auto takes the number of fields from the first line of each file. -e
+  EMPTY fills missing fields. -t CHAR separates fields on input and output with CHAR, and -t ''
+  makes the whole line one field. -i ignores case when comparing join fields. --header pairs the
+  first lines of the files as headers without checking their order. By default joinx warns once
+  per file when it finds a line out of order after an unpairable line and then exits with status
+  1; --check-order fails at the first line out of order, and --nocheck-order never checks. -z
+  makes NUL the line delimiter. When both --check-order and --nocheck-order are given,
+  --check-order wins. GNU's obsolescent -j1 FIELD and -j2 FIELD forms are not accepted; use -1 and
+  -2.
+- **Verified by.** `core/join/join_test.go`, `cmd/joinx/joinx_test.go`.
+
+### FR-117: killx
+
+`killx` must send a signal to processes, or list signals, as GNU `kill` does.
+
+```text
+killx [-s SIGNAL | -SIGNAL] PID...
+```
+
+| Option           | Meaning |
+|------------------|---------|
+| `-l`, `--list`   | List signal names, or convert signal names to/from numbers |
+| `-n`, `--number` | Same as -s, with a NUMBER |
+| `-s`, `--signal` | Specify the name or number of the signal to be sent |
+| `-L`, `--table`  | Print a table of signal information (also -t) |
+
+- **Behavior.** killx sends a signal, TERM by default, to each process PID. The signal is given as
+  -s SIGNAL, -n NUMBER, or -SIGNAL directly (-9, -KILL, -SIGKILL), by name in any case with or
+  without the SIG prefix, or by number; signal 0 sends nothing and only checks that the process
+  exists. A PID that cannot be signaled is reported and the remaining PIDs are still tried. -l
+  prints the signal names, or converts each operand between a name and a number (an exit status
+  above 128 is taken as 128 plus a signal, so 'killx -l 137' prints KILL); -L (or -t) prints a
+  table of numbers, names and descriptions. Unlike GNU kill, killx reads options wherever they
+  appear before '--', so 'killx 1234 -9' sends KILL to 1234 rather than signaling process group 9;
+  a negative PID (a process group, or -1 for every process) must follow '--'. Giving two signals
+  is an error. On Windows, which has no signals, only KILL and TERM can be sent, both by
+  terminating the process, and 0 checks that it exists; any other signal fails with 'Operation not
+  supported'.
+- **Verified by.** `core/kill/kill_test.go`, `cmd/killx/killx_test.go`.
+
+### FR-118: linkx
+
+`linkx` must call the link function to create a hard link to a file, as GNU `link` does.
+
+```text
+linkx FILE1 FILE2
+```
+
+`linkx` takes no options besides `--help` and `--version`.
+
+- **Behavior.** linkx creates FILE2 as a hard link to the existing FILE1: a second name for the
+  same file, sharing its contents and metadata. It is the bare link(2) system call, with no
+  options: it never overwrites FILE2, never makes a symbolic link, and never places the link
+  inside a directory. Exactly two operands are required. lnx does the same with options; linkx is
+  for scripts that want exactly one system call and its error.
+- **Verified by.** `core/link/link_test.go`, `cmd/linkx/linkx_test.go`.
 
 ### FR-59: lnx
 
@@ -534,6 +1310,42 @@ lsx [OPTION]... [FILE]...
   `-Z` and `--context`, `--zero`.
 - **Verified by.** `core/ls/ls_test.go`, `cmd/lsx/lsx_test.go`.
 
+### FR-119: md5sumx
+
+`md5sumx` must print or check MD5 (RFC 1321) (128-bit) checksums, as GNU `md5sum` does.
+
+```text
+md5sumx [OPTION]... [FILE]...
+```
+
+| Option             | Meaning |
+|--------------------|---------|
+| `-b`, `--binary`   | Read in binary mode |
+| `-c`, `--check`    | Read checksums from the FILEs and check them |
+| `--ignore-missing` | Don't fail or report status for missing files |
+| `--quiet`          | Don't print OK for each successfully verified file |
+| `--status`         | Don't output anything, status code shows success |
+| `--strict`         | Exit non-zero for improperly formatted checksum lines |
+| `--tag`            | Create a BSD-style checksum |
+| `-t`, `--text`     | Read in text mode (default) |
+| `-w`, `--warn`     | Warn about improperly formatted checksum lines |
+| `-z`, `--zero`     | End each output line with NUL, not newline, and disable file name escaping |
+
+- **Behavior.** md5sumx prints or checks MD5 (RFC 1321) message digests (128 bits). For each FILE
+  it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode, '*'
+  with -b), and the file name. With no FILE, or when FILE is -, it reads standard input. Files are
+  always read as bytes, so -b and -t change only the mark; when both are given, -t wins. --tag
+  prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a
+  backslash, newline or carriage return is escaped and its line starts with a backslash, unless -z
+  ends lines with NUL instead. -c reads such lines (in either style) from the FILEs and checks
+  each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches,
+  unreadable files and improperly formatted lines; --quiet drops the OK lines, --status prints
+  nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly
+  formatted line and --strict fails because of them. The exit status is 0 when everything was read
+  (and, with -c, matched), 1 otherwise. MD5 (RFC 1321) is broken for security purposes: use it to
+  detect accidental corruption, not tampering, and prefer sha256sumx or b2sumx otherwise.
+- **Verified by.** `core/md5sum/md5sum_test.go`, `cmd/md5sumx/md5sumx_test.go`.
+
 ### FR-61: mkdirx
 
 `mkdirx` must create directories, as GNU `mkdir` does.
@@ -557,6 +1369,38 @@ mkdirx [OPTION]... DIRECTORY...
   has no effect there. Not implemented: `-Z` and `--context`.
 - **Verified by.** `core/mkdir/mkdir_test.go`, `core/mkdir/mkdir_unix_test.go`,
   `core/mkdir/mode_test.go`, `cmd/mkdirx/mkdirx_test.go`.
+
+### FR-120: mktempx
+
+`mktempx` must create a temporary file or directory, safely, and print its name, as GNU `mktemp` does.
+
+```text
+mktempx [OPTION]... [TEMPLATE]
+```
+
+| Option              | Meaning |
+|---------------------|---------|
+| `-p`, `--dir`       | Use DIR as the directory, like --tmpdir=DIR |
+| `-d`, `--directory` | Create a directory, not a file |
+| `-u`, `--dry-run`   | Do not create anything; merely print a name (unsafe) |
+| `-t`, `--in-tmpdir` | Interpret TEMPLATE as a single file name component, relative to $TMPDIR, else DIR (-p), else the temporary directory (deprecated) |
+| `-q`, `--quiet`     | Suppress diagnostics about file/dir-creation failure |
+| `--suffix`          | Append SUFF to TEMPLATE; SUFF must not contain a slash |
+| `--tmpdir`          | Interpret TEMPLATE relative to DIR; if DIR is not given, use $TMPDIR if set, else the temporary directory |
+
+- **Behavior.** mktempx creates a new, empty file (or a directory with -d) whose name is TEMPLATE
+  with its run of trailing X's replaced by random letters and digits, and prints the name.
+  TEMPLATE must contain at least 3 consecutive X's at the end of the name; whatever follows the
+  last X is kept as a suffix, and --suffix adds one explicitly. With no TEMPLATE, tmp.XXXXXXXXXX
+  is used and the file is created in the temporary directory. A relative TEMPLATE is resolved
+  against the current directory unless -p DIR or --tmpdir[=DIR] is given; then it goes under DIR,
+  else $TMPDIR, else the system temporary directory (/tmp on Unix, the user's temporary folder on
+  Windows), and must not be absolute. The file is created with mode 600 and the directory with
+  mode 700, and creation is atomic: an existing name is never reused. -u only prints a name that
+  did not exist at the time, which is unsafe. -q suppresses the diagnostic when creation fails. -t
+  is the deprecated form: TEMPLATE is a single name component under $TMPDIR, else -p DIR, else the
+  temporary directory. -p and -t also answer to the gnux long names --dir and --in-tmpdir.
+- **Verified by.** `core/mktemp/mktemp_test.go`, `cmd/mktempx/mktempx_test.go`.
 
 ### FR-62: mvx
 
@@ -587,6 +1431,211 @@ mvx [OPTION]... SOURCE... DIRECTORY
   Not implemented: `--backup` and `-b`, `--suffix` and `-S`, `-Z` and `--context`, `--no-copy`,
   `--exchange`, `--debug`.
 - **Verified by.** `core/mv/mv_test.go`, `cmd/mvx/mvx_test.go`.
+
+### FR-121: nicex
+
+`nicex` must run a program with modified scheduling priority, as GNU `nice` does.
+
+```text
+nicex [OPTION] [COMMAND [ARG]...]
+```
+
+| Option               | Meaning |
+|----------------------|---------|
+| `-n`, `--adjustment` | Add integer N to the niceness (default 10) |
+
+- **Behavior.** nicex runs COMMAND with its niceness adjusted by 10, or by -n ADJUSTMENT, so that
+  it gets less (or, with a negative adjustment, more) CPU time than other processes. Niceness
+  ranges from -20 (most favorable) to 19 (least); the result is clamped to that range. With no
+  COMMAND it prints the current niceness. The obsolete forms -ADJUSTMENT and --ADJUSTMENT
+  (negative) are accepted as in GNU: 'nicex -5 make' and 'nicex --5 make'. Options must come
+  before COMMAND. Lowering the niceness needs privilege; without it nicex warns 'cannot set
+  niceness' and runs the command anyway, as GNU nice does. The exit status is the command's, or
+  125 when nicex itself failed, 126 when COMMAND was found but could not be run and 127 when it
+  was not found. nicex starts COMMAND as a child and sets its niceness as it starts, where GNU
+  nice changes its own and then becomes COMMAND. On Windows, which has no niceness, the adjustment
+  picks the nearest priority class instead (idle, below normal, normal, above normal or high;
+  never realtime), so 'nicex make' really does lower the build's priority there too, and nicex
+  with no COMMAND prints the niceness its own class corresponds to.
+- **Verified by.** `cmd/nicex/nicex_test.go`.
+
+### FR-122: nlx
+
+`nlx` must number lines of files, as GNU `nl` does.
+
+```text
+nlx [OPTION]... [FILE]...
+```
+
+| Option                         | Meaning |
+|--------------------------------|---------|
+| `-b`, `--body-numbering`       | Use STYLE for numbering body lines (a, t, n or pBRE; default t) |
+| `-f`, `--footer-numbering`     | Use STYLE for numbering footer lines (default n) |
+| `-h`, `--header-numbering`     | Use STYLE for numbering header lines (default n) |
+| `-l`, `--join-blank-lines`     | Group of NUMBER empty lines counted as one (default 1) |
+| `-i`, `--line-increment`       | Line number increment at each line (default 1) |
+| `-p`, `--no-renumber`          | Do not reset line numbers for each section |
+| `-n`, `--number-format`        | Insert line numbers according to FORMAT (ln, rn or rz; default rn) |
+| `-s`, `--number-separator`     | Add STRING after (possible) line number (default TAB) |
+| `-w`, `--number-width`         | Use NUMBER columns for line numbers (default 6) |
+| `-d`, `--section-delimiter`    | Use CC for logical page delimiters (default \:) |
+| `-v`, `--starting-line-number` | First line number for each section (default 1) |
+
+- **Behavior.** nlx writes each FILE to standard output with line numbers added. With no FILE, or
+  when FILE is -, it reads standard input; several FILEs are numbered as one stream. By default
+  non-empty lines are numbered from 1, right-aligned in a 6-column field followed by a tab, and
+  empty lines get the same width of blanks so the text stays aligned. -b STYLE chooses which lines
+  are numbered: a (all), t (non-empty, the default), n (none) or pBRE (those matching the POSIX
+  basic regular expression BRE). -n FORMAT is ln (left-aligned), rn (right-aligned) or rz
+  (zero-padded); -w sets the width, -s the separator, -v the first number and -i the increment
+  (both may be zero or negative). -l N with -b a numbers only every Nth of a run of empty lines.
+  Input may be split into logical pages of header, body and footer sections by lines holding only
+  '\:\:\:', '\:\:' or '\:' (change the two characters with -d; an empty -d turns sections off);
+  each delimiter prints as an empty line, -h and -f choose the numbering of headers and footers
+  (none by default), and numbering restarts at every header unless -p. Every output line ends with
+  a newline, a last line without one included.
+- **Verified by.** `core/nl/nl_test.go`, `cmd/nlx/nlx_test.go`.
+
+### FR-123: nohupx
+
+`nohupx` must run a command immune to hangups, with output to a non-terminal, as GNU `nohup` does.
+
+```text
+nohupx COMMAND [ARG]...
+```
+
+`nohupx` takes no options besides `--help` and `--version`.
+
+- **Behavior.** nohupx runs COMMAND so that it keeps running after you log out or close the
+  terminal. On Unix it ignores the hangup signal, as GNU nohup does. Any of the standard streams
+  that is a terminal is replaced: standard input by an unusable /dev/null, standard output by the
+  file nohup.out, appended to and created readable only by you, in the current directory or, if
+  that fails, in $HOME, and standard error by standard output; nohupx says which on standard
+  error. Streams that are already redirected are left alone. The exit status is COMMAND's, or 125
+  when nohupx itself failed, 126 when COMMAND was found but could not be run and 127 when it was
+  not found. GNU nohup does nothing useful on Windows; nohupx starts COMMAND detached from the
+  console and in a process group of its own, so closing the console window or pressing Ctrl-C in
+  it no longer ends COMMAND. nohupx runs COMMAND as a child and waits for it, where GNU nohup
+  becomes COMMAND; to get your prompt back, start it in the background with your shell.
+- **Verified by.** `core/nohup/nohup_test.go`, `cmd/nohupx/nohupx_test.go`.
+
+### FR-124: nprocx
+
+`nprocx` must print the number of processing units available, as GNU `nproc` does.
+
+```text
+nprocx [OPTION]...
+```
+
+| Option     | Meaning |
+|------------|---------|
+| `--all`    | Print the number of installed processors |
+| `--ignore` | If possible, exclude N processing units |
+
+- **Behavior.** nprocx prints the number of processing units available to the current process. As
+  in GNU nproc, the OMP_NUM_THREADS environment variable (its first value, when it is a
+  comma-separated list) replaces that count when it is a positive number, and OMP_THREAD_LIMIT
+  caps the result. --all prints the number of installed processors instead and ignores both
+  variables. --ignore=N subtracts N, but the result is never less than 1. gnux has no cgo, so both
+  counts come from Go's runtime.NumCPU: the processors this process may run on. A machine with
+  processors taken offline, or a process restricted to fewer of them, prints the same number with
+  and without --all.
+- **Verified by.** `core/nproc/nproc_test.go`, `cmd/nprocx/nprocx_test.go`.
+
+### FR-125: odx
+
+`odx` must dump files in octal and other formats, as GNU `od` does.
+
+```text
+odx [OPTION]... [FILE]...
+```
+
+| Option                             | Meaning |
+|------------------------------------|---------|
+| `-A`, `--address-radix`            | Output format for file offsets; RADIX is one of [doxn], for Decimal, Octal, Hex or None |
+| `-c`, `--characters`               | Same as -t c, select printable characters or backslash escapes |
+| `-s`, `--decimal-2-bytes`          | Same as -t d2, select decimal 2-byte units |
+| `-i`, `--decimal-ints`             | Same as -t dI, select decimal ints |
+| `-l`, `--decimal-longs`            | Same as -t dL, select decimal longs |
+| `--endian`                         | Swap input bytes according the specified ORDER: little or big |
+| `-f`, `--floats`                   | Same as -t fF, select floats |
+| `-t`, `--format`                   | Select output format or formats; TYPE is a, c, d, f, o, u or x with an optional size, and z |
+| `-x`, `--hex-2-bytes`              | Same as -t x2, select hexadecimal 2-byte units |
+| `-a`, `--named-characters`         | Same as -t a, select named characters, ignoring high-order bit |
+| `-o`, `--octal-2-bytes`            | Same as -t o2, select octal 2-byte units |
+| `-b`, `--octal-bytes`              | Same as -t o1, select octal bytes |
+| `-v`, `--output-duplicates`        | Do not use * to mark line suppression |
+| `-N`, `--read-bytes`               | Limit dump to BYTES input bytes |
+| `-j`, `--skip-bytes`               | Skip BYTES input bytes first |
+| `-S`, `--strings`                  | Show only NUL terminated strings of at least BYTES printable characters |
+| `-d`, `--unsigned-decimal-2-bytes` | Same as -t u2, select unsigned decimal 2-byte units |
+| `-w`, `--width`                    | Output BYTES bytes per output line |
+
+- **Behavior.** odx writes an unambiguous representation of its input, by default as two-byte
+  octal words, sixteen bytes per line, each line starting with the input offset in octal. The
+  FILEs are read one after another as one input; with no FILE, or when FILE is -, it reads
+  standard input. -t TYPE selects the format and may be given more than once, each format getting
+  a line of its own per block, in the order given: a (named characters), c (printable characters
+  or backslash escapes), d, o, u and x (signed decimal, octal, unsigned decimal and hexadecimal)
+  with an optional size in bytes (1, 2, 4, 8, or C, S, I, L), and f (floating point, size 4 or 8,
+  or F, D, L); a trailing z adds the printable characters of the line between > and <. The
+  traditional letters -a, -b, -c, -d, -f, -i, -l, -o, -s and -x are shorthands for -t a, o1, c,
+  u2, fF, dI, dL, o2, d2 and x2. -A RADIX picks the offset base (d, o, x, or n for none), -j BYTES
+  skips input, -N BYTES limits it, -w BYTES sets the bytes per line, and --endian chooses the byte
+  order of multi-byte values. Unless -v is given, a run of lines identical to the one before is
+  shown as a single '*'. -S N prints the NUL-terminated strings of at least N printable characters
+  instead of a dump. BYTES may be decimal, octal with a leading 0, or hexadecimal with 0x,
+  followed by a multiplier: b 512, k or K 1024, kB 1000, M, MB, G and so on. Differences from GNU
+  od: characters are interpreted in the C locale, so -c shows every byte above 127 in octal; long
+  double (fL) is read as an eight-byte double; -S and -w need a value (GNU's bare -S means -S3 and
+  bare -w means -w32), because an optional value could not also be attached as in -w8; the
+  traditional offset operand ([+]OFFSET[.][b]) and --traditional are not implemented.
+- **Verified by.** `core/od/od_test.go`, `cmd/odx/odx_test.go`.
+
+### FR-126: pastex
+
+`pastex` must merge lines of files, as GNU `paste` does.
+
+```text
+pastex [OPTION]... [FILE]...
+```
+
+| Option                    | Meaning |
+|---------------------------|---------|
+| `-d`, `--delimiters`      | Reuse characters from LIST instead of TABs |
+| `-s`, `--serial`          | Paste one file at a time instead of in parallel |
+| `-z`, `--zero-terminated` | Line delimiter is NUL, not newline |
+
+- **Behavior.** pastex writes lines made of the corresponding lines of each FILE, separated by
+  TABs, to standard output. With no FILE, or when FILE is -, it reads standard input; every -
+  reads the same standard input, so 'pastex - -' joins pairs of lines. A file that runs out of
+  lines contributes empty fields while the others continue. -s pastes one file at a time instead,
+  turning each file into a single line. -d LIST uses the characters of LIST as delimiters instead
+  of TAB, cycling through them and starting again from the first on every output line (and, with
+  -s, for every file). LIST understands the escapes \n, \t, \\, \b, \f, \r, \v and \0, the empty
+  delimiter. -z makes NUL the line delimiter. Delimiters are single bytes: a multibyte character
+  in LIST is used one byte at a time.
+- **Verified by.** `core/paste/paste_test.go`, `cmd/pastex/pastex_test.go`.
+
+### FR-127: printenvx
+
+`printenvx` must print all or part of the environment, as GNU `printenv` does.
+
+```text
+printenvx [OPTION]... [VARIABLE]...
+```
+
+| Option         | Meaning |
+|----------------|---------|
+| `-0`, `--null` | End each output line with NUL, not newline |
+
+- **Behavior.** printenvx prints the value of each environment VARIABLE, one per line. With no
+  VARIABLE it prints the whole environment as NAME=value lines. A VARIABLE that is not set prints
+  nothing, not even an empty line, and makes the exit status 1, with no message; one that is set
+  to the empty string prints an empty line. Names are matched exactly, including their case, on
+  every platform. -0 ends each item with NUL instead of a newline, so values containing newlines
+  survive.
+- **Verified by.** `core/printenv/printenv_test.go`, `cmd/printenvx/printenvx_test.go`.
 
 ### FR-94: printfx
 
@@ -632,6 +1681,36 @@ pwdx [OPTION]...
   directory.
 - **Deviations.** When both are given, GNU lets the last one win; `pwdx` prefers `-L`.
 - **Verified by.** `core/pwd/pwd_test.go`, `cmd/pwdx/pwdx_test.go`.
+
+### FR-128: readlinkx
+
+`readlinkx` must print resolved symbolic links or canonical file names, as GNU `readlink` does.
+
+```text
+readlinkx [OPTION]... FILE...
+```
+
+| Option                          | Meaning |
+|---------------------------------|---------|
+| `-f`, `--canonicalize`          | Canonicalize by following every symlink in every component recursively; all but the last component must exist |
+| `-e`, `--canonicalize-existing` | Canonicalize by following every symlink in every component recursively; all components must exist |
+| `-m`, `--canonicalize-missing`  | Canonicalize by following every symlink in every component recursively, without requirements on existence |
+| `-n`, `--no-newline`            | Do not output the trailing delimiter |
+| `-q`, `--quiet`                 | Suppress most error messages (on by default) |
+| `-s`, `--silent`                | Suppress most error messages (on by default) |
+| `-v`, `--verbose`               | Report error messages |
+| `-z`, `--zero`                  | End each output line with NUL, not newline |
+
+- **Behavior.** readlinkx prints the value of each FILE, which must be a symbolic link: the target
+  exactly as it was stored, not resolved. With -f, -e or -m it prints the canonical name instead:
+  absolute, with every symbolic link and every '.' and '..' component resolved. -f requires every
+  component but the last to exist, -e requires all of them, and -m requires none. As in GNU
+  readlink, failures are silent by default (-q and -s say so explicitly) and only the exit status
+  reports them; -v prints a diagnostic for each. -n drops the trailing newline, and is ignored
+  with a warning when there is more than one FILE; -z ends each name with NUL. GNU readlink lets
+  the last of -f, -e and -m win; readlinkx cannot see option order, so it picks the most demanding
+  (-e, then -f, then -m), and -v wins over -q and -s.
+- **Verified by.** `core/readlink/readlink_test.go`, `cmd/readlinkx/readlinkx_test.go`.
 
 ### FR-64: realpathx
 
@@ -747,6 +1826,214 @@ seqx [OPTION]... FIRST INCREMENT LAST
   infinite FIRST or INCREMENT is refused as an invalid floating point argument.
 - **Verified by.** `core/seq/seq_test.go`, `cmd/seqx/seqx_test.go`.
 
+### FR-129: sha1sumx
+
+`sha1sumx` must print or check SHA-1 (FIPS 180-4) (160-bit) checksums, as GNU `sha1sum` does.
+
+```text
+sha1sumx [OPTION]... [FILE]...
+```
+
+| Option             | Meaning |
+|--------------------|---------|
+| `-b`, `--binary`   | Read in binary mode |
+| `-c`, `--check`    | Read checksums from the FILEs and check them |
+| `--ignore-missing` | Don't fail or report status for missing files |
+| `--quiet`          | Don't print OK for each successfully verified file |
+| `--status`         | Don't output anything, status code shows success |
+| `--strict`         | Exit non-zero for improperly formatted checksum lines |
+| `--tag`            | Create a BSD-style checksum |
+| `-t`, `--text`     | Read in text mode (default) |
+| `-w`, `--warn`     | Warn about improperly formatted checksum lines |
+| `-z`, `--zero`     | End each output line with NUL, not newline, and disable file name escaping |
+
+- **Behavior.** sha1sumx prints or checks SHA-1 (FIPS 180-4) message digests (160 bits). For each
+  FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode,
+  '*' with -b), and the file name. With no FILE, or when FILE is -, it reads standard input. Files
+  are always read as bytes, so -b and -t change only the mark; when both are given, -t wins. --tag
+  prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a
+  backslash, newline or carriage return is escaped and its line starts with a backslash, unless -z
+  ends lines with NUL instead. -c reads such lines (in either style) from the FILEs and checks
+  each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches,
+  unreadable files and improperly formatted lines; --quiet drops the OK lines, --status prints
+  nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly
+  formatted line and --strict fails because of them. The exit status is 0 when everything was read
+  (and, with -c, matched), 1 otherwise. SHA-1 (FIPS 180-4) is broken for security purposes: use it
+  to detect accidental corruption, not tampering, and prefer sha256sumx or b2sumx otherwise.
+- **Verified by.** `core/sha1sum/sha1sum_test.go`, `cmd/sha1sumx/sha1sumx_test.go`.
+
+### FR-130: sha224sumx
+
+`sha224sumx` must print or check SHA-224 (FIPS 180-4) (224-bit) checksums, as GNU `sha224sum` does.
+
+```text
+sha224sumx [OPTION]... [FILE]...
+```
+
+| Option             | Meaning |
+|--------------------|---------|
+| `-b`, `--binary`   | Read in binary mode |
+| `-c`, `--check`    | Read checksums from the FILEs and check them |
+| `--ignore-missing` | Don't fail or report status for missing files |
+| `--quiet`          | Don't print OK for each successfully verified file |
+| `--status`         | Don't output anything, status code shows success |
+| `--strict`         | Exit non-zero for improperly formatted checksum lines |
+| `--tag`            | Create a BSD-style checksum |
+| `-t`, `--text`     | Read in text mode (default) |
+| `-w`, `--warn`     | Warn about improperly formatted checksum lines |
+| `-z`, `--zero`     | End each output line with NUL, not newline, and disable file name escaping |
+
+- **Behavior.** sha224sumx prints or checks SHA-224 (FIPS 180-4) message digests (224 bits). For
+  each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text
+  mode, '*' with -b), and the file name. With no FILE, or when FILE is -, it reads standard input.
+  Files are always read as bytes, so -b and -t change only the mark; when both are given, -t wins.
+  --tag prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a
+  backslash, newline or carriage return is escaped and its line starts with a backslash, unless -z
+  ends lines with NUL instead. -c reads such lines (in either style) from the FILEs and checks
+  each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches,
+  unreadable files and improperly formatted lines; --quiet drops the OK lines, --status prints
+  nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly
+  formatted line and --strict fails because of them. The exit status is 0 when everything was read
+  (and, with -c, matched), 1 otherwise.
+- **Verified by.** `core/sha224sum/sha224sum_test.go`, `cmd/sha224sumx/sha224sumx_test.go`.
+
+### FR-131: sha256sumx
+
+`sha256sumx` must print or check SHA-256 (FIPS 180-4) (256-bit) checksums, as GNU `sha256sum` does.
+
+```text
+sha256sumx [OPTION]... [FILE]...
+```
+
+| Option             | Meaning |
+|--------------------|---------|
+| `-b`, `--binary`   | Read in binary mode |
+| `-c`, `--check`    | Read checksums from the FILEs and check them |
+| `--ignore-missing` | Don't fail or report status for missing files |
+| `--quiet`          | Don't print OK for each successfully verified file |
+| `--status`         | Don't output anything, status code shows success |
+| `--strict`         | Exit non-zero for improperly formatted checksum lines |
+| `--tag`            | Create a BSD-style checksum |
+| `-t`, `--text`     | Read in text mode (default) |
+| `-w`, `--warn`     | Warn about improperly formatted checksum lines |
+| `-z`, `--zero`     | End each output line with NUL, not newline, and disable file name escaping |
+
+- **Behavior.** sha256sumx prints or checks SHA-256 (FIPS 180-4) message digests (256 bits). For
+  each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text
+  mode, '*' with -b), and the file name. With no FILE, or when FILE is -, it reads standard input.
+  Files are always read as bytes, so -b and -t change only the mark; when both are given, -t wins.
+  --tag prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a
+  backslash, newline or carriage return is escaped and its line starts with a backslash, unless -z
+  ends lines with NUL instead. -c reads such lines (in either style) from the FILEs and checks
+  each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches,
+  unreadable files and improperly formatted lines; --quiet drops the OK lines, --status prints
+  nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly
+  formatted line and --strict fails because of them. The exit status is 0 when everything was read
+  (and, with -c, matched), 1 otherwise.
+- **Verified by.** `core/sha256sum/sha256sum_test.go`, `cmd/sha256sumx/sha256sumx_test.go`.
+
+### FR-132: sha384sumx
+
+`sha384sumx` must print or check SHA-384 (FIPS 180-4) (384-bit) checksums, as GNU `sha384sum` does.
+
+```text
+sha384sumx [OPTION]... [FILE]...
+```
+
+| Option             | Meaning |
+|--------------------|---------|
+| `-b`, `--binary`   | Read in binary mode |
+| `-c`, `--check`    | Read checksums from the FILEs and check them |
+| `--ignore-missing` | Don't fail or report status for missing files |
+| `--quiet`          | Don't print OK for each successfully verified file |
+| `--status`         | Don't output anything, status code shows success |
+| `--strict`         | Exit non-zero for improperly formatted checksum lines |
+| `--tag`            | Create a BSD-style checksum |
+| `-t`, `--text`     | Read in text mode (default) |
+| `-w`, `--warn`     | Warn about improperly formatted checksum lines |
+| `-z`, `--zero`     | End each output line with NUL, not newline, and disable file name escaping |
+
+- **Behavior.** sha384sumx prints or checks SHA-384 (FIPS 180-4) message digests (384 bits). For
+  each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text
+  mode, '*' with -b), and the file name. With no FILE, or when FILE is -, it reads standard input.
+  Files are always read as bytes, so -b and -t change only the mark; when both are given, -t wins.
+  --tag prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a
+  backslash, newline or carriage return is escaped and its line starts with a backslash, unless -z
+  ends lines with NUL instead. -c reads such lines (in either style) from the FILEs and checks
+  each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches,
+  unreadable files and improperly formatted lines; --quiet drops the OK lines, --status prints
+  nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly
+  formatted line and --strict fails because of them. The exit status is 0 when everything was read
+  (and, with -c, matched), 1 otherwise.
+- **Verified by.** `core/sha384sum/sha384sum_test.go`, `cmd/sha384sumx/sha384sumx_test.go`.
+
+### FR-133: sha512sumx
+
+`sha512sumx` must print or check SHA-512 (FIPS 180-4) (512-bit) checksums, as GNU `sha512sum` does.
+
+```text
+sha512sumx [OPTION]... [FILE]...
+```
+
+| Option             | Meaning |
+|--------------------|---------|
+| `-b`, `--binary`   | Read in binary mode |
+| `-c`, `--check`    | Read checksums from the FILEs and check them |
+| `--ignore-missing` | Don't fail or report status for missing files |
+| `--quiet`          | Don't print OK for each successfully verified file |
+| `--status`         | Don't output anything, status code shows success |
+| `--strict`         | Exit non-zero for improperly formatted checksum lines |
+| `--tag`            | Create a BSD-style checksum |
+| `-t`, `--text`     | Read in text mode (default) |
+| `-w`, `--warn`     | Warn about improperly formatted checksum lines |
+| `-z`, `--zero`     | End each output line with NUL, not newline, and disable file name escaping |
+
+- **Behavior.** sha512sumx prints or checks SHA-512 (FIPS 180-4) message digests (512 bits). For
+  each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text
+  mode, '*' with -b), and the file name. With no FILE, or when FILE is -, it reads standard input.
+  Files are always read as bytes, so -b and -t change only the mark; when both are given, -t wins.
+  --tag prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a
+  backslash, newline or carriage return is escaped and its line starts with a backslash, unless -z
+  ends lines with NUL instead. -c reads such lines (in either style) from the FILEs and checks
+  each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches,
+  unreadable files and improperly formatted lines; --quiet drops the OK lines, --status prints
+  nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly
+  formatted line and --strict fails because of them. The exit status is 0 when everything was read
+  (and, with -c, matched), 1 otherwise.
+- **Verified by.** `core/sha512sum/sha512sum_test.go`, `cmd/sha512sumx/sha512sumx_test.go`.
+
+### FR-134: shufx
+
+`shufx` must generate random permutations, as GNU `shuf` does.
+
+```text
+shufx [OPTION]... [FILE]
+```
+
+| Option                    | Meaning |
+|---------------------------|---------|
+| `-e`, `--echo`            | Treat each ARG as an input line |
+| `-n`, `--head-count`      | Output at most COUNT lines |
+| `-i`, `--input-range`     | Treat each number LO-HI as an input line |
+| `-o`, `--output`          | Write result to FILE instead of standard output |
+| `--random-source`         | Get random bytes from FILE |
+| `-r`, `--repeat`          | Output lines can be repeated |
+| `-z`, `--zero-terminated` | Line delimiter is NUL, not newline |
+
+- **Behavior.** shufx writes a random permutation of its input lines to standard output. The input
+  is the lines of FILE, or of standard input when FILE is absent or -; with -e, each ARG operand
+  is an input line instead (shufx -e [OPTION]... [ARG]...); with -i LO-HI, the numbers LO through
+  HI are (shufx -i LO-HI [OPTION]...). -n COUNT writes at most COUNT lines (given more than once,
+  the smallest COUNT wins, as in GNU shuf). -r draws with replacement, so lines may repeat, and
+  with no -n it writes forever until its reader goes away. -o FILE writes to FILE instead of
+  standard output; it is opened only after the input has been read, so FILE may also be the input.
+  --random-source=FILE takes the random bytes from FILE, so the same FILE always gives the same
+  order; without it the order comes from a generator seeded by the operating system's random
+  source. -z uses NUL rather than newline as the line delimiter. Differences from GNU shuf: the
+  permutation drawn from a given --random-source differs from the one GNU shuf draws from the same
+  bytes, though it is just as reproducible.
+- **Verified by.** `core/shuf/shuf_test.go`, `cmd/shufx/shufx_test.go`.
+
 ### FR-67: sleepx
 
 `sleepx` must pause for a given time, as GNU `sleep` does.
@@ -814,6 +2101,111 @@ sortx [OPTION]... [FILE]...
   `--random-source`, `--debug`.
 - **Verified by.** `core/sort/sort_test.go`, `cmd/sortx/sortx_test.go`.
 
+### FR-135: splitx
+
+`splitx` must split a file into pieces, as GNU `split` does.
+
+```text
+splitx [OPTION]... [FILE [PREFIX]]
+```
+
+| Option                      | Meaning |
+|-----------------------------|---------|
+| `--additional-suffix`       | Append an additional SUFFIX to file names |
+| `-b`, `--bytes`             | Put SIZE bytes per output file |
+| `-e`, `--elide-empty-files` | Do not generate empty output files with '-n' |
+| `-x`, `--hex-suffixes`      | Use hex suffixes starting at 0, not alphabetic; --hex-suffixes=FROM starts at FROM |
+| `-C`, `--line-bytes`        | Put at most SIZE bytes of records per output file |
+| `-l`, `--lines`             | Put NUMBER lines/records per output file |
+| `-n`, `--number`            | Generate CHUNKS output files: N, K/N, l/N, l/K/N, r/N or r/K/N |
+| `-d`, `--numeric-suffixes`  | Use numeric suffixes starting at 0, not alphabetic; --numeric-suffixes=FROM starts at FROM |
+| `-t`, `--separator`         | Use SEP instead of newline as the record separator; '\0' (zero) specifies the NUL character |
+| `-a`, `--suffix-length`     | Generate suffixes of length N (default 2) |
+| `-u`, `--unbuffered`        | Immediately copy input to output with '-n r/...' (always the case here) |
+| `--verbose`                 | Print a diagnostic just before each output file is opened |
+
+- **Behavior.** splitx copies FILE (standard input when FILE is - or absent) into files named
+  PREFIX (x by default) plus a suffix: xaa, xab, and so on, 1000 lines per file. -l N puts N lines
+  in each file (the obsolete -N form too), -b SIZE puts SIZE bytes, and -C SIZE as many whole
+  lines as fit in SIZE bytes, splitting only a line longer than that. SIZE takes the suffixes K,
+  M, G, ... (powers of 1024) and KB, MB, ... (powers of 1000). -n CHUNKS makes a fixed number of
+  files instead: N files of nearly equal size (the first ones a byte longer when the size does not
+  divide), l/N without splitting lines (each line goes to the chunk it starts in), or r/N dealing
+  lines out in turn; K/N, l/K/N and r/K/N write only the Kth chunk to standard output. To size the
+  chunks of a pipe, splitx first copies it to a temporary file, as GNU does. Suffixes are two
+  letters, and when they run out they grow (xyz is followed by xzaaa) so the names still sort in
+  order; -a N fixes their length, -d and -x make them decimal or hexadecimal,
+  --numeric-suffixes=FROM and --hex-suffixes=FROM start them at FROM, and --additional-suffix
+  appends a fixed string such as .csv. -t SEP splits lines on SEP instead of newline ('\0' for
+  NUL), -e skips empty files in the -n modes, and --verbose reports each file as it is created.
+  splitx refuses to overwrite FILE with one of its pieces. Only one way of splitting may be given.
+  GNU's --filter, which pipes each piece through a shell command, is not implemented; -u is
+  accepted and has no effect, since output is never held back. The digits of two obsolete -N
+  options in a row run together (-5 -3 reads as -53).
+- **Verified by.** `core/split/split_test.go`, `cmd/splitx/splitx_test.go`.
+
+### FR-136: statx
+
+`statx` must display file or file system status, as GNU `stat` does.
+
+```text
+statx [OPTION]... FILE...
+```
+
+| Option                | Meaning |
+|-----------------------|---------|
+| `--cached`            | Specify how to use cached attributes (always, never or default); accepted, no effect |
+| `-L`, `--dereference` | Follow links |
+| `-f`, `--file-system` | Display file system status instead of file status |
+| `-c`, `--format`      | Use the specified FORMAT instead of the default; output a newline after each use of FORMAT |
+| `--printf`            | Like --format, but interpret backslash escapes, and do not output a mandatory trailing newline |
+| `-t`, `--terse`       | Print the information in terse form |
+
+- **Behavior.** statx prints everything the system records about each FILE: its type, size,
+  blocks, device, inode, links, permissions, owner and group, and its access, modification, change
+  and birth times. A symbolic link is described itself unless -L follows it. -f describes the file
+  system holding FILE instead: its type, block sizes, and total, free and available blocks and
+  inodes. -t prints the same fields on one line, for scripts. -c FORMAT prints only what FORMAT
+  asks for, followed by a newline; --printf FORMAT does the same but interprets backslash escapes
+  (\n, \t, \x41, \101) and adds no newline; when both are given, the last wins. FORMAT takes GNU's
+  directives: %n (name), %N (quoted name, with its target for a link), %s (size), %F (file type),
+  %a and %A (permissions in octal and as rwx), %u %U %g %G (owner and group), %h (links), %i
+  (inode), %b %B %o (blocks, block unit, I/O size), %d %D %Hd %Ld (device), %r %R %t %T %Hr %Lr
+  (device type of a special file), %m (mount point), %w %x %y %z (birth, access, modification and
+  change times) and %W %X %Y %Z (the same as seconds since the epoch, which take a precision:
+  %.3Y), with printf flags and widths (%-10s, %04a). With -f: %n %i %l %t %T %s %S %b %f %a %c %d.
+  Names are quoted only when a shell would need it. The device is shown as major,minor, as GNU
+  stat 9 shows it. Missing data is reported honestly rather than invented: the birth time prints
+  '-' where the system does not record it (Linux without statx), and on Windows, which has no
+  numeric owners, %u and %g print '?'. SELinux contexts (%C) are not supported. --cached is
+  accepted for compatibility and has no effect.
+- **Verified by.** `core/stat/stat_test.go`, `cmd/statx/statx_test.go`.
+
+### FR-137: tacx
+
+`tacx` must concatenate and print files in reverse, as GNU `tac` does.
+
+```text
+tacx [OPTION]... [FILE]...
+```
+
+| Option              | Meaning |
+|---------------------|---------|
+| `-b`, `--before`    | Attach the separator before instead of after |
+| `-r`, `--regex`     | Interpret the separator as a regular expression |
+| `-s`, `--separator` | Use STRING as the separator instead of newline |
+
+- **Behavior.** tacx writes each FILE to standard output last line first. With no FILE, or when
+  FILE is -, it reads standard input. Each FILE is reversed on its own, and the files are written
+  in the order given. A record ends with its separator, a newline by default, so a last line
+  without one is joined to the line before it in the output, as in GNU. -s STRING uses STRING as
+  the separator instead, and -b attaches the separator to the start of the record that follows it
+  rather than to the end of the one before. -r treats the separator as a regular expression; gnux
+  uses Go's RE2 syntax (close to POSIX extended regular expressions) rather than the GNU regex
+  dialect, and reports an invalid expression in Go's words. Each input is read whole into memory
+  before it is written.
+- **Verified by.** `core/tac/tac_test.go`, `cmd/tacx/tacx_test.go`.
+
 ### FR-68: tailx
 
 `tailx` must print the last part of each file, optionally following it, as GNU `tail` does.
@@ -873,6 +2265,68 @@ teex [OPTION]... [FILE]...
   status 0 rather than death by SIGPIPE.
 - **Verified by.** `core/tee/tee_test.go`, `cmd/teex/teex_test.go`.
 
+### FR-138: testx
+
+`testx` must check file types and compare values, as GNU `test` does.
+
+```text
+testx EXPRESSION
+```
+
+`testx` takes no options besides `--help` and `--version`.
+
+- **Behavior.** testx evaluates EXPRESSION and exits with status 0 when it is true and 1 when it
+  is false; it prints nothing. With no EXPRESSION it is false. Strings: -n STRING (not empty), -z
+  STRING (empty), STRING alone (not empty), S1 = S2 (also ==), S1 != S2, and S1 < S2 or S1 > S2,
+  comparing bytes (the C locale). Integers: N1 -eq, -ne, -lt, -le, -gt or -ge N2, where an integer
+  is an optional sign and decimal digits of any length, with surrounding blanks allowed. Files: -e
+  (exists), -f (regular file), -d (directory), -h or -L (symbolic link, not followed), -b and -c
+  (block and character devices), -p (named pipe), -S (socket), -s (size above zero), -r, -w and -x
+  (readable, writable, executable by you), -u, -g and -k (set-user-ID, set-group-ID and sticky
+  bits), -O and -G (owned by your effective user or group), -t FD (descriptor FD is a terminal),
+  and F1 -nt, -ot or -ef F2 (newer, older, or the same file). Expressions combine with ! (not), -a
+  (and, binding tighter), -o (or) and parentheses, which must be separate arguments (quote them
+  from the shell). As POSIX requires, one to four arguments are read by their count first, so
+  testx -n = -n compares two strings. A malformed expression is diagnosed with GNU's wording ('a':
+  unary operator expected, invalid integer 'x', missing argument after '-f', extra argument 'c')
+  and exits with status 2. Differences from GNU test: the [ form is not provided (a gnux tool's
+  name is its GNU name with an x appended), a lone --help or --version prints help or the version
+  where GNU test would treat it as a non-empty string, the -l STRING length operand is not
+  implemented, and off Unix -O and -G are always false while -r, -w and -x are read from the
+  permission bits.
+- **Verified by.** `core/test/test_test.go`.
+
+### FR-139: timeoutx
+
+`timeoutx` must run a command with a time limit, as GNU `timeout` does.
+
+```text
+timeoutx [OPTION] DURATION COMMAND [ARG]...
+```
+
+| Option               | Meaning |
+|----------------------|---------|
+| `--foreground`       | When not running timeout directly from a shell prompt, allow COMMAND to read from the TTY and get TTY signals; in this mode, children of COMMAND will not be timed out |
+| `-k`, `--kill-after` | Also send a KILL signal if COMMAND is still running this long after the initial signal was sent (DURATION) |
+| `--preserve-status`  | Exit with the same status as COMMAND, even when the command times out |
+| `-s`, `--signal`     | Specify the SIGNAL to be sent on timeout; SIGNAL may be a name like 'HUP' or a number |
+| `-v`, `--verbose`    | Diagnose to stderr any signal sent upon timeout |
+
+- **Behavior.** timeoutx runs COMMAND and, if it is still running after DURATION, sends it the
+  TERM signal, or the signal -s names. DURATION is a number, possibly decimal or hexadecimal, with
+  an optional unit: s (seconds, the default), m (minutes), h (hours) or d (days); 0 means no
+  limit. -k DURATION also sends KILL if COMMAND is still running that long after the first signal.
+  By default the signal goes to COMMAND's whole process group, so the processes it started stop
+  too; --foreground signals COMMAND alone and leaves it in the terminal's process group, so it can
+  read from the terminal. A signal sent to timeoutx is passed on to COMMAND, and -v reports each
+  signal sent. The exit status is 124 when COMMAND timed out (unless --preserve-status, which
+  keeps COMMAND's own status), 125 when timeoutx itself failed, 126 when COMMAND was found but
+  could not be run, 127 when it was not found, and otherwise COMMAND's status (128+N when signal N
+  ended it, 137 after KILL). Options must come before DURATION. On Windows, which has no signals,
+  the limit still works: TERM and KILL both end COMMAND, so timeoutx is a portable way to bound a
+  step in a script on every platform.
+- **Verified by.** `core/timeout/timeout_test.go`, `cmd/timeoutx/timeoutx_test.go`.
+
 ### FR-69: touchx
 
 `touchx` must change file timestamps, creating files as needed, as GNU `touch` does.
@@ -916,6 +2370,33 @@ truex [ignored command line arguments]
 - **Deviations.** None. `truex` has no engine package: the adapter is the whole tool.
 - **Verified by.** `cmd/truex/truex_test.go`.
 
+### FR-140: truncatex
+
+`truncatex` must shrink or extend the size of each FILE to the specified size, as GNU `truncate` does.
+
+```text
+truncatex OPTION... FILE...
+```
+
+| Option              | Meaning |
+|---------------------|---------|
+| `-o`, `--io-blocks` | Treat SIZE as number of IO blocks instead of bytes |
+| `-c`, `--no-create` | Do not create any files |
+| `-r`, `--reference` | Base size on RFILE |
+| `-s`, `--size`      | Set or adjust the file size by SIZE bytes |
+
+- **Behavior.** truncatex sets the size of each FILE. A FILE that does not exist is created,
+  unless -c is given. A file larger than the size loses the data past it; a file shorter than the
+  size is extended with zero bytes (on most file systems as a sparse hole that takes no disk
+  space). -s SIZE gives the size: a number with an optional suffix (K, M, G, T, P, E for powers of
+  1024, also written KiB, MiB; KB, MB for powers of 1000), optionally preceded by + (extend by), -
+  (reduce by), < (at most), > (at least), / (round down to a multiple of) or % (round up to a
+  multiple of). -r FILE takes the size from another file; with -s as well, the relative SIZE
+  adjusts the reference size. -o counts SIZE in I/O blocks rather than bytes. One of -s and -r is
+  required. Off Unix the I/O block size used by -o is 512 bytes, because the platform does not
+  report one.
+- **Verified by.** `core/truncate/truncate_test.go`, `cmd/truncatex/truncatex_test.go`.
+
 ### FR-91: trx
 
 `trx` must translate, squeeze and delete bytes from standard input, as GNU `tr` does.
@@ -943,6 +2424,86 @@ trx [OPTION]... STRING1 [STRING2]
 - **Deviations.** None known in the options listed. Like GNU `tr`, it is byte-oriented: a
   multibyte UTF-8 character is several bytes and the classes are the C locale's (ASCII).
 - **Verified by.** `core/tr/tr_test.go`, `cmd/trx/trx_test.go`.
+
+### FR-141: ttyx
+
+`ttyx` must print the file name of the terminal connected to standard input, as GNU `tty` does.
+
+```text
+ttyx [OPTION]...
+```
+
+| Option           | Meaning |
+|------------------|---------|
+| `--quiet`        | Same as --silent |
+| `-s`, `--silent` | Print nothing, only return an exit status |
+
+- **Behavior.** ttyx prints the file name of the terminal on standard input, such as /dev/pts/3,
+  or 'not a tty' when standard input is a pipe, a file or nothing, and then exits with status 1.
+  -s prints nothing, so only the exit status tells; GNU deprecates it in favor of 'test -t 0',
+  which gnux has as testx -t 0. The name is found without the C library: through /proc on Linux,
+  and on macOS and the BSDs by finding the device in /dev with the same device number, as
+  ttyname(3) does. Windows has no terminal file names, so a console prints as CON (its device
+  name) instead of failing. The exit status is 0 when standard input is a terminal, 1 when it is
+  not, 2 for a command-line mistake and 3 when the name could not be written.
+- **Verified by.** `core/tty/tty_test.go`, `cmd/ttyx/ttyx_test.go`.
+
+### FR-142: unamex
+
+`unamex` must print system information, as GNU `uname` does.
+
+```text
+unamex [OPTION]...
+```
+
+| Option                      | Meaning |
+|-----------------------------|---------|
+| `-a`, `--all`               | Print all information, in the following order, except omit -p and -i if unknown |
+| `-i`, `--hardware-platform` | Print the hardware platform (non-portable) |
+| `-s`, `--kernel-name`       | Print the kernel name |
+| `-r`, `--kernel-release`    | Print the kernel release |
+| `-v`, `--kernel-version`    | Print the kernel version |
+| `-m`, `--machine`           | Print the machine hardware name |
+| `-n`, `--nodename`          | Print the network node hostname |
+| `-o`, `--operating-system`  | Print the operating system |
+| `-p`, `--processor`         | Print the processor type (non-portable) |
+
+- **Behavior.** unamex prints information about the machine and operating system. With no option
+  it prints the kernel name, as -s does. The selected fields are printed on one line, separated by
+  spaces, in a fixed order whatever the order of the options: kernel name (-s), network node host
+  name (-n), kernel release (-r), kernel version (-v), machine hardware name (-m), processor type
+  (-p), hardware platform (-i) and operating system (-o). -a prints them all, leaving out -p and
+  -i when they are unknown, as GNU does. The values come from uname(2) on Linux, sysctl on macOS
+  and FreeBSD, and the registry on Windows, so unamex prints the same fields on every platform: on
+  Windows the kernel name is 'Windows_NT' and the operating system 'MS/Windows'; in the browser
+  playground the fields describe the WebAssembly runtime.
+- **Verified by.** `core/uname/uname_test.go`, `cmd/unamex/unamex_test.go`.
+
+### FR-143: unexpandx
+
+`unexpandx` must convert spaces to tabs, as GNU `unexpand` does.
+
+```text
+unexpandx [OPTION]... [FILE]...
+```
+
+| Option         | Meaning |
+|----------------|---------|
+| `-a`, `--all`  | Convert all blanks, instead of just initial blanks |
+| `--first-only` | Convert only leading sequences of blanks (overrides -a) |
+| `-t`, `--tabs` | Have tabs N characters apart instead of 8 (enables -a), or use comma separated list of explicit tab positions |
+
+- **Behavior.** unexpandx writes each FILE to standard output with runs of blanks replaced by tabs
+  where they reach a tab stop. With no FILE, or when FILE is -, it reads standard input. By
+  default only the blanks at the start of each line are converted; -a converts every run of two or
+  more blanks that ends at a tab stop, and --first-only goes back to the leading blanks only. Tab
+  stops are every 8 columns unless -t says otherwise, with the same syntax as expandx: -t N, or -t
+  LIST with an optional final /N or +N. -t implies -a, as in GNU. Several -t options add to one
+  list, and the obsolete -N form (unexpandx -4) is a list of its own, in the order given, without
+  implying -a; GNU's comma form -4,8 is not accepted, and the digits of two -N options in a row
+  run together (-4 -8 reads as -48), so write -t 4,8 instead. When both -a and --first-only are
+  given, --first-only wins.
+- **Verified by.** `core/unexpand/unexpand_test.go`, `cmd/unexpandx/unexpandx_test.go`.
 
 ### FR-89: uniqx
 
@@ -975,6 +2536,44 @@ uniqx [OPTION]... [INPUT [OUTPUT]]
   letters only. Not implemented: the obsolete `-N` and `+N` forms of `-f` and `-s`.
 - **Verified by.** `core/uniq/uniq_test.go`, `cmd/uniqx/uniqx_test.go`.
 
+### FR-144: unlinkx
+
+`unlinkx` must call the unlink function to remove the specified file, as GNU `unlink` does.
+
+```text
+unlinkx FILE
+```
+
+`unlinkx` takes no options besides `--help` and `--version`.
+
+- **Behavior.** unlinkx removes the single name FILE with the unlink(2) system call. It takes
+  exactly one operand and no options: it never recurses, never prompts, never ignores a missing
+  file, and refuses a directory, even an empty one, with 'Is a directory' (use rmdirx for that). A
+  symbolic link is removed, not its target. Removing the last name of a file frees its data once
+  no process has it open.
+- **Verified by.** `core/unlink/unlink_test.go`, `cmd/unlinkx/unlinkx_test.go`.
+
+### FR-145: uptimex
+
+`uptimex` must tell how long the system has been running, as GNU `uptime` does.
+
+```text
+uptimex [OPTION]... [FILE]
+```
+
+`uptimex` takes no options besides `--help` and `--version`.
+
+- **Behavior.** uptimex prints, on one line, the current time, how long the system has been up,
+  how many users are logged in, and the load averages: the average number of processes running or
+  waiting to run over the last 1, 5 and 15 minutes (on Linux, processes waiting on disk count
+  too). A load average above the number of CPUs (nprocx) means work is queuing. With FILE, the
+  users and the boot time are read from that utmp file instead of the current records. The boot
+  time comes from /proc on Linux, kern.boottime on macOS and FreeBSD, and the tick count on
+  Windows, where the users are the signed-in sessions; Windows keeps no load average, so that part
+  is left out there, as GNU uptime leaves it out wherever the system cannot report it. If the boot
+  time cannot be found the time up is shown as '????' and the exit status is 1.
+- **Verified by.** `core/uptime/uptime_test.go`, `cmd/uptimex/uptimex_test.go`.
+
 ### FR-71: wcx
 
 `wcx` must print line, word and byte counts, as GNU `wc` does.
@@ -1000,6 +2599,65 @@ wcx [OPTION]... [FILE]...
   File operands cannot be combined with `--files0-from`. A read error keeps the partial counts.
 - **Deviations.** None known in the options listed. Not implemented: `--debug`.
 - **Verified by.** `core/wc/wc_test.go`, `cmd/wcx/wcx_test.go`.
+
+### FR-146: whoamix
+
+`whoamix` must print the user name associated with the current effective user ID, as GNU `whoami` does.
+
+```text
+whoamix [OPTION]...
+```
+
+`whoamix` takes no options besides `--help` and `--version`.
+
+- **Behavior.** whoamix prints the name of the user the process runs as: the effective user, so
+  inside sudo it prints root. It takes no operands. On Windows, where the account name is
+  DOMAIN\user, only the user part is printed, as GNU whoami does under Cygwin and MSYS. If the
+  user ID has no name, whoamix reports 'cannot find name for user ID N' and exits 1.
+- **Verified by.** `core/whoami/whoami_test.go`, `cmd/whoamix/whoamix_test.go`.
+
+### FR-147: whox
+
+`whox` must show who is logged on, as GNU `who` does.
+
+```text
+whox [OPTION]... [ FILE | ARG1 ARG2 ]
+```
+
+| Option             | Meaning |
+|--------------------|---------|
+| `-a`, `--all`      | Same as -b -d --login -p -r -t -T -u |
+| `-b`, `--boot`     | Time of last system boot |
+| `-q`, `--count`    | All login names and number of users logged on |
+| `-d`, `--dead`     | Print dead processes |
+| `-H`, `--heading`  | Print line of column headings |
+| `-l`, `--login`    | Print system login processes |
+| `--lookup`         | Attempt to canonicalize hostnames via DNS |
+| `-T`, `--mesg`     | Add user's message status as +, - or ? |
+| `--message`        | Same as -T |
+| `-m`, `--my-line`  | Only hostname and user associated with stdin |
+| `-p`, `--process`  | Print active processes spawned by init |
+| `-r`, `--runlevel` | Print current runlevel |
+| `-s`, `--short`    | Print only name, line, and time (default) |
+| `-t`, `--time`     | Print last system clock change |
+| `-u`, `--users`    | List users logged in |
+| `-w`, `--writable` | Same as -T |
+
+- **Behavior.** whox lists the users logged in: name, terminal, login time and, for a remote
+  session, the host in parentheses. -u adds how long each terminal has been idle ('.' under a
+  minute, 'old' over a day) and the session's process ID, -T (or -w) whether the user accepts
+  messages (+, - or ?), and -H a line of headings. -q prints just the names and their count. -b
+  shows the last boot, -r the run level, -l login processes, -p processes started by init, -d dead
+  processes and -t clock changes; -a shows all of them. -m (or any two operands, as in 'whox am
+  i') shows only the terminal on standard input. --lookup turns host addresses into names. With
+  FILE, the records are read from that utmp file (on Linux, /var/log/wtmp lists past logins too)
+  instead of the current ones, and in the current ones, logins whose process has ended are left
+  out. Times are in the C locale's 'Oct 12 09:30' format. The records are read without the C
+  library, in each system's own format: Linux utmp, macOS utmpx and FreeBSD utx.active. On
+  Windows, which keeps sessions rather than a utmp file, whox lists the signed-in console and
+  Remote Desktop sessions, so the same command answers 'who is on this machine' everywhere; there
+  FILE is not supported.
+- **Verified by.** `core/who/who_test.go`, `cmd/whox/whox_test.go`.
 
 ### FR-72: yesx
 

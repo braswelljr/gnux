@@ -1,0 +1,47 @@
+---
+title: "-s, --spaces"
+description: "Break at spaces."
+---
+
+An option of [foldx](/docs/tools/foldx).
+
+## Usage
+
+```bash
+foldx -s [FILE]...
+foldx --spaces [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-s` | `--spaces` | none |  | break at spaces |
+
+## Examples
+
+### Wrap at word boundaries
+
+```bash tab="bash" tab-group="shell"
+foldx -s -w 72 essay.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+foldx -s -w 72 essay.txt
+```
+
+### Save a wrapped copy
+
+```bash tab="bash" tab-group="shell"
+foldx -s -w 72 draft.txt > wrapped.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+foldx -s -w 72 draft.txt > wrapped.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help foldx --spaces
+```

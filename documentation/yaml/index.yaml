@@ -32,33 +32,85 @@ example: |4-
       gnux help rmx
       gnux help rmx --force
 see_also:
+    - gnux b2sumx - Print or check BLAKE2b (512-bit) checksums.
+    - gnux base32x - Encode or decode data in base32.
+    - gnux base64x - Encode or decode data in base64.
     - gnux basenamex - Strip the directory and suffix from file names.
     - gnux catx - Concatenate files and print them on standard output.
+    - gnux chgrpx - Change group ownership.
+    - gnux chmodx - Change file mode bits.
+    - gnux chownx - Change file owner and group.
+    - gnux cksumx - Print or check checksums and byte counts.
+    - gnux commx - Compare two sorted files line by line.
     - gnux cpx - Copy files and directories.
+    - gnux csplitx - Split a file into sections determined by context lines.
     - gnux cutx - Remove sections from each line of files.
+    - gnux datex - Print the date and time.
+    - gnux ddx - Convert and copy a file, block by block.
+    - gnux dfx - Report file system space usage.
     - gnux dirnamex - Strip the last component from file names.
+    - gnux dux - Estimate file space usage.
     - gnux echox - Display a line of text.
     - gnux envx - Run a program in a modified environment, or print the environment.
+    - gnux expandx - Convert tabs to spaces.
+    - gnux exprx - Evaluate an expression and print its value.
     - gnux falsex - Do nothing, unsuccessfully.
+    - gnux fmtx - Reformat each paragraph of text.
+    - gnux foldx - Wrap each input line to fit in a specified width.
     - gnux headx - Print the first part of each file.
+    - gnux hostnamex - Print the name of the current host system.
+    - gnux idx - Print real and effective user and group IDs.
+    - gnux installx - Copy files into place and set their mode, owner and group.
+    - gnux joinx - Join lines of two files on a common field.
+    - gnux killx - Send a signal to processes, or list signals.
+    - gnux linkx - Call the link function to create a hard link to a file.
     - gnux lnx - Make hard or symbolic links between files.
     - gnux lsx - List information about files and directory contents.
+    - gnux md5sumx - Print or check MD5 (128-bit) checksums.
     - gnux mkdirx - Create the DIRECTORY(ies), if they do not already exist.
+    - gnux mktempx - Create a temporary file or directory, safely, and print its name.
     - gnux mvx - Move (rename) files and directories.
+    - gnux nicex - Run a program with modified scheduling priority.
+    - gnux nlx - Number lines of files.
+    - gnux nohupx - Run a command immune to hangups, with output to a non-terminal.
+    - gnux nprocx - Print the number of processing units available.
+    - gnux odx - Dump files in octal and other formats.
+    - gnux pastex - Merge lines of files.
+    - gnux printenvx - Print all or part of the environment.
     - gnux printfx - Format and print data.
     - gnux pwdx - Print the full name of the current working directory.
+    - gnux readlinkx - Print resolved symbolic links or canonical file names.
     - gnux realpathx - Print the resolved absolute file name.
     - gnux rmdirx - Remove the DIRECTORY(ies), if they are empty.
     - gnux rmx - Remove (unlink) files and directories.
     - gnux seqx - Print a sequence of numbers.
+    - gnux sha1sumx - Print or check SHA-1 (160-bit) checksums.
+    - gnux sha224sumx - Print or check SHA-224 (224-bit) checksums.
+    - gnux sha256sumx - Print or check SHA-256 (256-bit) checksums.
+    - gnux sha384sumx - Print or check SHA-384 (384-bit) checksums.
+    - gnux sha512sumx - Print or check SHA-512 (512-bit) checksums.
     - gnux shell - Run a portable shell whose commands are the gnux tools.
+    - gnux shufx - Generate random permutations.
     - gnux sleepx - Delay for a specified amount of time.
     - gnux sortx - Sort lines of text files.
+    - gnux splitx - Split a file into pieces.
+    - gnux statx - Display file or file system status.
+    - gnux tacx - Concatenate and print files in reverse.
     - gnux tailx - Print the last part of each file, optionally following it as it grows.
     - gnux teex - Copy standard input to each FILE, and also to standard output.
+    - gnux testx - Check file types and compare values.
+    - gnux timeoutx - Run a command with a time limit.
     - gnux touchx - Update the access and modification times of each FILE to the current time.
     - gnux truex - Do nothing, successfully.
+    - gnux truncatex - Shrink or extend the size of each FILE to the specified size.
     - gnux trx - Translate, squeeze, and/or delete characters from standard input.
+    - gnux ttyx - Print the file name of the terminal connected to standard input.
+    - gnux unamex - Print system information.
+    - gnux unexpandx - Convert spaces to tabs.
     - gnux uniqx - Report or omit repeated lines.
+    - gnux unlinkx - Call the unlink function to remove the specified file.
+    - gnux uptimex - Tell how long the system has been running.
     - gnux wcx - Print newline, word, and byte counts for each file.
+    - gnux whoamix - Print the user name associated with the current effective user ID.
+    - gnux whox - Show who is logged on.
     - gnux yesx - Output a string repeatedly until killed.

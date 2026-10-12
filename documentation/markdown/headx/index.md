@@ -10,6 +10,11 @@ Mirrors GNU `head`. Run it as `headx`, or as `gnux headx`.
 headx [OPTION]... [FILE]...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: head invocation](https://www.gnu.org/software/coreutils/manual/html_node/head-invocation.html)
+- [Source: src/head.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/head.c)
+
 ### Description
 
 `headx` prints the first 10 lines of each FILE to standard output. With no FILE, or when FILE is -, it reads standard input. `-n` NUM changes the number of lines and `-c` NUM switches to bytes; a leading '-' on NUM inverts the selection and prints everything except the last NUM lines or bytes. NUM accepts a multiplier suffix: b is 512, K, M, G, T, P and E are powers of 1024 (also written KiB, MiB, ...), and KB, MB, ... are powers of 1000. With more than one FILE each is preceded by a '==> name <==' header; `-q` suppresses the headers and `-v` forces them. `-z` makes NUL the line delimiter. The historical '`headx -NUM`' spelling of '`-n` NUM' is accepted. Reading stops as soon as enough has been seen, so `headx` is cheap on huge files.

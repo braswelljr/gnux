@@ -24,7 +24,7 @@ belongs in the project and whether a release is ready.
 
 ### 1.2 Scope
 
-gnux is one multi-call binary carrying 29 tools, each named after its GNU counterpart with an
+gnux is one multi-call binary carrying 81 tools, each named after its GNU counterpart with an
 `x` appended. The same code is offered as commands, as a Go library and as a portable shell,
 and is documented and demonstrated on a website with a WebAssembly playground. What is in and
 out of scope is listed in [business-requirements](business-requirements.md).
@@ -128,7 +128,9 @@ to every platform, complements them rather than replacing them, and depends on n
 ### 2.5 Design and implementation constraints
 
 - **Language and dependencies.** Go, with the standard library plus cobra and pflag (command
-  line) and go-isatty (terminal detection). Engines must not depend on cobra or pflag.
+  line), go-isatty (terminal detection), and golang.org/x/sys and golang.org/x/crypto (system
+  calls the standard library lacks, and BLAKE2b), all pure Go. Engines must not depend on cobra
+  or pflag.
 - **No cgo.** The binary must link statically and cross-compile, including for `js/wasm`.
 - **Option order.** The command-line framework does not report the order in which options were
   given. A tool that needs GNU's "last one wins" either tracks order itself (`lsx`, `headx`,
@@ -150,6 +152,8 @@ dependencies:
 | `github.com/spf13/cobra`      | Command structure and help            | Yes                    |
 | `github.com/spf13/pflag`      | GNU-style option parsing              | Yes                    |
 | `github.com/mattn/go-isatty`  | Terminal detection                    | Yes                    |
+| `golang.org/x/sys`            | Windows and BSD system calls (statfs, sysctl, sessions, priority classes) | Yes |
+| `golang.org/x/crypto`         | BLAKE2b, for `b2sumx` and `cksumx -a blake2b` | Yes            |
 | `cobra/doc` and `go-md2man`   | Reference generation                  | No: only `tools/gendocs` imports them |
 | Next.js, Fumadocs, Tailwind   | The website                           | No: a separate project in `web/`      |
 

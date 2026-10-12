@@ -20,23 +20,23 @@ trx --complement STRING1 [STRING2]
 
 ## Examples
 
-Put each word on a line of its own:
+### Put each word on a line of its own
 
-```bash
+```bash tab="bash" tab-group="shell"
 catx essay.txt | trx -cs '[:alnum:]' '\n'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 catx essay.txt | trx -cs '[:alnum:]' '\n'
 ```
 
-Keep only the printable characters and newlines:
+### Keep only the printable characters and newlines
 
-```bash
+```bash tab="bash" tab-group="shell"
 trx -cd '[:print:]\n' < binary.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 catx binary.log | trx -cd '[:print:]\n'
 ```
 

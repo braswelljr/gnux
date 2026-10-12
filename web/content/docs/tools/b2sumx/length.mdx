@@ -1,0 +1,37 @@
+---
+title: "-l, --length"
+description: "Digest length in bits; must not exceed the maximum for the blake2 algorithm and must be a multiple of 8."
+---
+
+An option of [b2sumx](/docs/tools/b2sumx).
+
+## Usage
+
+```bash
+b2sumx -l bits [FILE]...
+b2sumx --length=bits [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-l` | `--length` | `bits` |  | digest length in bits; must not exceed the maximum for the blake2 algorithm and must be a multiple of 8 |
+
+## Examples
+
+### Print a 256-bit digest
+
+```bash tab="bash" tab-group="shell"
+b2sumx -l 256 file.iso
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+b2sumx -l 256 file.iso
+```
+
+## Help in the terminal
+
+```bash
+gnux help b2sumx --length
+```

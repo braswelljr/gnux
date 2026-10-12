@@ -20,33 +20,33 @@ envx --ignore-environment [-] [NAME=VALUE]... [COMMAND [ARG]...]
 
 ## Examples
 
-Run a command with nothing but the variables given:
+### Run a command with nothing but the variables given
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -i PATH=/usr/bin HOME=/tmp make test
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -i "PATH=$env:PATH" "TEMP=$env:TEMP" make test
 ```
 
-Print an empty environment plus a single variable:
+### Print an empty environment plus a single variable
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -i LANG=C.UTF-8
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -i LANG=C.UTF-8
 ```
 
-Print the environment NUL-separated, with the NULs made visible:
+### Print the environment NUL-separated, with the NULs made visible
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -0 -i A=1 B=2 | catx -v
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -0 -i A=1 B=2 | catx -v
 ```
 

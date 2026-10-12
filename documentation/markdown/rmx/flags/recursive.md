@@ -8,7 +8,7 @@ By default `rmx` refuses to remove directories. `-r` (or its alias `-R`) removes
 
 ### Permissions
 
-Recursive removal needs read+execute permission to list and descend into each directory, and write permission on a directory to unlink the entries inside it. A directory you cannot write to fails with 'Permission denied' and its contents are left in place. The `--preserve-root` failsafe additionally refuses to recurse on '/'.
+Recursive removal needs read+execute permission to list and descend into each directory, and write permission on a directory to `unlink` the entries inside it. A directory you cannot write to fails with 'Permission denied' and its contents are left in place. The `--preserve-root` failsafe additionally refuses to recurse on '/'.
 
 ### Use cases
 

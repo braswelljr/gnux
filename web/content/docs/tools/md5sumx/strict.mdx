@@ -1,0 +1,36 @@
+---
+title: "--strict"
+description: "Exit non-zero for improperly formatted checksum lines."
+---
+
+An option of [md5sumx](/docs/tools/md5sumx).
+
+## Usage
+
+```bash
+md5sumx --strict [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--strict` | none |  | exit non-zero for improperly formatted checksum lines |
+
+## Examples
+
+### Fail on malformed lines in the list
+
+```bash tab="bash" tab-group="shell"
+md5sumx -c --strict -w md5.sums
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx -c --strict -w md5.sums
+```
+
+## Help in the terminal
+
+```bash
+gnux help md5sumx --strict
+```

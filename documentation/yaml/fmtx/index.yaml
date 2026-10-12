@@ -1,0 +1,111 @@
+name: fmtx
+synopsis: Reformat each paragraph of text.
+description: |-
+    fmtx fills and joins the lines of each paragraph so that they come as close as possible to a goal width without exceeding the maximum width, and writes the result to standard output. With no FILE, or when FILE is -, it reads standard input. Paragraphs are separated by blank lines and by changes of indentation; the indentation of each paragraph is kept. The line breaks are chosen as GNU fmt chooses them, minimizing raggedness over the whole paragraph and avoiding breaking after the first word of a sentence or before its last. -w WIDTH sets the maximum width (75 by default, at most 2500), also written -WIDTH; -g WIDTH sets the goal (93% of the maximum by default, and without -w the maximum becomes the goal plus 10). -c (crown margin) keeps the indentation of the first two lines and aligns the rest with the second; -t (tagged paragraph) is the same, except that a first line indented like the second is a paragraph of its own. -s only splits long lines and never joins short ones, which suits code. -u puts one space between words and two after sentences. -p STRING reformats only the lines that begin with STRING (after any indentation) and puts it back on each output line; the other lines are copied unchanged. A sentence ends at '.', '?' or '!' followed by the end of the line or two spaces, as in GNU fmt.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. fmtx --help shows the options and the first examples; gnux help fmtx prints the full manual, and gnux help fmtx OPTION explains one option.
+
+    SEE ALSO. foldx, nlx.
+
+    PERMISSIONS. Needs read permission on each FILE and search permission on the directories leading to it. Nothing is ever modified.
+
+    USE CASES.
+      - Rewrapping a commit message, README paragraph or email to a fixed width.
+      - Joining hard-wrapped text into evenly filled lines.
+      - Reflowing comment blocks with -p '#' or -p '//'.
+      - Splitting overlong lines without joining short ones with -s.
+      - Normalizing spacing between words and sentences with -u.
+usage: fmtx [-WIDTH] [OPTION]... [FILE]...
+options:
+    - name: crown-margin
+      shorthand: c
+      default_value: "false"
+      usage: preserve indentation of first two lines
+    - name: goal
+      shorthand: g
+      usage: goal width (default of 93% of width)
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: obsolete-0
+      shorthand: "0"
+    - name: obsolete-1
+      shorthand: "1"
+    - name: obsolete-2
+      shorthand: "2"
+    - name: obsolete-3
+      shorthand: "3"
+    - name: obsolete-4
+      shorthand: "4"
+    - name: obsolete-5
+      shorthand: "5"
+    - name: obsolete-6
+      shorthand: "6"
+    - name: obsolete-7
+      shorthand: "7"
+    - name: obsolete-8
+      shorthand: "8"
+    - name: obsolete-9
+      shorthand: "9"
+    - name: prefix
+      shorthand: p
+      usage: |
+        reformat only lines beginning with `STRING`, reattaching the prefix to reformatted lines
+    - name: split-only
+      shorthand: s
+      default_value: "false"
+      usage: split long lines, but do not refill
+    - name: tagged-paragraph
+      shorthand: t
+      default_value: "false"
+      usage: indentation of first line different from second
+    - name: uniform-spacing
+      shorthand: u
+      default_value: "false"
+      usage: one space between words, two after sentences
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+    - name: width
+      shorthand: w
+      usage: maximum line width (default of 75 columns)
+example: |4-
+      # Reformat a file to the default 75 columns
+      fmtx notes.txt
+
+      # Reformat to 72 columns
+      fmtx -w 72 message.txt
+
+      # Use the obsolete width form
+      fmtx -60 notes.txt
+
+      # Split long lines but never join short ones
+      fmtx -s -w 80 script.txt
+
+      # Reflow a shell comment block
+      fmtx -p '#' -w 72 config.sh
+
+      # Use uniform spacing
+      fmtx -u draft.txt
+
+      # Keep a hanging indent
+      fmtx -t list.txt
+
+      # Keep the first two lines' indentation
+      fmtx -c letter.txt
+
+      # Set the goal width as well as the maximum
+      fmtx -w 80 -g 70 notes.txt
+
+      # Reformat standard input
+      catx a.txt b.txt | fmtx -w 66
+
+      # Save a reformatted copy
+      fmtx -w 72 draft.txt > final.txt
+
+      # Reformat in the portable gnux shell
+      gnux shell -c 'fmtx -w 60 notes.txt | headx'

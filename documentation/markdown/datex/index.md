@@ -1,0 +1,224 @@
+## datex
+
+Print the `date` and time.
+
+Mirrors GNU `date`. Run it as `datex`, or as `gnux datex`.
+
+### Synopsis
+
+```bash
+datex [OPTION]... [+FORMAT]
+```
+
+### GNU reference
+
+- [GNU coreutils manual: date invocation](https://www.gnu.org/software/coreutils/manual/html_node/date-invocation.html)
+- [Source: src/date.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/date.c)
+
+### Description
+
+`datex` prints the current `date` and time, or the one `-d` STRING describes, in the C locale's default format ('Mon Jan  2 15:04:05 UTC 2006') or in +FORMAT. FORMAT takes GNU's conversions: %Y %m %d %H %M %S and friends, %a %A %b %B %p (in English), %s (seconds since the epoch), %N (nanoseconds), %z %:z %::z %:::z and %Z (zones), %j %U %W %V %G %u %w (day and week numbers), %F %T %D %R %r %c %x %X %h %e %k %l %C %y %g %n %t %%, and the flags -, _, 0, ^ and # with a field width (%`-d`, %_H, %10s). `-I`[FMT] prints ISO 8601 (`date`, hours, minutes, seconds or ns; `date` by default), `--rfc-3339`=FMT RFC 3339 (`date`, seconds or ns) and `-R` RFC 5322; only one output format may be given. `-u` uses UTC, and otherwise the TZ environment variable or the local zone applies. `-d` STRING accepts the forms GNU `date` accepts most often: 'now', 'today', 'yesterday', 'tomorrow', '@SECONDS', ISO 8601 and RFC 3339 dates and times, MM/DD/YYYY, 'Jan 2 2006', '2 Jan 2006', times of day (14:30, 2:30pm, noon, midnight) with UTC, Z or a numeric offset, weekdays ('next friday', 'last monday') and relative items ('3 days ago', '+2 hours', 'next month', 'fortnight'), combined as in '2026-01-31 +1 month' or 'tomorrow 09:00'. Anything else is reported as an invalid `date`, where GNU's grammar is larger still. `-f` FILE prints one `date` per line of FILE (- for standard input) and `-r` FILE the last modification time of FILE. `gnux` never changes system settings, so `-s` and a MMDDhhmm[[CC]YY][.ss] operand fail with 'cannot set `date`: Operation not supported'. `--debug` and `--resolution` are not implemented.
+
+### Permissions
+
+Printing needs no permissions; `-f` needs read permission on FILE and `-r` search permission on the directories leading to it.
+
+### Use cases
+
+- Timestamping file names, log lines and backups.
+- Converting between epoch seconds and readable dates.
+- Computing dates relative to now or to another `date`, such as 'next friday'.
+- Printing machine-readable ISO 8601 or RFC 3339 timestamps.
+- Showing the current time in another zone with TZ or `-u`.
+
+### Flags
+
+```text
+  -d, --date STRING             display time described by STRING, not 'now'
+  -f, --file DATEFILE           like --date; once for each line of DATEFILE
+      --help                    display this help and exit
+  -I, --iso-8601 FMT[="date"]   output date/time in ISO 8601 format. FMT='date' for date only (the default), 'hours', 'minutes', 'seconds', or 'ns'
+  -r, --reference FILE          display the last modification time of FILE
+      --rfc-3339 FMT            output date/time in RFC 3339 format. FMT='date', 'seconds', or 'ns'
+  -R, --rfc-email               output date and time in RFC 5322 format
+  -s, --set STRING              set time described by STRING (not supported)
+      --universal               same as --utc
+  -u, --utc                     print or set Coordinated Universal Time (UTC)
+      --version                 output version information and exit
+```
+
+### Examples
+
+Print the current `date` and time:
+
+```bash
+datex
+```
+
+```powershell
+datex
+```
+
+Print the `date` in ISO 8601:
+
+```bash
+datex -I
+```
+
+```powershell
+datex -I
+```
+
+Print an ISO 8601 timestamp to the second:
+
+```bash
+datex -Iseconds
+```
+
+```powershell
+datex -Iseconds
+```
+
+Print the time in UTC:
+
+```bash
+datex -u
+```
+
+```powershell
+datex -u
+```
+
+Use a custom format:
+
+```bash
+datex '+%Y-%m-%d %H:%M:%S'
+```
+
+```powershell
+datex '+%Y-%m-%d %H:%M:%S'
+```
+
+Name a backup after today's `date`:
+
+```bash
+cpx db.sqlite "db-$(datex +%F).sqlite"
+```
+
+```powershell
+cpx db.sqlite "db-$(datex +%F).sqlite"
+```
+
+Print the seconds since the epoch:
+
+```bash
+datex +%s
+```
+
+```powershell
+datex +%s
+```
+
+Convert epoch seconds to a `date`:
+
+```bash
+datex -u -d @1700000000
+```
+
+```powershell
+datex -u -d '@1700000000'
+```
+
+Compute a relative `date`:
+
+```bash
+datex -d '3 days ago' +%F
+```
+
+```powershell
+datex -d '3 days ago' +%F
+```
+
+Find next Friday's `date`:
+
+```bash
+datex -d 'next friday' +%A,%F
+```
+
+```powershell
+datex -d 'next friday' +%A,%F
+```
+
+Print a file's modification time:
+
+```bash
+datex -r report.txt
+```
+
+```powershell
+datex -r report.txt
+```
+
+Print the time in another zone:
+
+```bash
+TZ=Asia/Tokyo datex
+```
+
+```powershell
+envx TZ=Asia/Tokyo datex
+```
+
+Print an RFC 3339 timestamp:
+
+```bash
+datex --rfc-3339=seconds
+```
+
+```powershell
+datex --rfc-3339=seconds
+```
+
+Convert a list of dates:
+
+```bash
+datex -f dates.txt +%s
+```
+
+```powershell
+datex -f dates.txt +%s
+```
+
+Timestamp a log line in the portable `gnux shell`:
+
+```bash
+gnux shell -c 'datex -Iseconds >> run.log'
+```
+
+```powershell
+gnux shell -c 'datex -Iseconds >> run.log'
+```
+
+### Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+### Help in the terminal
+
+```bash
+datex --help                # options, first examples, exit status
+gnux help datex             # this page: the full manual
+gnux help datex --OPTION    # one option in depth, with its examples
+```
+
+### See also
+
+- [touchx](../touchx/index.md)
+- [sleepx](../sleepx/index.md)
+- [lsx](../lsx/index.md)
+- [uptimex](../uptimex/index.md)
+- [gnux](../index.md) - every tool in the bundle
+- [guide](../guide.md) - installation and usage

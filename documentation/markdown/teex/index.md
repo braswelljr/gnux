@@ -10,6 +10,11 @@ Mirrors GNU `tee`. Run it as `teex`, or as `gnux teex`.
 teex [OPTION]... [FILE]...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: tee invocation](https://www.gnu.org/software/coreutils/manual/html_node/tee-invocation.html)
+- [Source: src/tee.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/tee.c)
+
 ### Description
 
 `teex` reads standard input and writes it, unchanged and as soon as it arrives, to standard output and to every FILE. Each FILE is created if it does not exist and truncated if it does, unless `-a` appends to it instead. A FILE named - is a file called '-', as in GNU tee 9, not standard output. A FILE that cannot be opened is reported and the copy goes on to the others; the exit status is then 1. `--output-error`=MODE says what happens when writing to an output fails: 'warn' reports the error and carries on with the other outputs, 'warn-nopipe' does the same but drops an output whose reader has gone without a word, 'exit' stops at the first error and 'exit-nopipe' stops at the first error that is not a closed pipe. `--output-error` with no MODE, and `-p`, mean 'warn-nopipe'. Without the option a failing output is reported and dropped, and a closed pipe stops `teex` quietly, as SIGPIPE stops GNU tee. `teex` stops reading once no output is left. When `-p` and `--output-error`=MODE are both given, MODE wins whatever their order. `-i` is accepted but has no effect: `gnux` runs tools in-process (also inside `gnux shell` and the playground), so it does not change how the process handles interrupts.
@@ -22,7 +27,7 @@ Needs write permission on each existing FILE, or write and search permission on 
 
 - Saving a command's output to a log while still watching it on the terminal.
 - Keeping a copy of an intermediate stage of a pipeline for debugging.
-- Appending each run of a build or test to a running log with `-a`.
+- Appending each run of a build or `test` to a running log with `-a`.
 - Writing the same data to several files at once.
 - Capturing CI output as an artifact while it streams to the job log.
 - Keeping a pipeline going when a downstream reader exits early, with `-p`.
@@ -90,7 +95,7 @@ echox 'KEY=value' | teex .env > /dev/null
 'KEY=value' | teex .env > $null
 ```
 
-Save test output while still seeing it:
+Save `test` output while still seeing it:
 
 ```bash
 go test ./... 2>&1 | teex test.log

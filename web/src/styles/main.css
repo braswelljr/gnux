@@ -17,6 +17,28 @@
   --color-signal-cyan: oklch(0.8 0.12 215);
   --color-signal-violet: oklch(0.7 0.17 290);
   --color-signal-amber: oklch(0.8 0.15 60);
+
+  /* The marquee (components/ui/marquee.tsx): each copy of the items slides by
+     its own width plus the gap, so the copies follow each other seamlessly.
+     The marquee sets --duration and --gap. */
+  --animate-marquee: marquee var(--duration) infinite linear;
+  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes marquee-vertical {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
 }
 
 /* `text-lit` and `bg-lit`: the color of a lit key. The ink is a darker step in
@@ -224,7 +246,9 @@ html > body[data-scroll-locked] {
 
 @media (prefers-reduced-motion: reduce) {
   .animate-caret,
-  .animate-aurora {
+  .animate-aurora,
+  .animate-marquee,
+  .animate-marquee-vertical {
     animation: none !important;
   }
 }

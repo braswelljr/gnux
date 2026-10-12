@@ -123,17 +123,7 @@ func flagBody(t tool.Spec, m docmeta.Meta, own []*pflag.Flag) string {
 
 	if len(m.Examples) > 0 {
 		b.WriteString("## Examples\n\n")
-		for _, e := range m.Examples {
-			if e.Description != "" {
-				fmt.Fprintf(&b, "%s\n\n", e.Description)
-			}
-			if e.Bash != "" {
-				fmt.Fprintf(&b, "```bash\n%s\n```\n\n", e.Bash)
-			}
-			if e.PowerShell != "" {
-				fmt.Fprintf(&b, "```powershell\n%s\n```\n\n", e.PowerShell)
-			}
-		}
+		writeExamples(&b, m.Examples, true, 3)
 	}
 
 	fmt.Fprintf(&b, "## Help in the terminal\n\n```bash\n%s help %s --%s\n```\n", common.AppName, name, own[0].Name)

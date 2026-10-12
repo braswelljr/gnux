@@ -20,33 +20,33 @@ trx --squeeze-repeats STRING1 [STRING2]
 
 ## Examples
 
-Squeeze runs of spaces into one:
+### Squeeze runs of spaces into one
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'a    b     c' | trx -s ' '
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'a    b     c' | trx -s ' '
 ```
 
-Put each word on a line of its own:
+### Put each word on a line of its own
 
-```bash
+```bash tab="bash" tab-group="shell"
 catx essay.txt | trx -cs '[:alnum:]' '\n'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 catx essay.txt | trx -cs '[:alnum:]' '\n'
 ```
 
-Delete digits and squeeze the spaces left behind:
+### Delete digits and squeeze the spaces left behind
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'a 1 2 b' | trx -ds '[:digit:]' ' '
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'a 1 2 b' | trx -ds '[:digit:]' ' '
 ```
 

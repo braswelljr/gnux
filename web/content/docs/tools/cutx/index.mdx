@@ -11,9 +11,14 @@ Mirrors GNU `cut`. Run it as `cutx`, or as `gnux cutx`.
 cutx OPTION... [FILE]...
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: cut invocation](https://www.gnu.org/software/coreutils/manual/html_node/cut-invocation.html)
+- [Source: src/cut.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/cut.c)
+
 ## Description
 
-`cutx` prints selected parts of each line of each FILE to standard output. With no FILE, or when FILE is -, it reads standard input. Exactly one of `-b` (bytes), `-c` (characters) or `-f` (fields) must be given, with a LIST of positions: N, N- (from N to the end of the line), N-M, or `-M` (from the first to M), separated by commas or blanks. Positions are numbered from 1, and the selection is printed in input order whatever the order of the LIST, each position at most once. With `-f` the line is split on TAB, or on the single character given with `-d` (`-d` '' means NUL); a line with no delimiter is printed whole, unless `-s` suppresses it. `--complement` selects everything the LIST does not. `--output-delimiter`=STRING is written between the selected fields (the input delimiter by default), and with `-b` or `-c` between non-overlapping ranges. `-z` makes NUL the line delimiter. Every output line ends with the line delimiter. As in GNU cut, `-c` counts bytes, not multibyte characters, so `-c` and `-b` are the same, and `-n` is accepted and ignored. One difference from GNU: giving the same kind of list twice (`-f1 -f2`) keeps the last one instead of refusing.
+`cutx` prints selected parts of each line of each FILE to standard output. With no FILE, or when FILE is -, it reads standard input. Exactly one of `-b` (bytes), `-c` (characters) or `-f` (fields) must be given, with a LIST of positions: N, N- (from N to the end of the line), N-M, or `-M` (from the first to M), separated by commas or blanks. Positions are numbered from 1, and the selection is printed in input order whatever the order of the LIST, each position at most once. With `-f` the line is `split` on TAB, or on the single character given with `-d` (`-d` '' means NUL); a line with no delimiter is printed whole, unless `-s` suppresses it. `--complement` selects everything the LIST does not. `--output-delimiter`=STRING is written between the selected fields (the input delimiter by default), and with `-b` or `-c` between non-overlapping ranges. `-z` makes NUL the line delimiter. Every output line ends with the line delimiter. As in GNU cut, `-c` counts bytes, not multibyte characters, so `-c` and `-b` are the same, and `-n` is accepted and ignored. One difference from GNU: giving the same kind of list twice (`-f1 -f2`) keeps the last one instead of refusing.
 
 ## Permissions
 
@@ -22,7 +27,7 @@ Needs read permission on each FILE and search permission on the directories lead
 ## Use cases
 
 - Extracting columns from CSV, TSV or colon-separated files such as /etc/passwd.
-- Taking a fixed-width slice of every line, such as a date prefix of a log.
+- Taking a fixed-width slice of every line, such as a `date` prefix of a log.
 - Dropping a column with `--complement`.
 - Turning a delimited file into another delimiter with `--output-delimiter`.
 - Skipping header or comment lines that have no delimiter with `-s`.
@@ -46,133 +51,133 @@ Needs read permission on each FILE and search permission on the directories lead
 
 ## Examples
 
-Print the first field of each line of a TAB-separated file:
+### Print the first field of each line of a TAB-separated file
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -f 1 data.tsv
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -f 1 data.tsv
 ```
 
-Print the user names and shells from a colon-separated file:
+### Print the user names and shells from a colon-separated file
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -d : -f 1,7 /etc/passwd
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -d : -f 1,7 passwd.txt
 ```
 
-Print the second and third columns of a CSV file:
+### Print the second and third columns of a CSV file
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -d , -f 2-3 people.csv
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -d , -f 2-3 people.csv
 ```
 
-Print every column from the third on:
+### Print every column from the third on
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -d , -f 3- people.csv
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -d , -f 3- people.csv
 ```
 
-Drop the second column, keeping the rest:
+### Drop the second column, keeping the rest
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -d , -f 2 --complement people.csv
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -d , -f 2 --complement people.csv
 ```
 
-Print the first 10 bytes of each line:
+### Print the first 10 bytes of each line
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -b 1-10 app.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -b 1-10 app.log
 ```
 
-Print characters 5 to 8 of each line:
+### Print characters 5 to 8 of each line
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -c 5-8 codes.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -c 5-8 codes.txt
 ```
 
-Convert a CSV file to TAB-separated output:
+### Convert a CSV file to TAB-separated output
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -d , -f 1- --output-delimiter=$'\t' people.csv
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -d , -f 1- --output-delimiter="`t" people.csv
 ```
 
-Join the selected columns with a custom separator:
+### Join the selected columns with a custom separator
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -d : -f 1,3 --output-delimiter=' -> ' passwd.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -d : -f 1,3 --output-delimiter=' -> ' passwd.txt
 ```
 
-Skip lines that contain no delimiter, such as comments:
+### Skip lines that contain no delimiter, such as comments
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -s -d = -f 2 settings.ini
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -s -d = -f 2 settings.ini
 ```
 
-Pull one field out of a command's output:
+### Pull one field out of a command's output
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'key=value' | cutx -d = -f 2
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'key=value' | cutx -d = -f 2
 ```
 
-Process NUL-separated records:
+### Process NUL-separated records
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -z -d / -f 1 paths.lst
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -z -d / -f 1 paths.lst
 ```
 
-Count the distinct values of a column in the portable `gnux shell`:
+### Count the distinct values of a column in the portable gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'cutx -d , -f 1 people.csv | uniqx -c'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'cutx -d , -f 1 people.csv | uniqx -c'
 ```
 

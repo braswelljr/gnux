@@ -20,23 +20,23 @@ teex --append [FILE]...
 
 ## Examples
 
-Append to a log instead of overwriting it:
+### Append to a log instead of overwriting it
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'build started' | teex -a build.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'build started' | teex -a build.log
 ```
 
-Log a script's steps in the portable `gnux shell`:
+### Log a script's steps in the portable gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'lsx -1 | teex -a files.log | wcx -l'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'lsx -1 | teex -a files.log | wcx -l'
 ```
 

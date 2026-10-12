@@ -20,43 +20,43 @@ headx --bytes=[-]NUM [FILE]...
 
 ## Examples
 
-Print the first kibibyte of a file:
+### Print the first kibibyte of a file
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -c 1K image.png > start.bin
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'headx -c 1K image.png > start.bin'
 ```
 
-Check a file's magic number from its first bytes:
+### Check a file's magic number from its first bytes
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -c 4 image.png | catx -v
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -c 4 image.png | catx -v
 ```
 
-Copy the first megabyte (10^6 bytes) of a large file:
+### Copy the first megabyte (10^6 bytes) of a large file
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -c 1MB disk.img > sample.img
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'headx -c 1MB disk.img > sample.img'
 ```
 
-Strip the final byte, such as a trailing newline:
+### Strip the final byte, such as a trailing newline
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -c -1 version.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -c -1 version.txt
 ```
 

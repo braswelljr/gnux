@@ -20,23 +20,23 @@ envx --chdir=DIR [-] [NAME=VALUE]... [COMMAND [ARG]...]
 
 ## Examples
 
-Run a tool in another directory without leaving this one:
+### Run a tool in another directory without leaving this one
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -C build pwdx
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -C build pwdx
 ```
 
-Trace each step `envx` takes before running the command:
+### Trace each step envx takes before running the command
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -v -C build pwdx
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -v -C build pwdx
 ```
 

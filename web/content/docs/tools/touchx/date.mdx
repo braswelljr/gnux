@@ -20,43 +20,43 @@ touchx --date=STRING FILE...
 
 ## Examples
 
-Set only the modification time to a specific date:
+### Set only the modification time to a specific date
 
-```bash
+```bash tab="bash" tab-group="shell"
 touchx -m -d '2024-01-02 15:04:05' report.pdf
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 touchx -m -d '2024-01-02 15:04:05' report.pdf
 ```
 
-Use an RFC 3339 timestamp, or seconds since the epoch:
+### Use an RFC 3339 timestamp, or seconds since the epoch
 
-```bash
+```bash tab="bash" tab-group="shell"
 touchx -d 2024-06-01T12:00:00Z release.txt && touchx -d @0 epoch.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 touchx -d 2024-06-01T12:00:00Z release.txt; touchx -d '@0' epoch.txt
 ```
 
-Stamp all sources with one fixed date for a reproducible archive:
+### Stamp all sources with one fixed date for a reproducible archive
 
-```bash
+```bash tab="bash" tab-group="shell"
 touchx -d 2024-01-01 src/*.go
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 touchx -d 2024-01-01 (Get-ChildItem src\*.go)
 ```
 
-Change the times of a symbolic link itself, not its target (Linux only):
+### Change the times of a symbolic link itself, not its target (Linux only)
 
-```bash
+```bash tab="bash" tab-group="shell"
 touchx -h -d 2024-01-01 link.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 touchx -h -d 2024-01-01 link.txt
 ```
 

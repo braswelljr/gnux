@@ -1,0 +1,23 @@
+{
+  "title": "odx",
+  "pages": [
+    "address-radix",
+    "characters",
+    "decimal-2-bytes",
+    "decimal-ints",
+    "decimal-longs",
+    "endian",
+    "floats",
+    "format",
+    "hex-2-bytes",
+    "named-characters",
+    "octal-2-bytes",
+    "octal-bytes",
+    "output-duplicates",
+    "read-bytes",
+    "skip-bytes",
+    "strings",
+    "unsigned-decimal-2-bytes",
+    "width"
+  ]
+}

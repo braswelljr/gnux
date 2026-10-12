@@ -10,6 +10,11 @@ Mirrors GNU `printf`. Run it as `printfx`, or as `gnux printfx`.
 printfx FORMAT [ARGUMENT]...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: printf invocation](https://www.gnu.org/software/coreutils/manual/html_node/printf-invocation.html)
+- [Source: src/printf.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/printf.c)
+
 ### Description
 
 `printfx` writes the ARGUMENTs to standard output under the control of FORMAT, like C's `printf`. FORMAT is printed as written except for backslash escapes (\", \\, \a, \b, \c, \e, \f, \n, \r, \t, \v, \NNN octal, \xHH, \uHHHH, \UHHHHHHHH) and conversion specifications: %d %i %o %u %x %X for integers, %f %F %e %E %g %G %a %A for floating point, %c for a character, %s for a string, %b for a string with its backslash escapes interpreted (octal as \0NNN), %q for a string quoted for reuse as shell input, and %% for a percent sign. A conversion may carry the flags - + space # 0, a width and a precision, either of which may be * to take it from the next ARGUMENT. FORMAT is reused as often as needed to consume every ARGUMENT; a missing ARGUMENT reads as an empty string or zero. A numeric ARGUMENT may be decimal, 0x hexadecimal, 0 octal (integers), or a quote followed by a character, meaning that character's code. An ARGUMENT that is not a valid number is diagnosed, printed as far as it converted, and makes the exit status 1 without stopping the output. \c ends all output. Unlike the shell's builtin `printf`, `printfx` behaves the same in bash, PowerShell and the `gnux shell`. Differences from GNU `printf`: floating-point values are held in double precision rather than long double, and \c ends output with the status the run already had rather than always 0.

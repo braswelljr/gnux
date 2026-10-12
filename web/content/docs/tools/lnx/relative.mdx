@@ -16,17 +16,17 @@ lnx --relative TARGET... [LINK_NAME|DIRECTORY]
 
 | Short | Long | Value | Default | Meaning |
 | --- | --- | --- | --- | --- |
-| `-r` | `--relative` | none |  | with `-s`, create links relative to link location |
+| `-r` | `--relative` | none |  | with `-s`, create links relative to `link` location |
 
 ## Examples
 
-Link several files into a directory with relative symlinks:
+### Link several files into a directory with relative symlinks
 
-```bash
+```bash tab="bash" tab-group="shell"
 lnx -sr -t ~/bin tools/build tools/deploy
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lnx -sr -t $HOME\bin tools\build tools\deploy
 ```
 

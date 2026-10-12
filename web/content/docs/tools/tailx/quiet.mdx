@@ -20,13 +20,13 @@ tailx --quiet [FILE]...
 
 ## Examples
 
-Print the last line of each log, with and without file name headers:
+### Print the last line of each log, with and without file name headers
 
-```bash
+```bash tab="bash" tab-group="shell"
 tailx -n 1 a.log b.log && tailx -q -n 1 a.log b.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 tailx -n 1 a.log b.log; tailx -q -n 1 a.log b.log
 ```
 

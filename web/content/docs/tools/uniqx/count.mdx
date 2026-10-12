@@ -20,23 +20,23 @@ uniqx --count [INPUT [OUTPUT]]
 
 ## Examples
 
-Count the occurrences of each line:
+### Count the occurrences of each line
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx -c sorted.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx -c sorted.txt
 ```
 
-Deduplicate in the portable `gnux shell`:
+### Deduplicate in the portable gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'catx sorted.txt | uniqx -c'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'catx sorted.txt | uniqx -c'
 ```
 

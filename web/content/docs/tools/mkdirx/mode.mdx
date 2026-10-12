@@ -16,57 +16,57 @@ mkdirx --mode=MODE DIRECTORY...
 
 | Short | Long | Value | Default | Meaning |
 | --- | --- | --- | --- | --- |
-| `-m` | `--mode` | `MODE` |  | set file MODE (as in chmod), not a=rwx - umask |
+| `-m` | `--mode` | `MODE` |  | set file MODE (as in `chmod`), not a=rwx - umask |
 
 ## Examples
 
-Create a directory only its owner can enter:
+### Create a directory only its owner can enter
 
-```bash
+```bash tab="bash" tab-group="shell"
 mkdirx -m 700 ~/.secrets
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mkdirx -m 700 $HOME\.secrets
 ```
 
-Use a symbolic mode:
+### Use a symbolic mode
 
-```bash
+```bash tab="bash" tab-group="shell"
 mkdirx -m u=rwx,go=rx shared
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mkdirx -m 'u=rwx,go=rx' shared
 ```
 
-Grant everything except write for others, using a symbolic mode with a removal:
+### Grant everything except write for others, using a symbolic mode with a removal
 
-```bash
+```bash tab="bash" tab-group="shell"
 mkdirx -m a=rwx,o-w drop
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mkdirx -m 'a=rwx,o-w' drop
 ```
 
-Create a world-writable scratch directory with the sticky bit set:
+### Create a world-writable scratch directory with the sticky bit set
 
-```bash
+```bash tab="bash" tab-group="shell"
 mkdirx -m 1777 scratch
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mkdirx -m 1777 scratch
 ```
 
-Create missing parents but give only the last directory an explicit mode:
+### Create missing parents but give only the last directory an explicit mode
 
-```bash
+```bash tab="bash" tab-group="shell"
 mkdirx -p -m 755 www/public
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mkdirx -p -m 755 www\public
 ```
 

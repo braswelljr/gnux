@@ -16,17 +16,17 @@ touchx --no-dereference FILE...
 
 | Short | Long | Value | Default | Meaning |
 | --- | --- | --- | --- | --- |
-| `-h` | `--no-dereference` | none |  | affect each symbolic link instead of any referenced file |
+| `-h` | `--no-dereference` | none |  | affect each symbolic `link` instead of any referenced file |
 
 ## Examples
 
-Change the times of a symbolic link itself, not its target (Linux only):
+### Change the times of a symbolic link itself, not its target (Linux only)
 
-```bash
+```bash tab="bash" tab-group="shell"
 touchx -h -d 2024-01-01 link.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 touchx -h -d 2024-01-01 link.txt
 ```
 

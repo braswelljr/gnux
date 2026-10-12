@@ -20,13 +20,13 @@ envx --null [-] [NAME=VALUE]... [COMMAND [ARG]...]
 
 ## Examples
 
-Print the environment NUL-separated, with the NULs made visible:
+### Print the environment NUL-separated, with the NULs made visible
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -0 -i A=1 B=2 | catx -v
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -0 -i A=1 B=2 | catx -v
 ```
 

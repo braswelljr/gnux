@@ -11,6 +11,11 @@ Mirrors GNU `tee`. Run it as `teex`, or as `gnux teex`.
 teex [OPTION]... [FILE]...
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: tee invocation](https://www.gnu.org/software/coreutils/manual/html_node/tee-invocation.html)
+- [Source: src/tee.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/tee.c)
+
 ## Description
 
 `teex` reads standard input and writes it, unchanged and as soon as it arrives, to standard output and to every FILE. Each FILE is created if it does not exist and truncated if it does, unless `-a` appends to it instead. A FILE named - is a file called '-', as in GNU tee 9, not standard output. A FILE that cannot be opened is reported and the copy goes on to the others; the exit status is then 1. `--output-error`=MODE says what happens when writing to an output fails: 'warn' reports the error and carries on with the other outputs, 'warn-nopipe' does the same but drops an output whose reader has gone without a word, 'exit' stops at the first error and 'exit-nopipe' stops at the first error that is not a closed pipe. `--output-error` with no MODE, and `-p`, mean 'warn-nopipe'. Without the option a failing output is reported and dropped, and a closed pipe stops `teex` quietly, as SIGPIPE stops GNU tee. `teex` stops reading once no output is left. When `-p` and `--output-error`=MODE are both given, MODE wins whatever their order. `-i` is accepted but has no effect: `gnux` runs tools in-process (also inside `gnux shell` and the playground), so it does not change how the process handles interrupts.
@@ -23,7 +28,7 @@ Needs write permission on each existing FILE, or write and search permission on 
 
 - Saving a command's output to a log while still watching it on the terminal.
 - Keeping a copy of an intermediate stage of a pipeline for debugging.
-- Appending each run of a build or test to a running log with `-a`.
+- Appending each run of a build or `test` to a running log with `-a`.
 - Writing the same data to several files at once.
 - Capturing CI output as an artifact while it streams to the job log.
 - Keeping a pipeline going when a downstream reader exits early, with `-p`.
@@ -41,113 +46,113 @@ Needs write permission on each existing FILE, or write and search permission on 
 
 ## Examples
 
-Show output and save it to a file:
+### Show output and save it to a file
 
-```bash
+```bash tab="bash" tab-group="shell"
 lsx -l | teex listing.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lsx -l | teex listing.txt
 ```
 
-Append to a log instead of overwriting it:
+### Append to a log instead of overwriting it
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'build started' | teex -a build.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'build started' | teex -a build.log
 ```
 
-Write the same input to several files:
+### Write the same input to several files
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'v1.2.3' | teex VERSION dist/VERSION
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'v1.2.3' | teex VERSION dist/VERSION
 ```
 
-Save a copy of an intermediate pipeline stage:
+### Save a copy of an intermediate pipeline stage
 
-```bash
+```bash tab="bash" tab-group="shell"
 catx access.log | teex raw.txt | wcx -l
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 catx access.log | teex raw.txt | wcx -l
 ```
 
-Write a file without echoing it to the terminal:
+### Write a file without echoing it to the terminal
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'KEY=value' | teex .env > /dev/null
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'KEY=value' | teex .env > $null
 ```
 
-Save test output while still seeing it:
+### Save test output while still seeing it
 
-```bash
+```bash tab="bash" tab-group="shell"
 go test ./... 2>&1 | teex test.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 go test ./... 2>&1 | teex test.log
 ```
 
-Keep going when the reader stops early, without an error:
+### Keep going when the reader stops early, without an error
 
-```bash
+```bash tab="bash" tab-group="shell"
 yesx | teex -p copy.txt | headx -n 3
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 yesx | teex -p copy.txt | headx -n 3
 ```
 
-Report a closed pipe as an error and stop:
+### Report a closed pipe as an error and stop
 
-```bash
+```bash tab="bash" tab-group="shell"
 yesx | teex --output-error=exit copy.txt | headx -n 1
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 yesx | teex --output-error=exit copy.txt | headx -n 1
 ```
 
-Carry on to the other files when one cannot be written:
+### Carry on to the other files when one cannot be written
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox data | teex --output-error=warn a.txt missing/b.txt c.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'data' | teex --output-error=warn a.txt missing/b.txt c.txt
 ```
 
-Write to a file literally named '-':
+### Write to a file literally named '-'
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox data | teex -
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'data' | teex -
 ```
 
-Log a script's steps in the portable `gnux shell`:
+### Log a script's steps in the portable gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'lsx -1 | teex -a files.log | wcx -l'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'lsx -1 | teex -a files.log | wcx -l'
 ```
 

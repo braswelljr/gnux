@@ -20,93 +20,93 @@ wcx --lines [FILE]...
 
 ## Examples
 
-Count only the lines:
+### Count only the lines
 
-```bash
+```bash tab="bash" tab-group="shell"
 wcx -l access.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -l access.log
 ```
 
-Print lines and words together (always in that order, whatever the flag order):
+### Print lines and words together (always in that order, whatever the flag order)
 
-```bash
+```bash tab="bash" tab-group="shell"
 wcx -wl essay.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -wl essay.txt
 ```
 
-Count the lines of several files, with a total:
+### Count the lines of several files, with a total
 
-```bash
+```bash tab="bash" tab-group="shell"
 wcx -l *.go
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -l (Get-ChildItem *.go -Name)
 ```
 
-Count several files without the total line, or force it for a single file:
+### Count several files without the total line, or force it for a single file
 
-```bash
+```bash tab="bash" tab-group="shell"
 wcx -l --total=never *.go && wcx -l --total=always main.go
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -l --total=never (Get-ChildItem *.go -Name); wcx -l --total=always main.go
 ```
 
-Count the entries a command produces:
+### Count the entries a command produces
 
-```bash
+```bash tab="bash" tab-group="shell"
 lsx | wcx -l
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lsx | wcx -l
 ```
 
-Read the list of files to count from a NUL-separated file:
+### Read the list of files to count from a NUL-separated file
 
-```bash
+```bash tab="bash" tab-group="shell"
 wcx -l --files0-from=sources.lst
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -l --files0-from=sources.lst
 ```
 
-Print only the grand total for a list of files found elsewhere:
+### Print only the grand total for a list of files found elsewhere
 
-```bash
+```bash tab="bash" tab-group="shell"
 find . -name '*.go' -print0 | wcx -l --files0-from=- --total=only
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -l --total=only (Get-ChildItem -Recurse *.go).FullName
 ```
 
-Fail a script when a file is missing (exit status 1):
+### Fail a script when a file is missing (exit status 1)
 
-```bash
+```bash tab="bash" tab-group="shell"
 wcx -l missing.txt || echox "exit status $?"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -l missing.txt; if ($LASTEXITCODE -ne 0) { "exit status $LASTEXITCODE" }
 ```
 
-Count matching files in the portable `gnux shell`:
+### Count matching files in the portable gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'lsx -1 *.md | wcx -l'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'lsx -1 *.md | wcx -l'
 ```
 

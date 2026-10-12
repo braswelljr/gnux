@@ -10,6 +10,11 @@ Mirrors GNU `basename`. Run it as `basenamex`, or as `gnux basenamex`.
 basenamex [OPTION]... NAME [SUFFIX]
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: basename invocation](https://www.gnu.org/software/coreutils/manual/html_node/basename-invocation.html)
+- [Source: src/basename.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/basename.c)
+
 ### Description
 
 `basenamex` prints NAME with any leading directory components removed. Trailing slashes are ignored, so 'dir/' yields 'dir', and a name made only of slashes yields the root. If SUFFIX is given and NAME ends with it, the suffix is removed too - unless that would leave nothing. With `-a` every operand is a NAME; `-s` supplies the suffix for all of them and implies `-a`. `-z` separates the output with NUL instead of newlines, for names that may contain newlines.

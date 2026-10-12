@@ -10,6 +10,11 @@ Mirrors GNU `seq`. Run it as `seqx`, or as `gnux seqx`.
 seqx [OPTION]... [FIRST [INCREMENT]] LAST
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: seq invocation](https://www.gnu.org/software/coreutils/manual/html_node/seq-invocation.html)
+- [Source: src/seq.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/seq.c)
+
 ### Description
 
 `seqx` prints the numbers from FIRST to LAST, in steps of INCREMENT, one per line: '`seqx` LAST', '`seqx` FIRST LAST' or '`seqx` FIRST INCREMENT LAST'. FIRST and INCREMENT default to 1, and INCREMENT may be negative to count down; nothing is printed when FIRST is already past LAST. Negative operands need no quoting or '--': as in GNU `seq`, an argument that starts with '-' followed by a digit or '.' is a number, and options must come before the operands. Without `-f`, numbers are printed with as many decimal places as FIRST and INCREMENT have, and the arithmetic is exact, so '`seqx` 0.1 0.1 0.3' ends at 0.3. `-f` FORMAT prints each number through one `printf` floating-point directive (%e, %f, %g or %a, with flags, width and precision) and literal text around it; `-s` STRING separates the numbers with STRING instead of a newline; `-w` pads them with leading zeros to equal width, and cannot be combined with `-f`. LAST may be 'inf' to count forever, until the reader of the output goes away. Differences from GNU `seq`: `-f` values are formatted from double precision rather than long double, and an infinite FIRST or INCREMENT is refused as an invalid argument.
@@ -21,7 +26,7 @@ Needs no filesystem permissions; it only writes to standard output.
 ### Use cases
 
 - Driving a loop over numbered items in a script, portably on every platform.
-- Generating test data: a known number of lines to feed into another tool.
+- Generating `test` data: a known number of lines to feed into another tool.
 - Producing zero-padded numbers with `-w` for file names that sort correctly.
 - Building comma- or space-separated lists of numbers with `-s`.
 - Counting down with a negative increment.

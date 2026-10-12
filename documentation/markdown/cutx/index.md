@@ -10,9 +10,14 @@ Mirrors GNU `cut`. Run it as `cutx`, or as `gnux cutx`.
 cutx OPTION... [FILE]...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: cut invocation](https://www.gnu.org/software/coreutils/manual/html_node/cut-invocation.html)
+- [Source: src/cut.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/cut.c)
+
 ### Description
 
-`cutx` prints selected parts of each line of each FILE to standard output. With no FILE, or when FILE is -, it reads standard input. Exactly one of `-b` (bytes), `-c` (characters) or `-f` (fields) must be given, with a LIST of positions: N, N- (from N to the end of the line), N-M, or `-M` (from the first to M), separated by commas or blanks. Positions are numbered from 1, and the selection is printed in input order whatever the order of the LIST, each position at most once. With `-f` the line is split on TAB, or on the single character given with `-d` (`-d` '' means NUL); a line with no delimiter is printed whole, unless `-s` suppresses it. `--complement` selects everything the LIST does not. `--output-delimiter`=STRING is written between the selected fields (the input delimiter by default), and with `-b` or `-c` between non-overlapping ranges. `-z` makes NUL the line delimiter. Every output line ends with the line delimiter. As in GNU cut, `-c` counts bytes, not multibyte characters, so `-c` and `-b` are the same, and `-n` is accepted and ignored. One difference from GNU: giving the same kind of list twice (`-f1 -f2`) keeps the last one instead of refusing.
+`cutx` prints selected parts of each line of each FILE to standard output. With no FILE, or when FILE is -, it reads standard input. Exactly one of `-b` (bytes), `-c` (characters) or `-f` (fields) must be given, with a LIST of positions: N, N- (from N to the end of the line), N-M, or `-M` (from the first to M), separated by commas or blanks. Positions are numbered from 1, and the selection is printed in input order whatever the order of the LIST, each position at most once. With `-f` the line is `split` on TAB, or on the single character given with `-d` (`-d` '' means NUL); a line with no delimiter is printed whole, unless `-s` suppresses it. `--complement` selects everything the LIST does not. `--output-delimiter`=STRING is written between the selected fields (the input delimiter by default), and with `-b` or `-c` between non-overlapping ranges. `-z` makes NUL the line delimiter. Every output line ends with the line delimiter. As in GNU cut, `-c` counts bytes, not multibyte characters, so `-c` and `-b` are the same, and `-n` is accepted and ignored. One difference from GNU: giving the same kind of list twice (`-f1 -f2`) keeps the last one instead of refusing.
 
 ### Permissions
 
@@ -21,7 +26,7 @@ Needs read permission on each FILE and search permission on the directories lead
 ### Use cases
 
 - Extracting columns from CSV, TSV or colon-separated files such as /etc/passwd.
-- Taking a fixed-width slice of every line, such as a date prefix of a log.
+- Taking a fixed-width slice of every line, such as a `date` prefix of a log.
 - Dropping a column with `--complement`.
 - Turning a delimited file into another delimiter with `--output-delimiter`.
 - Skipping header or comment lines that have no delimiter with `-s`.

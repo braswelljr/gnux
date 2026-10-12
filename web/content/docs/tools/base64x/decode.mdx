@@ -1,0 +1,77 @@
+---
+title: "-d, --decode"
+description: "Decode data."
+---
+
+An option of [base64x](/docs/tools/base64x).
+
+## Usage
+
+```bash
+base64x -d [FILE]
+base64x --decode [FILE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-d` | `--decode` | none |  | decode data |
+
+## Examples
+
+### Decode a string
+
+```bash tab="bash" tab-group="shell"
+echox aGVsbG8= | base64x -d
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+echox aGVsbG8= | base64x -d
+```
+
+### Decode a file back to binary
+
+```bash tab="bash" tab-group="shell"
+base64x -d image.txt > image.png
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+base64x -d image.txt > image.png
+```
+
+### Decode, skipping characters outside the alphabet
+
+```bash tab="bash" tab-group="shell"
+base64x -d -i messy.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+base64x -d -i messy.txt
+```
+
+### Round-trip a file and compare the checksums
+
+```bash tab="bash" tab-group="shell"
+base64x file.bin | base64x -d > copy.bin && cksumx file.bin copy.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+base64x file.bin | base64x -d > copy.bin; cksumx file.bin copy.bin
+```
+
+### Check that input decodes cleanly
+
+```bash tab="bash" tab-group="shell"
+base64x -d payload.txt > /dev/null && echox valid
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+base64x -d payload.txt > $null; if ($LASTEXITCODE -eq 0) { 'valid' }
+```
+
+## Help in the terminal
+
+```bash
+gnux help base64x --decode
+```

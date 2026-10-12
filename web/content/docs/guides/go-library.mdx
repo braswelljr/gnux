@@ -9,7 +9,7 @@ description: "How to embed gnux in a Go program: every tool's engine is an impor
 go get github.com/braswelljr/gnux
 ```
 
-The engines under `core/` depend only on the standard library and `github.com/mattn/go-isatty`. Cobra and pflag are linked in only if you import `github.com/braswelljr/gnux/cmd` (for `RunTool`, `NewShell` and `Main`).
+The engines under `core/` depend only on the standard library, `github.com/mattn/go-isatty`, `golang.org/x/sys` (system calls Go's standard library does not wrap, on Windows and the BSDs) and `golang.org/x/crypto` (BLAKE2b for `b2sum`); all are pure Go. Cobra and pflag are linked in only if you import `github.com/braswelljr/gnux/cmd` (for `RunTool`, `NewShell` and `Main`).
 
 Go 1.25 or newer is required.
 

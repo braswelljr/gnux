@@ -20,23 +20,23 @@ seqx --separator=STRING [FIRST [INCREMENT]] LAST
 
 ## Examples
 
-Separate the numbers with commas on one line:
+### Separate the numbers with commas on one line
 
-```bash
+```bash tab="bash" tab-group="shell"
 seqx -s , 1 10
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 seqx -s , 1 10
 ```
 
-Sum the numbers 1 to 100 with another program:
+### Sum the numbers 1 to 100 with another program
 
-```bash
+```bash tab="bash" tab-group="shell"
 seqx -s + 1 100 | bc
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 (seqx 1 100 | Measure-Object -Sum).Sum
 ```
 

@@ -16,27 +16,27 @@ lnx --no-dereference TARGET... [LINK_NAME|DIRECTORY]
 
 | Short | Long | Value | Default | Meaning |
 | --- | --- | --- | --- | --- |
-| `-n` | `--no-dereference` | none |  | treat LINK_NAME as a normal file if it is a symbolic link to a directory |
+| `-n` | `--no-dereference` | none |  | treat LINK_NAME as a normal file if it is a symbolic `link` to a directory |
 
 ## Examples
 
-Repoint an existing symlink to a directory, in one atomic step:
+### Repoint an existing symlink to a directory, in one atomic step
 
-```bash
+```bash tab="bash" tab-group="shell"
 lnx -sfn releases/v3 current
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lnx -sfn releases\v3 current
 ```
 
-Create a release directory and point current at it with the `gnux shell`:
+### Create a release directory and point current at it with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
 ```
 

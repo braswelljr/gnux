@@ -29,42 +29,45 @@ entry ([adding-a-tool](../workflows/adding-a-tool.md)).
 - [x] `teex` (FR-92)
 - [x] `seqx` (FR-93)
 - [x] `printfx` (FR-94)
-- [ ] `pastex`
-- [ ] `joinx`
-- [ ] `nlx`
-- [ ] `foldx`
-- [ ] `fmtx`
-- [ ] `expandx`, `unexpandx`
-- [ ] `tacx`
-- [ ] `splitx`, `csplitx`
-- [ ] `commx`
-- [ ] `shufx`
-- [ ] `odx`
+- [x] `pastex` (FR-126)
+- [x] `joinx` (FR-116)
+- [x] `nlx` (FR-122)
+- [x] `foldx` (FR-112)
+- [x] `fmtx` (FR-111)
+- [x] `expandx` (FR-109), `unexpandx` (FR-143)
+- [x] `tacx` (FR-137)
+- [x] `splitx` (FR-135), `csplitx` (FR-104)
+- [x] `commx` (FR-103)
+- [x] `shufx` (FR-134)
+- [x] `odx` (FR-125)
 
 ### Checksums and encoding
 
-- [ ] `md5sumx`, `sha1sumx`, `sha256sumx`, `sha512sumx`, `b2sumx`
-- [ ] `cksumx`
-- [ ] `base32x`, `base64x`
+- [x] `md5sumx` (FR-119), `sha1sumx` (FR-129), `sha224sumx` (FR-130), `sha256sumx` (FR-131),
+  `sha384sumx` (FR-132), `sha512sumx` (FR-133), `b2sumx` (FR-96)
+- [x] `cksumx` (FR-102)
+- [x] `base32x` (FR-97), `base64x` (FR-98)
 
 ### File attributes
 
-- [ ] `chmodx`, `chownx`, `chgrpx`
-- [ ] `statx`
-- [ ] `dux`, `dfx`
-- [ ] `mktempx`
-- [ ] `installx`
-- [ ] `truncatex`
-- [ ] `readlinkx`
-- [ ] `linkx`, `unlinkx`
+- [x] `chmodx` (FR-100), `chownx` (FR-101), `chgrpx` (FR-99)
+- [x] `statx` (FR-136)
+- [x] `dux` (FR-108), `dfx` (FR-107)
+- [x] `mktempx` (FR-120)
+- [x] `installx` (FR-115)
+- [x] `truncatex` (FR-140)
+- [x] `readlinkx` (FR-128)
+- [x] `linkx` (FR-118), `unlinkx` (FR-144)
 
 ### System
 
-- [ ] `datex`
-- [ ] `unamex`, `whoamix`, `idx`, `hostnamex`, `nprocx`, `printenvx`, `ttyx`, `whox`, `uptimex`
-- [ ] `timeoutx`, `nicex`, `nohupx`, `killx`
-- [ ] `testx` (and `[`), `exprx`
-- [ ] `ddx`
+- [x] `datex` (FR-105)
+- [x] `unamex` (FR-142), `whoamix` (FR-146), `idx` (FR-114), `hostnamex` (FR-113), `nprocx` (FR-124),
+  `printenvx` (FR-127), `ttyx` (FR-141), `whox` (FR-147), `uptimex` (FR-145)
+- [x] `timeoutx` (FR-139), `nicex` (FR-121), `nohupx` (FR-123), `killx` (FR-117)
+- [x] `testx` (FR-138), `exprx` (FR-110)
+- [ ] `[` as another name for `testx`, requiring the closing `]`
+- [x] `ddx` (FR-106)
 
 ## 2. Distribution
 

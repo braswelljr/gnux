@@ -108,7 +108,7 @@ func TestMarkdownLinksResolve(t *testing.T) {
 	}
 	root := filepath.Join(dir, "markdown")
 	for rel, content := range readTree(t, root) {
-		for _, m := range mdLinkTargetRe.FindAllStringSubmatch(content, -1) {
+		for _, m := range mdLinkTargetRe.FindAllStringSubmatch(withoutCode(content), -1) {
 			target := m[1]
 			if strings.Contains(target, "://") {
 				continue
@@ -122,6 +122,23 @@ func TestMarkdownLinksResolve(t *testing.T) {
 }
 
 var mdLinkTargetRe = regexp.MustCompile(`\]\(([^)#]+)\)`)
+
+// withoutCode drops fenced code blocks, where markdown has no links (a
+// PowerShell example such as "[int](...)" only looks like one).
+func withoutCode(md string) string {
+	var b strings.Builder
+	inCode := false
+	for _, line := range strings.Split(md, "\n") {
+		if strings.HasPrefix(line, "```") {
+			inCode = !inCode
+			continue
+		}
+		if !inCode {
+			b.WriteString(line + "\n")
+		}
+	}
+	return b.String()
+}
 
 func TestGenerateUnknownFormat(t *testing.T) {
 	if err := Generate(t.TempDir(), "pdf"); err == nil {

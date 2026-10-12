@@ -36,40 +36,92 @@ against an in-memory filesystem.
 
 ## Tools
 
-| Tool        | GNU        | What it does                                       |
-|-------------|------------|----------------------------------------------------|
-| `basenamex` | `basename` | Strip directory and suffix from file names         |
-| `catx`      | `cat`      | Concatenate files and print them                   |
-| `cpx`       | `cp`       | Copy files and directories                         |
-| `cutx`      | `cut`      | Remove sections from each line of files            |
-| `dirnamex`  | `dirname`  | Strip the last component from file names           |
-| `echox`     | `echo`     | Print a line of text                               |
-| `envx`      | `env`      | Run a program in a modified environment            |
-| `falsex`    | `false`    | Do nothing, unsuccessfully                         |
-| `headx`     | `head`     | Print the first part of files                      |
-| `lnx`       | `ln`       | Make hard and symbolic links                       |
-| `lsx`       | `ls`       | List directory contents                            |
-| `mkdirx`    | `mkdir`    | Create directories                                 |
-| `mvx`       | `mv`       | Move (rename) files                                |
-| `printfx`   | `printf`   | Format and print data                              |
-| `pwdx`      | `pwd`      | Print the current working directory                |
-| `realpathx` | `realpath` | Print the resolved absolute path                   |
-| `rmdirx`    | `rmdir`    | Remove empty directories                           |
-| `rmx`       | `rm`       | Remove files and directories                       |
-| `seqx`      | `seq`      | Print a sequence of numbers                        |
-| `sleepx`    | `sleep`    | Pause for a given time                             |
-| `sortx`     | `sort`     | Sort, merge or check lines of text files           |
-| `tailx`     | `tail`     | Print the last part of files, optionally following |
-| `teex`      | `tee`      | Copy standard input to files and standard output   |
-| `touchx`    | `touch`    | Change file timestamps, creating files as needed   |
-| `truex`     | `true`     | Do nothing, successfully                           |
-| `trx`       | `tr`       | Translate, squeeze or delete characters            |
-| `uniqx`     | `uniq`     | Report or omit repeated lines                      |
-| `wcx`       | `wc`       | Count lines, words and bytes                       |
-| `yesx`      | `yes`      | Print a string repeatedly                          |
+| Tool         | GNU         | What it does |
+|--------------|-------------|--------------|
+| `b2sumx`     | `b2sum`     | Print or check BLAKE2b (512-bit) checksums |
+| `base32x`    | `base32`    | Encode or decode data in base32 |
+| `base64x`    | `base64`    | Encode or decode data in base64 |
+| `basenamex`  | `basename`  | Strip the directory and suffix from file names |
+| `catx`       | `cat`       | Concatenate files and print them on standard output |
+| `chgrpx`     | `chgrp`     | Change group ownership |
+| `chmodx`     | `chmod`     | Change file mode bits |
+| `chownx`     | `chown`     | Change file owner and group |
+| `cksumx`     | `cksum`     | Print or check checksums and byte counts |
+| `commx`      | `comm`      | Compare two sorted files line by line |
+| `cpx`        | `cp`        | Copy files and directories |
+| `csplitx`    | `csplit`    | Split a file into sections determined by context lines |
+| `cutx`       | `cut`       | Remove sections from each line of files |
+| `datex`      | `date`      | Print the date and time |
+| `ddx`        | `dd`        | Convert and copy a file, block by block |
+| `dfx`        | `df`        | Report file system space usage |
+| `dirnamex`   | `dirname`   | Strip the last component from file names |
+| `dux`        | `du`        | Estimate file space usage |
+| `echox`      | `echo`      | Display a line of text |
+| `envx`       | `env`       | Run a program in a modified environment, or print the environment |
+| `expandx`    | `expand`    | Convert tabs to spaces |
+| `exprx`      | `expr`      | Evaluate an expression and print its value |
+| `falsex`     | `false`     | Do nothing, unsuccessfully |
+| `fmtx`       | `fmt`       | Reformat each paragraph of text |
+| `foldx`      | `fold`      | Wrap each input line to fit in a specified width |
+| `headx`      | `head`      | Print the first part of each file |
+| `hostnamex`  | `hostname`  | Print the name of the current host system |
+| `idx`        | `id`        | Print real and effective user and group IDs |
+| `installx`   | `install`   | Copy files into place and set their mode, owner and group |
+| `joinx`      | `join`      | Join lines of two files on a common field |
+| `killx`      | `kill`      | Send a signal to processes, or list signals |
+| `linkx`      | `link`      | Call the link function to create a hard link to a file |
+| `lnx`        | `ln`        | Make hard or symbolic links between files |
+| `lsx`        | `ls`        | List information about files and directory contents |
+| `md5sumx`    | `md5sum`    | Print or check MD5 (128-bit) checksums |
+| `mkdirx`     | `mkdir`     | Create the DIRECTORY(ies), if they do not already exist |
+| `mktempx`    | `mktemp`    | Create a temporary file or directory, safely, and print its name |
+| `mvx`        | `mv`        | Move (rename) files and directories |
+| `nicex`      | `nice`      | Run a program with modified scheduling priority |
+| `nlx`        | `nl`        | Number lines of files |
+| `nohupx`     | `nohup`     | Run a command immune to hangups, with output to a non-terminal |
+| `nprocx`     | `nproc`     | Print the number of processing units available |
+| `odx`        | `od`        | Dump files in octal and other formats |
+| `pastex`     | `paste`     | Merge lines of files |
+| `printenvx`  | `printenv`  | Print all or part of the environment |
+| `printfx`    | `printf`    | Format and print data |
+| `pwdx`       | `pwd`       | Print the full name of the current working directory |
+| `readlinkx`  | `readlink`  | Print resolved symbolic links or canonical file names |
+| `realpathx`  | `realpath`  | Print the resolved absolute file name |
+| `rmdirx`     | `rmdir`     | Remove the DIRECTORY(ies), if they are empty |
+| `rmx`        | `rm`        | Remove (unlink) files and directories |
+| `seqx`       | `seq`       | Print a sequence of numbers |
+| `sha1sumx`   | `sha1sum`   | Print or check SHA-1 (160-bit) checksums |
+| `sha224sumx` | `sha224sum` | Print or check SHA-224 (224-bit) checksums |
+| `sha256sumx` | `sha256sum` | Print or check SHA-256 (256-bit) checksums |
+| `sha384sumx` | `sha384sum` | Print or check SHA-384 (384-bit) checksums |
+| `sha512sumx` | `sha512sum` | Print or check SHA-512 (512-bit) checksums |
+| `shufx`      | `shuf`      | Generate random permutations |
+| `sleepx`     | `sleep`     | Delay for a specified amount of time |
+| `sortx`      | `sort`      | Sort lines of text files |
+| `splitx`     | `split`     | Split a file into pieces |
+| `statx`      | `stat`      | Display file or file system status |
+| `tacx`       | `tac`       | Concatenate and print files in reverse |
+| `tailx`      | `tail`      | Print the last part of each file, optionally following it as it grows |
+| `teex`       | `tee`       | Copy standard input to each FILE, and also to standard output |
+| `testx`      | `test`      | Check file types and compare values |
+| `timeoutx`   | `timeout`   | Run a command with a time limit |
+| `touchx`     | `touch`     | Update the access and modification times of each FILE to the current time |
+| `truex`      | `true`      | Do nothing, successfully |
+| `truncatex`  | `truncate`  | Shrink or extend the size of each FILE to the specified size |
+| `trx`        | `tr`        | Translate, squeeze, and/or delete characters from standard input |
+| `ttyx`       | `tty`       | Print the file name of the terminal connected to standard input |
+| `unamex`     | `uname`     | Print system information |
+| `unexpandx`  | `unexpand`  | Convert spaces to tabs |
+| `uniqx`      | `uniq`      | Report or omit repeated lines |
+| `unlinkx`    | `unlink`    | Call the unlink function to remove the specified file |
+| `uptimex`    | `uptime`    | Tell how long the system has been running |
+| `wcx`        | `wc`        | Print newline, word, and byte counts for each file |
+| `whoamix`    | `whoami`    | Print the user name associated with the current effective user ID |
+| `whox`       | `who`       | Show who is logged on |
+| `yesx`       | `yes`       | Output a string repeatedly until killed |
 
-`gnux --list` prints the tool names; `gnux --help` lists them with a summary. The rest of
-coreutils is on the [roadmap](#roadmap).
+`gnux --list` prints the tool names; `gnux --help` lists them with a summary. The few
+remaining coreutils tools are on the [roadmap](#roadmap).
 
 ## Requirements
 
@@ -95,9 +147,10 @@ coreutils is on the [roadmap](#roadmap).
 
 **To use gnux as a library**
 
-- A Go module on Go 1.25 or newer. The engines depend only on the standard library and
-  `github.com/mattn/go-isatty`; cobra is compiled only into the command-line packages under
-  `cmd/`.
+- A Go module on Go 1.25 or newer. The engines depend only on the standard library,
+  `github.com/mattn/go-isatty`, `golang.org/x/sys` (system calls the standard library does not
+  wrap, on Windows and the BSDs) and `golang.org/x/crypto` (BLAKE2b), all pure Go; cobra is
+  compiled only into the command-line packages under `cmd/`.
 
 **To contribute**
 
@@ -400,14 +453,11 @@ Not yet implemented, roughly in priority order. The full list of planned tools, 
 channels and integrations, ticked off as they land, is
 [`docs/requirements/checklist.md`](docs/requirements/checklist.md).
 
-- **File attributes:** `chmod`, `chown`, `chgrp`, `stat`, `du`, `df`, `mktemp`, `install`,
-  `truncate`, `readlink`, `link`, `unlink`
-- **Text:** `paste`, `join`, `nl`, `fold`, `fmt`, `expand`, `unexpand`, `tac`, `split`, `csplit`,
-  `comm`, `shuf`, `od`
-- **Checksums and encoding:** `md5sum`, `sha1sum`, `sha256sum`, `sha512sum`, `b2sum`, `cksum`,
-  `base32`, `base64`
-- **System:** `date`, `uname`, `whoami`, `id`, `hostname`, `nproc`, `printenv`, `tty`, `who`,
-  `uptime`, `timeout`, `nice`, `nohup`, `kill`, `test`, `expr`, `dd`
+- **Tools:** `[` (as another name for `testx`), `basenc`, `numfmt`, `pr`, `tsort`, `factor`,
+  `sum`, `mkfifo`, `mknod`, `pathchk`, `logname`, `groups`, `users`, `pinky`, `stdbuf`, `sync`,
+  `shred`, `dircolors`, `dir`, `vdir`, `arch`, `hostid`, `ptx`, `stty`
+- **Out of scope by design:** `chroot`, `chcon` and `runcon`, which change system-wide state
+  that gnux leaves to the system's own tools
 
 ## License
 

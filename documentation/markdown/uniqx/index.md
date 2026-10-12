@@ -10,6 +10,11 @@ Mirrors GNU `uniq`. Run it as `uniqx`, or as `gnux uniqx`.
 uniqx [OPTION]... [INPUT [OUTPUT]]
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: uniq invocation](https://www.gnu.org/software/coreutils/manual/html_node/uniq-invocation.html)
+- [Source: src/uniq.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/uniq.c)
+
 ### Description
 
 `uniqx` filters adjacent matching lines from INPUT (or standard input), writing to OUTPUT (or standard output). With no options, matching lines are merged to the first occurrence. Only adjacent lines are compared, so a file is usually sorted first. `-c` prefixes each line with its number of occurrences, `-d` prints one copy of each repeated line, `-u` only the lines that are not repeated, and `-D` every line of each repeated group, with `--all-repeated`=METHOD (none, prepend, separate) putting an empty line before or between the groups. `--group`[=METHOD] (separate, prepend, append, both) prints every line with the groups delimited by an empty line, and cannot be combined with `-c`, `-d`, `-D` or `-u`; `-D` cannot be combined with `-c` either. The comparison skips the first N fields with `-f` (a field is a run of blanks then non-blanks), then N characters with `-s`, and compares at most N characters with `-w`. `-z` makes NUL the line delimiter, and the output always ends each line with it. Deviations from GNU: characters for `-s` and `-w` are bytes, as in GNU's C locale, and `-i` folds ASCII letters only. The obsolete `-N` and +N forms of `-f` and `-s` are not accepted. METHOD arguments may be abbreviated, as in GNU.

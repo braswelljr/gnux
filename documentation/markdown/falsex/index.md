@@ -10,6 +10,11 @@ Mirrors GNU `false`. Run it as `falsex`, or as `gnux falsex`.
 falsex [ignored command line arguments]
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: false invocation](https://www.gnu.org/software/coreutils/manual/html_node/false-invocation.html)
+- [Source: src/true.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/true.c)
+
 ### Description
 
 `falsex` exits with status 1 and does nothing else: it reads no input, writes no output and ignores every argument it is given. The only exceptions are `--help` and `--version`, which are honored when they are the sole argument. It exists so scripts have a portable command whose result is always failure.

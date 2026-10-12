@@ -135,15 +135,15 @@ check('robots.txt allows crawling and names the sitemap', async () => {
   assert.match(site, /^https:\/\//, 'the sitemap URL is absolute');
 });
 
-check('sitemap.xml lists home, the playground and every docs page', async () => {
+check('sitemap.xml lists home, install, the playground and every docs page', async () => {
   const { response, type } = await get('/sitemap.xml');
   assert.equal(response.status, 200);
   assert.match(type, /xml/);
   const locs = [...(await response.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-  for (const path of ['', '/playground', ...expectedDocs]) {
+  for (const path of ['', '/install', '/playground', ...expectedDocs]) {
     assert.ok(locs.includes(site + path), `sitemap is missing ${path || '/'}`);
   }
-  assert.equal(locs.length, expectedDocs.length + 2, 'sitemap lists nothing else');
+  assert.equal(locs.length, expectedDocs.length + 3, 'sitemap lists nothing else');
   assert.equal(new Set(locs).size, locs.length, 'no duplicates');
 });
 

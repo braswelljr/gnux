@@ -54,7 +54,8 @@ func toolMarkdown(t tool.Spec, flags *pflag.FlagSet) string {
 		use = common.AppName + " " + use
 	}
 	fmt.Fprintf(&b, "### Synopsis\n\n```bash\n%s\n```\n\n", use)
-	b.WriteString(topicBody(m, flags, 3))
+	b.WriteString(gnuReference(t, "###"))
+	b.WriteString(topicBody(m, flags, 3, false))
 
 	if len(t.Topics) > 0 {
 		b.WriteString("\n### Flag reference\n\n")
@@ -108,12 +109,13 @@ func terminalHelpMarkdown(t tool.Spec, h string) string {
 // in language-tagged code blocks. level is the heading level of the title.
 func topicMarkdown(m docmeta.Meta, flags *pflag.FlagSet, level int) string {
 	h := strings.Repeat("#", level)
-	return fmt.Sprintf("%s %s\n\n%s\n\n", h, m.Name, m.Short) + topicBody(m, flags, level+1)
+	return fmt.Sprintf("%s %s\n\n%s\n\n", h, m.Name, m.Short) + topicBody(m, flags, level+1, false)
 }
 
 // topicBody renders the sections shared by tool and flag pages, with section
-// headings at the given level.
-func topicBody(m docmeta.Meta, flags *pflag.FlagSet, level int) string {
+// headings at the given level. mdx selects the website's rendering of the
+// examples (see writeExamples).
+func topicBody(m docmeta.Meta, flags *pflag.FlagSet, level int, mdx bool) string {
 	var b strings.Builder
 	h := strings.Repeat("#", level)
 
@@ -137,17 +139,7 @@ func topicBody(m docmeta.Meta, flags *pflag.FlagSet, level int) string {
 
 	if len(m.Examples) > 0 {
 		fmt.Fprintf(&b, "%s Examples\n\n", h)
-		for _, e := range m.Examples {
-			if e.Description != "" {
-				fmt.Fprintf(&b, "%s\n\n", e.Description)
-			}
-			if e.Bash != "" {
-				fmt.Fprintf(&b, "```bash\n%s\n```\n\n", e.Bash)
-			}
-			if e.PowerShell != "" {
-				fmt.Fprintf(&b, "```powershell\n%s\n```\n\n", e.PowerShell)
-			}
-		}
+		writeExamples(&b, m.Examples, mdx, level+1)
 	}
 
 	return strings.TrimRight(b.String(), "\n") + "\n"
@@ -275,4 +267,95 @@ func fenceLang(section string) string {
 		return "text"
 	}
 	return "bash"
+}
+
+// writeExamples renders worked examples: the scenario, the command for each
+// shell, and the output when the example gives one.
+//
+// For the website (mdx) each scenario is a heading of the given level, so the
+// page's table of contents lists them, and its commands are tabs of one group
+// ("shell"), so a reader who picks PowerShell sees PowerShell everywhere. The
+// output is a code block titled "Output". The other formats keep plain
+// paragraphs and fences.
+func writeExamples(b *strings.Builder, examples []docmeta.Example, mdx bool, level int) {
+	if mdx {
+		h := strings.Repeat("#", level)
+		for _, e := range examples {
+			if e.Description != "" {
+				fmt.Fprintf(b, "%s %s\n\n", h, strings.TrimRight(e.Description, ":"))
+			}
+			if e.Bash != "" {
+				fmt.Fprintf(b, "```bash tab=\"bash\" tab-group=\"shell\"\n%s\n```\n\n", e.Bash)
+			}
+			if e.PowerShell != "" {
+				fmt.Fprintf(b, "```powershell tab=\"PowerShell\" tab-group=\"shell\"\n%s\n```\n\n", e.PowerShell)
+			}
+			if e.Output != "" {
+				fmt.Fprintf(b, "```text title=\"Output\"\n%s\n```\n\n", e.Output)
+			}
+		}
+		return
+	}
+	for _, e := range examples {
+		if e.Description != "" {
+			fmt.Fprintf(b, "%s\n\n", e.Description)
+		}
+		if e.Bash != "" {
+			fmt.Fprintf(b, "```bash\n%s\n```\n\n", e.Bash)
+		}
+		if e.PowerShell != "" {
+			fmt.Fprintf(b, "```powershell\n%s\n```\n\n", e.PowerShell)
+		}
+		if e.Output != "" {
+			fmt.Fprintf(b, "Output:\n\n```text\n%s\n```\n\n", e.Output)
+		}
+	}
+}
+
+// gnuReference links a tool's page to GNU's documentation and source for the
+// tool it mirrors: the coreutils manual and the source file in the
+// coreutils/coreutils repository. It is empty for a gnux command with no GNU
+// counterpart. The link texts carry no backticks: wrapCode splits a line on
+// them before it looks for links, so code inside a link's text would break it.
+func gnuReference(t tool.Spec, h string) string {
+	if t.GNU == "" {
+		return ""
+	}
+	return fmt.Sprintf("%s GNU reference\n\n"+
+		"- [GNU coreutils manual: %s invocation](%s)\n"+
+		"- [Source: src/%s in coreutils/coreutils](%s)\n\n",
+		h, t.GNU, gnuManualURL(t.GNU), gnuSourceFile(t.GNU), gnuSourceURL(t.GNU))
+}
+
+// gnuManualURL is the coreutils manual node for a GNU tool. The SHA-2 tools
+// share one node.
+func gnuManualURL(gnu string) string {
+	node := gnu + "-invocation"
+	switch gnu {
+	case "sha224sum", "sha256sum", "sha384sum", "sha512sum":
+		node = "sha2-utilities"
+	}
+	return "https://www.gnu.org/software/coreutils/manual/html_node/" + node + ".html"
+}
+
+// gnuSourceFile is the file in coreutils' src/ that implements a GNU tool.
+// The digest tools are cksum with a fixed algorithm, base32 and base64 are
+// basenc, chgrp shares chown's sources and false shares true's.
+func gnuSourceFile(gnu string) string {
+	switch gnu {
+	case "md5sum", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum", "b2sum":
+		return "cksum.c"
+	case "base32", "base64":
+		return "basenc.c"
+	case "chgrp":
+		return "chown.c"
+	case "false":
+		return "true.c"
+	}
+	return gnu + ".c"
+}
+
+// gnuSourceURL is the address of a GNU tool's source on GitHub.
+func gnuSourceURL(gnu string) string {
+	return "https://github.com/coreutils/coreutils/blob/master/src/" + gnuSourceFile(gnu)
 }

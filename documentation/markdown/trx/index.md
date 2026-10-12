@@ -10,6 +10,11 @@ Mirrors GNU `tr`. Run it as `trx`, or as `gnux trx`.
 trx [OPTION]... STRING1 [STRING2]
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: tr invocation](https://www.gnu.org/software/coreutils/manual/html_node/tr-invocation.html)
+- [Source: src/tr.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/tr.c)
+
 ### Description
 
 `trx` copies standard input to standard output, translating each byte of SET1 into the byte at the same position in SET2. SET2 is padded with its last byte to the length of SET1, unless `-t` truncates SET1 to the length of SET2 instead; when a byte appears more than once in SET1, its last mapping wins. `-d` deletes the bytes of SET1, and `-s` squeezes each run of a repeated byte from the last SET given into one; with `-d` and `-s` together, SET1 is deleted and SET2 squeezed. `-c` (or `-C`) uses the complement of SET1: every byte not in it, in ascending order. A SET is a string of bytes with these constructs: \NNN (an octal byte), \\, \a, \b, \f, \n, \r, \t, \v; CHAR1-CHAR2 for the bytes from CHAR1 to CHAR2 in ascending order; [CHAR*] in SET2 for as many copies of CHAR as make SET2 as long as SET1, and [CHAR*REPEAT] for REPEAT copies (octal if it starts with 0); [:CLASS:] for alnum, alpha, blank, cntrl, digit, graph, lower, print, punct, space, upper or xdigit; and [=CHAR=] for the bytes equivalent to CHAR. When translating, only [:lower:] and [:upper:] may appear in SET2, and only opposite a case class in SET1, so that letters map to their other case. `trx` reads only standard input. Like GNU `tr`, it works on bytes, not characters: a multibyte UTF-8 character is several separate bytes to it, and the classes are those of the C locale (ASCII).

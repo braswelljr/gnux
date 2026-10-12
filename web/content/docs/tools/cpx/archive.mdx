@@ -20,43 +20,43 @@ cpx --archive SOURCE... DIRECTORY
 
 ## Examples
 
-Archive a directory tree, preserving modes, times and links:
+### Archive a directory tree, preserving modes, times and links
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx -a project/ /mnt/backup/project
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx -a project D:\backup\project
 ```
 
-Preserve only the timestamps, or archive without carrying over ownership:
+### Preserve only the timestamps, or archive without carrying over ownership
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx --preserve=timestamps photo.jpg archive/ && cpx -a --no-preserve=ownership project/ copy/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx --preserve=timestamps photo.jpg archive; cpx -a --no-preserve=ownership project copy
 ```
 
-Make a new release tree of hard links that share the old one's data:
+### Make a new release tree of hard links that share the old one's data
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx -al releases/v1 releases/v2
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx -al releases\v1 releases\v2
 ```
 
-Back up a tree without crossing into other mounted file systems:
+### Back up a tree without crossing into other mounted file systems
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx -ax --strip-trailing-slashes data/ /mnt/backup/data
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx -ax --strip-trailing-slashes data\ D:\backup\data
 ```
 

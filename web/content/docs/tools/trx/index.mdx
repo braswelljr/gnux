@@ -11,6 +11,11 @@ Mirrors GNU `tr`. Run it as `trx`, or as `gnux trx`.
 trx [OPTION]... STRING1 [STRING2]
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: tr invocation](https://www.gnu.org/software/coreutils/manual/html_node/tr-invocation.html)
+- [Source: src/tr.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/tr.c)
+
 ## Description
 
 `trx` copies standard input to standard output, translating each byte of SET1 into the byte at the same position in SET2. SET2 is padded with its last byte to the length of SET1, unless `-t` truncates SET1 to the length of SET2 instead; when a byte appears more than once in SET1, its last mapping wins. `-d` deletes the bytes of SET1, and `-s` squeezes each run of a repeated byte from the last SET given into one; with `-d` and `-s` together, SET1 is deleted and SET2 squeezed. `-c` (or `-C`) uses the complement of SET1: every byte not in it, in ascending order. A SET is a string of bytes with these constructs: \NNN (an octal byte), \\, \a, \b, \f, \n, \r, \t, \v; CHAR1-CHAR2 for the bytes from CHAR1 to CHAR2 in ascending order; [CHAR*] in SET2 for as many copies of CHAR as make SET2 as long as SET1, and [CHAR*REPEAT] for REPEAT copies (octal if it starts with 0); [:CLASS:] for alnum, alpha, blank, cntrl, digit, graph, lower, print, punct, space, upper or xdigit; and [=CHAR=] for the bytes equivalent to CHAR. When translating, only [:lower:] and [:upper:] may appear in SET2, and only opposite a case class in SET1, so that letters map to their other case. `trx` reads only standard input. Like GNU `tr`, it works on bytes, not characters: a multibyte UTF-8 character is several separate bytes to it, and the classes are those of the C locale (ASCII).
@@ -44,133 +49,133 @@ Needs no file permissions: `trx` reads standard input and writes standard output
 
 ## Examples
 
-Convert text to upper case:
+### Convert text to upper case
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'hello world' | trx '[:lower:]' '[:upper:]'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'hello world' | trx '[:lower:]' '[:upper:]'
 ```
 
-Convert text to lower case with ranges:
+### Convert text to lower case with ranges
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'Hello World' | trx A-Z a-z
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'Hello World' | trx A-Z a-z
 ```
 
-Strip Windows carriage returns from a file:
+### Strip Windows carriage returns from a file
 
-```bash
+```bash tab="bash" tab-group="shell"
 trx -d '\r' < dos.txt > unix.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 Get-Content -Raw dos.txt | trx -d '\r' | Set-Content -NoNewline unix.txt
 ```
 
-Squeeze runs of spaces into one:
+### Squeeze runs of spaces into one
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'a    b     c' | trx -s ' '
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'a    b     c' | trx -s ' '
 ```
 
-Delete every digit:
+### Delete every digit
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'r2d2 c3po' | trx -d '[:digit:]'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'r2d2 c3po' | trx -d '[:digit:]'
 ```
 
-Put each word on a line of its own:
+### Put each word on a line of its own
 
-```bash
+```bash tab="bash" tab-group="shell"
 catx essay.txt | trx -cs '[:alnum:]' '\n'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 catx essay.txt | trx -cs '[:alnum:]' '\n'
 ```
 
-List the directories of PATH, one per line:
+### List the directories of PATH, one per line
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox "$PATH" | trx : '\n'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 $env:PATH | trx ';' '\n'
 ```
 
-Keep only the printable characters and newlines:
+### Keep only the printable characters and newlines
 
-```bash
+```bash tab="bash" tab-group="shell"
 trx -cd '[:print:]\n' < binary.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 catx binary.log | trx -cd '[:print:]\n'
 ```
 
-Map a set onto a shorter one without padding it (`-t`):
+### Map a set onto a shorter one without padding it (-t)
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox abcde | trx -t a-e xy
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'abcde' | trx -t a-e xy
 ```
 
-Replace every vowel with a star, using a repeat:
+### Replace every vowel with a star, using a repeat
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'programming' | trx aeiou '[**]'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'programming' | trx aeiou '[**]'
 ```
 
-Encode text with ROT13:
+### Encode text with ROT13
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'Hello' | trx A-Za-z N-ZA-Mn-za-m
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'Hello' | trx A-Za-z N-ZA-Mn-za-m
 ```
 
-Delete digits and squeeze the spaces left behind:
+### Delete digits and squeeze the spaces left behind
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox 'a 1 2 b' | trx -ds '[:digit:]' ' '
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'a 1 2 b' | trx -ds '[:digit:]' ' '
 ```
 
-Normalize text in the portable `gnux shell`:
+### Normalize text in the portable gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c "catx names.txt | trx '[:upper:]' '[:lower:]' > lower.txt"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c "catx names.txt | trx '[:upper:]' '[:lower:]' > lower.txt"
 ```
 
@@ -182,7 +187,7 @@ Each option has a page of its own, with its usage and examples.
 - [-C, --complement-upper](/docs/tools/trx/complement-upper): Equivalent to `-c`.
 - [-d, --delete](/docs/tools/trx/delete): Delete characters in SET1, do not translate.
 - [-s, --squeeze-repeats](/docs/tools/trx/squeeze-repeats): Replace each sequence of a repeated character that is listed in the last specified SET, with a single occurrence of that character.
-- [-t, --truncate-set1](/docs/tools/trx/truncate-set1): First truncate SET1 to length of SET2.
+- [-t, --truncate-set1](/docs/tools/trx/truncate-set1): First `truncate` SET1 to length of SET2.
 
 ## Exit status
 

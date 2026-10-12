@@ -20,13 +20,13 @@ sortx --check-quiet [FILE]...
 
 ## Examples
 
-Fail a script when a file is not sorted (exit status 1):
+### Fail a script when a file is not sorted (exit status 1)
 
-```bash
+```bash tab="bash" tab-group="shell"
 sortx -C names.txt || echox 'names.txt is not sorted'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 sortx -C names.txt; if ($LASTEXITCODE -ne 0) { 'names.txt is not sorted' }
 ```
 

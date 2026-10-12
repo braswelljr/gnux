@@ -1,0 +1,36 @@
+---
+title: "--status"
+description: "Don't output anything, status code shows success."
+---
+
+An option of [sha256sumx](/docs/tools/sha256sumx).
+
+## Usage
+
+```bash
+sha256sumx --status [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--status` | none |  | don't output anything, status code shows success |
+
+## Examples
+
+### Verify silently and branch on the result
+
+```bash tab="bash" tab-group="shell"
+sha256sumx -c --status sha256.sums && echox verified
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sha256sumx -c --status sha256.sums; if ($LASTEXITCODE -eq 0) { 'verified' }
+```
+
+## Help in the terminal
+
+```bash
+gnux help sha256sumx --status
+```

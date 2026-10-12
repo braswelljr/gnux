@@ -1,0 +1,36 @@
+---
+title: "--tag"
+description: "Create a BSD-style checksum."
+---
+
+An option of [sha512sumx](/docs/tools/sha512sumx).
+
+## Usage
+
+```bash
+sha512sumx --tag [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--tag` | none |  | create a BSD-style checksum |
+
+## Examples
+
+### Print BSD-style tagged lines
+
+```bash tab="bash" tab-group="shell"
+sha512sumx --tag file.iso
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sha512sumx --tag file.iso
+```
+
+## Help in the terminal
+
+```bash
+gnux help sha512sumx --tag
+```

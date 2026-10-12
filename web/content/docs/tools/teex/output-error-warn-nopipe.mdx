@@ -20,13 +20,13 @@ teex --output-error-warn-nopipe [FILE]...
 
 ## Examples
 
-Keep going when the reader stops early, without an error:
+### Keep going when the reader stops early, without an error
 
-```bash
+```bash tab="bash" tab-group="shell"
 yesx | teex -p copy.txt | headx -n 3
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 yesx | teex -p copy.txt | headx -n 3
 ```
 

@@ -20,23 +20,23 @@ sortx --key=KEYDEF [FILE]...
 
 ## Examples
 
-Sort a colon-separated file numerically on its third field:
+### Sort a colon-separated file numerically on its third field
 
-```bash
+```bash tab="bash" tab-group="shell"
 sortx -t : -k 3,3n /etc/passwd
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 sortx -t : -k 3,3n users.txt
 ```
 
-Sort on the second column, then by the first in reverse:
+### Sort on the second column, then by the first in reverse
 
-```bash
+```bash tab="bash" tab-group="shell"
 sortx -k 2,2 -k 1,1r scores.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 sortx -k 2,2 -k 1,1r scores.txt
 ```
 

@@ -1,0 +1,235 @@
+---
+title: "whox"
+description: "Show who is logged on."
+---
+
+Mirrors GNU `who`. Run it as `whox`, or as `gnux whox`.
+
+## Synopsis
+
+```bash
+whox [OPTION]... [ FILE | ARG1 ARG2 ]
+```
+
+## GNU reference
+
+- [GNU coreutils manual: who invocation](https://www.gnu.org/software/coreutils/manual/html_node/who-invocation.html)
+- [Source: src/who.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/who.c)
+
+## Description
+
+`whox` lists the users logged in: name, terminal, login time and, for a remote session, the host in parentheses. `-u` adds how long each terminal has been idle ('.' under a minute, 'old' over a day) and the session's process ID, `-T` (or `-w`) whether the user accepts messages (+, - or ?), and `-H` a line of headings. `-q` prints just the names and their count. `-b` shows the last boot, `-r` the run level, `-l` login processes, `-p` processes started by init, `-d` dead processes and `-t` clock changes; `-a` shows all of them. `-m` (or any two operands, as in '`whox` am i') shows only the terminal on standard input. `--lookup` turns host addresses into names. With FILE, the records are read from that utmp file (on Linux, /var/log/wtmp lists past logins too) instead of the current ones, and in the current ones, logins whose process has ended are left out. Times are in the C locale's 'Oct 12 09:30' format. The records are read without the C library, in each system's own format: Linux utmp, macOS utmpx and FreeBSD utx.active. On Windows, which keeps sessions rather than a utmp file, `whox` lists the signed-in console and Remote Desktop sessions, so the same command answers '`who` is on this machine' everywhere; there FILE is not supported.
+
+## Permissions
+
+Needs read permission on the login records, which every user has.
+
+## Use cases
+
+- Checking `who` else is logged in to a shared server before rebooting it.
+- Seeing which remote hosts users are connected from.
+- Finding idle sessions to clean up with `-u`.
+- Checking when the machine last booted with `-b`.
+- Counting logged-in users in a monitoring script with `-q`.
+
+## Flags
+
+```text
+  -a, --all        same as -b -d --login -p -r -t -T -u
+  -b, --boot       time of last system boot
+  -q, --count      all login names and number of users logged on
+  -d, --dead       print dead processes
+  -H, --heading    print line of column headings
+      --help       display this help and exit
+  -l, --login      print system login processes
+      --lookup     attempt to canonicalize hostnames via DNS
+  -T, --mesg       add user's message status as +, - or ?
+      --message    same as -T
+  -m, --my-line    only hostname and user associated with stdin
+  -p, --process    print active processes spawned by init
+  -r, --runlevel   print current runlevel
+  -s, --short      print only name, line, and time (default)
+  -t, --time       print last system clock change
+  -u, --users      list users logged in
+      --version    output version information and exit
+  -w, --writable   same as -T
+```
+
+## Examples
+
+### Before rebooting a shared server, see who is still logged in
+
+```bash tab="bash" tab-group="shell"
+whox
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox
+```
+
+```text title="Output"
+alice    pts/0        Oct 12 09:30 (10.0.0.5)
+bob      pts/1        Oct 12 13:02 (laptop.lan)
+```
+
+### See how long each session has been idle, with headings
+
+```bash tab="bash" tab-group="shell"
+whox -uH
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox -uH
+```
+
+```text title="Output"
+NAME     LINE         TIME         IDLE          PID COMMENT
+alice    pts/0        Oct 12 09:30 01:30        1234 (10.0.0.5)
+bob      pts/1        Oct 12 13:02   .          1300 (laptop.lan)
+```
+
+### Check when the machine last booted
+
+```bash tab="bash" tab-group="shell"
+whox -b
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox -b
+```
+
+```text title="Output"
+         system boot  Oct  9 10:44
+```
+
+### Count the logged-in users for a monitoring check
+
+```bash tab="bash" tab-group="shell"
+whox -q
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox -q
+```
+
+```text title="Output"
+alice bob
+# users=2
+```
+
+### Find out which terminal and login you are on
+
+```bash tab="bash" tab-group="shell"
+whox am i
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox am i
+```
+
+```text title="Output"
+alice    pts/0        Oct 12 09:30 (10.0.0.5)
+```
+
+### See who will receive a 'wall' broadcast (+ accepts messages)
+
+```bash tab="bash" tab-group="shell"
+whox -T
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox -T
+```
+
+### Show every record, including dead processes and the run level
+
+```bash tab="bash" tab-group="shell"
+whox -a
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox -a
+```
+
+### Show the remote hosts by name instead of address
+
+```bash tab="bash" tab-group="shell"
+whox --lookup
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox --lookup
+```
+
+### Review past logins from the Linux login history
+
+```bash tab="bash" tab-group="shell"
+whox /var/log/wtmp | tailx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox
+```
+
+### Warn in a script when anyone besides you is logged in
+
+```bash tab="bash" tab-group="shell"
+[ "$(whox -q | tailx -n 1 | cutx -d= -f2)" -gt 1 ] && echox 'others are logged in'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+if ([int]((whox -q | tailx -n 1) -split '=')[1] -gt 1) { 'others are logged in' }
+```
+
+### List logged-in users in the portable gnux shell, the same on every OS
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'whox -q && uptimex'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'whox -q && uptimex'
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-a, --all](/docs/tools/whox/all): Same as `-b -d --login -p -r -t -T -u`.
+- [-b, --boot](/docs/tools/whox/boot): Time of last system boot.
+- [-q, --count](/docs/tools/whox/count): All login names and number of users logged on.
+- [-d, --dead](/docs/tools/whox/dead): Print dead processes.
+- [-H, --heading](/docs/tools/whox/heading): Print line of column headings.
+- [-l, --login](/docs/tools/whox/login): Print system login processes.
+- [--lookup](/docs/tools/whox/lookup): Attempt to canonicalize hostnames via DNS.
+- [-T, --mesg](/docs/tools/whox/mesg): Add user's message status as +, - or ?.
+- [--message](/docs/tools/whox/message): Same as `-T`.
+- [-m, --my-line](/docs/tools/whox/my-line): Only `hostname` and user associated with stdin.
+- [-p, --process](/docs/tools/whox/process): Print active processes spawned by init.
+- [-r, --runlevel](/docs/tools/whox/runlevel): Print current runlevel.
+- [-s, --short](/docs/tools/whox/short): Print only name, line, and time (default).
+- [-t, --time](/docs/tools/whox/time): Print last system clock change.
+- [-u, --users](/docs/tools/whox/users): List users logged in.
+- [-w, --writable](/docs/tools/whox/writable): Same as `-T`.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+whox --help                # options, first examples, exit status
+gnux help whox             # this page: the full manual
+gnux help whox --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [whoamix](/docs/tools/whoamix)
+- [idx](/docs/tools/idx)
+- [uptimex](/docs/tools/uptimex)
+- [ttyx](/docs/tools/ttyx)

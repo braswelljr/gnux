@@ -1,0 +1,131 @@
+name: dfx
+synopsis: Report file system space usage.
+description: |-
+    dfx shows, for each mounted file system, its size, the space used and available, the percentage used and where it is mounted. With FILE operands it shows only the file systems holding them. Sizes are in 1024-byte blocks by default; -h prints them like 23G (--si/-H in powers of 1000), -k and -m use KiB and MiB, and -B SIZE any unit. Use% is used/(used+available), rounded up, so space reserved for the superuser shows as used. -i reports inodes instead of blocks, -T adds the file system type, -P uses the POSIX format, and --output=FIELDS chooses the columns (source, fstype, itotal, iused, iavail, ipcent, size, used, avail, pcent, file, target). -t TYPE and -x TYPE select or exclude file system types, -l leaves out network file systems, and --total adds a grand total. Without -a, pseudo file systems (proc, sysfs, devfs, ...), file systems with no blocks and duplicate mounts of the same device are left out; -a shows them all, with '-' for any that cannot be examined. The block size defaults to DF_BLOCK_SIZE, BLOCK_SIZE or BLOCKSIZE when set. GNU df only runs where coreutils is installed; dfx reports the mounted file systems on Linux, macOS and FreeBSD, and on Windows lists every drive (C:\, D:\, network drives) with the same columns, quietly skipping a card reader or DVD drive with no medium. --sync and --no-sync are accepted and have no effect, and -v is ignored, as in GNU.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. dfx --help shows the options and the first examples; gnux help dfx prints the full manual, and gnux help dfx OPTION explains one option.
+
+    SEE ALSO. dux, statx, lsx.
+
+    PERMISSIONS. Needs no special permission; a mount point the user cannot examine is left out (or shown with '-' under -a).
+
+    USE CASES.
+      - Checking how much free space is left before a large download, build or backup.
+      - Finding which disk is filling up on a server.
+      - Checking which file system a directory lives on, and its type.
+      - Running out of inodes despite free space: checking with -i.
+      - Alerting from a script when a disk passes a usage threshold.
+usage: dfx [OPTION]... [FILE]...
+options:
+    - name: all
+      shorthand: a
+      default_value: "false"
+      usage: include pseudo, duplicate, inaccessible file systems
+    - name: block-size
+      shorthand: B
+      usage: |
+        scale sizes by SIZE before printing them; e.g., '-BM' prints sizes in units of 1,048,576 bytes
+    - name: exclude-type
+      shorthand: x
+      default_value: '[]'
+      usage: limit listing to file systems not of type `TYPE`
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: human-readable
+      shorthand: h
+      usage: print sizes in powers of 1024 (e.g., 1023M)
+    - name: inodes
+      shorthand: i
+      default_value: "false"
+      usage: list inode information instead of block usage
+    - name: kilobytes
+      shorthand: k
+      usage: like --block-size=1K
+    - name: local
+      shorthand: l
+      default_value: "false"
+      usage: limit listing to local file systems
+    - name: megabytes
+      shorthand: m
+      usage: like --block-size=1M (obsolescent)
+    - name: no-sync
+      default_value: "false"
+      usage: do not invoke sync before getting usage info (default)
+    - name: output
+      default_value: '[]'
+      usage: |
+        use the output format defined by `FIELD_LIST`, or print all fields if FIELD_LIST is omitted
+    - name: portability
+      shorthand: P
+      default_value: "false"
+      usage: use the POSIX output format
+    - name: print-type
+      shorthand: T
+      default_value: "false"
+      usage: print file system type
+    - name: si
+      shorthand: H
+      usage: print sizes in powers of 1000 (e.g., 1.1G)
+    - name: sync
+      default_value: "false"
+      usage: invoke sync before getting usage info (no effect)
+    - name: sysv
+      shorthand: v
+      default_value: "false"
+      usage: (ignored)
+    - name: total
+      default_value: "false"
+      usage: |
+        elide all entries insignificant to available space, and produce a grand total
+    - name: type
+      shorthand: t
+      default_value: '[]'
+      usage: limit listing to file systems of type `TYPE`
+    - name: type-f
+      shorthand: F
+      default_value: '[]'
+      usage: same as --type
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # See at a glance how full every disk is
+      dfx -h
+
+      # Before a 20 GB download, check the free space where it will land
+      dfx -h ~/Downloads
+
+      # Show only real local disks, with their file system types
+      dfx -hlT
+
+      # A server says 'No space left on device' but df shows free space: check the inodes
+      dfx -i /var
+
+      # Alert from a cron job when the root disk passes 90%
+      [ "$(dfx --output=pcent / | tailx -n 1 | trx -dc 0-9)" -gt 90 ] && echox 'root disk above 90%'
+
+      # Print just the available space, in megabytes, for a script
+      dfx -BM --output=avail /data | tailx -n 1
+
+      # See which device and file system type a directory is on
+      dfx --output=source,fstype,target /var/lib/docker
+
+      # Total the space across all local disks
+      dfx -hl --total
+
+      # Check only the network shares
+      dfx -h -t nfs -t cifs
+
+      # Leave temporary file systems out of the report
+      dfx -h -x tmpfs -x devtmpfs
+
+      # Produce stable, parseable output with the POSIX format
+      dfx -P | tailx -n +2
+
+      # Show disk space in the portable gnux shell, the same on every OS
+      gnux shell -c 'dfx -h . && dux -sh .'

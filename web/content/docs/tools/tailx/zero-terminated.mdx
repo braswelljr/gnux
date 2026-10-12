@@ -20,13 +20,13 @@ tailx --zero-terminated [FILE]...
 
 ## Examples
 
-Print the last entry of a NUL-separated list:
+### Print the last entry of a NUL-separated list
 
-```bash
+```bash tab="bash" tab-group="shell"
 tailx -z -n 1 names.lst | xargs -0 echox
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 tailx -z -n 1 names.lst
 ```
 

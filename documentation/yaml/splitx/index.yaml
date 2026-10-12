@@ -1,0 +1,128 @@
+name: splitx
+synopsis: Split a file into pieces.
+description: |-
+    splitx copies FILE (standard input when FILE is - or absent) into files named PREFIX (x by default) plus a suffix: xaa, xab, and so on, 1000 lines per file. -l N puts N lines in each file (the obsolete -N form too), -b SIZE puts SIZE bytes, and -C SIZE as many whole lines as fit in SIZE bytes, splitting only a line longer than that. SIZE takes the suffixes K, M, G, ... (powers of 1024) and KB, MB, ... (powers of 1000). -n CHUNKS makes a fixed number of files instead: N files of nearly equal size (the first ones a byte longer when the size does not divide), l/N without splitting lines (each line goes to the chunk it starts in), or r/N dealing lines out in turn; K/N, l/K/N and r/K/N write only the Kth chunk to standard output. To size the chunks of a pipe, splitx first copies it to a temporary file, as GNU does. Suffixes are two letters, and when they run out they grow (xyz is followed by xzaaa) so the names still sort in order; -a N fixes their length, -d and -x make them decimal or hexadecimal, --numeric-suffixes=FROM and --hex-suffixes=FROM start them at FROM, and --additional-suffix appends a fixed string such as .csv. -t SEP splits lines on SEP instead of newline ('\0' for NUL), -e skips empty files in the -n modes, and --verbose reports each file as it is created. splitx refuses to overwrite FILE with one of its pieces. Only one way of splitting may be given. GNU's --filter, which pipes each piece through a shell command, is not implemented; -u is accepted and has no effect, since output is never held back. The digits of two obsolete -N options in a row run together (-5 -3 reads as -53).
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. splitx --help shows the options and the first examples; gnux help splitx prints the full manual, and gnux help splitx OPTION explains one option.
+
+    SEE ALSO. csplitx, catx, headx, tailx.
+
+    PERMISSIONS. Needs read permission on FILE, and write permission on the directory the pieces are created in (and on any existing piece, which is overwritten).
+
+    USE CASES.
+      - Breaking a file too large for an email attachment or a FAT32 drive into pieces.
+      - Dividing a big CSV or log into batches for parallel processing.
+      - Spreading work over N workers with -n r/N or -n l/N.
+      - Sampling one slice of a large file with -n K/N without writing the rest.
+      - Reassembling the pieces later with catx, since the names sort in order.
+usage: splitx [OPTION]... [FILE [PREFIX]]
+options:
+    - name: additional-suffix
+      usage: append an additional `SUFFIX` to file names
+    - name: bytes
+      shorthand: b
+      usage: put `SIZE` bytes per output file
+    - name: elide-empty-files
+      shorthand: e
+      default_value: "false"
+      usage: do not generate empty output files with '-n'
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: hex-suffixes
+      shorthand: x
+      usage: |
+        use hex suffixes starting at 0, not alphabetic; --hex-suffixes=FROM starts at FROM
+    - name: line-bytes
+      shorthand: C
+      usage: put at most `SIZE` bytes of records per output file
+    - name: lines
+      shorthand: l
+      usage: put `NUMBER` lines/records per output file
+    - name: number
+      shorthand: "n"
+      usage: |
+        generate `CHUNKS` output files: N, K/N, l/N, l/K/N, r/N or r/K/N
+    - name: numeric-suffixes
+      shorthand: d
+      usage: |
+        use numeric suffixes starting at 0, not alphabetic; --numeric-suffixes=FROM starts at FROM
+    - name: obsolete-0
+      shorthand: "0"
+    - name: obsolete-1
+      shorthand: "1"
+    - name: obsolete-2
+      shorthand: "2"
+    - name: obsolete-3
+      shorthand: "3"
+    - name: obsolete-4
+      shorthand: "4"
+    - name: obsolete-5
+      shorthand: "5"
+    - name: obsolete-6
+      shorthand: "6"
+    - name: obsolete-7
+      shorthand: "7"
+    - name: obsolete-8
+      shorthand: "8"
+    - name: obsolete-9
+      shorthand: "9"
+    - name: separator
+      shorthand: t
+      default_value: '[]'
+      usage: |
+        use `SEP` instead of newline as the record separator; '\0' (zero) specifies the NUL character
+    - name: suffix-length
+      shorthand: a
+      usage: generate suffixes of length `N` (default 2)
+    - name: unbuffered
+      shorthand: u
+      default_value: "false"
+      usage: |
+        immediately copy input to output with '-n r/...' (always the case here)
+    - name: verbose
+      default_value: "false"
+      usage: print a diagnostic just before each output file is opened
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # Cut a 10 GB backup into 2 GB pieces that fit on a FAT32 USB drive
+      splitx -b 2G backup.tar.gz backup.tar.gz.part-
+
+      # Put the pieces back together on the other machine
+      catx backup.tar.gz.part-* > backup.tar.gz
+
+      # Break a million-row CSV into files of 100,000 rows for an import tool that chokes on big files
+      tailx -n +2 users.csv | splitx -l 100000 -d --additional-suffix=.csv - users-
+
+      # Split a log into 4 roughly equal parts for 4 parallel workers, without cutting a line in half
+      splitx -n l/4 access.log chunk-
+
+      # Deal a list of URLs out to 3 crawlers in turn
+      splitx -n r/3 urls.txt crawler-
+
+      # Look at just the third quarter of a huge file without writing any pieces
+      splitx -n l/3/4 huge.log | headx
+
+      # Send a log in email-sized pieces of at most 5 MB, keeping lines whole
+      splitx -C 5M app.log app.log.
+
+      # Number the pieces from 1 instead of 0
+      splitx -l 500 --numeric-suffixes=1 -a 3 list.txt list-
+
+      # See each file as it is created
+      splitx --verbose -l 2 names.txt
+
+      # Split NUL-separated records, such as the output of find -print0
+      find . -type f -print0 | splitx -t '\0' -l 1000 - batch-
+
+      # Split stdin into 1,000-line files the obsolete way, as old scripts do
+      seqx 2500 | splitx -1000
+
+      # Split and reassemble in the portable gnux shell, the same on every OS
+      gnux shell -c 'splitx -b 1M video.mp4 part- && catx part-* > copy.mp4'

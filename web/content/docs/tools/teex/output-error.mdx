@@ -19,23 +19,23 @@ teex --output-error[=MODE] [FILE]...
 
 ## Examples
 
-Report a closed pipe as an error and stop:
+### Report a closed pipe as an error and stop
 
-```bash
+```bash tab="bash" tab-group="shell"
 yesx | teex --output-error=exit copy.txt | headx -n 1
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 yesx | teex --output-error=exit copy.txt | headx -n 1
 ```
 
-Carry on to the other files when one cannot be written:
+### Carry on to the other files when one cannot be written
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox data | teex --output-error=warn a.txt missing/b.txt c.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 'data' | teex --output-error=warn a.txt missing/b.txt c.txt
 ```
 

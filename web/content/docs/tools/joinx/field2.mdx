@@ -1,0 +1,37 @@
+---
+title: "-2, --field2"
+description: "Join on this FIELD of file 2."
+---
+
+An option of [joinx](/docs/tools/joinx).
+
+## Usage
+
+```bash
+joinx -2 FIELD FILE1 FILE2
+joinx --field2=FIELD FILE1 FILE2
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-2` | `--field2` | `FIELD` |  | `join` on this FIELD of file 2 |
+
+## Examples
+
+### Join on the second field of the first file and the first of the second
+
+```bash tab="bash" tab-group="shell"
+joinx -1 2 -2 1 orders.txt customers.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+joinx -1 2 -2 1 orders.txt customers.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help joinx --field2
+```

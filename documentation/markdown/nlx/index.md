@@ -1,0 +1,222 @@
+## nlx
+
+Number lines of files.
+
+Mirrors GNU `nl`. Run it as `nlx`, or as `gnux nlx`.
+
+### Synopsis
+
+```bash
+nlx [OPTION]... [FILE]...
+```
+
+### GNU reference
+
+- [GNU coreutils manual: nl invocation](https://www.gnu.org/software/coreutils/manual/html_node/nl-invocation.html)
+- [Source: src/nl.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/nl.c)
+
+### Description
+
+`nlx` writes each FILE to standard output with line numbers added. With no FILE, or when FILE is -, it reads standard input; several FILEs are numbered as one stream. By default non-empty lines are numbered from 1, right-aligned in a 6-column field followed by a tab, and empty lines get the same width of blanks so the text stays aligned. `-b` STYLE chooses which lines are numbered: a (all), t (non-empty, the default), n (none) or pBRE (those matching the POSIX basic regular expression BRE). `-n` FORMAT is `ln` (left-aligned), rn (right-aligned) or rz (zero-padded); `-w` sets the width, `-s` the separator, `-v` the first number and `-i` the increment (both may be zero or negative). `-l` N with `-b` a numbers only every Nth of a run of empty lines. Input may be `split` into logical pages of header, body and footer sections by lines holding only '\:\:\:', '\:\:' or '\:' (change the two characters with `-d`; an empty `-d` turns sections off); each delimiter prints as an empty line, `-h` and `-f` choose the numbering of headers and footers (none by default), and numbering restarts at every header unless `-p`. Every output line ends with a newline, a last line without one included.
+
+### Permissions
+
+Needs read permission on each FILE and search permission on the directories leading to it. Nothing is ever modified.
+
+### Use cases
+
+- Quoting a snippet of code or a config file with line numbers in a review or a bug report.
+- Numbering the entries of a list, such as a playlist or a set of steps.
+- Finding the line numbers of matching lines with `-b` p.
+- Producing zero-padded numbers for fixed-width records with `-n` rz.
+- Numbering paginated documents section by section with the \: delimiters.
+
+### Flags
+
+```text
+  -b, --body-numbering STYLE          use STYLE for numbering body lines (a, t, n or pBRE; default t)
+  -f, --footer-numbering STYLE        use STYLE for numbering footer lines (default n)
+  -h, --header-numbering STYLE        use STYLE for numbering header lines (default n)
+      --help                          display this help and exit
+  -l, --join-blank-lines NUMBER       group of NUMBER empty lines counted as one (default 1)
+  -i, --line-increment string         line number increment at each line (default 1)
+  -p, --no-renumber                   do not reset line numbers for each section
+  -n, --number-format FORMAT          insert line numbers according to FORMAT (ln, rn or rz; default rn)
+  -s, --number-separator STRING       add STRING after (possible) line number (default TAB)
+  -w, --number-width NUMBER           use NUMBER columns for line numbers (default 6)
+  -d, --section-delimiter CC          use CC for logical page delimiters (default \:)
+  -v, --starting-line-number string   first line number for each section (default 1)
+      --version                       output version information and exit
+```
+
+### Examples
+
+Quote a config file with line numbers in a bug report:
+
+```bash
+nlx nginx.conf | headx -n 5
+```
+
+```powershell
+nlx nginx.conf | headx -n 5
+```
+
+Output:
+
+```text
+     1	user www-data;
+     2	worker_processes auto;
+       
+     3	events {
+     4	    worker_connections 768;
+```
+
+Number every line, empty ones included, to match an editor's line numbers:
+
+```bash
+nlx -b a main.go
+```
+
+```powershell
+nlx -b a main.go
+```
+
+Find which lines of a crontab are active jobs (not comments):
+
+```bash
+nlx -b 'p^[^#]' crontab.txt
+```
+
+```powershell
+nlx -b 'p^[^#]' crontab.txt
+```
+
+Turn a list of steps into a numbered checklist:
+
+```bash
+nlx -w 2 -s '. ' steps.txt
+```
+
+```powershell
+nlx -w 2 -s '. ' steps.txt
+```
+
+Output:
+
+```text
+ 1. Back up the database
+ 2. Stop the service
+ 3. Run the migration
+```
+
+Give records fixed-width, zero-padded IDs:
+
+```bash
+nlx -n rz -w 5 -s , names.txt > names.csv
+```
+
+```powershell
+nlx -n rz -w 5 -s , names.txt > names.csv
+```
+
+Output:
+
+```text
+00001,Ada
+00002,Grace
+00003,Linus
+```
+
+Continue numbering where yesterday's log left off:
+
+```bash
+nlx -v 1043 today.log
+```
+
+```powershell
+nlx -v 1043 today.log
+```
+
+Number in steps of 10, leaving room to insert lines later:
+
+```bash
+nlx -i 10 -v 10 program.bas
+```
+
+```powershell
+nlx -i 10 -v 10 program.bas
+```
+
+Number a git diff's lines to discuss them in a review:
+
+```bash
+git diff | nlx -b a
+```
+
+```powershell
+git diff | nlx -b a
+```
+
+Number lines left-aligned with no padding before the text:
+
+```bash
+nlx -n ln -w 1 -s ' ' todo.txt
+```
+
+```powershell
+nlx -n ln -w 1 -s ' ' todo.txt
+```
+
+Number two chapters as one continuous document:
+
+```bash
+nlx chapter1.txt chapter2.txt > book.txt
+```
+
+```powershell
+nlx chapter1.txt chapter2.txt > book.txt
+```
+
+Collapse runs of empty lines so only every second one gets a number:
+
+```bash
+nlx -b a -l 2 poem.txt
+```
+
+```powershell
+nlx -b a -l 2 poem.txt
+```
+
+Number lines in the portable `gnux shell`:
+
+```bash
+gnux shell -c 'sortx names.txt | uniqx | nlx -w 3'
+```
+
+```powershell
+gnux shell -c 'sortx names.txt | uniqx | nlx -w 3'
+```
+
+### Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+### Help in the terminal
+
+```bash
+nlx --help                # options, first examples, exit status
+gnux help nlx             # this page: the full manual
+gnux help nlx --OPTION    # one option in depth, with its examples
+```
+
+### See also
+
+- [catx](../catx/index.md)
+- [fmtx](../fmtx/index.md)
+- [headx](../headx/index.md)
+- [tailx](../tailx/index.md)
+- [gnux](../index.md) - every tool in the bundle
+- [guide](../guide.md) - installation and usage

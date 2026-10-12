@@ -11,6 +11,11 @@ Mirrors GNU `echo`. Run it as `echox`, or as `gnux echox`.
 echox [SHORT-OPTION]... [STRING]...
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: echo invocation](https://www.gnu.org/software/coreutils/manual/html_node/echo-invocation.html)
+- [Source: src/echo.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/echo.c)
+
 ## Description
 
 `echox` writes each STRING to standard output, separated by single spaces and followed by a newline. `-n` omits the trailing newline, `-e` enables interpretation of backslash escapes (\\, \a, \b, \c, \e, \f, \n, \r, \t, \v, \0NNN, \xHH) and `-E` (the default) disables it; \c stops all further output, the newline included. As in GNU echo, options are recognized only as leading arguments made up solely of those letters (`-n`, `-ne`, `-En`, ...): the first argument that is anything else, such as `-x` or --, ends option parsing and is printed literally. `--help` and `--version` are honored only when they are the sole argument.
@@ -25,7 +30,7 @@ Needs no filesystem permissions; it only writes to standard output.
 - Emitting text without a trailing newline with `-n`, for prompts or piping.
 - Producing tabs, newlines or arbitrary bytes with `-e`, identically on every platform.
 - Creating or appending to small files with redirection, such as config stubs or notes.
-- Feeding a known string into another tool (`wcx`, `headx`, `catx`) to test or demonstrate it.
+- Feeding a known string into another tool (`wcx`, `headx`, `catx`) to `test` or demonstrate it.
 - Reporting the result of a previous command, such as its exit status.
 - Printing text that starts with a dash or contains backslashes verbatim, which is awkward with the shell's own echo.
 - Writing the same output in bash, PowerShell and the `gnux shell`, where built-in echo commands differ.
@@ -39,143 +44,143 @@ Needs no filesystem permissions; it only writes to standard output.
 
 ## Examples
 
-Print a line of text:
+### Print a line of text
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox Hello, world
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 echox Hello, world
 ```
 
-Print without a trailing newline, as for a prompt:
+### Print without a trailing newline, as for a prompt
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox -n 'Continue? '
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 echox -n 'Continue? '
 ```
 
-Interpret backslash escapes to print a small table:
+### Interpret backslash escapes to print a small table
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox -e 'name\tsize\nrmx\t2M'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 echox -e 'name\tsize\nrmx\t2M'
 ```
 
-Combine options: interpret escapes and omit the final newline:
+### Combine options: interpret escapes and omit the final newline
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox -ne 'no newline here\n'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 echox -ne 'no newline here\n'
 ```
 
-Print backslashes literally (the default, made explicit with `-E`):
+### Print backslashes literally (the default, made explicit with -E)
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox -E 'C:\new\table'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 echox -E 'C:\new\table'
 ```
 
-Stop all further output, newline included, at \c:
+### Stop all further output, newline included, at \c
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox -e 'first\csecond'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 echox -e 'first\csecond'
 ```
 
-Write bytes by octal and hexadecimal code (prints ABC):
+### Write bytes by octal and hexadecimal code (prints ABC)
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox -e '\x41\0102C'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 echox -e '\x41\0102C'
 ```
 
-Print text that looks like an option; anything other than option letters is literal:
+### Print text that looks like an option; anything other than option letters is literal
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox -- -n
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 echox -- -n
 ```
 
-Create a file, then append a line to it:
+### Create a file, then append a line to it
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox -e 'line one\nline two' > notes.txt && echox 'line three' >> notes.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 echox -e 'line one\nline two' | Out-File notes.txt; echox 'line three' | Add-Content notes.txt
 ```
 
-Count the characters in a string, newline included:
+### Count the characters in a string, newline included
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox "home is $HOME" | wcx -c
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 echox "home is $HOME" | wcx -c
 ```
 
-Feed several lines to another tool:
+### Feed several lines to another tool
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox -e 'b\na\nc' | headx -n 2
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 echox -e 'b\na\nc' | headx -n 2
 ```
 
-Report the exit status of the previous command:
+### Report the exit status of the previous command
 
-```bash
+```bash tab="bash" tab-group="shell"
 falsex; echox "status: $?"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 falsex; echox "status: $LASTEXITCODE"
 ```
 
-Show an escape sequence's bytes made visible by `catx -v`:
+### Show an escape sequence's bytes made visible by catx -v
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox -e '\e[1mbold\e[0m' | catx -v
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 echox -e '\e[1mbold\e[0m' | catx -v
 ```
 
-Use a variable in the `gnux shell`, identically on every platform:
+### Use a variable in the gnux shell, identically on every platform
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'NAME=gnux; echox "hello from $NAME" > greet.txt; catx greet.txt'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'NAME=gnux; echox "hello from $NAME" > greet.txt; catx greet.txt'
 ```
 

@@ -1,0 +1,37 @@
+---
+title: "-v, --only-unpaired"
+description: "Like -a FILENUM, but suppress joined output lines."
+---
+
+An option of [joinx](/docs/tools/joinx).
+
+## Usage
+
+```bash
+joinx -v stringArray FILE1 FILE2
+joinx --only-unpaired=stringArray FILE1 FILE2
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-v` | `--only-unpaired` | `stringArray` |  | like `-a` FILENUM, but suppress joined output lines |
+
+## Examples
+
+### Print only the keys of the first file missing from the second
+
+```bash tab="bash" tab-group="shell"
+joinx -v 1 all.txt done.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+joinx -v 1 all.txt done.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help joinx --only-unpaired
+```

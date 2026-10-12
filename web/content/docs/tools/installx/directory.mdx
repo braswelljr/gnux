@@ -1,0 +1,37 @@
+---
+title: "-d, --directory"
+description: "Treat all arguments as directory names; create all components of the specified directories."
+---
+
+An option of [installx](/docs/tools/installx).
+
+## Usage
+
+```bash
+installx -d SOURCE... DEST
+installx --directory SOURCE... DEST
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-d` | `--directory` | none |  | treat all arguments as directory names; create all components of the specified directories |
+
+## Examples
+
+### Create directories with a given mode
+
+```bash tab="bash" tab-group="shell"
+installx -d -m 750 /srv/app/logs /srv/app/data
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+installx -d -m 750 C:\srv\logs C:\srv\data
+```
+
+## Help in the terminal
+
+```bash
+gnux help installx --directory
+```

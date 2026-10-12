@@ -19,23 +19,23 @@ cutx --output-delimiter=STRING OPTION... [FILE]...
 
 ## Examples
 
-Convert a CSV file to TAB-separated output:
+### Convert a CSV file to TAB-separated output
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -d , -f 1- --output-delimiter=$'\t' people.csv
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -d , -f 1- --output-delimiter="`t" people.csv
 ```
 
-Join the selected columns with a custom separator:
+### Join the selected columns with a custom separator
 
-```bash
+```bash tab="bash" tab-group="shell"
 cutx -d : -f 1,3 --output-delimiter=' -> ' passwd.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cutx -d : -f 1,3 --output-delimiter=' -> ' passwd.txt
 ```
 

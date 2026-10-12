@@ -1,0 +1,36 @@
+---
+title: "--tmpdir"
+description: "Interpret TEMPLATE relative to DIR; if DIR is not given, use $TMPDIR if set, else the temporary directory."
+---
+
+An option of [mktempx](/docs/tools/mktempx).
+
+## Usage
+
+```bash
+mktempx --tmpdir[=DIR] [TEMPLATE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--tmpdir` | `DIR` (optional) |  | interpret TEMPLATE relative to DIR; if DIR is not given, use $TMPDIR if set, else the temporary directory |
+
+## Examples
+
+### Create it under the temporary directory instead
+
+```bash tab="bash" tab-group="shell"
+mktempx --tmpdir build.XXXXXX
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+mktempx --tmpdir build.XXXXXX
+```
+
+## Help in the terminal
+
+```bash
+gnux help mktempx --tmpdir
+```

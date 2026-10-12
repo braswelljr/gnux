@@ -11,6 +11,11 @@ Mirrors GNU `uniq`. Run it as `uniqx`, or as `gnux uniqx`.
 uniqx [OPTION]... [INPUT [OUTPUT]]
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: uniq invocation](https://www.gnu.org/software/coreutils/manual/html_node/uniq-invocation.html)
+- [Source: src/uniq.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/uniq.c)
+
 ## Description
 
 `uniqx` filters adjacent matching lines from INPUT (or standard input), writing to OUTPUT (or standard output). With no options, matching lines are merged to the first occurrence. Only adjacent lines are compared, so a file is usually sorted first. `-c` prefixes each line with its number of occurrences, `-d` prints one copy of each repeated line, `-u` only the lines that are not repeated, and `-D` every line of each repeated group, with `--all-repeated`=METHOD (none, prepend, separate) putting an empty line before or between the groups. `--group`[=METHOD] (separate, prepend, append, both) prints every line with the groups delimited by an empty line, and cannot be combined with `-c`, `-d`, `-D` or `-u`; `-D` cannot be combined with `-c` either. The comparison skips the first N fields with `-f` (a field is a run of blanks then non-blanks), then N characters with `-s`, and compares at most N characters with `-w`. `-z` makes NUL the line delimiter, and the output always ends each line with it. Deviations from GNU: characters for `-s` and `-w` are bytes, as in GNU's C locale, and `-i` folds ASCII letters only. The obsolete `-N` and +N forms of `-f` and `-s` are not accepted. METHOD arguments may be abbreviated, as in GNU.
@@ -49,153 +54,153 @@ Needs read permission on INPUT and search permission on the directories leading 
 
 ## Examples
 
-Remove adjacent duplicate lines:
+### Remove adjacent duplicate lines
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx names.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx names.txt
 ```
 
-Write the result to another file:
+### Write the result to another file
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx names.txt unique-names.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx names.txt unique-names.txt
 ```
 
-Count the occurrences of each line:
+### Count the occurrences of each line
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx -c sorted.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx -c sorted.txt
 ```
 
-Print only the lines that are repeated:
+### Print only the lines that are repeated
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx -d sorted.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx -d sorted.txt
 ```
 
-Print only the lines that are not repeated:
+### Print only the lines that are not repeated
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx -u sorted.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx -u sorted.txt
 ```
 
-Print every repeated line, the groups separated by an empty line:
+### Print every repeated line, the groups separated by an empty line
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx --all-repeated=separate sorted.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx --all-repeated=separate sorted.txt
 ```
 
-Print all lines with each group of equal lines set apart:
+### Print all lines with each group of equal lines set apart
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx --group sorted.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx --group sorted.txt
 ```
 
-Compare without regard to case:
+### Compare without regard to case
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx -i words.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx -i words.txt
 ```
 
-Ignore the first field (a timestamp, say) when comparing:
+### Ignore the first field (a timestamp, say) when comparing
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx -f 1 events.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx -f 1 events.log
 ```
 
-Ignore the first 4 characters when comparing:
+### Ignore the first 4 characters when comparing
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx -s 4 ids.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx -s 4 ids.txt
 ```
 
-Treat lines that share their first 8 characters as equal:
+### Treat lines that share their first 8 characters as equal
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx -w 8 commits.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx -w 8 commits.txt
 ```
 
-Deduplicate a NUL-separated list:
+### Deduplicate a NUL-separated list
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx -z files.lst
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx -z files.lst
 ```
 
-Remove duplicates from a pipeline's output:
+### Remove duplicates from a pipeline's output
 
-```bash
+```bash tab="bash" tab-group="shell"
 catx a.txt b.txt | uniqx
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 catx a.txt b.txt | uniqx
 ```
 
-Count the distinct lines of a file:
+### Count the distinct lines of a file
 
-```bash
+```bash tab="bash" tab-group="shell"
 uniqx sorted.txt | wcx -l
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 uniqx sorted.txt | wcx -l
 ```
 
-Deduplicate in the portable `gnux shell`:
+### Deduplicate in the portable gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'catx sorted.txt | uniqx -c'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'catx sorted.txt | uniqx -c'
 ```
 

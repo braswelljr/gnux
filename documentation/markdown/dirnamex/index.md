@@ -10,6 +10,11 @@ Mirrors GNU `dirname`. Run it as `dirnamex`, or as `gnux dirnamex`.
 dirnamex [OPTION] NAME...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: dirname invocation](https://www.gnu.org/software/coreutils/manual/html_node/dirname-invocation.html)
+- [Source: src/dirname.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/dirname.c)
+
 ### Description
 
 `dirnamex` prints each NAME with its last non-slash component and trailing slashes removed. If NAME contains no slash the result is '.', the current directory, and anything directly under the root yields the root itself. The rest of the path is left exactly as written: no symbolic links are resolved and no '.' or '..' components are collapsed. `-z` separates the output with NUL instead of newlines, for names that may contain newlines.

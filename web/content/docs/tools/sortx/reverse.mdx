@@ -20,33 +20,33 @@ sortx --reverse [FILE]...
 
 ## Examples
 
-Sort in reverse order:
+### Sort in reverse order
 
-```bash
+```bash tab="bash" tab-group="shell"
 sortx -r names.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 sortx -r names.txt
 ```
 
-Print the three largest numbers of a file:
+### Print the three largest numbers of a file
 
-```bash
+```bash tab="bash" tab-group="shell"
 sortx -rn numbers.txt | headx -n 3
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 sortx -rn numbers.txt | headx -n 3
 ```
 
-Sort a directory listing in the portable `gnux shell`:
+### Sort a directory listing in the portable gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'lsx -1 | sortx -r'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'lsx -1 | sortx -r'
 ```
 

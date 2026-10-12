@@ -11,6 +11,11 @@ Mirrors GNU `rm`. Run it as `rmx`, or as `gnux rmx`.
 rmx [OPTION]... [FILE]...
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: rm invocation](https://www.gnu.org/software/coreutils/manual/html_node/rm-invocation.html)
+- [Source: src/rm.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/rm.c)
+
 ## Description
 
 `rmx` removes each FILE. By default it does not remove directories; use `-r` to remove a directory and everything under it, or `-d` to remove an empty directory. Prompting is controlled by `-i` (before every removal), `-I` (once before a bulk or recursive removal) and `--interactive`; `-f` disables all prompts and ignores missing files. `rmx` refuses to remove '.' and '..' and, by default, refuses to recurse on the filesystem root. Independent arguments are removed concurrently whenever no prompt or ordered output is involved.
@@ -50,153 +55,153 @@ Removing an entry needs write and search permission on the directory that contai
 
 ## Examples
 
-Remove a few files:
+### Remove a few files
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx notes.txt draft.md
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx notes.txt draft.md
 ```
 
-Recursively remove a directory, reporting each deletion:
+### Recursively remove a directory, reporting each deletion
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rv build/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -rv build
 ```
 
-Unattended cleanup: no prompts, ignore missing paths:
+### Unattended cleanup: no prompts, ignore missing paths
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rf /tmp/cache
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -rf $env:TEMP\cache
 ```
 
-Remove an empty directory only:
+### Remove an empty directory only
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -d generated/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -d generated
 ```
 
-Ask before each removal:
+### Ask before each removal
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -i *.bak
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -i (Get-ChildItem -Filter *.bak -Name)
 ```
 
-Ask once before a recursive delete:
+### Ask once before a recursive delete
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -I -r old-project/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -I -r old-project
 ```
 
-Choose the prompt policy explicitly:
+### Choose the prompt policy explicitly
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx --interactive=once *.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx --interactive=once (Get-ChildItem -Filter *.log -Name)
 ```
 
-Answer every prompt with yes from a pipeline:
+### Answer every prompt with yes from a pipeline
 
-```bash
+```bash tab="bash" tab-group="shell"
 yesx | rmx -i a.tmp b.tmp
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 yesx | rmx -i a.tmp b.tmp
 ```
 
-Remove a file whose name starts with a dash:
+### Remove a file whose name starts with a dash
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -- -draft.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -- -draft.txt
 ```
 
-Remove a tree but skip file systems mounted beneath it:
+### Remove a tree but skip file systems mounted beneath it
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -r --one-file-system scratch/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -r --one-file-system scratch
 ```
 
-Disable the root failsafe for a deliberate recursive delete:
+### Disable the root failsafe for a deliberate recursive delete
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rf --no-preserve-root /mnt/scratch
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -rf --no-preserve-root D:\scratch
 ```
 
-Clean up and rebuild only if the removal succeeded:
+### Clean up and rebuild only if the removal succeeded
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rf dist/ && mkdirx dist
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -rf dist; if ($LASTEXITCODE -eq 0) { mkdirx dist }
 ```
 
-Detect a failed removal in a script:
+### Detect a failed removal in a script
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx missing.txt || echox "rmx exited with $?"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx missing.txt; if ($LASTEXITCODE -ne 0) { echox "rmx exited with $LASTEXITCODE" }
 ```
 
-Count how many entries a recursive delete removed:
+### Count how many entries a recursive delete removed
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rv cache/ | wcx -l
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -rv cache | wcx -l
 ```
 
-Remove temporary files with the `gnux shell`:
+### Remove temporary files with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'rmx -fv *.tmp && echox done'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'rmx -fv *.tmp && echox done'
 ```
 
