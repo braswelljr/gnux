@@ -33,7 +33,7 @@ func send(pid, sig int) error {
 	if err != nil {
 		return syscall.ESRCH
 	}
-	defer p.Release()
+	defer func() { _ = p.Release() }()
 	return signalProcess(p, sig, false)
 }
 

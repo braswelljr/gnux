@@ -133,6 +133,8 @@ func (t Tool) Meta() docmeta.Meta {
 		long += " -l BITS shortens the digest to BITS bits, a multiple of 8 up to 512; " +
 			"tagged lines then name the length ('BLAKE2b-256')."
 	}
+	long += " On Windows a backslash in a file name is the path separator, so it is " +
+		"not escaped as GNU escapes it on Unix; a name with a newline is still escaped."
 	if t.Weak {
 		long += " " + t.Algorithm + " is broken for security purposes: use it to detect " +
 			"accidental corruption, not tampering, and prefer sha256sumx or b2sumx otherwise."

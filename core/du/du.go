@@ -423,8 +423,10 @@ func (d *Du) scanDir(e *entry, rootDev uint64, ancestors []devIno) {
 		if !c.dir || c.excluded || c.accessErr != nil {
 			continue
 		}
-		if slices.Contains(ancestors, c.id) {
-			c.excluded = true // a cycle through symbolic links: skip it
+		// A cycle through symbolic links: skip it. Where file IDs are unknown
+		// (Windows reports none) every directory would match, so none is a cycle.
+		if c.id != (devIno{}) && slices.Contains(ancestors, c.id) {
+			c.excluded = true
 			continue
 		}
 		wg.Add(1)

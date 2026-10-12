@@ -77,6 +77,10 @@ func (c *Chgrp) Run(args []string) error {
 
 	req := ownership.Request{UID: ownership.Unset, FromUID: ownership.Unset, FromGID: ownership.Unset}
 	if c.Reference != "" {
+		// As GNU does, a missing FILE is reported before the reference is read.
+		if len(args) == 0 {
+			return core.Usagef("missing operand")
+		}
 		_, gid, err := ownership.Owner(c.Reference)
 		if err != nil {
 			diag.Errorf("failed to get attributes of '%s': %s", c.Reference, core.ErrText(err))

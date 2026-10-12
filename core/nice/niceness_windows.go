@@ -20,6 +20,6 @@ func setNiceness(pid, niceness int) error {
 	if err != nil {
 		return err
 	}
-	defer windows.CloseHandle(h)
+	defer func() { _ = windows.CloseHandle(h) }()
 	return windows.SetPriorityClass(h, priorityClass(niceness))
 }

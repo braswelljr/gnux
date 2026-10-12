@@ -30,7 +30,7 @@ func Lookup(stream any) (string, bool) {
 	if !ok {
 		return "", true
 	}
-	rdev := uint64(st.Rdev)
+	rdev := uint64(st.Rdev) //nolint:unconvert // int32 on darwin
 	for _, dir := range []string{"/dev/pts", "/dev"} {
 		entries, err := os.ReadDir(dir)
 		if err != nil {
@@ -42,7 +42,7 @@ func Lookup(stream any) (string, bool) {
 			}
 			p := filepath.Join(dir, e.Name())
 			var cand syscall.Stat_t
-			if syscall.Stat(p, &cand) == nil && uint64(cand.Rdev) == rdev && p != "/dev/tty" {
+			if syscall.Stat(p, &cand) == nil && uint64(cand.Rdev) == rdev && p != "/dev/tty" { //nolint:unconvert // int32 on darwin
 				return p, true
 			}
 		}

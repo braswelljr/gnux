@@ -113,10 +113,11 @@ func (sh *Shuf) Run(args []string) error {
 		lines = split(data, sh.delim())
 	}
 
-	random, err := sh.random()
+	random, closeRandom, err := sh.random()
 	if err != nil {
 		return err
 	}
+	defer closeRandom()
 
 	limit := uint64(math.MaxUint64)
 	if sh.HeadCountSet && sh.HeadCount >= 0 {
@@ -280,15 +281,18 @@ func parseRange(s string) (lo, hi uint64, ok bool) {
 
 // random returns the generator to draw from: the injected one, the bytes of
 // --random-source, or a cryptographically seeded PCG.
-func (sh *Shuf) random() (func(uint64) (uint64, error), error) {
+func (sh *Shuf) random() (draw func(uint64) (uint64, error), closeFn func(), err error) {
+	noClose := func() {}
 	if sh.Rand != nil {
-		return sh.Rand, nil
+		return sh.Rand, noClose, nil
 	}
 	if sh.RandomSource != "" {
+		// Read lazily, since the source may be endless (/dev/urandom), and
+		// closed by Run: an open file cannot be removed on Windows.
 		f, err := os.Open(sh.RandomSource)
 		if err != nil {
 			sh.diag.Errorf("%s: %s", sh.RandomSource, core.ErrText(err))
-			return nil, core.ErrFailed
+			return nil, noClose, core.ErrFailed
 		}
 		br := bufio.NewReader(f)
 		name := sh.RandomSource
@@ -303,12 +307,12 @@ func (sh *Shuf) random() (func(uint64) (uint64, error), error) {
 				return 0, errRandom
 			}
 			return v, nil
-		}, nil
+		}, func() { _ = f.Close() }, nil
 	}
 	var seed [16]byte
 	_, _ = crand.Read(seed[:])
 	r := rand.New(rand.NewPCG(binary.LittleEndian.Uint64(seed[:8]), binary.LittleEndian.Uint64(seed[8:])))
-	return func(n uint64) (uint64, error) { return r.Uint64N(n), nil }, nil
+	return func(n uint64) (uint64, error) { return r.Uint64N(n), nil }, noClose, nil
 }
 
 // uniform draws a number in [0, n) from the bytes of r by rejection sampling,
