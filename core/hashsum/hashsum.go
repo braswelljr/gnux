@@ -290,9 +290,10 @@ func (h *Sum) line(alg Algorithm, bits int, sum []byte, name string) string {
 }
 
 // needsEscape reports whether a file name must be escaped on its line: a
-// backslash, newline or carriage return would make the line ambiguous.
+// newline or carriage return would make the line ambiguous, and on Unix a
+// backslash too (escapeTriggers, per platform).
 func needsEscape(name string) bool {
-	return strings.ContainsAny(name, "\\\n\r")
+	return strings.ContainsAny(name, escapeTriggers)
 }
 
 var escaper = strings.NewReplacer(`\`, `\\`, "\n", `\n`, "\r", `\r`)

@@ -19,7 +19,7 @@ unexpandx --first-only [FILE]...
 
 ## Examples
 
-### Use 4-column stops but only for indentation
+### Retab a Go file for gofmt, leaving alignment inside lines alone
 
 ```bash tab="bash" tab-group="shell"
 unexpandx -t 4 --first-only main.go
@@ -29,7 +29,7 @@ unexpandx -t 4 --first-only main.go
 unexpandx -t 4 --first-only main.go
 ```
 
-### Round-trip a file through expandx
+### Edit with spaces, then hand the file back with tabs
 
 ```bash tab="bash" tab-group="shell"
 expandx -t 4 a.go | unexpandx -t 4 --first-only > b.go

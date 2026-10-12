@@ -17,7 +17,7 @@ md5sumx [OPTION]... [FILE]...
 
 ### Description
 
-`md5sumx` prints or checks MD5 message digests (RFC 1321, 128 bits). For each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode, '*' with `-b`), and the file name. With no FILE, or when FILE is -, it reads standard input. Files are always read as bytes, so `-b` and `-t` change only the mark; when both are given, `-t` wins. `--tag` prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a backslash, newline or carriage return is escaped and its line starts with a backslash, unless `-z` ends lines with NUL instead. `-c` reads such lines (in either style) from the FILEs and checks each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches, unreadable files and improperly formatted lines; `--quiet` drops the OK lines, `--status` prints nothing, `--ignore-missing` skips listed files that do not exist, `-w` warns about each improperly formatted line and `--strict` fails because of them. The exit status is 0 when everything was read (and, with `-c`, matched), 1 otherwise. MD5 is broken for security purposes: use it to detect accidental corruption, not tampering, and prefer `sha256sumx` or `b2sumx` otherwise.
+`md5sumx` prints or checks MD5 message digests (RFC 1321, 128 bits). For each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode, '*' with `-b`), and the file name. With no FILE, or when FILE is -, it reads standard input. Files are always read as bytes, so `-b` and `-t` change only the mark; when both are given, `-t` wins. `--tag` prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a backslash, newline or carriage return is escaped and its line starts with a backslash, unless `-z` ends lines with NUL instead. `-c` reads such lines (in either style) from the FILEs and checks each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches, unreadable files and improperly formatted lines; `--quiet` drops the OK lines, `--status` prints nothing, `--ignore-missing` skips listed files that do not exist, `-w` warns about each improperly formatted line and `--strict` fails because of them. The exit status is 0 when everything was read (and, with `-c`, matched), 1 otherwise. On Windows a backslash in a file name is the path separator, so it is not escaped as GNU escapes it on Unix; a name with a newline is still escaped. MD5 is broken for security purposes: use it to detect accidental corruption, not tampering, and prefer `sha256sumx` or `b2sumx` otherwise.
 
 ### Permissions
 
@@ -50,77 +50,17 @@ Needs read permission on each FILE (and, with `-c`, on the checksum lists and ev
 
 ### Examples
 
-Print the digest of a file:
+You downloaded an installer: print its digest to compare with the one on the website:
 
 ```bash
-md5sumx file.iso
+md5sumx ubuntu-24.04-desktop-amd64.iso
 ```
 
 ```powershell
-md5sumx file.iso
+md5sumx ubuntu-24.04-desktop-amd64.iso
 ```
 
-Digest several files:
-
-```bash
-md5sumx *.tar.gz
-```
-
-```powershell
-md5sumx (Get-ChildItem *.tar.gz -Name)
-```
-
-Digest standard input:
-
-```bash
-echox -n hello | md5sumx
-```
-
-```powershell
-echox -n hello | md5sumx
-```
-
-Save digests to a file:
-
-```bash
-md5sumx *.iso > md5.sums
-```
-
-```powershell
-md5sumx (Get-ChildItem *.iso -Name) > md5.sums
-```
-
-Verify files against saved digests:
-
-```bash
-md5sumx -c md5.sums
-```
-
-```powershell
-md5sumx -c md5.sums
-```
-
-Verify quietly, showing only failures:
-
-```bash
-md5sumx -c --quiet md5.sums
-```
-
-```powershell
-md5sumx -c --quiet md5.sums
-```
-
-Verify silently and branch on the result:
-
-```bash
-md5sumx -c --status md5.sums && echox verified
-```
-
-```powershell
-md5sumx -c --status md5.sums; if ($LASTEXITCODE -eq 0) { 'verified' }
-```
-
-Verify only the listed files that exist:
+Verify the download against the publisher's checksum file, which lists other files too:
 
 ```bash
 md5sumx -c --ignore-missing md5.sums
@@ -130,7 +70,90 @@ md5sumx -c --ignore-missing md5.sums
 md5sumx -c --ignore-missing md5.sums
 ```
 
-Fail on malformed lines in the list:
+Output:
+
+```text
+ubuntu-24.04-desktop-amd64.iso: OK
+```
+
+Publish checksums next to your release archives:
+
+```bash
+md5sumx dist/*.tar.gz > dist/md5.sums
+```
+
+```powershell
+md5sumx (Get-ChildItem dist\*.zip -Name) > dist\md5.sums
+```
+
+Check that a backup copied to a USB drive still matches the original:
+
+```bash
+md5sumx photos.tar /media/usb/photos.tar
+```
+
+```powershell
+md5sumx photos.tar E:\photos.tar
+```
+
+Find duplicate photos in a folder: files with the same digest have the same content:
+
+```bash
+md5sumx *.jpg | sortx | uniqx -w 32 -D
+```
+
+```powershell
+md5sumx (Get-ChildItem *.jpg -Name) | sortx | uniqx -w 32 -D
+```
+
+In CI, fail the build when a vendored file was changed by hand:
+
+```bash
+md5sumx -c --status vendor.md5sums || { echox 'vendored files changed' >&2; exit 1; }
+```
+
+```powershell
+md5sumx -c --status vendor.md5sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
+```
+
+Re-check a large archive set and show only what no longer matches:
+
+```bash
+md5sumx -c --quiet md5.sums
+```
+
+```powershell
+md5sumx -c --quiet md5.sums
+```
+
+Output:
+
+```text
+notes.txt: FAILED
+md5sumx: WARNING: 1 computed checksum did NOT match
+```
+
+Hash a token from a variable, without the newline echo would add:
+
+```bash
+printfx '%s' "$TOKEN" | md5sumx
+```
+
+```powershell
+printfx '%s' $env:TOKEN | md5sumx
+```
+
+Write lines that name the algorithm, so a mixed list can be checked with `cksumx -c`:
+
+```bash
+md5sumx --tag release.tar.gz >> CHECKSUMS
+```
+
+```powershell
+md5sumx --tag release.zip >> CHECKSUMS
+```
+
+Refuse a checksum list with malformed lines instead of skipping them:
 
 ```bash
 md5sumx -c --strict -w md5.sums
@@ -140,27 +163,17 @@ md5sumx -c --strict -w md5.sums
 md5sumx -c --strict -w md5.sums
 ```
 
-Print BSD-style tagged lines:
+Match the '*' binary-mode lines produced by tools on Windows:
 
 ```bash
-md5sumx --tag file.iso
+md5sumx -b setup.exe
 ```
 
 ```powershell
-md5sumx --tag file.iso
+md5sumx -b setup.exe
 ```
 
-Mark the files as read in binary mode:
-
-```bash
-md5sumx -b file.iso
-```
-
-```powershell
-md5sumx -b file.iso
-```
-
-Digest in the portable `gnux shell`:
+Record a digest next to the file in the portable `gnux shell`, the same on every OS:
 
 ```bash
 gnux shell -c 'md5sumx file.iso > file.iso.md5sum'

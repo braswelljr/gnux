@@ -43,7 +43,7 @@ Needs read permission on each FILE and search permission on the directories lead
 
 ### Examples
 
-Convert leading spaces to tabs every 8 columns:
+Turn space indentation back into tabs:
 
 ```bash
 unexpandx notes.txt
@@ -53,7 +53,7 @@ unexpandx notes.txt
 unexpandx notes.txt
 ```
 
-Convert all runs of blanks, not just leading ones:
+Shrink a space-padded table by using tabs throughout:
 
 ```bash
 unexpandx -a table.txt
@@ -63,7 +63,7 @@ unexpandx -a table.txt
 unexpandx -a table.txt
 ```
 
-Use 4-column tab stops (implies `-a`):
+Convert 4-space indentation and alignment to tabs:
 
 ```bash
 unexpandx -t 4 main.go
@@ -73,7 +73,7 @@ unexpandx -t 4 main.go
 unexpandx -t 4 main.go
 ```
 
-Use 4-column stops but only for indentation:
+Retab a Go file for gofmt, leaving alignment inside lines alone:
 
 ```bash
 unexpandx -t 4 --first-only main.go
@@ -83,7 +83,7 @@ unexpandx -t 4 --first-only main.go
 unexpandx -t 4 --first-only main.go
 ```
 
-Use the obsolete form, which converts only leading blanks:
+Run an old script that uses the obsolete form:
 
 ```bash
 unexpandx -4 main.go
@@ -93,7 +93,7 @@ unexpandx -4 main.go
 unexpandx -4 main.go
 ```
 
-Put tab stops at specific columns:
+Retab a report laid out in fixed columns:
 
 ```bash
 unexpandx -t 10,20,40 report.txt
@@ -103,7 +103,7 @@ unexpandx -t 10,20,40 report.txt
 unexpandx -t 10,20,40 report.txt
 ```
 
-Round-trip a file through `expandx`:
+Edit with spaces, then hand the file back with tabs:
 
 ```bash
 expandx -t 4 a.go | unexpandx -t 4 --first-only > b.go
@@ -113,7 +113,7 @@ expandx -t 4 a.go | unexpandx -t 4 --first-only > b.go
 expandx -t 4 a.go | unexpandx -t 4 --first-only > b.go
 ```
 
-Convert standard input:
+See the tab that replaces 8 leading spaces:
 
 ```bash
 printfx '        x\n' | unexpandx
@@ -123,7 +123,7 @@ printfx '        x\n' | unexpandx
 printfx '        x\n' | unexpandx
 ```
 
-Save a converted copy:
+Restore the tabs a Makefile needs after an editor turned them into spaces:
 
 ```bash
 unexpandx -t 8 spaces.mk > Makefile
@@ -133,7 +133,7 @@ unexpandx -t 8 spaces.mk > Makefile
 unexpandx -t 8 spaces.mk > Makefile
 ```
 
-See how many bytes the conversion saves:
+See how many bytes tabs would save in a large file:
 
 ```bash
 unexpandx -a big.txt | wcx -c
@@ -143,7 +143,7 @@ unexpandx -a big.txt | wcx -c
 unexpandx -a big.txt | wcx -c
 ```
 
-Convert in the portable `gnux shell`:
+Retab a file in the portable `gnux shell`, the same on every OS:
 
 ```bash
 gnux shell -c 'unexpandx -t 4 main.go > tabs.go'

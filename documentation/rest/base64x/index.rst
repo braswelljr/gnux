@@ -37,37 +37,37 @@ Examples
 
 ::
 
-    # Encode a file
-    base64x image.png
+    # Put a small logo straight into an HTML or CSS data: URL
+    echox "data:image/png;base64,$(base64x -w 0 logo.png)"
 
-    # Encode a string
+    # Encode a short string to see what it looks like
     printfx 'hello' | base64x
 
-    # Decode a string
+    # Decode a value you found in a config file or an API response
     echox aGVsbG8= | base64x -d
 
-    # Decode a file back to binary
-    base64x -d image.txt > image.png
+    # Store a binary key in a CI secret, which only takes one line of text
+    base64x -w 0 deploy-key.bin > deploy-key.txt
 
-    # Encode on a single line, without a newline
-    base64x -w 0 key.bin
+    # Turn that secret back into the key file in a CI job
+    printfx '%s' "$DEPLOY_KEY" | base64x -d > deploy-key.bin
 
-    # Wrap encoded lines at 64 characters
+    # Wrap at 64 characters, as PEM certificates are
     base64x -w 64 cert.der
 
-    # Decode, skipping characters outside the alphabet
-    base64x -d -i messy.txt
+    # Decode text pasted from an email, where line breaks and stray characters crept in
+    base64x -d -i pasted.txt > attachment.pdf
 
-    # Store an encoded file in a variable
-    data=$(base64x -w 0 key.bin)
+    # Send a binary file through a chat or a terminal that only carries text
+    base64x report.pdf > report.txt
 
-    # Round-trip a file and compare the checksums
+    # Make sure a round trip gives back the same bytes
     base64x file.bin | base64x -d > copy.bin && cksumx file.bin copy.bin
 
-    # Check that input decodes cleanly
+    # Reject a payload that is not valid base64 before using it
     base64x -d payload.txt > /dev/null && echox valid
 
-    # Encode in the portable gnux shell
+    # Encode in the portable gnux shell, the same on every OS
     gnux shell -c 'base64x -w 0 key.bin > key.txt'
 
 Options

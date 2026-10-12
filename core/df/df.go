@@ -391,6 +391,13 @@ func (d *Df) entry(name string, mounts []fsstat.Mount) {
 	d.row(m, name, abs, false)
 }
 
+// rooted reports whether a mount point is a path from a root, so that pseudo
+// targets such as "none" are skipped. A path from a root without a volume
+// ("/proc") counts too, which filepath.IsAbs denies on Windows.
+func rooted(target string) bool {
+	return filepath.IsAbs(target) || strings.HasPrefix(target, "/") || strings.HasPrefix(target, `\`)
+}
+
 // within reports whether path is target or below it.
 func within(path, target string) bool {
 	if strings.EqualFold(filepath.VolumeName(path), filepath.VolumeName(target)) && filepath.VolumeName(path) != "" {
@@ -421,7 +428,7 @@ func (d *Df) row(m fsstat.Mount, file, stat string, all bool) {
 	if !d.selected(m.Type) {
 		return
 	}
-	if all && !filepath.IsAbs(m.Target) {
+	if all && !rooted(m.Target) {
 		return
 	}
 	if stat == "" {

@@ -20,7 +20,7 @@ base32x --decode [FILE]
 
 ## Examples
 
-### Decode a string
+### Decode a value you found in a config file or an API response
 
 ```bash tab="bash" tab-group="shell"
 echox NBSWY3DP | base32x -d
@@ -30,27 +30,31 @@ echox NBSWY3DP | base32x -d
 echox NBSWY3DP | base32x -d
 ```
 
-### Decode a file back to binary
+```text title="Output"
+hello
+```
+
+### Turn that secret back into the key file in a CI job
 
 ```bash tab="bash" tab-group="shell"
-base32x -d image.txt > image.png
+printfx '%s' "$DEPLOY_KEY" | base32x -d > deploy-key.bin
 ```
 
 ```powershell tab="PowerShell" tab-group="shell"
-base32x -d image.txt > image.png
+printfx '%s' $env:DEPLOY_KEY | base32x -d > deploy-key.bin
 ```
 
-### Decode, skipping characters outside the alphabet
+### Decode text pasted from an email, where line breaks and stray characters crept in
 
 ```bash tab="bash" tab-group="shell"
-base32x -d -i messy.txt
+base32x -d -i pasted.txt > attachment.pdf
 ```
 
 ```powershell tab="PowerShell" tab-group="shell"
-base32x -d -i messy.txt
+base32x -d -i pasted.txt > attachment.pdf
 ```
 
-### Round-trip a file and compare the checksums
+### Make sure a round trip gives back the same bytes
 
 ```bash tab="bash" tab-group="shell"
 base32x file.bin | base32x -d > copy.bin && cksumx file.bin copy.bin
@@ -60,7 +64,7 @@ base32x file.bin | base32x -d > copy.bin && cksumx file.bin copy.bin
 base32x file.bin | base32x -d > copy.bin; cksumx file.bin copy.bin
 ```
 
-### Check that input decodes cleanly
+### Reject a payload that is not valid base32 before using it
 
 ```bash tab="bash" tab-group="shell"
 base32x -d payload.txt > /dev/null && echox valid

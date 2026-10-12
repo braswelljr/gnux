@@ -3,13 +3,13 @@ import { cn } from 'lib/utils';
 
 const sizes = {
   /** The one hero headline on the landing page. Steps of the scale, never a pixel value. */
-  display: 'text-4xl font-semibold tracking-tighter sm:text-5xl lg:text-6xl',
-  '3xl': 'text-3xl font-semibold tracking-tight',
-  '2xl': 'text-2xl font-semibold tracking-tight',
-  xl: 'text-xl font-semibold tracking-tight',
-  lg: 'text-lg font-semibold',
-  base: 'text-base font-semibold',
-  sm: 'text-sm font-semibold'
+  display: 'text-4xl font-bold tracking-tighter sm:text-5xl lg:text-6xl',
+  '3xl': 'text-3xl font-bold tracking-tight',
+  '2xl': 'text-2xl font-bold tracking-tight',
+  xl: 'text-xl font-bold tracking-tight',
+  lg: 'text-lg font-bold',
+  base: 'text-base font-bold',
+  sm: 'text-sm font-bold'
 };
 
 type HeadingProps = ComponentProps<'h1'> & {

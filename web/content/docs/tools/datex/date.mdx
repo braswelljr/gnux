@@ -20,7 +20,7 @@ datex --date=STRING [+FORMAT]
 
 ## Examples
 
-### Print an ISO 8601 timestamp to the second
+### Stamp a log line with a precise, sortable time
 
 ```bash tab="bash" tab-group="shell"
 datex -Iseconds
@@ -30,7 +30,7 @@ datex -Iseconds
 datex -Iseconds
 ```
 
-### Convert epoch seconds to a date
+### Read a Unix timestamp you found in a log or a database
 
 ```bash tab="bash" tab-group="shell"
 datex -u -d @1700000000
@@ -40,7 +40,7 @@ datex -u -d @1700000000
 datex -u -d '@1700000000'
 ```
 
-### Compute a relative date
+### Find the date three days ago, to clean up older files
 
 ```bash tab="bash" tab-group="shell"
 datex -d '3 days ago' +%F
@@ -50,7 +50,7 @@ datex -d '3 days ago' +%F
 datex -d '3 days ago' +%F
 ```
 
-### Find next Friday's date
+### Find the date of next Friday for a deadline
 
 ```bash tab="bash" tab-group="shell"
 datex -d 'next friday' +%A,%F

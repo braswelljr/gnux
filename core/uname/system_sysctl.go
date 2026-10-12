@@ -3,6 +3,7 @@
 package uname
 
 import (
+	"strings"
 	"syscall"
 )
 
@@ -30,4 +31,10 @@ func system() (Info, error) {
 		HardwarePlatform: unknown,
 		OperatingSystem:  sysname,
 	}, nil
+}
+
+// singleLine turns a multi-line kernel version into one line, as BSD uname
+// does with kern.version.
+func singleLine(s string) string {
+	return strings.TrimSpace(strings.NewReplacer("\n", " ", "\t", " ").Replace(s))
 }

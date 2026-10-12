@@ -20,17 +20,17 @@ base64x --wrap=COLS [FILE]
 
 ## Examples
 
-### Encode on a single line, without a newline
+### Store a binary key in a CI secret, which only takes one line of text
 
 ```bash tab="bash" tab-group="shell"
-base64x -w 0 key.bin
+base64x -w 0 deploy-key.bin > deploy-key.txt
 ```
 
 ```powershell tab="PowerShell" tab-group="shell"
-base64x -w 0 key.bin
+base64x -w 0 deploy-key.bin > deploy-key.txt
 ```
 
-### Wrap encoded lines at 64 characters
+### Wrap at 64 characters, as PEM certificates are
 
 ```bash tab="bash" tab-group="shell"
 base64x -w 64 cert.der

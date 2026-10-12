@@ -20,7 +20,7 @@ joinx --separator=CHAR FILE1 FILE2
 
 ## Examples
 
-### Join comma-separated files
+### Attach each order to its customer from two CSV exports
 
 ```bash tab="bash" tab-group="shell"
 joinx -t, users.csv orders.csv
@@ -30,7 +30,7 @@ joinx -t, users.csv orders.csv
 joinx -t, users.csv orders.csv
 ```
 
-### Keep the header line of each file
+### Join two CSV exports that each start with a header row
 
 ```bash tab="bash" tab-group="shell"
 joinx --header -t, users.csv orders.csv

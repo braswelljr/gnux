@@ -20,7 +20,7 @@ tacx --separator=STRING [FILE]...
 
 ## Examples
 
-### Reverse comma-separated records
+### Reverse items in a comma-separated list
 
 ```bash tab="bash" tab-group="shell"
 printfx 'a,b,c,' | tacx -s ,
@@ -30,7 +30,7 @@ printfx 'a,b,c,' | tacx -s ,
 printfx 'a,b,c,' | tacx -s ,
 ```
 
-### Attach each separator to the following record
+### Reverse sections of a file that each start with a '---' line
 
 ```bash tab="bash" tab-group="shell"
 tacx -b -s '---' notes.txt
@@ -40,7 +40,7 @@ tacx -b -s '---' notes.txt
 tacx -b -s '---' notes.txt
 ```
 
-### Split records on a regular expression
+### Reverse records separated by numbers of any length
 
 ```bash tab="bash" tab-group="shell"
 tacx -r -s '[0-9]+' data.txt

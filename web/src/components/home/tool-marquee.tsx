@@ -4,7 +4,7 @@ import { useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { Pause, Play } from 'lucide-react';
 import type { ToolSummary } from 'lib/source';
-import { Button, Container, Marquee } from '@/components/ui';
+import { Button, Frame, Marquee } from '@/components/ui';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 /** A tool as a marquee item: its name on a key, and what it does. */
@@ -29,7 +29,7 @@ function ToolRow({ tools, reverse }: { tools: ToolSummary[]; reverse?: boolean }
       pauseOnHover
       reverse={reverse}
       repeat={2}
-      style={{ '--duration': '120s', '--gap': '0.75rem' } as CSSProperties}
+      style={{ '--duration': '240s', '--gap': '0.75rem' } as CSSProperties}
       className="p-0 py-1"
     >
       <ul className="flex gap-(--gap)">
@@ -58,39 +58,38 @@ export function ToolMarquee({ tools }: { tools: ToolSummary[] }) {
   const half = Math.ceil(tools.length / 2);
 
   return (
-    <section
-      aria-labelledby="marquee-title"
-      className="py-6"
-    >
-      <Container className="mb-3 flex items-center justify-between gap-4">
-        <h2
-          id="marquee-title"
-          className="font-mono text-sm text-lit"
-        >
-          {tools.length} tools, one binary
-        </h2>
-        {!reduced && (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={paused ? 'Play the tool marquee' : 'Pause the tool marquee'}
-            aria-pressed={paused}
-            onClick={() => setPaused((p) => !p)}
+    <section aria-labelledby="marquee-title">
+      <Frame>
+        <div className="flex items-center justify-between gap-4 border-b border-line px-4 py-2 sm:px-6">
+          <h2
+            id="marquee-title"
+            className="hud-label text-fd-muted-foreground"
           >
-            {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
-          </Button>
-        )}
-      </Container>
-      <div
-        data-paused={paused}
-        className="flex flex-col gap-2 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]"
-      >
-        <ToolRow tools={tools.slice(0, half)} />
-        <ToolRow
-          tools={tools.slice(half)}
-          reverse
-        />
-      </div>
+            {tools.length} tools, one binary
+          </h2>
+          {!reduced && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={paused ? 'Play the tool marquee' : 'Pause the tool marquee'}
+              aria-pressed={paused}
+              onClick={() => setPaused((p) => !p)}
+            >
+              {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+            </Button>
+          )}
+        </div>
+        <div
+          data-paused={paused}
+          className="flex flex-col gap-2 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] py-4"
+        >
+          <ToolRow tools={tools.slice(0, half)} />
+          <ToolRow
+            tools={tools.slice(half)}
+            reverse
+          />
+        </div>
+      </Frame>
     </section>
   );
 }

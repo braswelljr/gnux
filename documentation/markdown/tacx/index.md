@@ -43,7 +43,7 @@ Needs read permission on each FILE and search permission on the directories lead
 
 ### Examples
 
-Print a file last line first:
+Read a log newest entry first:
 
 ```bash
 tacx app.log
@@ -53,7 +53,7 @@ tacx app.log
 tacx app.log
 ```
 
-Show the newest ten log lines, newest first:
+See the ten most recent log entries, newest at the top:
 
 ```bash
 tacx app.log | headx
@@ -63,7 +63,7 @@ tacx app.log | headx
 tacx app.log | headx
 ```
 
-Reverse standard input:
+Count down instead of up:
 
 ```bash
 seqx 5 | tacx
@@ -73,7 +73,7 @@ seqx 5 | tacx
 seqx 5 | tacx
 ```
 
-Reverse several files, each on its own:
+Reverse two logs, each kept separate:
 
 ```bash
 tacx a.txt b.txt
@@ -83,7 +83,7 @@ tacx a.txt b.txt
 tacx a.txt b.txt
 ```
 
-Reverse comma-separated records:
+Reverse items in a comma-separated list:
 
 ```bash
 printfx 'a,b,c,' | tacx -s ,
@@ -93,7 +93,7 @@ printfx 'a,b,c,' | tacx -s ,
 printfx 'a,b,c,' | tacx -s ,
 ```
 
-Attach each separator to the following record:
+Reverse sections of a file that each start with a '---' line:
 
 ```bash
 tacx -b -s '---' notes.txt
@@ -103,7 +103,7 @@ tacx -b -s '---' notes.txt
 tacx -b -s '---' notes.txt
 ```
 
-Split records on a regular expression:
+Reverse records separated by numbers of any length:
 
 ```bash
 tacx -r -s '[0-9]+' data.txt
@@ -113,7 +113,7 @@ tacx -r -s '[0-9]+' data.txt
 tacx -r -s '[0-9]+' data.txt
 ```
 
-Save a reversed copy:
+Keep a newest-first copy of a history file:
 
 ```bash
 tacx history.txt > reversed.txt
@@ -123,7 +123,7 @@ tacx history.txt > reversed.txt
 tacx history.txt > reversed.txt
 ```
 
-Undo a list of steps in reverse order:
+Get the order to undo a list of setup steps:
 
 ```bash
 tacx steps.txt | catx -n
@@ -133,7 +133,7 @@ tacx steps.txt | catx -n
 tacx steps.txt | catx -n
 ```
 
-Reverse a sorted list instead of sorting it again:
+Sort a list descending without a second sort:
 
 ```bash
 sortx names.txt | tacx
@@ -143,7 +143,7 @@ sortx names.txt | tacx
 sortx names.txt | tacx
 ```
 
-Reverse in the portable `gnux shell`:
+Show the five newest log lines in the portable `gnux shell`:
 
 ```bash
 gnux shell -c 'tacx app.log | headx -n 5'

@@ -1,4 +1,5 @@
 import { type BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+import { NavThemeToggle } from '@/components/shared/theme-toggle';
 import { Logo } from '@/components/ui/logo';
 import { project, siteConfig } from '@/config/site';
 
@@ -19,6 +20,7 @@ export function baseOptions(): BaseLayoutProps {
       { text: 'Install', url: '/install', active: 'url' },
       { text: 'Playground', url: '/playground', active: 'nested-url' }
     ],
-    githubUrl: project.github
+    githubUrl: project.github,
+    slots: { themeSwitch: NavThemeToggle }
   };
 }

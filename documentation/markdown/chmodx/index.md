@@ -51,7 +51,7 @@ Changing a file's mode requires owning it, or running as root (or with CAP_FOWNE
 
 ### Examples
 
-Make a script executable:
+You wrote deploy.sh and the shell says 'Permission denied': make it executable:
 
 ```bash
 chmodx +x deploy.sh
@@ -61,7 +61,7 @@ chmodx +x deploy.sh
 chmodx +x deploy.sh
 ```
 
-Set exact permissions with an octal mode:
+ssh refuses your key because it is readable by others: make it private:
 
 ```bash
 chmodx 600 ~/.ssh/id_ed25519
@@ -71,7 +71,7 @@ chmodx 600 ~/.ssh/id_ed25519
 chmodx 600 $HOME\.ssh\id_ed25519
 ```
 
-Remove write permission for group and others:
+Stop other users changing a shared file:
 
 ```bash
 chmodx go-w shared.txt
@@ -81,7 +81,7 @@ chmodx go-w shared.txt
 chmodx go-w shared.txt
 ```
 
-Combine several changes:
+Give an app full access for its owner, read for its group, none for others:
 
 ```bash
 chmodx u=rwx,g=rx,o= app
@@ -91,7 +91,7 @@ chmodx u=rwx,g=rx,o= app
 chmodx u=rwx,g=rx,o= app
 ```
 
-Give a group write access to a whole tree:
+Let your team edit everything in a project directory:
 
 ```bash
 chmodx -R g+w project/
@@ -101,7 +101,7 @@ chmodx -R g+w project/
 chmodx -R g+w project\
 ```
 
-Make directories searchable without making files executable:
+Make a website folder browsable without making every file executable:
 
 ```bash
 chmodx -R a+X public/
@@ -111,7 +111,7 @@ chmodx -R a+X public/
 chmodx -R a+X public\
 ```
 
-Report only the files that changed:
+Normalize text file permissions and see which ones were different:
 
 ```bash
 chmodx -c 644 *.txt
@@ -121,7 +121,7 @@ chmodx -c 644 *.txt
 chmodx -c 644 (Get-ChildItem *.txt -Name)
 ```
 
-Copy the mode of one file onto another:
+Give a new script the same permissions as an existing one:
 
 ```bash
 chmodx --reference=template.sh new.sh
@@ -131,7 +131,7 @@ chmodx --reference=template.sh new.sh
 chmodx --reference=template.sh new.sh
 ```
 
-Write the mode as an option, as old scripts do:
+Make a file read-only the way old scripts write it:
 
 ```bash
 chmodx -w notes.txt
@@ -141,7 +141,7 @@ chmodx -w notes.txt
 chmodx -w notes.txt
 ```
 
-Set the sticky bit on a shared directory:
+Make a shared drop folder where people cannot delete each other's files:
 
 ```bash
 chmodx 1777 /srv/drop
@@ -151,7 +151,7 @@ chmodx 1777 /srv/drop
 chmodx 1777 C:\srv\drop
 ```
 
-Show every file processed:
+Fix permissions on your docs and see every file processed:
 
 ```bash
 chmodx -v -R u+rw docs/
@@ -161,7 +161,7 @@ chmodx -v -R u+rw docs/
 chmodx -v -R u+rw docs\
 ```
 
-Change modes in the portable `gnux shell`:
+Make scripts executable in the portable `gnux shell`, the same on every OS:
 
 ```bash
 gnux shell -c 'chmodx +x bin/* && lsx -l bin'

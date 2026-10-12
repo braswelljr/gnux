@@ -17,7 +17,7 @@ sha512sumx [OPTION]... [FILE]...
 
 ### Description
 
-`sha512sumx` prints or checks SHA-512 message digests (FIPS 180-4, 512 bits). For each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode, '*' with `-b`), and the file name. With no FILE, or when FILE is -, it reads standard input. Files are always read as bytes, so `-b` and `-t` change only the mark; when both are given, `-t` wins. `--tag` prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a backslash, newline or carriage return is escaped and its line starts with a backslash, unless `-z` ends lines with NUL instead. `-c` reads such lines (in either style) from the FILEs and checks each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches, unreadable files and improperly formatted lines; `--quiet` drops the OK lines, `--status` prints nothing, `--ignore-missing` skips listed files that do not exist, `-w` warns about each improperly formatted line and `--strict` fails because of them. The exit status is 0 when everything was read (and, with `-c`, matched), 1 otherwise.
+`sha512sumx` prints or checks SHA-512 message digests (FIPS 180-4, 512 bits). For each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode, '*' with `-b`), and the file name. With no FILE, or when FILE is -, it reads standard input. Files are always read as bytes, so `-b` and `-t` change only the mark; when both are given, `-t` wins. `--tag` prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a backslash, newline or carriage return is escaped and its line starts with a backslash, unless `-z` ends lines with NUL instead. `-c` reads such lines (in either style) from the FILEs and checks each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches, unreadable files and improperly formatted lines; `--quiet` drops the OK lines, `--status` prints nothing, `--ignore-missing` skips listed files that do not exist, `-w` warns about each improperly formatted line and `--strict` fails because of them. The exit status is 0 when everything was read (and, with `-c`, matched), 1 otherwise. On Windows a backslash in a file name is the path separator, so it is not escaped as GNU escapes it on Unix; a name with a newline is still escaped.
 
 ### Permissions
 
@@ -50,77 +50,17 @@ Needs read permission on each FILE (and, with `-c`, on the checksum lists and ev
 
 ### Examples
 
-Print the digest of a file:
+You downloaded an installer: print its digest to compare with the one on the website:
 
 ```bash
-sha512sumx file.iso
+sha512sumx ubuntu-24.04-desktop-amd64.iso
 ```
 
 ```powershell
-sha512sumx file.iso
+sha512sumx ubuntu-24.04-desktop-amd64.iso
 ```
 
-Digest several files:
-
-```bash
-sha512sumx *.tar.gz
-```
-
-```powershell
-sha512sumx (Get-ChildItem *.tar.gz -Name)
-```
-
-Digest standard input:
-
-```bash
-echox -n hello | sha512sumx
-```
-
-```powershell
-echox -n hello | sha512sumx
-```
-
-Save digests to a file:
-
-```bash
-sha512sumx *.iso > sha512.sums
-```
-
-```powershell
-sha512sumx (Get-ChildItem *.iso -Name) > sha512.sums
-```
-
-Verify files against saved digests:
-
-```bash
-sha512sumx -c sha512.sums
-```
-
-```powershell
-sha512sumx -c sha512.sums
-```
-
-Verify quietly, showing only failures:
-
-```bash
-sha512sumx -c --quiet sha512.sums
-```
-
-```powershell
-sha512sumx -c --quiet sha512.sums
-```
-
-Verify silently and branch on the result:
-
-```bash
-sha512sumx -c --status sha512.sums && echox verified
-```
-
-```powershell
-sha512sumx -c --status sha512.sums; if ($LASTEXITCODE -eq 0) { 'verified' }
-```
-
-Verify only the listed files that exist:
+Verify the download against the publisher's checksum file, which lists other files too:
 
 ```bash
 sha512sumx -c --ignore-missing sha512.sums
@@ -130,7 +70,90 @@ sha512sumx -c --ignore-missing sha512.sums
 sha512sumx -c --ignore-missing sha512.sums
 ```
 
-Fail on malformed lines in the list:
+Output:
+
+```text
+ubuntu-24.04-desktop-amd64.iso: OK
+```
+
+Publish checksums next to your release archives:
+
+```bash
+sha512sumx dist/*.tar.gz > dist/sha512.sums
+```
+
+```powershell
+sha512sumx (Get-ChildItem dist\*.zip -Name) > dist\sha512.sums
+```
+
+Check that a backup copied to a USB drive still matches the original:
+
+```bash
+sha512sumx photos.tar /media/usb/photos.tar
+```
+
+```powershell
+sha512sumx photos.tar E:\photos.tar
+```
+
+Find duplicate photos in a folder: files with the same digest have the same content:
+
+```bash
+sha512sumx *.jpg | sortx | uniqx -w 128 -D
+```
+
+```powershell
+sha512sumx (Get-ChildItem *.jpg -Name) | sortx | uniqx -w 128 -D
+```
+
+In CI, fail the build when a vendored file was changed by hand:
+
+```bash
+sha512sumx -c --status vendor.sha512sums || { echox 'vendored files changed' >&2; exit 1; }
+```
+
+```powershell
+sha512sumx -c --status vendor.sha512sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
+```
+
+Re-check a large archive set and show only what no longer matches:
+
+```bash
+sha512sumx -c --quiet sha512.sums
+```
+
+```powershell
+sha512sumx -c --quiet sha512.sums
+```
+
+Output:
+
+```text
+notes.txt: FAILED
+sha512sumx: WARNING: 1 computed checksum did NOT match
+```
+
+Hash a token from a variable, without the newline echo would add:
+
+```bash
+printfx '%s' "$TOKEN" | sha512sumx
+```
+
+```powershell
+printfx '%s' $env:TOKEN | sha512sumx
+```
+
+Write lines that name the algorithm, so a mixed list can be checked with `cksumx -c`:
+
+```bash
+sha512sumx --tag release.tar.gz >> CHECKSUMS
+```
+
+```powershell
+sha512sumx --tag release.zip >> CHECKSUMS
+```
+
+Refuse a checksum list with malformed lines instead of skipping them:
 
 ```bash
 sha512sumx -c --strict -w sha512.sums
@@ -140,27 +163,17 @@ sha512sumx -c --strict -w sha512.sums
 sha512sumx -c --strict -w sha512.sums
 ```
 
-Print BSD-style tagged lines:
+Match the '*' binary-mode lines produced by tools on Windows:
 
 ```bash
-sha512sumx --tag file.iso
+sha512sumx -b setup.exe
 ```
 
 ```powershell
-sha512sumx --tag file.iso
+sha512sumx -b setup.exe
 ```
 
-Mark the files as read in binary mode:
-
-```bash
-sha512sumx -b file.iso
-```
-
-```powershell
-sha512sumx -b file.iso
-```
-
-Digest in the portable `gnux shell`:
+Record a digest next to the file in the portable `gnux shell`, the same on every OS:
 
 ```bash
 gnux shell -c 'sha512sumx file.iso > file.iso.sha512sum'

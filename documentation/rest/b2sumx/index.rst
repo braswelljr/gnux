@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-b2sumx prints or checks BLAKE2b message digests (RFC 7693, 512 bits). For each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode, '*' with -b), and the file name. With no FILE, or when FILE is -, it reads standard input. Files are always read as bytes, so -b and -t change only the mark; when both are given, -t wins. --tag prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a backslash, newline or carriage return is escaped and its line starts with a backslash, unless -z ends lines with NUL instead. -c reads such lines (in either style) from the FILEs and checks each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches, unreadable files and improperly formatted lines; --quiet drops the OK lines, --status prints nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly formatted line and --strict fails because of them. The exit status is 0 when everything was read (and, with -c, matched), 1 otherwise. -l BITS shortens the digest to BITS bits, a multiple of 8 up to 512; tagged lines then name the length ('BLAKE2b-256').
+b2sumx prints or checks BLAKE2b message digests (RFC 7693, 512 bits). For each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode, '*' with -b), and the file name. With no FILE, or when FILE is -, it reads standard input. Files are always read as bytes, so -b and -t change only the mark; when both are given, -t wins. --tag prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a backslash, newline or carriage return is escaped and its line starts with a backslash, unless -z ends lines with NUL instead. -c reads such lines (in either style) from the FILEs and checks each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches, unreadable files and improperly formatted lines; --quiet drops the OK lines, --status prints nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly formatted line and --strict fails because of them. The exit status is 0 when everything was read (and, with -c, matched), 1 otherwise. -l BITS shortens the digest to BITS bits, a multiple of 8 up to 512; tagged lines then name the length ('BLAKE2b-256'). On Windows a backslash in a file name is the path separator, so it is not escaped as GNU escapes it on Unix; a name with a newline is still escaped.
 
 EXIT STATUS.
   0  success: every operand was processed
@@ -37,43 +37,43 @@ Examples
 
 ::
 
-    # Print the digest of a file
-    b2sumx file.iso
+    # You downloaded an installer: print its digest to compare with the one on the website
+    b2sumx ubuntu-24.04-desktop-amd64.iso
 
-    # Digest several files
-    b2sumx *.tar.gz
-
-    # Digest standard input
-    echox -n hello | b2sumx
-
-    # Save digests to a file
-    b2sumx *.iso > b2.sums
-
-    # Verify files against saved digests
-    b2sumx -c b2.sums
-
-    # Verify quietly, showing only failures
-    b2sumx -c --quiet b2.sums
-
-    # Verify silently and branch on the result
-    b2sumx -c --status b2.sums && echox verified
-
-    # Verify only the listed files that exist
+    # Verify the download against the publisher's checksum file, which lists other files too
     b2sumx -c --ignore-missing b2.sums
 
-    # Fail on malformed lines in the list
+    # Publish checksums next to your release archives
+    b2sumx dist/*.tar.gz > dist/b2.sums
+
+    # Check that a backup copied to a USB drive still matches the original
+    b2sumx photos.tar /media/usb/photos.tar
+
+    # Find duplicate photos in a folder: files with the same digest have the same content
+    b2sumx *.jpg | sortx | uniqx -w 128 -D
+
+    # In CI, fail the build when a vendored file was changed by hand
+    b2sumx -c --status vendor.b2sums || { echox 'vendored files changed' >&2; exit 1; }
+
+    # Re-check a large archive set and show only what no longer matches
+    b2sumx -c --quiet b2.sums
+
+    # Hash a token from a variable, without the newline echo would add
+    printfx '%s' "$TOKEN" | b2sumx
+
+    # Write lines that name the algorithm, so a mixed list can be checked with cksumx -c
+    b2sumx --tag release.tar.gz >> CHECKSUMS
+
+    # Refuse a checksum list with malformed lines instead of skipping them
     b2sumx -c --strict -w b2.sums
 
-    # Print BSD-style tagged lines
-    b2sumx --tag file.iso
+    # Match the '*' binary-mode lines produced by tools on Windows
+    b2sumx -b setup.exe
 
-    # Mark the files as read in binary mode
-    b2sumx -b file.iso
+    # Use a shorter, 256-bit digest as a compact content ID for cache keys
+    b2sumx -l 256 package-lock.json
 
-    # Print a 256-bit digest
-    b2sumx -l 256 file.iso
-
-    # Digest in the portable gnux shell
+    # Record a digest next to the file in the portable gnux shell, the same on every OS
     gnux shell -c 'b2sumx file.iso > file.iso.b2sum'
 
 Options

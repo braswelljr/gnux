@@ -81,7 +81,7 @@ var linuxTypes = map[uint64]fsType{
 	0x3153464a: {"jfs", false},
 	0x6b414653: {"k-afs", true},
 	0xc97e8168: {"logfs", false},
-	0xbd00bd0:  {"lustre", true},
+	0xbd00bd0:  {"lustre", true}, //nolint:misspell // the file system's name
 	0x5346314d: {"m1fs", false},
 	0x137f:     {"minix", false},
 	0x138f:     {"minix (30 char.)", false},

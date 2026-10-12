@@ -80,41 +80,41 @@ options:
       default_value: "false"
       usage: line delimiter is NUL, not newline
 example: |4-
-      # Join two files sorted on their first field
+      # Combine a names list and an ages list that share an ID column
       joinx names.txt ages.txt
 
-      # Join comma-separated files
+      # Attach each order to its customer from two CSV exports
       joinx -t, users.csv orders.csv
 
-      # Join on the second field of the first file and the first of the second
+      # Look up customer names when the ID is the second column of the orders file
       joinx -1 2 -2 1 orders.txt customers.txt
 
-      # Also print the lines of the first file that have no match
+      # Keep everyone in the names list, even those with no age recorded
       joinx -a 1 names.txt ages.txt
 
-      # Print only the keys of the first file missing from the second
+      # Find the tasks in the full list that are not marked done yet
       joinx -v 1 all.txt done.txt
 
-      # Full outer join, filling missing fields with NULL
+      # Merge two inventories into one table, marking missing values as NULL
       joinx -a 1 -a 2 -e NULL -o auto a.txt b.txt
 
-      # Choose the output fields
+      # Build a report with just the columns you need, in your order
       joinx -o 1.2,2.3,0 a.txt b.txt
 
-      # Keep the header line of each file
+      # Join two CSV exports that each start with a header row
       joinx --header -t, users.csv orders.csv
 
-      # Join unsorted files by sorting them first
+      # Join two exports that came out of a database unsorted
       sortx a.txt > a.sorted && sortx b.txt > b.sorted && joinx a.sorted b.sorted
 
-      # Compare join fields without regard to case
+      # Match user names written with different capitalization in two systems
       joinx -i a.txt b.txt
 
-      # Read the first file from standard input
+      # Join the output of another command against a lookup file
       sortx ids.txt | joinx - names.txt
 
-      # Fail at the first line out of order
+      # Make a script stop if an input was not sorted, rather than miss matches
       joinx --check-order a.txt b.txt || echox 'not sorted'
 
-      # Join in the portable gnux shell
+      # Count matched orders in the portable gnux shell, the same on every OS
       gnux shell -c 'joinx -t, users.csv orders.csv | wcx -l'

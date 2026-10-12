@@ -19,7 +19,7 @@ md5sumx --quiet [FILE]...
 
 ## Examples
 
-### Verify quietly, showing only failures
+### Re-check a large archive set and show only what no longer matches
 
 ```bash tab="bash" tab-group="shell"
 md5sumx -c --quiet md5.sums
@@ -27,6 +27,11 @@ md5sumx -c --quiet md5.sums
 
 ```powershell tab="PowerShell" tab-group="shell"
 md5sumx -c --quiet md5.sums
+```
+
+```text title="Output"
+notes.txt: FAILED
+md5sumx: WARNING: 1 computed checksum did NOT match
 ```
 
 ## Help in the terminal

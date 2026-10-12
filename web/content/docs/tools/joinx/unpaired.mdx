@@ -20,7 +20,7 @@ joinx --unpaired=FILENUM FILE1 FILE2
 
 ## Examples
 
-### Also print the lines of the first file that have no match
+### Keep everyone in the names list, even those with no age recorded
 
 ```bash tab="bash" tab-group="shell"
 joinx -a 1 names.txt ages.txt
@@ -30,7 +30,7 @@ joinx -a 1 names.txt ages.txt
 joinx -a 1 names.txt ages.txt
 ```
 
-### Full outer join, filling missing fields with NULL
+### Merge two inventories into one table, marking missing values as NULL
 
 ```bash tab="bash" tab-group="shell"
 joinx -a 1 -a 2 -e NULL -o auto a.txt b.txt

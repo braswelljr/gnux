@@ -19,14 +19,14 @@ sha1sumx --tag [FILE]...
 
 ## Examples
 
-### Print BSD-style tagged lines
+### Write lines that name the algorithm, so a mixed list can be checked with cksumx -c
 
 ```bash tab="bash" tab-group="shell"
-sha1sumx --tag file.iso
+sha1sumx --tag release.tar.gz >> CHECKSUMS
 ```
 
 ```powershell tab="PowerShell" tab-group="shell"
-sha1sumx --tag file.iso
+sha1sumx --tag release.zip >> CHECKSUMS
 ```
 
 ## Help in the terminal

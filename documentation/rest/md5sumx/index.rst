@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-md5sumx prints or checks MD5 message digests (RFC 1321, 128 bits). For each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode, '*' with -b), and the file name. With no FILE, or when FILE is -, it reads standard input. Files are always read as bytes, so -b and -t change only the mark; when both are given, -t wins. --tag prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a backslash, newline or carriage return is escaped and its line starts with a backslash, unless -z ends lines with NUL instead. -c reads such lines (in either style) from the FILEs and checks each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches, unreadable files and improperly formatted lines; --quiet drops the OK lines, --status prints nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly formatted line and --strict fails because of them. The exit status is 0 when everything was read (and, with -c, matched), 1 otherwise. MD5 is broken for security purposes: use it to detect accidental corruption, not tampering, and prefer sha256sumx or b2sumx otherwise.
+md5sumx prints or checks MD5 message digests (RFC 1321, 128 bits). For each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode, '*' with -b), and the file name. With no FILE, or when FILE is -, it reads standard input. Files are always read as bytes, so -b and -t change only the mark; when both are given, -t wins. --tag prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a backslash, newline or carriage return is escaped and its line starts with a backslash, unless -z ends lines with NUL instead. -c reads such lines (in either style) from the FILEs and checks each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches, unreadable files and improperly formatted lines; --quiet drops the OK lines, --status prints nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly formatted line and --strict fails because of them. The exit status is 0 when everything was read (and, with -c, matched), 1 otherwise. On Windows a backslash in a file name is the path separator, so it is not escaped as GNU escapes it on Unix; a name with a newline is still escaped. MD5 is broken for security purposes: use it to detect accidental corruption, not tampering, and prefer sha256sumx or b2sumx otherwise.
 
 EXIT STATUS.
   0  success: every operand was processed
@@ -37,40 +37,40 @@ Examples
 
 ::
 
-    # Print the digest of a file
-    md5sumx file.iso
+    # You downloaded an installer: print its digest to compare with the one on the website
+    md5sumx ubuntu-24.04-desktop-amd64.iso
 
-    # Digest several files
-    md5sumx *.tar.gz
-
-    # Digest standard input
-    echox -n hello | md5sumx
-
-    # Save digests to a file
-    md5sumx *.iso > md5.sums
-
-    # Verify files against saved digests
-    md5sumx -c md5.sums
-
-    # Verify quietly, showing only failures
-    md5sumx -c --quiet md5.sums
-
-    # Verify silently and branch on the result
-    md5sumx -c --status md5.sums && echox verified
-
-    # Verify only the listed files that exist
+    # Verify the download against the publisher's checksum file, which lists other files too
     md5sumx -c --ignore-missing md5.sums
 
-    # Fail on malformed lines in the list
+    # Publish checksums next to your release archives
+    md5sumx dist/*.tar.gz > dist/md5.sums
+
+    # Check that a backup copied to a USB drive still matches the original
+    md5sumx photos.tar /media/usb/photos.tar
+
+    # Find duplicate photos in a folder: files with the same digest have the same content
+    md5sumx *.jpg | sortx | uniqx -w 32 -D
+
+    # In CI, fail the build when a vendored file was changed by hand
+    md5sumx -c --status vendor.md5sums || { echox 'vendored files changed' >&2; exit 1; }
+
+    # Re-check a large archive set and show only what no longer matches
+    md5sumx -c --quiet md5.sums
+
+    # Hash a token from a variable, without the newline echo would add
+    printfx '%s' "$TOKEN" | md5sumx
+
+    # Write lines that name the algorithm, so a mixed list can be checked with cksumx -c
+    md5sumx --tag release.tar.gz >> CHECKSUMS
+
+    # Refuse a checksum list with malformed lines instead of skipping them
     md5sumx -c --strict -w md5.sums
 
-    # Print BSD-style tagged lines
-    md5sumx --tag file.iso
+    # Match the '*' binary-mode lines produced by tools on Windows
+    md5sumx -b setup.exe
 
-    # Mark the files as read in binary mode
-    md5sumx -b file.iso
-
-    # Digest in the portable gnux shell
+    # Record a digest next to the file in the portable gnux shell, the same on every OS
     gnux shell -c 'md5sumx file.iso > file.iso.md5sum'
 
 Options

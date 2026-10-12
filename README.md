@@ -168,7 +168,7 @@ with an archive per platform (`gnux-<version>-<os>-<arch>.tar.gz`, `.zip` for Wi
 `checksums.txt`:
 
 ```bash
-v=v0.1.0
+v=v0.0.1
 curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/gnux-$v-linux-amd64.tar.gz"
 curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/checksums.txt"
 sha256sum --check --ignore-missing checksums.txt
@@ -199,7 +199,7 @@ Windows runner, checks it against the release's checksums and puts gnux and ever
 ```yaml
 - uses: braswelljr/gnux@v0
   with:
-    version: latest       # or a tag, such as v0.1.0
+    version: latest       # or a tag, such as v0.0.1
     gnu-names: false      # true also links rm, cp, ls, ... ahead of the runner's own
 - run: rmx -rf build && mkdirx -p build && cpx -r assets build/
 ```

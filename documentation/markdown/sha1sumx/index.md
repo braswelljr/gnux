@@ -17,7 +17,7 @@ sha1sumx [OPTION]... [FILE]...
 
 ### Description
 
-`sha1sumx` prints or checks SHA-1 message digests (FIPS 180-4, 160 bits). For each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode, '*' with `-b`), and the file name. With no FILE, or when FILE is -, it reads standard input. Files are always read as bytes, so `-b` and `-t` change only the mark; when both are given, `-t` wins. `--tag` prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a backslash, newline or carriage return is escaped and its line starts with a backslash, unless `-z` ends lines with NUL instead. `-c` reads such lines (in either style) from the FILEs and checks each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches, unreadable files and improperly formatted lines; `--quiet` drops the OK lines, `--status` prints nothing, `--ignore-missing` skips listed files that do not exist, `-w` warns about each improperly formatted line and `--strict` fails because of them. The exit status is 0 when everything was read (and, with `-c`, matched), 1 otherwise. SHA-1 is broken for security purposes: use it to detect accidental corruption, not tampering, and prefer `sha256sumx` or `b2sumx` otherwise.
+`sha1sumx` prints or checks SHA-1 message digests (FIPS 180-4, 160 bits). For each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode, '*' with `-b`), and the file name. With no FILE, or when FILE is -, it reads standard input. Files are always read as bytes, so `-b` and `-t` change only the mark; when both are given, `-t` wins. `--tag` prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a backslash, newline or carriage return is escaped and its line starts with a backslash, unless `-z` ends lines with NUL instead. `-c` reads such lines (in either style) from the FILEs and checks each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches, unreadable files and improperly formatted lines; `--quiet` drops the OK lines, `--status` prints nothing, `--ignore-missing` skips listed files that do not exist, `-w` warns about each improperly formatted line and `--strict` fails because of them. The exit status is 0 when everything was read (and, with `-c`, matched), 1 otherwise. On Windows a backslash in a file name is the path separator, so it is not escaped as GNU escapes it on Unix; a name with a newline is still escaped. SHA-1 is broken for security purposes: use it to detect accidental corruption, not tampering, and prefer `sha256sumx` or `b2sumx` otherwise.
 
 ### Permissions
 
@@ -50,77 +50,17 @@ Needs read permission on each FILE (and, with `-c`, on the checksum lists and ev
 
 ### Examples
 
-Print the digest of a file:
+You downloaded an installer: print its digest to compare with the one on the website:
 
 ```bash
-sha1sumx file.iso
+sha1sumx ubuntu-24.04-desktop-amd64.iso
 ```
 
 ```powershell
-sha1sumx file.iso
+sha1sumx ubuntu-24.04-desktop-amd64.iso
 ```
 
-Digest several files:
-
-```bash
-sha1sumx *.tar.gz
-```
-
-```powershell
-sha1sumx (Get-ChildItem *.tar.gz -Name)
-```
-
-Digest standard input:
-
-```bash
-echox -n hello | sha1sumx
-```
-
-```powershell
-echox -n hello | sha1sumx
-```
-
-Save digests to a file:
-
-```bash
-sha1sumx *.iso > sha1.sums
-```
-
-```powershell
-sha1sumx (Get-ChildItem *.iso -Name) > sha1.sums
-```
-
-Verify files against saved digests:
-
-```bash
-sha1sumx -c sha1.sums
-```
-
-```powershell
-sha1sumx -c sha1.sums
-```
-
-Verify quietly, showing only failures:
-
-```bash
-sha1sumx -c --quiet sha1.sums
-```
-
-```powershell
-sha1sumx -c --quiet sha1.sums
-```
-
-Verify silently and branch on the result:
-
-```bash
-sha1sumx -c --status sha1.sums && echox verified
-```
-
-```powershell
-sha1sumx -c --status sha1.sums; if ($LASTEXITCODE -eq 0) { 'verified' }
-```
-
-Verify only the listed files that exist:
+Verify the download against the publisher's checksum file, which lists other files too:
 
 ```bash
 sha1sumx -c --ignore-missing sha1.sums
@@ -130,7 +70,90 @@ sha1sumx -c --ignore-missing sha1.sums
 sha1sumx -c --ignore-missing sha1.sums
 ```
 
-Fail on malformed lines in the list:
+Output:
+
+```text
+ubuntu-24.04-desktop-amd64.iso: OK
+```
+
+Publish checksums next to your release archives:
+
+```bash
+sha1sumx dist/*.tar.gz > dist/sha1.sums
+```
+
+```powershell
+sha1sumx (Get-ChildItem dist\*.zip -Name) > dist\sha1.sums
+```
+
+Check that a backup copied to a USB drive still matches the original:
+
+```bash
+sha1sumx photos.tar /media/usb/photos.tar
+```
+
+```powershell
+sha1sumx photos.tar E:\photos.tar
+```
+
+Find duplicate photos in a folder: files with the same digest have the same content:
+
+```bash
+sha1sumx *.jpg | sortx | uniqx -w 40 -D
+```
+
+```powershell
+sha1sumx (Get-ChildItem *.jpg -Name) | sortx | uniqx -w 40 -D
+```
+
+In CI, fail the build when a vendored file was changed by hand:
+
+```bash
+sha1sumx -c --status vendor.sha1sums || { echox 'vendored files changed' >&2; exit 1; }
+```
+
+```powershell
+sha1sumx -c --status vendor.sha1sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
+```
+
+Re-check a large archive set and show only what no longer matches:
+
+```bash
+sha1sumx -c --quiet sha1.sums
+```
+
+```powershell
+sha1sumx -c --quiet sha1.sums
+```
+
+Output:
+
+```text
+notes.txt: FAILED
+sha1sumx: WARNING: 1 computed checksum did NOT match
+```
+
+Hash a token from a variable, without the newline echo would add:
+
+```bash
+printfx '%s' "$TOKEN" | sha1sumx
+```
+
+```powershell
+printfx '%s' $env:TOKEN | sha1sumx
+```
+
+Write lines that name the algorithm, so a mixed list can be checked with `cksumx -c`:
+
+```bash
+sha1sumx --tag release.tar.gz >> CHECKSUMS
+```
+
+```powershell
+sha1sumx --tag release.zip >> CHECKSUMS
+```
+
+Refuse a checksum list with malformed lines instead of skipping them:
 
 ```bash
 sha1sumx -c --strict -w sha1.sums
@@ -140,27 +163,17 @@ sha1sumx -c --strict -w sha1.sums
 sha1sumx -c --strict -w sha1.sums
 ```
 
-Print BSD-style tagged lines:
+Match the '*' binary-mode lines produced by tools on Windows:
 
 ```bash
-sha1sumx --tag file.iso
+sha1sumx -b setup.exe
 ```
 
 ```powershell
-sha1sumx --tag file.iso
+sha1sumx -b setup.exe
 ```
 
-Mark the files as read in binary mode:
-
-```bash
-sha1sumx -b file.iso
-```
-
-```powershell
-sha1sumx -b file.iso
-```
-
-Digest in the portable `gnux shell`:
+Record a digest next to the file in the portable `gnux shell`, the same on every OS:
 
 ```bash
 gnux shell -c 'sha1sumx file.iso > file.iso.sha1sum'

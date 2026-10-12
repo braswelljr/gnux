@@ -20,7 +20,7 @@ unexpandx --all [FILE]...
 
 ## Examples
 
-### Convert all runs of blanks, not just leading ones
+### Shrink a space-padded table by using tabs throughout
 
 ```bash tab="bash" tab-group="shell"
 unexpandx -a table.txt
@@ -30,7 +30,7 @@ unexpandx -a table.txt
 unexpandx -a table.txt
 ```
 
-### See how many bytes the conversion saves
+### See how many bytes tabs would save in a large file
 
 ```bash tab="bash" tab-group="shell"
 unexpandx -a big.txt | wcx -c

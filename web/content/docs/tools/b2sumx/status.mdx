@@ -19,14 +19,14 @@ b2sumx --status [FILE]...
 
 ## Examples
 
-### Verify silently and branch on the result
+### In CI, fail the build when a vendored file was changed by hand
 
 ```bash tab="bash" tab-group="shell"
-b2sumx -c --status b2.sums && echox verified
+b2sumx -c --status vendor.b2sums || { echox 'vendored files changed' >&2; exit 1; }
 ```
 
 ```powershell tab="PowerShell" tab-group="shell"
-b2sumx -c --status b2.sums; if ($LASTEXITCODE -eq 0) { 'verified' }
+b2sumx -c --status vendor.b2sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
 ```
 
 ## Help in the terminal

@@ -44,7 +44,8 @@ func Meta() docmeta.Meta {
 			"blake2b digest, and -z ends lines with NUL. -c checks the files listed in " +
 			"tagged or untagged digest lines, detecting the algorithm from each tagged line " +
 			"when -a is not given, with --ignore-missing, --quiet, --status, --strict and -w " +
-			"as in md5sumx. The legacy algorithms cannot be checked.",
+			"as in md5sumx. The legacy algorithms cannot be checked. On Windows a backslash in a file name is the path separator, so it is not escaped as " +
+			"GNU escapes it on Unix; a name with a newline is still escaped.",
 		Permissions: "Needs read permission on each FILE (and, with -c, on the checksum lists and " +
 			"every file they name) and search permission on the directories leading to them. " +
 			"Nothing is ever modified.",

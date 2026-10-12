@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { Heading, Reveal, Section, TypingCode, TypingTerminal } from '@/components/ui';
+import { Heading, pad2, Reveal, Section, TypingCode, TypingTerminal } from '@/components/ui';
 import { commandsSession, libraryDemo, shellSession } from '@/config/demos';
 
 type Way = {
@@ -63,13 +63,16 @@ const ways: Way[] = [
 /** The three ways to use gnux, each beside a short session that shows it. */
 export function WaysToUse() {
   return (
-    <Section aria-labelledby="ways-title">
+    <Section
+      aria-labelledby="ways-title"
+      index={1}
+      label="Three ways"
+      aside="One engine per tool"
+    >
       <Reveal className="max-w-2xl">
-        <p className="font-mono text-sm text-lit">One engine per tool</p>
         <Heading
           level={2}
           id="ways-title"
-          className="mt-2"
         >
           Three ways to reach it
         </Heading>
@@ -82,10 +85,19 @@ export function WaysToUse() {
         {ways.map((way, i) => (
           <li
             key={way.title}
-            className="grid min-w-0 items-center gap-8 lg:grid-cols-2 lg:gap-12"
+            className="grid min-w-0 grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12"
           >
             <Reveal className={i % 2 === 1 ? 'lg:order-2' : undefined}>
-              <p className="truncate font-mono text-xs text-fd-muted-foreground">{way.entry}</p>
+              <p className="truncate hud-label text-fd-muted-foreground">
+                <span className="text-faint">{pad2(i + 1)}</span>
+                <span
+                  aria-hidden="true"
+                  className="mx-2 text-faint"
+                >
+                  /
+                </span>
+                <span className="normal-case">{way.entry}</span>
+              </p>
               <Heading
                 level={3}
                 size="xl"

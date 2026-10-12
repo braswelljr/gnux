@@ -133,29 +133,85 @@ func (t Tool) Meta() docmeta.Meta {
 		long += " -l BITS shortens the digest to BITS bits, a multiple of 8 up to 512; " +
 			"tagged lines then name the length ('BLAKE2b-256')."
 	}
+	long += " On Windows a backslash in a file name is the path separator, so it is " +
+		"not escaped as GNU escapes it on Unix; a name with a newline is still escaped."
 	if t.Weak {
 		long += " " + t.Algorithm + " is broken for security purposes: use it to detect " +
 			"accidental corruption, not tampering, and prefer sha256sumx or b2sumx otherwise."
 	}
+	hexLen := strconv.Itoa(t.Bits / 4)
+	gnuName := strings.TrimSuffix(n, "x")
 	examples := []docmeta.Example{
-		{Description: "Print the digest of a file:", Bash: n + " file.iso", PowerShell: n + " file.iso"},
-		{Description: "Digest several files:", Bash: n + " *.tar.gz", PowerShell: n + " (Get-ChildItem *.tar.gz -Name)"},
-		{Description: "Digest standard input:", Bash: "echox -n hello | " + n, PowerShell: "echox -n hello | " + n},
-		{Description: "Save digests to a file:", Bash: n + " *.iso > " + sums, PowerShell: n + " (Get-ChildItem *.iso -Name) > " + sums},
-		{Description: "Verify files against saved digests:", Bash: n + " -c " + sums, PowerShell: n + " -c " + sums},
-		{Description: "Verify quietly, showing only failures:", Bash: n + " -c --quiet " + sums, PowerShell: n + " -c --quiet " + sums},
-		{Description: "Verify silently and branch on the result:", Bash: n + " -c --status " + sums + " && echox verified",
-			PowerShell: n + " -c --status " + sums + "; if ($LASTEXITCODE -eq 0) { 'verified' }"},
-		{Description: "Verify only the listed files that exist:", Bash: n + " -c --ignore-missing " + sums, PowerShell: n + " -c --ignore-missing " + sums},
-		{Description: "Fail on malformed lines in the list:", Bash: n + " -c --strict -w " + sums, PowerShell: n + " -c --strict -w " + sums},
-		{Description: "Print BSD-style tagged lines:", Bash: n + " --tag file.iso", PowerShell: n + " --tag file.iso"},
-		{Description: "Mark the files as read in binary mode:", Bash: n + " -b file.iso", PowerShell: n + " -b file.iso"},
-		{Description: "Digest in the portable gnux shell:", Bash: "gnux shell -c '" + n + " file.iso > file.iso." + strings.TrimSuffix(n, "x") + "'",
-			PowerShell: "gnux shell -c '" + n + " file.iso > file.iso." + strings.TrimSuffix(n, "x") + "'"},
+		{
+			Description: "You downloaded an installer: print its digest to compare with the one on the website:",
+			Bash:        n + " ubuntu-24.04-desktop-amd64.iso",
+			PowerShell:  n + " ubuntu-24.04-desktop-amd64.iso",
+		},
+		{
+			Description: "Verify the download against the publisher's checksum file, which lists other files too:",
+			Bash:        n + " -c --ignore-missing " + sums,
+			PowerShell:  n + " -c --ignore-missing " + sums,
+			Output:      "ubuntu-24.04-desktop-amd64.iso: OK",
+		},
+		{
+			Description: "Publish checksums next to your release archives:",
+			Bash:        n + " dist/*.tar.gz > dist/" + sums,
+			PowerShell:  n + " (Get-ChildItem dist\\*.zip -Name) > dist\\" + sums,
+		},
+		{
+			Description: "Check that a backup copied to a USB drive still matches the original:",
+			Bash:        n + " photos.tar /media/usb/photos.tar",
+			PowerShell:  n + " photos.tar E:\\photos.tar",
+		},
+		{
+			Description: "Find duplicate photos in a folder: files with the same digest have the same content:",
+			Bash:        n + " *.jpg | sortx | uniqx -w " + hexLen + " -D",
+			PowerShell:  n + " (Get-ChildItem *.jpg -Name) | sortx | uniqx -w " + hexLen + " -D",
+		},
+		{
+			Description: "In CI, fail the build when a vendored file was changed by hand:",
+			Bash:        n + " -c --status vendor." + gnuName + "s || { echox 'vendored files changed' >&2; exit 1; }",
+			PowerShell:  n + " -c --status vendor." + gnuName + "s; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }",
+		},
+		{
+			Description: "Re-check a large archive set and show only what no longer matches:",
+			Bash:        n + " -c --quiet " + sums,
+			PowerShell:  n + " -c --quiet " + sums,
+			Output:      "notes.txt: FAILED\n" + n + ": WARNING: 1 computed checksum did NOT match",
+		},
+		{
+			Description: "Hash a token from a variable, without the newline echo would add:",
+			Bash:        "printfx '%s' \"$TOKEN\" | " + n,
+			PowerShell:  "printfx '%s' $env:TOKEN | " + n,
+		},
+		{
+			Description: "Write lines that name the algorithm, so a mixed list can be checked with cksumx -c:",
+			Bash:        n + " --tag release.tar.gz >> CHECKSUMS",
+			PowerShell:  n + " --tag release.zip >> CHECKSUMS",
+		},
+		{
+			Description: "Refuse a checksum list with malformed lines instead of skipping them:",
+			Bash:        n + " -c --strict -w " + sums,
+			PowerShell:  n + " -c --strict -w " + sums,
+		},
+		{
+			Description: "Match the '*' binary-mode lines produced by tools on Windows:",
+			Bash:        n + " -b setup.exe",
+			PowerShell:  n + " -b setup.exe",
+		},
+		{
+			Description: "Record a digest next to the file in the portable gnux shell, the same on every OS:",
+			Bash:        "gnux shell -c '" + n + " file.iso > file.iso." + gnuName + "'",
+			PowerShell:  "gnux shell -c '" + n + " file.iso > file.iso." + gnuName + "'",
+		},
 	}
 	if t.Length {
 		examples = append(examples[:len(examples)-1],
-			docmeta.Example{Description: "Print a 256-bit digest:", Bash: n + " -l 256 file.iso", PowerShell: n + " -l 256 file.iso"},
+			docmeta.Example{
+				Description: "Use a shorter, 256-bit digest as a compact content ID for cache keys:",
+				Bash:        n + " -l 256 package-lock.json",
+				PowerShell:  n + " -l 256 package-lock.json",
+			},
 			examples[len(examples)-1])
 	}
 	see := []string{"cksumx"}

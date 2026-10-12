@@ -43,17 +43,17 @@ Needs read permission on FILE and search permission on the directories leading t
 
 ### Examples
 
-Encode a file:
+Put a small logo straight into an HTML or CSS data: URL:
 
 ```bash
-base64x image.png
+echox "data:image/png;base64,$(base64x -w 0 logo.png)"
 ```
 
 ```powershell
-base64x image.png
+"data:image/png;base64,$(base64x -w 0 logo.png)"
 ```
 
-Encode a string:
+Encode a short string to see what it looks like:
 
 ```bash
 printfx 'hello' | base64x
@@ -63,7 +63,13 @@ printfx 'hello' | base64x
 printfx 'hello' | base64x
 ```
 
-Decode a string:
+Output:
+
+```text
+aGVsbG8=
+```
+
+Decode a value you found in a config file or an API response:
 
 ```bash
 echox aGVsbG8= | base64x -d
@@ -73,27 +79,33 @@ echox aGVsbG8= | base64x -d
 echox aGVsbG8= | base64x -d
 ```
 
-Decode a file back to binary:
+Output:
+
+```text
+hello
+```
+
+Store a binary key in a CI secret, which only takes one line of text:
 
 ```bash
-base64x -d image.txt > image.png
+base64x -w 0 deploy-key.bin > deploy-key.txt
 ```
 
 ```powershell
-base64x -d image.txt > image.png
+base64x -w 0 deploy-key.bin > deploy-key.txt
 ```
 
-Encode on a single line, without a newline:
+Turn that secret back into the key file in a CI job:
 
 ```bash
-base64x -w 0 key.bin
+printfx '%s' "$DEPLOY_KEY" | base64x -d > deploy-key.bin
 ```
 
 ```powershell
-base64x -w 0 key.bin
+printfx '%s' $env:DEPLOY_KEY | base64x -d > deploy-key.bin
 ```
 
-Wrap encoded lines at 64 characters:
+Wrap at 64 characters, as PEM certificates are:
 
 ```bash
 base64x -w 64 cert.der
@@ -103,27 +115,27 @@ base64x -w 64 cert.der
 base64x -w 64 cert.der
 ```
 
-Decode, skipping characters outside the alphabet:
+Decode text pasted from an email, where line breaks and stray characters crept in:
 
 ```bash
-base64x -d -i messy.txt
+base64x -d -i pasted.txt > attachment.pdf
 ```
 
 ```powershell
-base64x -d -i messy.txt
+base64x -d -i pasted.txt > attachment.pdf
 ```
 
-Store an encoded file in a variable:
+Send a binary file through a chat or a terminal that only carries text:
 
 ```bash
-data=$(base64x -w 0 key.bin)
+base64x report.pdf > report.txt
 ```
 
 ```powershell
-$data = base64x -w 0 key.bin
+base64x report.pdf > report.txt
 ```
 
-Round-trip a file and compare the checksums:
+Make sure a round trip gives back the same bytes:
 
 ```bash
 base64x file.bin | base64x -d > copy.bin && cksumx file.bin copy.bin
@@ -133,7 +145,7 @@ base64x file.bin | base64x -d > copy.bin && cksumx file.bin copy.bin
 base64x file.bin | base64x -d > copy.bin; cksumx file.bin copy.bin
 ```
 
-Check that input decodes cleanly:
+Reject a payload that is not valid `base64` before using it:
 
 ```bash
 base64x -d payload.txt > /dev/null && echox valid
@@ -143,7 +155,7 @@ base64x -d payload.txt > /dev/null && echox valid
 base64x -d payload.txt > $null; if ($LASTEXITCODE -eq 0) { 'valid' }
 ```
 
-Encode in the portable `gnux shell`:
+Encode in the portable `gnux shell`, the same on every OS:
 
 ```bash
 gnux shell -c 'base64x -w 0 key.bin > key.txt'

@@ -51,57 +51,57 @@ func Meta() docmeta.Meta {
 		},
 		Examples: []docmeta.Example{
 			{
-				Description: "Convert leading spaces to tabs every 8 columns:",
+				Description: "Turn space indentation back into tabs:",
 				Bash:        "unexpandx notes.txt",
 				PowerShell:  "unexpandx notes.txt",
 			},
 			{
-				Description: "Convert all runs of blanks, not just leading ones:",
+				Description: "Shrink a space-padded table by using tabs throughout:",
 				Bash:        "unexpandx -a table.txt",
 				PowerShell:  "unexpandx -a table.txt",
 			},
 			{
-				Description: "Use 4-column tab stops (implies -a):",
+				Description: "Convert 4-space indentation and alignment to tabs:",
 				Bash:        "unexpandx -t 4 main.go",
 				PowerShell:  "unexpandx -t 4 main.go",
 			},
 			{
-				Description: "Use 4-column stops but only for indentation:",
+				Description: "Retab a Go file for gofmt, leaving alignment inside lines alone:",
 				Bash:        "unexpandx -t 4 --first-only main.go",
 				PowerShell:  "unexpandx -t 4 --first-only main.go",
 			},
 			{
-				Description: "Use the obsolete form, which converts only leading blanks:",
+				Description: "Run an old script that uses the obsolete form:",
 				Bash:        "unexpandx -4 main.go",
 				PowerShell:  "unexpandx -4 main.go",
 			},
 			{
-				Description: "Put tab stops at specific columns:",
+				Description: "Retab a report laid out in fixed columns:",
 				Bash:        "unexpandx -t 10,20,40 report.txt",
 				PowerShell:  "unexpandx -t 10,20,40 report.txt",
 			},
 			{
-				Description: "Round-trip a file through expandx:",
+				Description: "Edit with spaces, then hand the file back with tabs:",
 				Bash:        "expandx -t 4 a.go | unexpandx -t 4 --first-only > b.go",
 				PowerShell:  "expandx -t 4 a.go | unexpandx -t 4 --first-only > b.go",
 			},
 			{
-				Description: "Convert standard input:",
+				Description: "See the tab that replaces 8 leading spaces:",
 				Bash:        "printfx '        x\\n' | unexpandx",
 				PowerShell:  "printfx '        x\\n' | unexpandx",
 			},
 			{
-				Description: "Save a converted copy:",
+				Description: "Restore the tabs a Makefile needs after an editor turned them into spaces:",
 				Bash:        "unexpandx -t 8 spaces.mk > Makefile",
 				PowerShell:  "unexpandx -t 8 spaces.mk > Makefile",
 			},
 			{
-				Description: "See how many bytes the conversion saves:",
+				Description: "See how many bytes tabs would save in a large file:",
 				Bash:        "unexpandx -a big.txt | wcx -c",
 				PowerShell:  "unexpandx -a big.txt | wcx -c",
 			},
 			{
-				Description: "Convert in the portable gnux shell:",
+				Description: "Retab a file in the portable gnux shell, the same on every OS:",
 				Bash:        "gnux shell -c 'unexpandx -t 4 main.go > tabs.go'",
 				PowerShell:  "gnux shell -c 'unexpandx -t 4 main.go > tabs.go'",
 			},
