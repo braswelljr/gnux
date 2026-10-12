@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"slices"
@@ -115,6 +116,7 @@ type Du struct {
 	quoteNames bool
 	hashAll    bool
 	seen       map[devIno]bool
+	seenPath   map[string]bool // where file IDs are unknown (Windows), by absolute path
 	sem        chan struct{}
 }
 
@@ -243,6 +245,7 @@ func (d *Du) setup() error {
 
 	d.quoteNames = !d.Null && d.IsTerminal(d.streams.Out)
 	d.seen = map[devIno]bool{}
+	d.seenPath = map[string]bool{}
 	d.sem = make(chan struct{}, max(4, 2*runtime.NumCPU()))
 	return nil
 }
@@ -373,6 +376,8 @@ func (d *Du) newEntry(path string, info os.FileInfo) *entry {
 // excluded reports whether path, or any part of it after a '/', matches an
 // --exclude pattern, as gnulib's exclude does without EXCLUDE_ANCHORED.
 func (d *Du) excluded(path string) bool {
+	// Patterns are written with '/', as on Unix; Windows paths use '\'.
+	path = filepath.ToSlash(path)
 	for _, re := range d.exclude {
 		if re.MatchString(path) {
 			return true
@@ -473,11 +478,24 @@ func (d *Du) walk(e *entry, level int, grand *sums) (sums, bool) {
 	if e.excluded {
 		return sums{}, false
 	}
-	if !d.CountLinks && (d.hashAll || (!e.dir && e.nlink > 1)) && e.id != (devIno{}) {
-		if d.seen[e.id] {
-			return sums{}, false
+	if !d.CountLinks && (d.hashAll || (!e.dir && e.nlink > 1)) {
+		if e.id != (devIno{}) {
+			if d.seen[e.id] {
+				return sums{}, false
+			}
+			d.seen[e.id] = true
+		} else if d.hashAll {
+			// No file IDs (Windows): with several operands, a path already
+			// counted under another operand is still counted only once.
+			key := e.path
+			if abs, err := filepath.Abs(e.path); err == nil {
+				key = strings.ToLower(abs)
+			}
+			if d.seenPath[key] {
+				return sums{}, false
+			}
+			d.seenPath[key] = true
 		}
-		d.seen[e.id] = true
 	}
 	if e.readErr != nil {
 		d.errorf("cannot read directory '%s': %s", e.path, core.ErrText(e.readErr))
