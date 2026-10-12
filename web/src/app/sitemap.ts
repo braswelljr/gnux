@@ -2,7 +2,7 @@ import { type MetadataRoute } from 'next';
 import { docs } from 'lib/source';
 import { siteConfig } from '@/config/site';
 
-const STATIC_ROUTES = ['', '/playground'];
+const STATIC_ROUTES = ['', '/install', '/playground'];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   // Every page of the docs source, so a newly generated page is listed

@@ -10,13 +10,18 @@ Mirrors GNU `rmdir`. Run it as `rmdirx`, or as `gnux rmdirx`.
 rmdirx [OPTION]... DIRECTORY...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: rmdir invocation](https://www.gnu.org/software/coreutils/manual/html_node/rmdir-invocation.html)
+- [Source: src/rmdir.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/rmdir.c)
+
 ### Description
 
 `rmdirx` removes each DIRECTORY, but only when it is empty: a directory that still has entries is reported and left untouched, and so is anything that is not a directory. That makes it the safe counterpart to a recursive delete - it can never destroy file contents. `-p` also removes each parent named in the operand, so '`rmdirx -p` a/b/c' behaves like '`rmdirx` a/b/c a/b a', stopping at the first one that cannot be removed. `--ignore-fail-on-non-empty` silences the not-empty failure (and only that one), and `-v` reports every directory processed.
 
 ### Permissions
 
-Removing a directory needs write and search permission on its parent, not on the directory itself. A symbolic link to a directory is not a directory: it is refused rather than followed.
+Removing a directory needs write and search permission on its parent, not on the directory itself. A symbolic `link` to a directory is not a directory: it is refused rather than followed.
 
 ### Use cases
 
@@ -120,7 +125,7 @@ rmdirx logs; echox "exit $?"
 rmdirx logs; echox "exit $LASTEXITCODE"
 ```
 
-Use the failure as an emptiness test:
+Use the failure as an emptiness `test`:
 
 ```bash
 rmdirx logs 2>/dev/null || echox 'logs still has files'

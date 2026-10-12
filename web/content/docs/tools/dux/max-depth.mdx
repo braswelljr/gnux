@@ -1,0 +1,70 @@
+---
+title: "-d, --max-depth"
+description: "Print the total for a directory (or file, with --all) only if it is N or fewer levels below the command line argument."
+---
+
+An option of [dux](/docs/tools/dux).
+
+## Usage
+
+```bash
+dux -d N [FILE]...
+dux --max-depth=N [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-d` | `--max-depth` | `N` |  | print the total for a directory (or file, with `--all`) only if it is N or fewer levels below the command line argument |
+
+## Examples
+
+### Your disk is nearly full: list the 10 biggest directories in your home, largest first
+
+```bash tab="bash" tab-group="shell"
+dux -h -d 1 ~ | sortx -h -r | headx -n 11
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dux -h -d 1 $HOME | sortx -h -r | headx -n 11
+```
+
+```text title="Output"
+48G	/home/alice
+21G	/home/alice/Videos
+12G	/home/alice/.cache
+6.3G	/home/alice/projects
+```
+
+### Find which directory holds millions of tiny files (out of inodes)
+
+```bash tab="bash" tab-group="shell"
+dux --inodes -d 1 /var | sortx -n -r | headx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dux --inodes -d 1 C:\ProgramData | sortx -n -r | headx
+```
+
+### Report sizes in megabytes with the unit shown
+
+```bash tab="bash" tab-group="shell"
+dux -BM -d 1 /srv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dux -BM -d 1 D:\srv
+```
+
+```text title="Output"
+120M	/srv/www
+2048M	/srv/backups
+2169M	/srv
+```
+
+## Help in the terminal
+
+```bash
+gnux help dux --max-depth
+```

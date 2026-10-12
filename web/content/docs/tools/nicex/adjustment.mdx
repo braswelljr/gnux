@@ -1,0 +1,47 @@
+---
+title: "-n, --adjustment"
+description: "Add integer N to the niceness (default 10)."
+---
+
+An option of [nicex](/docs/tools/nicex).
+
+## Usage
+
+```bash
+nicex -n N [OPTION] [COMMAND [ARG]...]
+nicex --adjustment=N [OPTION] [COMMAND [ARG]...]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-n` | `--adjustment` | `N` |  | add integer N to the niceness (default 10) |
+
+## Examples
+
+### Run at the lowest priority
+
+```bash tab="bash" tab-group="shell"
+nicex -n 19 tar -czf backup.tgz data/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+nicex -n 19 tar -czf backup.tgz data
+```
+
+### Pass the adjustment as a long option
+
+```bash tab="bash" tab-group="shell"
+nicex --adjustment=15 gzip -9 big.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+nicex --adjustment=15 gzip -9 big.log
+```
+
+## Help in the terminal
+
+```bash
+gnux help nicex --adjustment
+```

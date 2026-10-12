@@ -11,6 +11,11 @@ Mirrors GNU `false`. Run it as `falsex`, or as `gnux falsex`.
 falsex [ignored command line arguments]
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: false invocation](https://www.gnu.org/software/coreutils/manual/html_node/false-invocation.html)
+- [Source: src/true.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/true.c)
+
 ## Description
 
 `falsex` exits with status 1 and does nothing else: it reads no input, writes no output and ignores every argument it is given. The only exceptions are `--help` and `--version`, which are honored when they are the sole argument. It exists so scripts have a portable command whose result is always failure.
@@ -37,73 +42,73 @@ Needs no permissions; it touches nothing.
 
 ## Examples
 
-Exit with status 1:
+### Exit with status 1
 
-```bash
+```bash tab="bash" tab-group="shell"
 falsex
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 falsex
 ```
 
-Show the exit status:
+### Show the exit status
 
-```bash
+```bash tab="bash" tab-group="shell"
 falsex; echox $?
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 falsex; echox $LASTEXITCODE
 ```
 
-Run a fallback when a command fails:
+### Run a fallback when a command fails
 
-```bash
+```bash tab="bash" tab-group="shell"
 falsex || echox 'fallback ran'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 falsex; if ($LASTEXITCODE -ne 0) { echox 'fallback ran' }
 ```
 
-Skip the command after &&:
+### Skip the command after &&
 
-```bash
+```bash tab="bash" tab-group="shell"
 falsex && echox never; echox "status: $?"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 falsex; if ($LASTEXITCODE -eq 0) { echox never }; echox "status: $LASTEXITCODE"
 ```
 
-Take the else branch of a conditional:
+### Take the else branch of a conditional
 
-```bash
+```bash tab="bash" tab-group="shell"
 if falsex; then echox yes; else echox no; fi
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 falsex; if ($LASTEXITCODE -eq 0) { echox yes } else { echox no }
 ```
 
-See `gnux shell -e` stop at the first failure:
+### See gnux shell -e stop at the first failure
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -e -c 'echox before; falsex; echox after'; echox "shell exited $?"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -e -c 'echox before; falsex; echox after'; echox "shell exited $LASTEXITCODE"
 ```
 
-Pass the status through `envx`, which exits with the command's status:
+### Pass the status through envx, which exits with the command's status
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx falsex; echox $?
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx falsex; echox $LASTEXITCODE
 ```
 

@@ -11,6 +11,11 @@ Mirrors GNU `env`. Run it as `envx`, or as `gnux envx`.
 envx [OPTION]... [-] [NAME=VALUE]... [COMMAND [ARG]...]
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: env invocation](https://www.gnu.org/software/coreutils/manual/html_node/env-invocation.html)
+- [Source: src/env.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/env.c)
+
 ## Description
 
 `envx` sets each NAME to VALUE in the environment and runs COMMAND with the remaining arguments; without a COMMAND it prints the resulting environment, one NAME=VALUE per line. `-i` (or a lone '-') starts from an empty environment, `-u` removes a variable, `-C` changes the working directory for the command and `-S` splits a single string into arguments, which is what makes options usable on a '#!' line. Printed variables keep their inherited order: assigning an existing name replaces it in place, and new names are appended. COMMAND is looked up on the PATH of the modified environment. Where GNU env replaces itself with the command, `envx` runs it as a child process connected to the same standard streams and exits with the command's status, so the behavior is identical on platforms that cannot replace a running process. The exit status is 125 if `envx` itself fails, 126 if COMMAND is found but cannot be run, 127 if COMMAND cannot be found, and otherwise the exit status of COMMAND (128 plus the signal number when a signal killed it).
@@ -49,153 +54,153 @@ Printing the environment needs no permissions. Running a command needs execute p
 
 ## Examples
 
-Print the current environment:
+### Print the current environment
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx
 ```
 
-Show only the first few variables:
+### Show only the first few variables
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx | headx -n 3
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx | headx -n 3
 ```
 
-Run a command with extra variables:
+### Run a command with extra variables
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx GOOS=windows GOARCH=amd64 go build ./...
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx GOOS=windows GOARCH=amd64 go build ./...
 ```
 
-Check that an assignment is appended to the printed environment:
+### Check that an assignment is appended to the printed environment
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx GREETING=hello | tailx -n 1
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx GREETING=hello | tailx -n 1
 ```
 
-Run a command with nothing but the variables given:
+### Run a command with nothing but the variables given
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -i PATH=/usr/bin HOME=/tmp make test
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -i "PATH=$env:PATH" "TEMP=$env:TEMP" make test
 ```
 
-Print an empty environment plus a single variable:
+### Print an empty environment plus a single variable
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -i LANG=C.UTF-8
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -i LANG=C.UTF-8
 ```
 
-Drop variables for one command (`-u` may be repeated):
+### Drop variables for one command (-u may be repeated)
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -u HOME -u USER gnux shell -c 'echox "[$HOME] [$USER]"'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -u HOME -u USER gnux shell -c 'echox "[$HOME] [$USER]"'
 ```
 
-Drop a variable and run in another directory:
+### Drop a variable and run in another directory
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -u DEBUG -C build ./configure
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -u DEBUG -C build cmake ..
 ```
 
-Run a tool in another directory without leaving this one:
+### Run a tool in another directory without leaving this one
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -C build pwdx
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -C build pwdx
 ```
 
-Print the environment NUL-separated, with the NULs made visible:
+### Print the environment NUL-separated, with the NULs made visible
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -0 -i A=1 B=2 | catx -v
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -0 -i A=1 B=2 | catx -v
 ```
 
-Split one string into a command and its arguments, as on a '#!' line:
+### Split one string into a command and its arguments, as on a '#!' line
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -S 'gnux shell -e' build.sh
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -S 'gnux shell -e' build.sh
 ```
 
-Trace each step `envx` takes before running the command:
+### Trace each step envx takes before running the command
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -v -C build pwdx
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -v -C build pwdx
 ```
 
-Run the `gnux` binary as `rmx` by setting its zeroth argument:
+### Run the gnux binary as rmx by setting its zeroth argument
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -a rmx gnux -v old.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -a rmx gnux -v old.log
 ```
 
-Tell a missing command (status 127) from a failing one:
+### Tell a missing command (status 127) from a failing one
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx no-such-command; echox "status: $?"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx no-such-command; echox "status: $LASTEXITCODE"
 ```
 
-Set a variable for a command run from the `gnux shell`:
+### Set a variable for a command run from the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'envx GREETING=hi envx | tailx -n 1'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'envx GREETING=hi envx | tailx -n 1'
 ```
 
@@ -208,7 +213,7 @@ Each option has a page of its own, with its usage and examples.
 - [-v, --debug](/docs/tools/envx/debug): Print verbose information for each processing step.
 - [-i, --ignore-environment](/docs/tools/envx/ignore-environment): Start with an empty environment.
 - [-0, --null](/docs/tools/envx/null): End each output line with NUL, not newline.
-- [-S, --split-string](/docs/tools/envx/split-string): Process and split S into separate arguments;
+- [-S, --split-string](/docs/tools/envx/split-string): Process and `split` S into separate arguments;
 used to pass multiple arguments on shebang lines.
 - [-u, --unset](/docs/tools/envx/unset): Remove variable NAME from the environment.
 

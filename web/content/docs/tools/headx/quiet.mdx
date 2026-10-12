@@ -20,13 +20,13 @@ headx --quiet [FILE]...
 
 ## Examples
 
-Print the first line of every CSV file without the file name headers:
+### Print the first line of every CSV file without the file name headers
 
-```bash
+```bash tab="bash" tab-group="shell"
 headx -q -n 1 *.csv
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 headx -q -n 1 (Get-ChildItem *.csv -Name)
 ```
 

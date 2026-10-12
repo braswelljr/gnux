@@ -19,23 +19,23 @@ rmdirx --ignore-fail-on-non-empty DIRECTORY...
 
 ## Examples
 
-Clean up whatever is empty without failing on the rest:
+### Clean up whatever is empty without failing on the rest
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx --ignore-fail-on-non-empty cache logs tmp
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx --ignore-fail-on-non-empty cache logs tmp
 ```
 
-Prune parents as far as they are empty, stopping quietly at the first that is not:
+### Prune parents as far as they are empty, stopping quietly at the first that is not
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx -p --ignore-fail-on-non-empty keep/sub
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx -p --ignore-fail-on-non-empty keep\sub
 ```
 

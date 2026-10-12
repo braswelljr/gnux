@@ -8,14 +8,30 @@ A matrix build across `ubuntu-latest`, `macos-latest` and `windows-latest` usual
 
 - one script, run with `gnux shell -e`, does the same thing on all three runners;
 - `rmx -rf`, `mkdirx -p` and `cpx -r` behave identically, including their diagnostics;
-- the only dependency is one static binary, installed in seconds with `go install`;
+- the only dependency is one static binary, installed in seconds with the setup-gnux action or `go install`;
 - exit statuses follow GNU, and `-e` stops at the first failure, so a broken step fails the job.
 
 ## GitHub Actions
 
-### Install once, use everywhere
+### Install with the setup-gnux action
 
-`actions/setup-go` puts `$(go env GOPATH)/bin` on the `PATH`, so a `go install` is all it takes. Link the tool names if you want `rmx` rather than `gnux rmx`.
+The gnux repository is itself a GitHub Action. It downloads a release archive for the runner's OS and architecture, checks it against the release's `checksums.txt`, and puts `gnux` and every tool name on the `PATH` for the rest of the job. No Go toolchain is needed.
+
+```yaml
+- uses: braswelljr/gnux@v0
+  with:
+    version: latest       # or a release tag, such as v0.1.0
+    links: true           # rmx, cpx, lsx, ... as commands of their own (the default)
+    gnu-names: false      # true also puts rm, cp, ls, ... first on PATH
+
+- run: rmx -rf build && mkdirx -p build && cpx -r assets build/
+```
+
+It runs on Linux, macOS and Windows runners, on x64 and ARM64. On Windows each tool name is a copy of `gnux.exe`, so no symlink privileges are needed, and the tools work from `bash` and `pwsh` steps alike. The step's outputs are `version` (the installed tag) and `path` (the directory it added to `PATH`).
+
+### Install with `go install`
+
+Without the action, `actions/setup-go` puts `$(go env GOPATH)/bin` on the `PATH`, so a `go install` is all it takes. Link the tool names if you want `rmx` rather than `gnux rmx`.
 
 ```yaml
 - uses: actions/setup-go@v5
@@ -54,12 +70,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-
-      - name: Install gnux
-        run: go install github.com/braswelljr/gnux@latest
+      - uses: braswelljr/gnux@v0
 
       # The same script on every runner: no bash on Windows, no pwsh on Linux.
       - name: Stage the release tree

@@ -1,0 +1,37 @@
+---
+title: "-V, --version-sort"
+description: "Natural sort of (version) numbers within text."
+---
+
+An option of [sortx](/docs/tools/sortx).
+
+## Usage
+
+```bash
+sortx -V [FILE]...
+sortx --version-sort [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-V` | `--version-sort` | none |  | natural sort of (version) numbers within text |
+
+## Examples
+
+### Sort version numbers naturally
+
+```bash tab="bash" tab-group="shell"
+printf 'v1.10\nv1.2\nv1.9\n' | sortx -V
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+'v1.10', 'v1.2', 'v1.9' | sortx -V
+```
+
+## Help in the terminal
+
+```bash
+gnux help sortx --version-sort
+```

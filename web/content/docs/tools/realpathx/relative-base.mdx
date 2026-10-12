@@ -19,13 +19,13 @@ realpathx --relative-base=DIR FILE...
 
 ## Examples
 
-Make names under the project relative, but leave outside ones absolute:
+### Make names under the project relative, but leave outside ones absolute
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx --relative-base=. lib/util.go /etc/hosts
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx --relative-base=. lib\util.go $env:WINDIR\System32\drivers\etc\hosts
 ```
 

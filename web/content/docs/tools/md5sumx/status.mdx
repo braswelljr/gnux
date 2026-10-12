@@ -1,0 +1,36 @@
+---
+title: "--status"
+description: "Don't output anything, status code shows success."
+---
+
+An option of [md5sumx](/docs/tools/md5sumx).
+
+## Usage
+
+```bash
+md5sumx --status [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--status` | none |  | don't output anything, status code shows success |
+
+## Examples
+
+### In CI, fail the build when a vendored file was changed by hand
+
+```bash tab="bash" tab-group="shell"
+md5sumx -c --status vendor.md5sums || { echox 'vendored files changed' >&2; exit 1; }
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx -c --status vendor.md5sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
+```
+
+## Help in the terminal
+
+```bash
+gnux help md5sumx --status
+```

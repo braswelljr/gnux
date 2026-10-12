@@ -36,39 +36,39 @@ This is a path check, not a permission check: `rmx` refuses '/' before it touche
 
 ## Examples
 
-The default failsafe refuses to recurse on the root:
+### The default failsafe refuses to recurse on the root
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -r /
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -r C:\
 ```
 
-Disable the failsafe (dangerous - only when you mean it):
+### Disable the failsafe (dangerous - only when you mean it)
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -r --no-preserve-root /mnt/scratch
 ```
 
-State the default explicitly in a script:
+### State the default explicitly in a script
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rf --preserve-root "$BUILD_DIR/"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -rf --preserve-root "$env:BUILD_DIR\"
 ```
 
-The failsafe makes the command fail, which a script can detect:
+### The failsafe makes the command fail, which a script can detect
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rf / || echox "refused, status $?"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -rf C:\; if ($LASTEXITCODE -ne 0) { echox "refused, status $LASTEXITCODE" }
 ```
 

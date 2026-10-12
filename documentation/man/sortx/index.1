@@ -1,0 +1,206 @@
+.nh
+.TH "SORTX" "1" "Jan 2024" "gnux" "gnux manual"
+
+.SH NAME
+sortx - Sort lines of text files.
+
+
+.SH SYNOPSIS
+\fBsortx [OPTION]... [FILE]...\fP
+
+
+.SH DESCRIPTION
+sortx writes the sorted concatenation of all FILEs to standard output. With no FILE, or when FILE is -, it reads standard input. By default whole lines are compared byte by byte. -n, -g, -h, -M and -V compare as numbers, floating-point numbers, sizes with SI suffixes (2K, 1G), month names and version numbers; -b, -d, -f and -i ignore leading blanks, keep only blanks and alphanumerics, fold case and keep only printable characters; -r reverses the result. -k POS1[,POS2] sorts on a key, where each POS is F[.C][OPTS]: field F, character C, and any of the ordering letters bdfghiMnrV, which then apply to that key alone. A key with no letters inherits the global options. Fields are separated by -t SEP, or else by the change from a non-blank to a blank character, so a field keeps its leading blanks. When all keys compare equal, the whole lines are compared as a last resort, unless -s (stable) or -u (unique, which keeps the first of each run of equal lines) is given. -c and -C check whether the input is already sorted, -m merges inputs that already are, -o FILE writes the result to FILE (which may be one of the inputs), and -z makes NUL the line delimiter. Ordering options that contradict each other, such as -n with -g, are refused. Differences from GNU sort: comparison always follows the C locale (byte order, ASCII case folding and month names, '.' as the decimal point, no thousands separator) whatever LANG and LC_ALL say; -R, --random-sort, --random-source and --debug are not implemented; -S, -T, --parallel, --batch-size and --compress-program are accepted and ignored, because sortx sorts in memory; when -c and -C are both given, the diagnosing -c wins whatever their order, so disorder is never hidden.
+
+.PP
+EXIT STATUS.
+  0  success; with -c or -C, the input is sorted
+  1  with -c or -C, the input is not sorted
+  2  trouble: an input could not be read, the output could not be written, or a command-line mistake
+
+.PP
+HELP. sortx --help shows the options and the first examples; gnux help sortx prints the full manual, and gnux help sortx OPTION explains one option.
+
+.PP
+SEE ALSO. headx, tailx, wcx, catx.
+
+.PP
+PERMISSIONS. Needs read permission on each FILE and search permission on the directories leading to it. With -o, needs write permission on the output file, or on its directory when it does not exist yet. Every input is checked to be readable before the output file is opened, and the output is only emptied once all input has been read, so sorting a file onto itself is safe.
+
+.PP
+USE CASES.
+  - Putting a list of names, words or paths into a predictable order.
+  - Ordering numbers or sizes correctly with -n or -h instead of alphabetically.
+  - Sorting a CSV-like or colon-separated file on one column with -t and -k.
+  - Removing duplicate lines in one step with -u.
+  - Sorting release tags or file names that contain version numbers with -V.
+  - Finding the largest entries of a listing with -rn and headx.
+  - Merging several already sorted files cheaply with -m.
+  - Verifying in a script that a file is sorted with -c or -C.
+  - Sorting a file in place with -o.
+  - Handling NUL-separated file lists safely with -z.
+
+
+.SH OPTIONS
+\fB--batch-size\fP=0
+	accepted for compatibility and ignored (merge at most \fBNMERGE\fR inputs at once)
+
+.PP
+\fB-S\fP, \fB--buffer-size\fP=""
+	accepted for compatibility and ignored (\fBSIZE\fR of the main memory buffer)
+
+.PP
+\fB-c\fP, \fB--check\fP[=""]
+	check for sorted input; do not sort. \fBWHEN\fR (diagnose-first, quiet, silent) says whether to report the first disorder
+
+.PP
+\fB-C\fP, \fB--check-quiet\fP[=false]
+	like -c, but do not report first bad line
+
+.PP
+\fB--compress-program\fP=""
+	accepted for compatibility and ignored (\fBPROG\fR to compress temporaries)
+
+.PP
+\fB-d\fP, \fB--dictionary-order\fP[=false]
+	consider only blanks and alphanumeric characters
+
+.PP
+\fB-t\fP, \fB--field-separator\fP=""
+	use \fBSEP\fR instead of non-blank to blank transition
+
+.PP
+\fB--files0-from\fP=""
+	read input from the files specified by NUL-terminated names in file \fBF\fR; if F is - then read names from standard input
+
+.PP
+\fB-g\fP, \fB--general-numeric-sort\fP[=false]
+	compare according to general numerical value
+
+.PP
+\fB--help\fP[=false]
+	display this help and exit
+
+.PP
+\fB-h\fP, \fB--human-numeric-sort\fP[=false]
+	compare human readable numbers (e.g., 2K 1G)
+
+.PP
+\fB-f\fP, \fB--ignore-case\fP[=false]
+	fold lower case to upper case characters
+
+.PP
+\fB-b\fP, \fB--ignore-leading-blanks\fP[=false]
+	ignore leading blanks
+
+.PP
+\fB-i\fP, \fB--ignore-nonprinting\fP[=false]
+	consider only printable characters
+
+.PP
+\fB-k\fP, \fB--key\fP=[]
+	sort via a key; \fBKEYDEF\fR gives location and type
+
+.PP
+\fB-m\fP, \fB--merge\fP[=false]
+	merge already sorted files; do not sort
+
+.PP
+\fB-M\fP, \fB--month-sort\fP[=false]
+	compare (unknown) < 'JAN' < ... < 'DEC'
+
+.PP
+\fB-n\fP, \fB--numeric-sort\fP[=false]
+	compare according to string numerical value
+
+.PP
+\fB-o\fP, \fB--output\fP=""
+	write result to \fBFILE\fR instead of standard output
+
+.PP
+\fB--parallel\fP=0
+	accepted for compatibility and ignored (\fBN\fR concurrent sorts)
+
+.PP
+\fB-r\fP, \fB--reverse\fP[=false]
+	reverse the result of comparisons
+
+.PP
+\fB--sort\fP=""
+	sort according to \fBWORD\fR: general-numeric -g, human-numeric -h, month -M, numeric -n, version -V
+
+.PP
+\fB-s\fP, \fB--stable\fP[=false]
+	stabilize sort by disabling last-resort comparison
+
+.PP
+\fB-T\fP, \fB--temporary-directory\fP=[]
+	accepted for compatibility and ignored (\fBDIR\fR for temporaries)
+
+.PP
+\fB-u\fP, \fB--unique\fP[=false]
+	output only the first of an equal run
+
+.PP
+\fB--version\fP[=false]
+	output version information and exit
+
+.PP
+\fB-V\fP, \fB--version-sort\fP[=false]
+	natural sort of (version) numbers within text
+
+.PP
+\fB-z\fP, \fB--zero-terminated\fP[=false]
+	line delimiter is NUL, not newline
+
+
+.SH EXAMPLE
+.EX
+  # Sort the lines of a file
+  sortx names.txt
+
+  # Sort in reverse order
+  sortx -r names.txt
+
+  # Sort numbers by value rather than as text
+  sortx -n numbers.txt
+
+  # Sort and drop duplicate lines
+  sortx -u words.txt
+
+  # Sort case-insensitively
+  sortx -f names.txt
+
+  # Sort a colon-separated file numerically on its third field
+  sortx -t : -k 3,3n /etc/passwd
+
+  # Sort on the second column, then by the first in reverse
+  sortx -k 2,2 -k 1,1r scores.txt
+
+  # Sort human-readable sizes
+  printf '2K\\n1G\\n10M\\n' | sortx -h
+
+  # Sort version numbers naturally
+  printf 'v1.10\\nv1.2\\nv1.9\\n' | sortx -V
+
+  # Print the three largest numbers of a file
+  sortx -rn numbers.txt | headx -n 3
+
+  # Sort a file in place
+  sortx -o names.txt names.txt
+
+  # Merge files that are already sorted
+  sortx -m jan.txt feb.txt mar.txt
+
+  # Fail a script when a file is not sorted (exit status 1)
+  sortx -C names.txt || echox 'names.txt is not sorted'
+
+  # Report the first line out of order
+  sortx -c names.txt
+
+  # Sort a NUL-separated list of file names
+  find . -print0 | sortx -z
+
+  # Sort a directory listing in the portable gnux shell
+  gnux shell -c 'lsx -1 | sortx -r'
+.EE

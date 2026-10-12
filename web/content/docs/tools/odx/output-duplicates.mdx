@@ -1,0 +1,37 @@
+---
+title: "-v, --output-duplicates"
+description: "Do not use * to mark line suppression."
+---
+
+An option of [odx](/docs/tools/odx).
+
+## Usage
+
+```bash
+odx -v [FILE]...
+odx --output-duplicates [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-v` | `--output-duplicates` | none |  | do not use * to mark line suppression |
+
+## Examples
+
+### Print every line, even repeated ones
+
+```bash tab="bash" tab-group="shell"
+odx -v -t x1 zeros.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -v -t x1 zeros.bin
+```
+
+## Help in the terminal
+
+```bash
+gnux help odx --output-duplicates
+```

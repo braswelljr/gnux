@@ -26,3 +26,20 @@ updates:
       prefix: fix
       prefix-development: chore
       include: scope
+
+  # The website's packages (web/ is pnpm; Dependabot reads pnpm-lock.yaml).
+  - package-ecosystem: npm
+    directory: "/web"
+    schedule:
+      interval: weekly
+    reviewers:
+      - braswelljr
+    assignees:
+      - braswelljr
+    commit-message:
+      prefix: fix
+      prefix-development: chore
+      include: scope
+    groups:
+      web:
+        patterns: ["*"]

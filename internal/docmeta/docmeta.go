@@ -53,12 +53,18 @@ func DefaultExitStatus(usageExit int) []Status {
 	}
 }
 
-// Example is one worked example: a description plus the equivalent command in
-// each shell. PowerShell may be empty when it adds nothing over Bash.
+// Example is one worked example: the situation it solves, the equivalent
+// command in each shell, and optionally what the user sees. PowerShell may be
+// empty when it adds nothing over Bash.
 type Example struct {
+	// Description is the scenario, written from the user's side ("Verify the
+	// ISO you just downloaded:"), not a restatement of a flag.
 	Description string
 	Bash        string
 	PowerShell  string
+	// Output is what the command prints in that scenario, when showing it
+	// helps; it is illustrative, not checked.
+	Output string
 }
 
 // ExampleBlock renders examples as a plain, indented shell block: the form

@@ -10,6 +10,11 @@ Mirrors GNU `cat`. Run it as `catx`, or as `gnux catx`.
 catx [OPTION]... [FILE]...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: cat invocation](https://www.gnu.org/software/coreutils/manual/html_node/cat-invocation.html)
+- [Source: src/cat.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/cat.c)
+
 ### Description
 
 `catx` writes each FILE to standard output, one after another. With no FILE, or when FILE is -, it reads standard input. Without options the bytes are copied untouched, so it is safe for binary data. `-n` numbers every output line and `-b` only the non-empty ones, with the numbering continuing across files; `-s` squeezes runs of empty lines into one. `-E` marks line ends with $, `-T` shows tabs as ^I and `-v` shows other control and non-ASCII bytes in ^X and M- notation; `-A` turns all three on. A file that cannot be read is reported and the remaining files are still printed.
@@ -26,7 +31,7 @@ Needs read permission on each FILE and search permission on the directories lead
 - Finding stray tabs, trailing spaces, CRLF line endings or control characters with `-A`.
 - Appending one file to another with >>, such as adding a section to a changelog.
 - Collapsing runs of blank lines in generated text with `-s`.
-- Reassembling a file that was split into numbered parts.
+- Reassembling a file that was `split` into numbered parts.
 - Writing a here-document or piped text into a file from a script.
 - Checking that a set of files is readable, relying on the exit status.
 
@@ -69,7 +74,7 @@ catx part1.txt part2.txt > whole.txt
 catx part1.txt part2.txt | Out-File -Encoding utf8 whole.txt
 ```
 
-Reassemble a file split into numbered parts (binary safe; on Windows let the `gnux shell` do the redirection):
+Reassemble a file `split` into numbered parts (binary safe; on Windows let the `gnux shell` do the redirection):
 
 ```bash
 catx archive.tar.part-* > archive.tar

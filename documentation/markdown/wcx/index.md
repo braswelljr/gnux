@@ -10,6 +10,11 @@ Mirrors GNU `wc`. Run it as `wcx`, or as `gnux wcx`.
 wcx [OPTION]... [FILE]...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: wc invocation](https://www.gnu.org/software/coreutils/manual/html_node/wc-invocation.html)
+- [Source: src/wc.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/wc.c)
+
 ### Description
 
 `wcx` prints the number of lines, words and bytes in each FILE, followed by the file name, and a 'total' line when more than one FILE is given. With no FILE, or when FILE is -, it reads standard input. `-l`, `-w`, `-m`, `-c` and `-L` select which counts to print: newlines, words, characters, bytes and the display width of the longest line. Whatever the order of the options, the counts are always printed in the order lines, words, characters, bytes, maximum line length. A word is a run of non-whitespace characters; input is decoded as UTF-8, and bytes that are not valid UTF-8 count toward words and bytes but not characters. `--total`=WHEN controls the summary line and `--files0-from`=F reads the file names, NUL-terminated, from F. Columns are right-aligned to a width derived from the files' sizes, as in GNU `wc`.

@@ -29,7 +29,8 @@ const guideIntro = `gnux brings the interface of the GNU core utilities to every
 var guideSections = []section{
 	{"Requirements", []string{
 		`Running gnux needs nothing but the binary: it is statically linked, has no runtime ` +
-			`dependencies, and supports Linux and macOS on amd64 and arm64 and Windows on amd64.`,
+			`dependencies, and supports Linux on amd64, arm64 and riscv64, macOS and FreeBSD on amd64 ` +
+			`and arm64, and Windows on amd64 and arm64.`,
 		`Installing with go install, building from source, or importing the engines as a library ` +
 			`needs Go 1.25 or newer, plus git.`,
 		`The per-tool commands are links to the one binary, so they need a filesystem with symbolic ` +
@@ -45,6 +46,12 @@ var guideSections = []section{
 		`To make each tool a command of its own, link the binary to the tool names: make links does ` +
 			`this for a source build, make install/links and install.sh do it next to the installed ` +
 			`binary, and the examples show the loop to run by hand.`,
+		`Each release is also published as an archive per platform with a checksums file, to ` +
+			`Homebrew (brew install --cask braswelljr/tap/gnux), Scoop and winget (winget install ` +
+			`braswelljr.gnux). In GitHub Actions, the step uses: braswelljr/gnux@v0 installs a release ` +
+			`on any runner and puts every tool on PATH.`,
+		`gnux completion SHELL prints a tab-completion script for bash, zsh, fish or powershell; ` +
+			`the release archives carry them pre-generated.`,
 	}},
 	{"Usage", []string{
 		`There are two ways to run a tool. As a subcommand, pass the tool name first: gnux rmx -rf ` +

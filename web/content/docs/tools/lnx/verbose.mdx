@@ -20,33 +20,33 @@ lnx --verbose TARGET... [LINK_NAME|DIRECTORY]
 
 ## Examples
 
-Create a hard link, reporting what was done:
+### Create a hard link, reporting what was done
 
-```bash
+```bash tab="bash" tab-group="shell"
 lnx -v data.db data.db.snapshot
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lnx -v data.db data.db.snapshot
 ```
 
-Link several targets into an existing directory:
+### Link several targets into an existing directory
 
-```bash
+```bash tab="bash" tab-group="shell"
 lnx -sv ../dotfiles/.vimrc ../dotfiles/.gitconfig home/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lnx -sv ..\dotfiles\.vimrc ..\dotfiles\.gitconfig home
 ```
 
-Create a release directory and point current at it with the `gnux shell`:
+### Create a release directory and point current at it with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
 ```
 

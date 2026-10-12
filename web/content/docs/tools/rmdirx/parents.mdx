@@ -20,43 +20,43 @@ rmdirx --parents DIRECTORY...
 
 ## Examples
 
-Remove a directory and its now-empty parents, reporting each:
+### Remove a directory and its now-empty parents, reporting each
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx -pv out/reports/2024
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx -pv out\reports\2024
 ```
 
-Remove a chain of parents and confirm the top one is gone:
+### Remove a chain of parents and confirm the top one is gone
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx -p x/y/z && echox 'x is gone'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx -p x\y\z; if ($LASTEXITCODE -eq 0) { echox 'x is gone' }
 ```
 
-Prune parents as far as they are empty, stopping quietly at the first that is not:
+### Prune parents as far as they are empty, stopping quietly at the first that is not
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmdirx -p --ignore-fail-on-non-empty keep/sub
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmdirx -p --ignore-fail-on-non-empty keep\sub
 ```
 
-Create and then remove a temporary staging tree with the `gnux shell`:
+### Create and then remove a temporary staging tree with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'mkdirx -p staging/a && rmdirx -pv staging/a'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'mkdirx -p staging/a && rmdirx -pv staging/a'
 ```
 

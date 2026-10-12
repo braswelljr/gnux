@@ -1,5 +1,6 @@
 # Requirement enforced: gnux cross-compiles, statically (CGO_ENABLED=0), for
-# every platform it supports - linux and darwin on amd64/arm64, windows on amd64.
+# every platform it supports - linux on amd64/arm64/riscv64, darwin and freebsd
+# on amd64/arm64, windows on amd64/arm64 (NFR-1).
 name: Build
 
 on:
@@ -19,9 +20,13 @@ jobs:
         include:
           - { goos: linux, goarch: amd64 }
           - { goos: linux, goarch: arm64 }
+          - { goos: linux, goarch: riscv64 }
           - { goos: darwin, goarch: amd64 }
           - { goos: darwin, goarch: arm64 }
+          - { goos: freebsd, goarch: amd64 }
+          - { goos: freebsd, goarch: arm64 }
           - { goos: windows, goarch: amd64 }
+          - { goos: windows, goarch: arm64 }
     runs-on: ubuntu-latest
 
     steps:

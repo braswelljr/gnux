@@ -11,6 +11,11 @@ Mirrors GNU `basename`. Run it as `basenamex`, or as `gnux basenamex`.
 basenamex [OPTION]... NAME [SUFFIX]
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: basename invocation](https://www.gnu.org/software/coreutils/manual/html_node/basename-invocation.html)
+- [Source: src/basename.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/basename.c)
+
 ## Description
 
 `basenamex` prints NAME with any leading directory components removed. Trailing slashes are ignored, so 'dir/' yields 'dir', and a name made only of slashes yields the root. If SUFFIX is given and NAME ends with it, the suffix is removed too - unless that would leave nothing. With `-a` every operand is a NAME; `-s` supplies the suffix for all of them and implies `-a`. `-z` separates the output with NUL instead of newlines, for names that may contain newlines.
@@ -41,133 +46,133 @@ basenamex [OPTION]... NAME [SUFFIX]
 
 ## Examples
 
-Print the last component of a path:
+### Print the last component of a path
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex /usr/bin/sort
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex C:\Windows\System32\sort.exe
 ```
 
-Ignore trailing slashes:
+### Ignore trailing slashes
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex /home/user/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex C:\Users\user\
 ```
 
-Drop the directory and the extension:
+### Drop the directory and the extension
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex include/stdio.h .h
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex include\stdio.h .h
 ```
 
-Remove a multi-part extension:
+### Remove a multi-part extension
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex --suffix=.tar.gz release/gnux-1.0.tar.gz
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex --suffix=.tar.gz release\gnux-1.0.tar.gz
 ```
 
-Keep the name when removing the suffix would leave nothing:
+### Keep the name when removing the suffix would leave nothing
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex .h .h
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex .h .h
 ```
 
-Treat every operand as a NAME:
+### Treat every operand as a NAME
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex -a /var/log/syslog /etc/hosts
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex -a C:\Windows\win.ini C:\Windows\System32\drivers\etc\hosts
 ```
 
-Strip a suffix from several names at once:
+### Strip a suffix from several names at once
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex -s .go cmd/main.go core/core.go
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex -s .go cmd\main.go core\core.go
 ```
 
-Strip an extension from every match of a glob:
+### Strip an extension from every match of a glob
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex -s .jpg photos/*.jpg
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex -s .jpg (Get-ChildItem photos\*.jpg)
 ```
 
-Separate the output with NUL bytes instead of newlines:
+### Separate the output with NUL bytes instead of newlines
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex -a -z a/b c/d | od -c
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex -a -z a\b c\d | Format-Hex
 ```
 
-Print the name of the running script:
+### Print the name of the running script
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex "$0"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex $PSCommandPath
 ```
 
-Back up every photo under its base name:
+### Back up every photo under its base name
 
-```bash
+```bash tab="bash" tab-group="shell"
 for f in photos/*.jpg; do cpx "$f" "out/$(basenamex "$f" .jpg).bak"; done
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 Get-ChildItem photos\*.jpg | ForEach-Object { cpx $_.FullName "out\$(basenamex $_.Name .jpg).bak" }
 ```
 
-Create a directory named after an archive:
+### Create a directory named after an archive
 
-```bash
+```bash tab="bash" tab-group="shell"
 name=$(basenamex -s .tar.gz gnux-1.0.tar.gz) && mkdirx "$name"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 $name = basenamex -s .tar.gz gnux-1.0.tar.gz; mkdirx $name
 ```
 
-Strip a directory and extension from several logs with the `gnux shell`:
+### Strip a directory and extension from several logs with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'basenamex -s .log /var/log/app.log /var/log/db.log'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'basenamex -s .log /var/log/app.log /var/log/db.log'
 ```
 

@@ -11,6 +11,11 @@ Mirrors GNU `dirname`. Run it as `dirnamex`, or as `gnux dirnamex`.
 dirnamex [OPTION] NAME...
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: dirname invocation](https://www.gnu.org/software/coreutils/manual/html_node/dirname-invocation.html)
+- [Source: src/dirname.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/dirname.c)
+
 ## Description
 
 `dirnamex` prints each NAME with its last non-slash component and trailing slashes removed. If NAME contains no slash the result is '.', the current directory, and anything directly under the root yields the root itself. The rest of the path is left exactly as written: no symbolic links are resolved and no '.' or '..' components are collapsed. `-z` separates the output with NUL instead of newlines, for names that may contain newlines.
@@ -39,133 +44,133 @@ dirnamex [OPTION] NAME...
 
 ## Examples
 
-Print the directory part of a path:
+### Print the directory part of a path
 
-```bash
+```bash tab="bash" tab-group="shell"
 dirnamex /usr/bin/sort
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 dirnamex C:\Windows\System32\sort.exe
 ```
 
-Handle several names at once:
+### Handle several names at once
 
-```bash
+```bash tab="bash" tab-group="shell"
 dirnamex dir1/str dir2/str stdio.h
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 dirnamex dir1\str dir2\str stdio.h
 ```
 
-Ignore trailing slashes:
+### Ignore trailing slashes
 
-```bash
+```bash tab="bash" tab-group="shell"
 dirnamex /usr/bin/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 dirnamex C:\Windows\System32\
 ```
 
-Get '.' for a bare name and the root for a top-level entry:
+### Get '.' for a bare name and the root for a top-level entry
 
-```bash
+```bash tab="bash" tab-group="shell"
 dirnamex stdio.h /etc
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 dirnamex stdio.h \Windows
 ```
 
-Leave '.' and '..' exactly as written (no normalization):
+### Leave '.' and '..' exactly as written (no normalization)
 
-```bash
+```bash tab="bash" tab-group="shell"
 dirnamex a/../b/./c
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 dirnamex a\..\b\.\c
 ```
 
-Separate the output with NUL bytes instead of newlines:
+### Separate the output with NUL bytes instead of newlines
 
-```bash
+```bash tab="bash" tab-group="shell"
 dirnamex -z a/b c/d | od -c
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 dirnamex -z a\b c\d | Format-Hex
 ```
 
-Create the directory a file will be written to:
+### Create the directory a file will be written to
 
-```bash
+```bash tab="bash" tab-group="shell"
 mkdirx -p "$(dirnamex out/reports/q1.csv)"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 mkdirx -p (dirnamex out\reports\q1.csv)
 ```
 
-Create a log file's directory, then the file:
+### Create a log file's directory, then the file
 
-```bash
+```bash tab="bash" tab-group="shell"
 d=$(dirnamex logs/2024/app.log) && mkdirx -p "$d" && touchx logs/2024/app.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 $d = dirnamex logs\2024\app.log; mkdirx -p $d; touchx logs\2024\app.log
 ```
 
-Change to the directory a script lives in:
+### Change to the directory a script lives in
 
-```bash
+```bash tab="bash" tab-group="shell"
 cd "$(dirnamex "$0")" && pwdx
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 Set-Location (dirnamex $PSCommandPath); pwdx
 ```
 
-Go up two levels:
+### Go up two levels
 
-```bash
+```bash tab="bash" tab-group="shell"
 dirnamex "$(dirnamex /srv/app/releases/v1/bin)"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 dirnamex (dirnamex C:\srv\app\releases\v1\bin)
 ```
 
-Print the name of the folder that contains a file:
+### Print the name of the folder that contains a file
 
-```bash
+```bash tab="bash" tab-group="shell"
 basenamex "$(dirnamex /var/lib/app/data.db)"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 basenamex (dirnamex C:\ProgramData\app\data.db)
 ```
 
-Find the real directory of a file behind symbolic links:
+### Find the real directory of a file behind symbolic links
 
-```bash
+```bash tab="bash" tab-group="shell"
 dirnamex "$(realpathx scripts/run.sh)"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 dirnamex (realpathx scripts\run.sh)
 ```
 
-Split several paths into their directories with the `gnux shell`:
+### Split several paths into their directories with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'dirnamex src/main.go docs/guide.md README.md'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'dirnamex src/main.go docs/guide.md README.md'
 ```
 

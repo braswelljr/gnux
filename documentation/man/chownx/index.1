@@ -1,0 +1,137 @@
+.nh
+.TH "CHOWNX" "1" "Jan 2024" "gnux" "gnux manual"
+
+.SH NAME
+chownx - Change file owner and group.
+
+
+.SH SYNOPSIS
+\fBchownx [OPTION]... [OWNER][:[GROUP]] FILE...\fP
+
+
+.SH DESCRIPTION
+chownx changes the owner and/or group of each FILE. OWNER and GROUP are names or numeric IDs: 'OWNER' changes the owner only, 'OWNER:GROUP' both, 'OWNER:' the owner and the group to OWNER's login group, and ':GROUP' the group only; an empty spec changes nothing but still checks that each FILE exists. --reference=RFILE takes the owner and group from RFILE instead, and then every operand is a FILE. --from=CURRENT_OWNER:CURRENT_GROUP changes only the files currently owned as stated (either part may be omitted). A symbolic link given as a FILE is followed, and its referent changed, unless -h is given; when both -h and --dereference are given, -h wins. -R changes directory trees, following no symbolic link by default (-P); -H follows the ones given on the command line and -L every one, and when several are given the most cautious wins (-P, then -H, then -L). -c reports each change, -v every file, and -f suppresses most error messages. Unlike GNU chown, which leaves the safeguard off unless --preserve-root is given, chownx refuses to work recursively on '/' unless --no-preserve-root is given; when both are given, --preserve-root wins. On Windows, which has no Unix owners, every change fails with 'Operation not supported'.
+
+.PP
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+.PP
+HELP. chownx --help shows the options and the first examples; gnux help chownx prints the full manual, and gnux help chownx OPTION explains one option.
+
+.PP
+SEE ALSO. chgrpx, chmodx, idx, lsx, statx.
+
+.PP
+PERMISSIONS. Changing a file's owner requires root (or CAP_CHOWN). Without it, the owner of a file may change its group, but only to a group they belong to. Search permission is needed on the directories leading to each FILE, and with -R read and search permission on every directory in the tree.
+
+.PP
+USE CASES.
+  - Handing files created as root back to the user who will maintain them.
+  - Giving a service account ownership of its data directory with -R.
+  - Fixing ownership after copying files between machines or containers.
+  - Changing only the files still owned by a departed user with --from.
+  - Copying the ownership of one file onto others with --reference.
+
+
+.SH OPTIONS
+\fB-c\fP, \fB--changes\fP[=false]
+	like verbose but report only when a change is made
+
+.PP
+\fB--dereference\fP[=false]
+	affect the referent of each symbolic link (this is the default), rather than the symbolic link itself
+
+.PP
+\fB-L\fP, \fB--dereference-all\fP[=false]
+	with -R, traverse every symbolic link to a directory encountered
+
+.PP
+\fB-H\fP, \fB--dereference-args\fP[=false]
+	with -R, follow symbolic links to directories given on the command line
+
+.PP
+\fB--from\fP=""
+	change the ownership of each file only if its current owner and/or group match those specified here; either may be omitted (\fBCURRENT_OWNER:CURRENT_GROUP\fR)
+
+.PP
+\fB--help\fP[=false]
+	display this help and exit
+
+.PP
+\fB-h\fP, \fB--no-dereference\fP[=false]
+	affect symbolic links instead of any referenced file
+
+.PP
+\fB--no-preserve-root\fP[=false]
+	do not treat '/' specially
+
+.PP
+\fB-P\fP, \fB--physical\fP[=false]
+	with -R, do not traverse any symbolic links (default)
+
+.PP
+\fB--preserve-root\fP[=false]
+	fail to operate recursively on '/' (the default)
+
+.PP
+\fB--quiet\fP[=false]
+	same as --silent
+
+.PP
+\fB-R\fP, \fB--recursive\fP[=false]
+	operate on files and directories recursively
+
+.PP
+\fB--reference\fP=""
+	use \fBRFILE\fR\&'s ownership rather than specifying values
+
+.PP
+\fB-f\fP, \fB--silent\fP[=false]
+	suppress most error messages
+
+.PP
+\fB-v\fP, \fB--verbose\fP[=false]
+	output a diagnostic for every file processed
+
+.PP
+\fB--version\fP[=false]
+	output version information and exit
+
+
+.SH EXAMPLE
+.EX
+  # Give a file to another user
+  sudo chownx alice report.txt
+
+  # Change the owner and group
+  sudo chownx alice:staff report.txt
+
+  # Change only the group
+  chownx :staff report.txt
+
+  # Use the owner's login group
+  sudo chownx alice: report.txt
+
+  # Use numeric IDs
+  sudo chownx 1000:1000 data.db
+
+  # Change a whole directory tree
+  sudo chownx -R www-data:www-data /var/www/site
+
+  # Change a symbolic link itself
+  sudo chownx -h alice link
+
+  # Change only the files a departed user still owns
+  sudo chownx -R --from=bob alice /srv/shared
+
+  # Copy the ownership of another file
+  sudo chownx --reference=template.conf new.conf
+
+  # Report only the files that changed
+  sudo chownx -c -R alice project/
+
+  # Change ownership in the portable gnux shell
+  sudo gnux shell -c 'chownx -R alice:staff project && lsx -l project'
+.EE

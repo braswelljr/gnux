@@ -1,0 +1,57 @@
+---
+title: "-r, --reverse"
+description: "Reverse the result of comparisons."
+---
+
+An option of [sortx](/docs/tools/sortx).
+
+## Usage
+
+```bash
+sortx -r [FILE]...
+sortx --reverse [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-r` | `--reverse` | none |  | reverse the result of comparisons |
+
+## Examples
+
+### Sort in reverse order
+
+```bash tab="bash" tab-group="shell"
+sortx -r names.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sortx -r names.txt
+```
+
+### Print the three largest numbers of a file
+
+```bash tab="bash" tab-group="shell"
+sortx -rn numbers.txt | headx -n 3
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sortx -rn numbers.txt | headx -n 3
+```
+
+### Sort a directory listing in the portable gnux shell
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'lsx -1 | sortx -r'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'lsx -1 | sortx -r'
+```
+
+## Help in the terminal
+
+```bash
+gnux help sortx --reverse
+```

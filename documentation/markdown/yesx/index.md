@@ -10,6 +10,11 @@ Mirrors GNU `yes`. Run it as `yesx`, or as `gnux yesx`.
 yesx [STRING]...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: yes invocation](https://www.gnu.org/software/coreutils/manual/html_node/yes-invocation.html)
+- [Source: src/yes.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/yes.c)
+
 ### Description
 
 `yesx` repeatedly writes a line made of every STRING joined by single spaces, or 'y' when none is given, until it is killed or its output is closed. Output is written in large batches of whole lines, so it is fast enough to use as a data source. When the reader goes away (as in `yesx | head`) `yesx` stops quietly; any other write failure is reported and exits with status 1. A first '--' is taken as the end of options and not printed; `--help` and `--version` are honored only when they are the sole argument, and every other argument is repeated as text.
@@ -22,9 +27,9 @@ Needs no filesystem permissions; it only writes to standard output.
 
 - Answering every prompt of an interactive command automatically.
 - Generating an endless or, with head, a fixed amount of filler input.
-- Loading a CPU core or a pipe for a quick throughput test.
+- Loading a CPU core or a pipe for a quick throughput `test`.
 - Declining every prompt with '`yesx` n' to see what a command would ask.
-- Creating a test file of an exact size with `headx -c`.
+- Creating a `test` file of an exact size with `headx -c`.
 - Producing numbered or repeated sample rows for testing other tools.
 
 ### Flags

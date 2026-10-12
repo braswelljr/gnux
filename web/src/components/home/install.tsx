@@ -1,25 +1,64 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CodeBlock,
-  Heading,
-  Reveal,
-  Section
-} from '@/components/ui';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import { buttonVariants, CodeBlock, GridCell, Heading, Reveal, Section } from '@/components/ui';
 import { installMethods } from '@/config/site';
 
 /** How to get gnux onto a machine, each way copyable. */
 export function Install() {
   return (
-    <Section aria-labelledby="install-title">
+    <Section
+      aria-labelledby="install-title"
+      index={5}
+      label="Install"
+      aside="One static binary"
+      bleed={
+        <>
+          <ul className="grid gap-px border-y border-line bg-line">
+            {installMethods.map((method, i) => (
+              <li
+                key={method.title}
+                className="min-w-0"
+              >
+                <GridCell
+                  label={method.title}
+                  index={i + 1}
+                >
+                  <Reveal
+                    delay={i * 0.06}
+                    className="grid gap-4 p-4 sm:p-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-8"
+                  >
+                    <div>
+                      <Heading level={3}>{method.title}</Heading>
+                      <p className="mt-2 text-sm text-pretty text-fd-muted-foreground">
+                        {method.summary}
+                      </p>
+                    </div>
+                    <CodeBlock
+                      title={`${method.title} install`}
+                      code={method.code}
+                      className="bg-fd-card"
+                    />
+                  </Reveal>
+                </GridCell>
+              </li>
+            ))}
+          </ul>
+          <div className="px-4 py-6 sm:px-6">
+            <Link
+              href="/install"
+              className={buttonVariants({ variant: 'secondary' })}
+            >
+              Every platform: Homebrew, winget, Scoop, GitHub Actions
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </div>
+        </>
+      }
+    >
       <Reveal className="max-w-2xl">
-        <p className="font-mono text-sm text-lit">One static binary</p>
         <Heading
           level={2}
           id="install-title"
-          className="mt-2"
         >
           Install
         </Heading>
@@ -28,36 +67,6 @@ export function Install() {
           command of its own.
         </p>
       </Reveal>
-      <ul className="mt-10 grid gap-4">
-        {installMethods.map((method, i) => (
-          <li
-            key={method.title}
-            className="min-w-0"
-          >
-            <Reveal
-              delay={i * 0.06}
-              className="h-full"
-            >
-              <Card
-                variant="plate"
-                className="h-full lg:grid lg:grid-cols-[18rem_minmax(0,1fr)]"
-              >
-                <CardHeader className="lg:pb-5">
-                  <Heading level={3}>{method.title}</Heading>
-                  <CardDescription>{method.summary}</CardDescription>
-                </CardHeader>
-                <CardContent className="lg:p-5 lg:pl-0">
-                  <CodeBlock
-                    title={`${method.title} install`}
-                    code={method.code}
-                    className="flex-1 bg-fd-card"
-                  />
-                </CardContent>
-              </Card>
-            </Reveal>
-          </li>
-        ))}
-      </ul>
     </Section>
   );
 }

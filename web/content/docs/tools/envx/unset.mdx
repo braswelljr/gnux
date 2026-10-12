@@ -20,23 +20,23 @@ envx --unset=NAME [-] [NAME=VALUE]... [COMMAND [ARG]...]
 
 ## Examples
 
-Drop variables for one command (`-u` may be repeated):
+### Drop variables for one command (-u may be repeated)
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -u HOME -u USER gnux shell -c 'echox "[$HOME] [$USER]"'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -u HOME -u USER gnux shell -c 'echox "[$HOME] [$USER]"'
 ```
 
-Drop a variable and run in another directory:
+### Drop a variable and run in another directory
 
-```bash
+```bash tab="bash" tab-group="shell"
 envx -u DEBUG -C build ./configure
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 envx -u DEBUG -C build cmake ..
 ```
 

@@ -1,0 +1,43 @@
+---
+title: "-B, --block-size"
+description: "Scale sizes by SIZE before printing them; e.g., '-BM' prints sizes in units of 1,048,576 bytes."
+---
+
+An option of [dux](/docs/tools/dux).
+
+## Usage
+
+```bash
+dux -B SIZE [FILE]...
+dux --block-size=SIZE [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-B` | `--block-size` | `SIZE` |  | scale sizes by SIZE before printing them; e.g., '`-BM`' prints sizes in units of 1,048,576 bytes |
+
+## Examples
+
+### Report sizes in megabytes with the unit shown
+
+```bash tab="bash" tab-group="shell"
+dux -BM -d 1 /srv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dux -BM -d 1 D:\srv
+```
+
+```text title="Output"
+120M	/srv/www
+2048M	/srv/backups
+2169M	/srv
+```
+
+## Help in the terminal
+
+```bash
+gnux help dux --block-size
+```

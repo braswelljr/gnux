@@ -1,0 +1,107 @@
+---
+title: "-w, --width"
+description: "Use WIDTH columns instead of 80."
+---
+
+An option of [foldx](/docs/tools/foldx).
+
+## Usage
+
+```bash
+foldx -w WIDTH [FILE]...
+foldx --width=WIDTH [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-w` | `--width` | `WIDTH` |  | use WIDTH columns instead of 80 |
+
+## Examples
+
+### Fit text into a narrow 40-column display or receipt printer
+
+```bash tab="bash" tab-group="shell"
+foldx -w 40 notes.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+foldx -w 40 notes.txt
+```
+
+### Wrap a commit message body at 72 columns without breaking words
+
+```bash tab="bash" tab-group="shell"
+foldx -s -w 72 essay.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+foldx -s -w 72 essay.txt
+```
+
+### Break a one-line key or base64 blob into 64-byte lines
+
+```bash tab="bash" tab-group="shell"
+foldx -b -w 64 key.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+foldx -b -w 64 key.txt
+```
+
+### Wrap the output of another command
+
+```bash tab="bash" tab-group="shell"
+catx long.log | foldx -w 100
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+catx long.log | foldx -w 100
+```
+
+### Split a word into one character per line, to count or sort letters
+
+```bash tab="bash" tab-group="shell"
+echox abc | foldx -w 1
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+echox abc | foldx -w 1
+```
+
+### Save a wrapped copy of a draft for an email client that does not wrap
+
+```bash tab="bash" tab-group="shell"
+foldx -s -w 72 draft.txt > wrapped.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+foldx -s -w 72 draft.txt > wrapped.txt
+```
+
+### Wrap several chapter files in one go
+
+```bash tab="bash" tab-group="shell"
+foldx -w 72 a.txt b.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+foldx -w 72 a.txt b.txt
+```
+
+### Check how many screen lines a note will take once wrapped
+
+```bash tab="bash" tab-group="shell"
+foldx -w 72 notes.txt | wcx -l
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+foldx -w 72 notes.txt | wcx -l
+```
+
+## Help in the terminal
+
+```bash
+gnux help foldx --width
+```

@@ -20,13 +20,13 @@ catx --unbuffered [FILE]...
 
 ## Examples
 
-Put standard input between two files (`-u` is accepted and ignored):
+### Put standard input between two files (-u is accepted and ignored)
 
-```bash
+```bash tab="bash" tab-group="shell"
 echox '---' | catx -u header.txt - footer.txt
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 '---' | catx -u header.txt - footer.txt
 ```
 

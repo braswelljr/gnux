@@ -65,7 +65,8 @@ func NewRoot(s core.Streams) *cobra.Command {
 	root.SetIn(s.In)
 	root.SetOut(s.Out)
 	root.SetErr(s.Err)
-	root.CompletionOptions.HiddenDefaultCmd = true
+	// `gnux completion SHELL` prints a completion script; the overview lists it.
+	root.CompletionOptions.HiddenDefaultCmd = false
 	root.SetHelpCommand(newHelpCommand(s))
 	root.SetHelpFunc(func(*cobra.Command, []string) {
 		writeOverview(s.Out, tool.StyleFor(s.Out))

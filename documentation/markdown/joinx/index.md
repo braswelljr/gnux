@@ -1,0 +1,209 @@
+## joinx
+
+Join lines of two files on a common field.
+
+Mirrors GNU `join`. Run it as `joinx`, or as `gnux joinx`.
+
+### Synopsis
+
+```bash
+joinx [OPTION]... FILE1 FILE2
+```
+
+### GNU reference
+
+- [GNU coreutils manual: join invocation](https://www.gnu.org/software/coreutils/manual/html_node/join-invocation.html)
+- [Source: src/join.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/join.c)
+
+### Description
+
+`joinx` prints, for each pair of input lines with identical `join` fields, one line made of the `join` field followed by the remaining fields of both lines. By default the `join` field is the first, fields are separated by blanks (leading blanks are ignored) and output fields by a single space. Either FILE may be - for standard input, but not both. Both files must be sorted on the `join` field, as `sortx` (or LC_ALL=C sort) sorts them; lines are compared byte by byte, as in the C locale, whatever LANG says. -1 FIELD and -2 FIELD pick the `join` field of each file and `-j` FIELD both. `-a` FILENUM also prints the unpairable lines of that file, and `-v` FILENUM prints only them. `-o` FORMAT lists the output fields as FILENUM.FIELD or 0 (the `join` field), separated by commas or blanks; `-o` auto takes the number of fields from the first line of each file. `-e` EMPTY fills missing fields. `-t` CHAR separates fields on input and output with CHAR, and `-t` '' makes the whole line one field. `-i` ignores case when comparing `join` fields. `--header` pairs the first lines of the files as headers without checking their order. By default `joinx` warns once per file when it finds a line out of order after an unpairable line and then exits with status 1; `--check-order` fails at the first line out of order, and `--nocheck-order` never checks. `-z` makes NUL the line delimiter. When both `--check-order` and `--nocheck-order` are given, `--check-order` wins. GNU's obsolescent `-j1` FIELD and `-j2` FIELD forms are not accepted; use -1 and -2.
+
+### Permissions
+
+Needs read permission on FILE1 and FILE2 and search permission on the directories leading to them. Nothing is ever modified.
+
+### Use cases
+
+- Combining two tables that share a key column, like a relational `join`.
+- Attaching names to IDs, or prices to product codes, from a lookup file.
+- Finding the keys present in one list but missing from another with `-v`.
+- Building a full outer `join` of two CSV files with `-a` 1 `-a` 2 and `-e`.
+- Merging two reports on a column other than the first with -1 and -2.
+
+### Flags
+
+```text
+      --check-order                 check that the input is correctly sorted, even if all input lines are pairable
+  -e, --empty EMPTY                 replace missing input fields with EMPTY
+  -1, --field1 FIELD                join on this FIELD of file 1
+  -2, --field2 FIELD                join on this FIELD of file 2
+      --header                      treat the first line in each file as field headers, print them without trying to pair them
+      --help                        display this help and exit
+  -i, --ignore-case                 ignore differences in case when comparing fields
+  -j, --join-field stringArray      equivalent to '-1 FIELD -2 FIELD'
+      --nocheck-order               do not check that the input is correctly sorted
+  -v, --only-unpaired stringArray   like -a FILENUM, but suppress joined output lines
+  -o, --output-format FORMAT        obey FORMAT while constructing output line
+  -t, --separator CHAR              use CHAR as input and output field separator
+  -a, --unpaired FILENUM            also print unpairable lines from file FILENUM, where FILENUM is 1 or 2
+      --version                     output version information and exit
+  -z, --zero-terminated             line delimiter is NUL, not newline
+```
+
+### Examples
+
+Combine a names list and an ages list that share an ID column:
+
+```bash
+joinx names.txt ages.txt
+```
+
+```powershell
+joinx names.txt ages.txt
+```
+
+Attach each order to its customer from two CSV exports:
+
+```bash
+joinx -t, users.csv orders.csv
+```
+
+```powershell
+joinx -t, users.csv orders.csv
+```
+
+Look up customer names when the ID is the second column of the orders file:
+
+```bash
+joinx -1 2 -2 1 orders.txt customers.txt
+```
+
+```powershell
+joinx -1 2 -2 1 orders.txt customers.txt
+```
+
+Keep everyone in the names list, even those with no age recorded:
+
+```bash
+joinx -a 1 names.txt ages.txt
+```
+
+```powershell
+joinx -a 1 names.txt ages.txt
+```
+
+Find the tasks in the full list that are not marked done yet:
+
+```bash
+joinx -v 1 all.txt done.txt
+```
+
+```powershell
+joinx -v 1 all.txt done.txt
+```
+
+Merge two inventories into one table, marking missing values as NULL:
+
+```bash
+joinx -a 1 -a 2 -e NULL -o auto a.txt b.txt
+```
+
+```powershell
+joinx -a 1 -a 2 -e NULL -o auto a.txt b.txt
+```
+
+Build a report with just the columns you need, in your order:
+
+```bash
+joinx -o 1.2,2.3,0 a.txt b.txt
+```
+
+```powershell
+joinx -o 1.2,2.3,0 a.txt b.txt
+```
+
+Join two CSV exports that each start with a header row:
+
+```bash
+joinx --header -t, users.csv orders.csv
+```
+
+```powershell
+joinx --header -t, users.csv orders.csv
+```
+
+Join two exports that came out of a database unsorted:
+
+```bash
+sortx a.txt > a.sorted && sortx b.txt > b.sorted && joinx a.sorted b.sorted
+```
+
+```powershell
+sortx a.txt > a.sorted; sortx b.txt > b.sorted; joinx a.sorted b.sorted
+```
+
+Match user names written with different capitalization in two systems:
+
+```bash
+joinx -i a.txt b.txt
+```
+
+```powershell
+joinx -i a.txt b.txt
+```
+
+Join the output of another command against a lookup file:
+
+```bash
+sortx ids.txt | joinx - names.txt
+```
+
+```powershell
+sortx ids.txt | joinx - names.txt
+```
+
+Make a script stop if an input was not sorted, rather than miss matches:
+
+```bash
+joinx --check-order a.txt b.txt || echox 'not sorted'
+```
+
+```powershell
+joinx --check-order a.txt b.txt; if ($LASTEXITCODE -ne 0) { 'not sorted' }
+```
+
+Count matched orders in the portable `gnux shell`, the same on every OS:
+
+```bash
+gnux shell -c 'joinx -t, users.csv orders.csv | wcx -l'
+```
+
+```powershell
+gnux shell -c 'joinx -t, users.csv orders.csv | wcx -l'
+```
+
+### Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+### Help in the terminal
+
+```bash
+joinx --help                # options, first examples, exit status
+gnux help joinx             # this page: the full manual
+gnux help joinx --OPTION    # one option in depth, with its examples
+```
+
+### See also
+
+- [commx](../commx/index.md)
+- [pastex](../pastex/index.md)
+- [sortx](../sortx/index.md)
+- [cutx](../cutx/index.md)
+- [uniqx](../uniqx/index.md)
+- [gnux](../index.md) - every tool in the bundle
+- [guide](../guide.md) - installation and usage

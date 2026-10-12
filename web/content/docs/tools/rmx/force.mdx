@@ -35,53 +35,53 @@ The `-f`/`--force` flag makes `rmx` ignore files that do not exist (exiting succ
 
 ## Examples
 
-Remove a file, succeeding silently if it is already gone:
+### Remove a file, succeeding silently if it is already gone
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -f maybe-missing.log
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -f maybe-missing.log
 ```
 
-Recursively delete a build directory with no prompts:
+### Recursively delete a build directory with no prompts
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rf build/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -rf build
 ```
 
-Remove a write-protected file without being asked:
+### Remove a write-protected file without being asked
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -f readonly.cfg
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -f readonly.cfg
 ```
 
-Run with no operands at all, which `-f` also tolerates:
+### Run with no operands at all, which -f also tolerates
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -f && echox "nothing to do"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -f; if ($LASTEXITCODE -eq 0) { echox "nothing to do" }
 ```
 
-Make a cleanup step idempotent in the `gnux shell`:
+### Make a cleanup step idempotent in the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'rmx -fv out.log err.log; echox $?'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'rmx -fv out.log err.log; echox $?'
 ```
 

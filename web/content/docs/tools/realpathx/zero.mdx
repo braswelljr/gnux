@@ -20,13 +20,13 @@ realpathx --zero FILE...
 
 ## Examples
 
-Separate the output with NUL bytes instead of newlines:
+### Separate the output with NUL bytes instead of newlines
 
-```bash
+```bash tab="bash" tab-group="shell"
 realpathx -z lib/util.go src/app/main.go | od -c
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 realpathx -z lib\util.go src\app\main.go | Format-Hex
 ```
 

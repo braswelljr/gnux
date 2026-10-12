@@ -10,6 +10,11 @@ Mirrors GNU `tail`. Run it as `tailx`, or as `gnux tailx`.
 tailx [OPTION]... [FILE]...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: tail invocation](https://www.gnu.org/software/coreutils/manual/html_node/tail-invocation.html)
+- [Source: src/tail.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/tail.c)
+
 ### Description
 
 `tailx` prints the last 10 lines of each FILE to standard output. With no FILE, or when FILE is -, it reads standard input. `-n` NUM changes the number of lines and `-c` NUM switches to bytes; a leading '+' on NUM starts output at line or byte NUM instead of counting from the end. NUM accepts a multiplier suffix: b is 512, K, M, G, T, P and E are powers of 1024 (also written KiB, MiB, ...), and KB, MB, ... are powers of 1000. With more than one FILE each is preceded by a '==> name <==' header; `-q` suppresses the headers and `-v` forces them. `-f` keeps running and prints data as it is appended, polling every `-s` seconds; `--follow`=name tracks the file name rather than the open file, so it survives log rotation, and `--retry` keeps waiting for a file that is missing. `-F` is shorthand for `--follow`=name `--retry`. `--pid` ends following when the given process exits. On a regular file `tailx` seeks to the end and reads backward, so its cost does not depend on the file's size.

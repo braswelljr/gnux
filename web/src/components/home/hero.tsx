@@ -17,10 +17,11 @@ export function Hero({ toolCount }: { toolCount: number }) {
   return (
     <section
       aria-labelledby="hero-title"
-      className="relative isolate overflow-hidden pt-16 pb-12 sm:pt-24 sm:pb-16"
+      className="relative isolate overflow-hidden"
     >
       <AnimatedBackground />
-      <Container className="flex flex-col items-center gap-6 text-center">
+      {/* The drafting grid's rails start here and run down the page. */}
+      <Container className="flex flex-col items-center gap-6 border-x border-line pt-16 pb-12 text-center sm:pt-24 sm:pb-16">
         <Reveal className="flex flex-col items-center gap-6">
           <Logo className="size-14 text-fd-foreground sm:size-16" />
           <p className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-2 font-mono text-xs text-fd-muted-foreground">
@@ -68,6 +69,12 @@ export function Hero({ toolCount }: { toolCount: number }) {
             <BookOpen aria-hidden="true" />
             Read the docs
           </Link>
+        </Reveal>
+        <Reveal delay={0.18}>
+          <p className="font-mono text-xs text-fd-muted-foreground">
+            <span className="sr-only">Runs on </span>
+            Linux · macOS · FreeBSD · Windows · the browser · Go programs
+          </p>
         </Reveal>
         <Reveal
           delay={0.2}

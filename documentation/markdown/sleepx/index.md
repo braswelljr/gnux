@@ -10,6 +10,11 @@ Mirrors GNU `sleep`. Run it as `sleepx`, or as `gnux sleepx`.
 sleepx NUMBER[SUFFIX]...
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: sleep invocation](https://www.gnu.org/software/coreutils/manual/html_node/sleep-invocation.html)
+- [Source: src/sleep.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/sleep.c)
+
 ### Description
 
 `sleepx` pauses for NUMBER seconds. SUFFIX may be 's' for seconds (the default), 'm' for minutes, 'h' for hours or 'd' for days. NUMBER need not be an integer: fractions (0.5), exponents (1e3) and hexadecimal floating-point values are accepted, as is 'infinity' (or 'inf') to pause until interrupted. Given two or more arguments, `sleepx` pauses for the sum of their values. Every operand is checked before the pause begins, so an invalid interval fails immediately.

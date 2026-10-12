@@ -2,7 +2,6 @@ package shell
 
 import (
 	"os"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -50,7 +49,7 @@ func (sh *Shell) expand(w word) []string {
 	}
 
 	if globbing {
-		if matches, err := filepath.Glob(pattern.String()); err == nil && len(matches) > 0 {
+		if matches, err := sh.Glob(pattern.String()); err == nil && len(matches) > 0 {
 			sort.Strings(matches)
 			return matches
 		}

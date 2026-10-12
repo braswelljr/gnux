@@ -1,0 +1,271 @@
+## dux
+
+Estimate file space usage.
+
+Mirrors GNU `du`. Run it as `dux`, or as `gnux dux`.
+
+### Synopsis
+
+```bash
+dux [OPTION]... [FILE]...
+```
+
+### GNU reference
+
+- [GNU coreutils manual: du invocation](https://www.gnu.org/software/coreutils/manual/html_node/du-invocation.html)
+- [Source: src/du.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/du.c)
+
+### Description
+
+`dux` shows how much disk space each directory under each FILE (the current directory by default) takes, including everything below it, in 1024-byte blocks rounded up. `-a` lists files too, `-s` only the operands, and `-d` N only N levels down; `-c` adds a grand total. `-h` prints sizes like 1.5K, 23M and 4.0G (`--si` in powers of 1000), `-k` and `-m` use KiB and MiB, `-b` bytes, and `-B` SIZE any unit ('`-BM`' prints the unit too). `--apparent-size` counts the bytes files hold rather than the blocks allocated to them, which differs for sparse and compressed files. `--inodes` counts files instead of space. `-S` leaves subdirectories out of a directory's total, `-x` stays on one file system, `-l` counts a hard-linked file every time it is met (by default it is counted once), `-L` follows symbolic links and `-H` only those given as operands. `-t` SIZE hides entries smaller than SIZE (or, negative, larger). `--exclude`=PATTERN and `-X` FILE skip matching paths. `--time` adds the latest modification (or `--time`=atime, ctime) time in each subtree, formatted by `--time-style`. `--files0-from`=F reads NUL-separated operands from F, and -0 ends output lines with NUL. Where GNU `du` reads one directory at a time and prints entries in whatever order the file system returns them, `dux` reads directories in parallel, which is much faster on large trees and network drives, and then adds everything up in name order, so the output, and which path a hard-linked file is counted under, is the same every run. The block size defaults to DU_BLOCK_SIZE, BLOCK_SIZE or BLOCKSIZE when set. Names are quoted only when output goes to a terminal.
+
+### Permissions
+
+Needs read and search permission on every directory measured; an unreadable directory is reported and its own size still counted.
+
+### Use cases
+
+- Finding which directories fill a disk.
+- Checking how big a project, cache or build output has grown.
+- Comparing disk usage with apparent size to spot sparse files.
+- Counting files (inodes) where a file system runs out of inodes before space.
+- Monitoring a directory's size in a script or cron job.
+
+### Flags
+
+```text
+  -a, --all                   write counts for all files, not just directories
+  -A, --apparent-size         print apparent sizes rather than device usage
+  -B, --block-size SIZE       scale sizes by SIZE before printing them; e.g., '-BM' prints sizes in units of 1,048,576 bytes
+  -b, --bytes                 equivalent to '--apparent-size --block-size=1'
+  -l, --count-links           count sizes many times if hard linked
+  -L, --dereference           dereference all symbolic links
+  -D, --dereference-args      dereference only symlinks that are listed on the command line
+      --exclude PATTERN       exclude files that match PATTERN
+  -X, --exclude-from FILE     exclude files that match any pattern in FILE
+      --files0-from F         summarize device usage of the NUL-terminated file names specified in file F; if F is -, then read names from standard input
+      --help                  display this help and exit
+  -h, --human-readable        print sizes in human readable format (e.g., 1K 234M 2G)
+      --inodes                list inode usage information instead of block usage
+  -k, --kilobytes             like --block-size=1K
+  -d, --max-depth N           print the total for a directory (or file, with --all) only if it is N or fewer levels below the command line argument
+  -m, --megabytes             like --block-size=1M
+  -P, --no-dereference        don't follow any symbolic links (this is the default)
+  -0, --null                  end each output line with NUL, not newline
+  -x, --one-file-system       skip directories on different file systems
+  -S, --separate-dirs         for directories do not include size of subdirectories
+      --si                    like -h, but use powers of 1000 not 1024
+  -s, --summarize             display only a total for each argument
+  -t, --threshold SIZE        exclude entries smaller than SIZE if positive, or entries greater than SIZE if negative
+      --time WORD[="mtime"]   show time of the last modification of any file in the directory, or any of its subdirectories; with WORD: atime, access, use, ctime or status
+      --time-style STYLE      show times using STYLE, which can be: full-iso, long-iso, iso, or +FORMAT
+  -c, --total                 produce a grand total
+      --version               output version information and exit
+```
+
+### Examples
+
+Your disk is nearly full: list the 10 biggest directories in your home, largest first:
+
+```bash
+dux -h -d 1 ~ | sortx -h -r | headx -n 11
+```
+
+```powershell
+dux -h -d 1 $HOME | sortx -h -r | headx -n 11
+```
+
+Output:
+
+```text
+48G	/home/alice
+21G	/home/alice/Videos
+12G	/home/alice/.cache
+6.3G	/home/alice/projects
+```
+
+Show the total size of a project, in human-readable units:
+
+```bash
+dux -sh ~/projects/website
+```
+
+```powershell
+dux -sh $HOME\projects\website
+```
+
+Output:
+
+```text
+1.2G	/home/alice/projects/website
+```
+
+See how much node_modules folders take across all your projects:
+
+```bash
+dux -sch ~/projects/*/node_modules
+```
+
+```powershell
+dux -sch (Get-ChildItem $HOME\projects\*\node_modules -Directory).FullName
+```
+
+Output:
+
+```text
+412M	/home/alice/projects/api/node_modules
+388M	/home/alice/projects/web/node_modules
+800M	total
+```
+
+Measure a repository without its .git history:
+
+```bash
+dux -sh --exclude=.git ~/projects/website
+```
+
+```powershell
+dux -sh --exclude=.git $HOME\projects\website
+```
+
+Find files over 100 MB to clean up:
+
+```bash
+dux -a -t 100M -h ~/Downloads
+```
+
+```powershell
+dux -a -t 100M -h $HOME\Downloads
+```
+
+Spot a sparse VM disk image: it takes far less space than its size:
+
+```bash
+dux -h vm.qcow2 && dux -h --apparent-size vm.qcow2
+```
+
+```powershell
+dux -h vm.vhdx; dux -h --apparent-size vm.vhdx
+```
+
+Output:
+
+```text
+2.1G	vm.qcow2
+40G	vm.qcow2
+```
+
+Find which directory holds millions of tiny files (out of inodes):
+
+```bash
+dux --inodes -d 1 /var | sortx -n -r | headx
+```
+
+```powershell
+dux --inodes -d 1 C:\ProgramData | sortx -n -r | headx
+```
+
+Get a byte count for a script, without units:
+
+```bash
+bytes=$(dux -sb dist | cutx -f1)
+```
+
+```powershell
+$bytes = (dux -sb dist) -split "`t" | Select-Object -First 1
+```
+
+Output:
+
+```text
+5242880
+```
+
+Check only the root file system, not mounted drives under it:
+
+```bash
+sudo dux -xh -d 1 /
+```
+
+```powershell
+dux -xh -d 1 C:\
+```
+
+See which log directories changed most recently:
+
+```bash
+dux -sh --time /var/log/*
+```
+
+```powershell
+dux -sh --time (Get-ChildItem C:\logs -Directory).FullName
+```
+
+Output:
+
+```text
+1.3M	2026-10-12 09:41	/var/log/apt
+96M	2026-10-12 10:02	/var/log/journal
+```
+
+Report sizes in megabytes with the unit shown:
+
+```bash
+dux -BM -d 1 /srv
+```
+
+```powershell
+dux -BM -d 1 D:\srv
+```
+
+Output:
+
+```text
+120M	/srv/www
+2048M	/srv/backups
+2169M	/srv
+```
+
+Measure a list of paths produced by another program:
+
+```bash
+find . -name '*.log' -print0 | dux -ch --files0-from=-
+```
+
+```powershell
+dux -ch --files0-from=paths.lst
+```
+
+Show the biggest folders in the portable `gnux shell`, the same on every OS:
+
+```bash
+gnux shell -c 'dux -h -d 1 . | sortx -h -r | headx -n 5'
+```
+
+```powershell
+gnux shell -c 'dux -h -d 1 . | sortx -h -r | headx -n 5'
+```
+
+### Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+### Help in the terminal
+
+```bash
+dux --help                # options, first examples, exit status
+gnux help dux             # this page: the full manual
+gnux help dux --OPTION    # one option in depth, with its examples
+```
+
+### See also
+
+- [dfx](../dfx/index.md)
+- [lsx](../lsx/index.md)
+- [statx](../statx/index.md)
+- [sortx](../sortx/index.md)
+- [gnux](../index.md) - every tool in the bundle
+- [guide](../guide.md) - installation and usage

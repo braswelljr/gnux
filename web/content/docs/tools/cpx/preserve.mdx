@@ -19,13 +19,13 @@ cpx --preserve[=string] SOURCE... DIRECTORY
 
 ## Examples
 
-Preserve only the timestamps, or archive without carrying over ownership:
+### Preserve only the timestamps, or archive without carrying over ownership
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx --preserve=timestamps photo.jpg archive/ && cpx -a --no-preserve=ownership project/ copy/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx --preserve=timestamps photo.jpg archive; cpx -a --no-preserve=ownership project copy
 ```
 

@@ -1,0 +1,36 @@
+---
+title: "--tag"
+description: "Create a BSD-style checksum."
+---
+
+An option of [sha1sumx](/docs/tools/sha1sumx).
+
+## Usage
+
+```bash
+sha1sumx --tag [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--tag` | none |  | create a BSD-style checksum |
+
+## Examples
+
+### Write lines that name the algorithm, so a mixed list can be checked with cksumx -c
+
+```bash tab="bash" tab-group="shell"
+sha1sumx --tag release.tar.gz >> CHECKSUMS
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sha1sumx --tag release.zip >> CHECKSUMS
+```
+
+## Help in the terminal
+
+```bash
+gnux help sha1sumx --tag
+```

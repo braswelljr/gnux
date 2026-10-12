@@ -20,53 +20,53 @@ cpx --recursive SOURCE... DIRECTORY
 
 ## Examples
 
-Update a mirror, copying only files that are newer:
+### Update a mirror, copying only files that are newer
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx -ru src/. mirror/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx -ru src\. mirror
 ```
 
-Copy a tree, replacing every symbolic link with the file it points to:
+### Copy a tree, replacing every symbolic link with the file it points to
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx -rL vendor/ vendor-flat/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx -rL vendor vendor-flat
 ```
 
-Copy through a symlinked directory named on the command line only:
+### Copy through a symlinked directory named on the command line only
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx -rH latest snapshot
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx -rH latest snapshot
 ```
 
-Copy a template's contents into an existing directory, not inside it:
+### Copy a template's contents into an existing directory, not inside it
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx -rT template/ newproject/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx -rT template newproject
 ```
 
-Add missing default files without overwriting customized ones:
+### Add missing default files without overwriting customized ones
 
-```bash
+```bash tab="bash" tab-group="shell"
 cpx -r --update=none defaults/. config/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 cpx -r --update=none defaults\. config
 ```
 

@@ -81,6 +81,7 @@ to look up "how do I ..." questions.
 | [functional-requirements](requirements/functional-requirements.md)                         | What gnux must do, including one section per tool with its required options     |
 | [non-functional-requirements](requirements/non-functional-requirements.md)                 | How well it must do it: portability, safety, performance, quality               |
 | [srs-workflows](requirements/srs-workflows.md)                                             | The user-facing workflows, step by step, with the requirements each exercises   |
+| [checklist](requirements/checklist.md)                                                     | Every planned upgrade and integration, ticked off as it lands                   |
 
 Requirement identifiers (`BR-n`, `FR-n`, `NFR-n`) are stable. Cite them in commits and pull
 requests where it helps, and update the register in the same change that alters the behavior it

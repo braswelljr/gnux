@@ -11,6 +11,11 @@ Mirrors GNU `true`. Run it as `truex`, or as `gnux truex`.
 truex [ignored command line arguments]
 ```
 
+## GNU reference
+
+- [GNU coreutils manual: true invocation](https://www.gnu.org/software/coreutils/manual/html_node/true-invocation.html)
+- [Source: src/true.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/true.c)
+
 ## Description
 
 `truex` exits with status 0 and does nothing else: it reads no input, writes no output and ignores every argument it is given. The only exceptions are `--help` and `--version`, which are honored when they are the sole argument. It exists so scripts have a portable command whose result is always success.
@@ -37,73 +42,73 @@ Needs no permissions; it touches nothing.
 
 ## Examples
 
-Exit successfully:
+### Exit successfully
 
-```bash
+```bash tab="bash" tab-group="shell"
 truex
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 truex
 ```
 
-Show the exit status:
+### Show the exit status
 
-```bash
+```bash tab="bash" tab-group="shell"
 truex; echox $?
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 truex; echox $LASTEXITCODE
 ```
 
-Ignore every argument and still succeed:
+### Ignore every argument and still succeed
 
-```bash
+```bash tab="bash" tab-group="shell"
 truex --any thing at all; echox $?
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 truex --any thing at all; echox $LASTEXITCODE
 ```
 
-Ignore the failure of a command:
+### Ignore the failure of a command
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx missing.txt || truex
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx missing.txt; if (-not $?) { truex }
 ```
 
-Chain a command that always runs:
+### Chain a command that always runs
 
-```bash
+```bash tab="bash" tab-group="shell"
 truex && echox 'always runs'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 truex; if ($LASTEXITCODE -eq 0) { echox 'always runs' }
 ```
 
-Keep a `gnux shell` script with `-e` running past an allowed failure:
+### Keep a gnux shell script with -e running past an allowed failure
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -e -c 'rmx old.log || truex; echox survived'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -e -c 'rmx old.log || truex; echox survived'
 ```
 
-Loop until interrupted:
+### Loop until interrupted
 
-```bash
+```bash tab="bash" tab-group="shell"
 while truex; do date; sleepx 1; done
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 while ($true) { truex; if ($LASTEXITCODE -ne 0) { break }; Get-Date; sleepx 1 }
 ```
 

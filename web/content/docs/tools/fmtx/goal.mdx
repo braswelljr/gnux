@@ -1,0 +1,37 @@
+---
+title: "-g, --goal"
+description: "Goal width (default of 93% of width)."
+---
+
+An option of [fmtx](/docs/tools/fmtx).
+
+## Usage
+
+```bash
+fmtx [-WIDTH] -g string [FILE]...
+fmtx [-WIDTH] --goal=string [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-g` | `--goal` | `string` |  | goal width (default of 93% of width) |
+
+## Examples
+
+### Aim for even 70-column lines, never exceeding 80
+
+```bash tab="bash" tab-group="shell"
+fmtx -w 80 -g 70 notes.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+fmtx -w 80 -g 70 notes.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help fmtx --goal
+```

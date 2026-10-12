@@ -17,7 +17,7 @@ When removing a hierarchy recursively, `--one-file-system` skips any subdirector
 
 ## Permissions
 
-The flag compares device IDs (via stat) and needs no extra permissions beyond those recursive removal already requires. Skipped mount points are reported on stderr and are not treated as errors.
+The flag compares device IDs (via `stat`) and needs no extra permissions beyond those recursive removal already requires. Skipped mount points are reported on stderr and are not treated as errors.
 
 ## Use cases
 
@@ -34,35 +34,35 @@ The flag compares device IDs (via stat) and needs no extra permissions beyond th
 
 ## Examples
 
-Remove a tree but skip file systems mounted beneath it:
+### Remove a tree but skip file systems mounted beneath it
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -r --one-file-system /data
 ```
 
-Report each removal while staying on one file system:
+### Report each removal while staying on one file system
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rv --one-file-system scratch/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -rv --one-file-system scratch
 ```
 
-Unattended cleanup of a chroot that may contain bind mounts:
+### Unattended cleanup of a chroot that may contain bind mounts
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -rf --one-file-system chroot/
 ```
 
-Check the result in a script:
+### Check the result in a script
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -r --one-file-system build/ && echox "build removed"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -r --one-file-system build; if ($LASTEXITCODE -eq 0) { echox "build removed" }
 ```
 

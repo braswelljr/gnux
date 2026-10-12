@@ -1,0 +1,47 @@
+---
+title: "-o, --output-format"
+description: "Obey FORMAT while constructing output line."
+---
+
+An option of [joinx](/docs/tools/joinx).
+
+## Usage
+
+```bash
+joinx -o FORMAT FILE1 FILE2
+joinx --output-format=FORMAT FILE1 FILE2
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-o` | `--output-format` | `FORMAT` |  | obey FORMAT while constructing output line |
+
+## Examples
+
+### Merge two inventories into one table, marking missing values as NULL
+
+```bash tab="bash" tab-group="shell"
+joinx -a 1 -a 2 -e NULL -o auto a.txt b.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+joinx -a 1 -a 2 -e NULL -o auto a.txt b.txt
+```
+
+### Build a report with just the columns you need, in your order
+
+```bash tab="bash" tab-group="shell"
+joinx -o 1.2,2.3,0 a.txt b.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+joinx -o 1.2,2.3,0 a.txt b.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help joinx --output-format
+```

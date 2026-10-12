@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Keyboard as KeyboardIcon } from 'lucide-react';
-import { Button, Kbd, Keyboard, TypingTerminal } from '@/components/ui';
+import { Button, Kbd, Keyboard, Monitor, TypingTerminal } from '@/components/ui';
 import { heroSession } from '@/config/demos';
 import { useInView } from '@/hooks/use-in-view';
 import { type Keystroke } from '@/hooks/use-typewriter';
@@ -104,17 +104,24 @@ export function HeroStage() {
       ref={scene}
       className="relative mx-auto w-full max-w-4xl"
     >
-      <TypingTerminal
-        scenes={heroSession}
-        label="An animation of gnux in a terminal: listing a directory with lsx, counting lines with catx and wcx, removing a build directory with rmx, running a script through the gnux shell, and stopping an endless yesx with headx."
-        title={mine ? 'you@gnux: ~/project (your keyboard)' : 'you@gnux: ~/project'}
-        glow
-        onStroke={setStroke}
-        takenOver={mine ? line : undefined}
-        className="relative z-10 mx-auto max-w-3xl"
-        screenClassName="h-64 sm:h-72"
-      />
-      <div className="relative z-0 -mt-2 hidden sm:block">
+      {/* The terminal on a monitor on the desk; the keyboard sits in front of its foot. */}
+      <Monitor
+        className="relative z-0 max-w-3xl"
+        standClassName="hidden sm:flex"
+        screenClassName="aspect-video p-0 sm:p-0"
+      >
+        <TypingTerminal
+          scenes={heroSession}
+          label="An animation of gnux in a terminal: listing a directory with lsx, counting lines with catx and wcx, removing a build directory with rmx, running a script through the gnux shell, and stopping an endless yesx with headx."
+          title={mine ? 'you@gnux: ~/project (your keyboard)' : 'you@gnux: ~/project'}
+          onStroke={setStroke}
+          takenOver={mine ? line : undefined}
+          className="relative mx-auto h-full"
+          windowClassName="h-full rounded-none border-0 bg-fd-card shadow-none backdrop-blur-none"
+          screenClassName="h-auto min-h-0 flex-1 sm:h-auto"
+        />
+      </Monitor>
+      <div className="relative z-10 -mt-3 hidden sm:block">
         <div
           aria-hidden="true"
           className="[perspective:1800px]"

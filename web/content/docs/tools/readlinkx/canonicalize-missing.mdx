@@ -1,0 +1,37 @@
+---
+title: "-m, --canonicalize-missing"
+description: "Canonicalize by following every symlink in every component recursively, without requirements on existence."
+---
+
+An option of [readlinkx](/docs/tools/readlinkx).
+
+## Usage
+
+```bash
+readlinkx -m FILE...
+readlinkx --canonicalize-missing FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-m` | `--canonicalize-missing` | none |  | canonicalize by following every symlink in every component recursively, without requirements on existence |
+
+## Examples
+
+### Normalize a path that may not exist yet
+
+```bash tab="bash" tab-group="shell"
+readlinkx -m build/../dist/out
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+readlinkx -m build/../dist/out
+```
+
+## Help in the terminal
+
+```bash
+gnux help readlinkx --canonicalize-missing
+```

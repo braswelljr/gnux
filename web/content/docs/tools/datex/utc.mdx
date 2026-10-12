@@ -1,0 +1,47 @@
+---
+title: "-u, --utc"
+description: "Print or set Coordinated Universal Time (UTC)."
+---
+
+An option of [datex](/docs/tools/datex).
+
+## Usage
+
+```bash
+datex -u [+FORMAT]
+datex --utc [+FORMAT]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-u` | `--utc` | none |  | print or set Coordinated Universal Time (UTC) |
+
+## Examples
+
+### Check UTC when coordinating with people in other time zones
+
+```bash tab="bash" tab-group="shell"
+datex -u
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+datex -u
+```
+
+### Read a Unix timestamp you found in a log or a database
+
+```bash tab="bash" tab-group="shell"
+datex -u -d @1700000000
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+datex -u -d '@1700000000'
+```
+
+## Help in the terminal
+
+```bash
+gnux help datex --utc
+```

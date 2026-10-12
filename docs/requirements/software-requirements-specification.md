@@ -24,7 +24,7 @@ belongs in the project and whether a release is ready.
 
 ### 1.2 Scope
 
-gnux is one multi-call binary carrying 22 tools, each named after its GNU counterpart with an
+gnux is one multi-call binary carrying 81 tools, each named after its GNU counterpart with an
 `x` appended. The same code is offered as commands, as a Go library and as a portable shell,
 and is documented and demonstrated on a website with a WebAssembly playground. What is in and
 out of scope is listed in [business-requirements](business-requirements.md).
@@ -128,7 +128,9 @@ to every platform, complements them rather than replacing them, and depends on n
 ### 2.5 Design and implementation constraints
 
 - **Language and dependencies.** Go, with the standard library plus cobra and pflag (command
-  line) and go-isatty (terminal detection). Engines must not depend on cobra or pflag.
+  line), go-isatty (terminal detection), and golang.org/x/sys and golang.org/x/crypto (system
+  calls the standard library lacks, and BLAKE2b), all pure Go. Engines must not depend on cobra
+  or pflag.
 - **No cgo.** The binary must link statically and cross-compile, including for `js/wasm`.
 - **Option order.** The command-line framework does not report the order in which options were
   given. A tool that needs GNU's "last one wins" either tracks order itself (`lsx`, `headx`,
@@ -150,6 +152,8 @@ dependencies:
 | `github.com/spf13/cobra`      | Command structure and help            | Yes                    |
 | `github.com/spf13/pflag`      | GNU-style option parsing              | Yes                    |
 | `github.com/mattn/go-isatty`  | Terminal detection                    | Yes                    |
+| `golang.org/x/sys`            | Windows and BSD system calls (statfs, sysctl, sessions, priority classes) | Yes |
+| `golang.org/x/crypto`         | BLAKE2b, for `b2sumx` and `cksumx -a blake2b` | Yes            |
 | `cobra/doc` and `go-md2man`   | Reference generation                  | No: only `tools/gendocs` imports them |
 | Next.js, Fumadocs, Tailwind   | The website                           | No: a separate project in `web/`      |
 
@@ -260,9 +264,9 @@ with their rationale, acceptance criteria and verification, are in
 | Feature                                   | Requirements                                            |
 |-------------------------------------------|---------------------------------------------------------|
 | 4.1 Behavior common to every tool         | FR-1 to FR-11, FR-73, FR-74                             |
-| 4.2 The 22 tools                          | FR-51 to FR-72                                          |
+| 4.2 The 29 tools                          | FR-51 to FR-72, FR-88 to FR-94                          |
 | 4.3 Safeguards on destructive operations  | FR-12 to FR-16                                          |
-| 4.4 Invocation and multi-call dispatch    | FR-17 to FR-22, FR-75, FR-76                            |
+| 4.4 Invocation and multi-call dispatch    | FR-17 to FR-22, FR-75, FR-76, FR-87, FR-95              |
 | 4.5 The portable shell                    | FR-23 to FR-29, FR-77 to FR-79                          |
 | 4.6 The Go library                        | FR-30 to FR-35, FR-80, FR-81                            |
 | 4.7 Installation and distribution         | FR-36 to FR-38                                          |
@@ -275,17 +279,21 @@ The tools, with the requirement that specifies each:
 
 | Tool        | GNU        | Requirement | Tool        | GNU        | Requirement |
 |-------------|------------|-------------|-------------|------------|-------------|
-| `basenamex` | `basename` | FR-51       | `mvx`       | `mv`       | FR-62       |
-| `catx`      | `cat`      | FR-52       | `pwdx`      | `pwd`      | FR-63       |
-| `cpx`       | `cp`       | FR-53       | `realpathx` | `realpath` | FR-64       |
-| `dirnamex`  | `dirname`  | FR-54       | `rmdirx`    | `rmdir`    | FR-65       |
-| `echox`     | `echo`     | FR-55       | `rmx`       | `rm`       | FR-66       |
-| `envx`      | `env`      | FR-56       | `sleepx`    | `sleep`    | FR-67       |
-| `falsex`    | `false`    | FR-57       | `tailx`     | `tail`     | FR-68       |
+| `basenamex` | `basename` | FR-51       | `realpathx` | `realpath` | FR-64       |
+| `catx`      | `cat`      | FR-52       | `rmdirx`    | `rmdir`    | FR-65       |
+| `cpx`       | `cp`       | FR-53       | `rmx`       | `rm`       | FR-66       |
+| `cutx`      | `cut`      | FR-90       | `seqx`      | `seq`      | FR-93       |
+| `dirnamex`  | `dirname`  | FR-54       | `sleepx`    | `sleep`    | FR-67       |
+| `echox`     | `echo`     | FR-55       | `sortx`     | `sort`     | FR-88       |
+| `envx`      | `env`      | FR-56       | `tailx`     | `tail`     | FR-68       |
+| `falsex`    | `false`    | FR-57       | `teex`      | `tee`      | FR-92       |
 | `headx`     | `head`     | FR-58       | `touchx`    | `touch`    | FR-69       |
 | `lnx`       | `ln`       | FR-59       | `truex`     | `true`     | FR-70       |
-| `lsx`       | `ls`       | FR-60       | `wcx`       | `wc`       | FR-71       |
-| `mkdirx`    | `mkdir`    | FR-61       | `yesx`      | `yes`      | FR-72       |
+| `lsx`       | `ls`       | FR-60       | `trx`       | `tr`       | FR-91       |
+| `mkdirx`    | `mkdir`    | FR-61       | `uniqx`     | `uniq`     | FR-89       |
+| `mvx`       | `mv`       | FR-62       | `wcx`       | `wc`       | FR-71       |
+| `printfx`   | `printf`   | FR-94       | `yesx`      | `yes`      | FR-72       |
+| `pwdx`      | `pwd`      | FR-63       |             |            |             |
 
 ## 5. Data and error conventions
 

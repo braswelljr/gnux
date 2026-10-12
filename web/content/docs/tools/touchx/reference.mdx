@@ -20,23 +20,23 @@ touchx --reference=FILE FILE...
 
 ## Examples
 
-Give one file the timestamps of another:
+### Give one file the timestamps of another
 
-```bash
+```bash tab="bash" tab-group="shell"
 touchx -r original.jpg edited.jpg
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 touchx -r original.jpg edited.jpg
 ```
 
-Copy just the modification time, and only to files that already exist:
+### Copy just the modification time, and only to files that already exist
 
-```bash
+```bash tab="bash" tab-group="shell"
 touchx -c -m -r original.jpg edited.jpg report.pdf
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 touchx -c -m -r original.jpg edited.jpg report.pdf
 ```
 

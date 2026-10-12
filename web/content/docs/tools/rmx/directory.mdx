@@ -35,53 +35,53 @@ Removing an empty directory requires write+execute permission on its parent. On 
 
 ## Examples
 
-Remove a directory only if it contains no entries:
+### Remove a directory only if it contains no entries
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -d generated/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -d generated
 ```
 
-Remove files and empty directories in one command:
+### Remove files and empty directories in one command
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -dv stale.txt empty-dir/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -dv stale.txt empty-dir
 ```
 
-A non-empty directory is reported and left alone:
+### A non-empty directory is reported and left alone
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -d src/ || echox "src still has files"
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -d src; if ($LASTEXITCODE -ne 0) { echox "src still has files" }
 ```
 
-Clear out a directory's files, then the directory itself:
+### Clear out a directory's files, then the directory itself
 
-```bash
+```bash tab="bash" tab-group="shell"
 rmx -f tmp/*.part && rmx -d tmp/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 rmx -f (Get-ChildItem tmp\*.part).FullName; if ($LASTEXITCODE -eq 0) { rmx -d tmp }
 ```
 
-Prune empty directories with the `gnux shell`:
+### Prune empty directories with the gnux shell
 
-```bash
+```bash tab="bash" tab-group="shell"
 gnux shell -c 'rmx -dv out/a out/b; rmx -d out'
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 gnux shell -c 'rmx -dv out/a out/b; rmx -d out'
 ```
 

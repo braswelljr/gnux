@@ -10,13 +10,18 @@ Mirrors GNU `ln`. Run it as `lnx`, or as `gnux lnx`.
 lnx [OPTION]... TARGET... [LINK_NAME|DIRECTORY]
 ```
 
+### GNU reference
+
+- [GNU coreutils manual: ln invocation](https://www.gnu.org/software/coreutils/manual/html_node/ln-invocation.html)
+- [Source: src/ln.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/ln.c)
+
 ### Description
 
-`lnx` creates a link to TARGET. It accepts `ln`'s four forms: TARGET LINK_NAME; TARGET alone (a link of the same name in the current directory); TARGET... DIRECTORY; and `-t` DIRECTORY TARGET.... Links are hard links by default and symbolic with `-s`; a symbolic link stores TARGET exactly as written unless `-r` rewrites it relative to the link's own location. An existing destination is an error unless `-f` (replace it) or `-i` (ask first) is given, and the replacement is atomic, so the old entry survives a failure. `-n` treats a LINK_NAME that is a symbolic link to a directory as the entry to replace rather than a directory to link into, and `-T` always treats LINK_NAME as a plain file. For hard links, `-L` links to what a symbolic link TARGET points at and `-P` (the default) to the link itself. GNU `ln` lets the last of conflicting options win; `lnx` cannot see option order, so it prefers the most cautious (`-i` over `-f`) and `-L` over `-P`.
+`lnx` creates a `link` to TARGET. It accepts `ln`'s four forms: TARGET LINK_NAME; TARGET alone (a `link` of the same name in the current directory); TARGET... DIRECTORY; and `-t` DIRECTORY TARGET.... Links are hard links by default and symbolic with `-s`; a symbolic `link` stores TARGET exactly as written unless `-r` rewrites it relative to the `link`'s own location. An existing destination is an error unless `-f` (replace it) or `-i` (ask first) is given, and the replacement is atomic, so the old entry survives a failure. `-n` treats a LINK_NAME that is a symbolic `link` to a directory as the entry to replace rather than a directory to `link` into, and `-T` always treats LINK_NAME as a plain file. For hard links, `-L` links to what a symbolic `link` TARGET points at and `-P` (the default) to the `link` itself. GNU `ln` lets the last of conflicting options win; `lnx` cannot see option order, so it prefers the most cautious (`-i` over `-f`) and `-L` over `-P`.
 
 ### Permissions
 
-Creating a link needs write and search permission on the directory that will hold it. A symbolic link needs no access to TARGET, which may not even exist; a hard link requires TARGET to exist on the same filesystem and cannot point at a directory. On Windows, creating symbolic links requires Developer Mode or an elevated prompt; a link's target is stored with backslashes, the only separator a Windows link follows; and replacing a link to a directory (`-sfn`) removes the old link before renaming the new one in, since Windows cannot rename over it, so it is not atomic there.
+Creating a `link` needs write and search permission on the directory that will hold it. A symbolic `link` needs no access to TARGET, which may not even exist; a hard `link` requires TARGET to exist on the same filesystem and cannot point at a directory. On Windows, creating symbolic links requires Developer Mode or an elevated prompt; a `link`'s target is stored with backslashes, the only separator a Windows `link` follows; and replacing a `link` to a directory (`-sfn`) removes the old `link` before renaming the new one in, since Windows cannot rename over it, so it is not atomic there.
 
 ### Use cases
 
@@ -26,7 +31,7 @@ Creating a link needs write and search permission on the directory that will hol
 - Giving one file a second name without duplicating its data.
 - Exposing scripts on PATH by linking them into ~/bin with `-t`.
 - Installing the `gnux` per-tool commands as links to one binary.
-- Snapshotting a file with a hard link before it is replaced.
+- Snapshotting a file with a hard `link` before it is replaced.
 - Linking dotfiles from a repository into the home directory.
 
 ### Flags
@@ -48,7 +53,7 @@ Creating a link needs write and search permission on the directory that will hol
 
 ### Examples
 
-Create a symbolic link:
+Create a symbolic `link`:
 
 ```bash
 lnx -s /opt/app/releases/v2 current
@@ -68,7 +73,7 @@ lnx -sfn releases/v3 current
 lnx -sfn releases\v3 current
 ```
 
-Create a hard link, reporting what was done:
+Create a hard `link`, reporting what was done:
 
 ```bash
 lnx -v data.db data.db.snapshot
@@ -88,7 +93,7 @@ lnx -sr -t ~/bin tools/build tools/deploy
 lnx -sr -t $HOME\bin tools\build tools\deploy
 ```
 
-Create a link with the same name in the current directory:
+Create a `link` with the same name in the current directory:
 
 ```bash
 lnx -s ../shared/config.yml
@@ -108,7 +113,7 @@ lnx -sv ../dotfiles/.vimrc ../dotfiles/.gitconfig home/
 lnx -sv ..\dotfiles\.vimrc ..\dotfiles\.gitconfig home
 ```
 
-Ask before replacing an existing link:
+Ask before replacing an existing `link`:
 
 ```bash
 lnx -si settings.prod.json settings.json
@@ -118,7 +123,7 @@ lnx -si settings.prod.json settings.json
 lnx -si settings.prod.json settings.json
 ```
 
-Replace an existing file with a link:
+Replace an existing file with a `link`:
 
 ```bash
 lnx -sf app-v2.conf app.conf
@@ -128,7 +133,7 @@ lnx -sf app-v2.conf app.conf
 lnx -sf app-v2.conf app.conf
 ```
 
-Treat the link name as a plain file, never as a directory to link into:
+Treat the `link` name as a plain file, never as a directory to `link` into:
 
 ```bash
 lnx -sT releases/v3 current-release
@@ -138,7 +143,7 @@ lnx -sT releases/v3 current-release
 lnx -sT releases\v3 current-release
 ```
 
-Hard-link the file a symlink points to, instead of the symlink itself:
+Hard-`link` the file a symlink points to, instead of the symlink itself:
 
 ```bash
 lnx -L current.log saved.log
@@ -148,7 +153,7 @@ lnx -L current.log saved.log
 lnx -L current.log saved.log
 ```
 
-Hard-link the symlink itself (the default, spelled out):
+Hard-`link` the symlink itself (the default, spelled out):
 
 ```bash
 lnx -P current.log current-link.log

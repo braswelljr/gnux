@@ -1,0 +1,47 @@
+---
+title: "-I, --iso-8601"
+description: "Output date/time in ISO 8601 format. FMT='date' for date only (the default), 'hours', 'minutes', 'seconds', or 'ns'."
+---
+
+An option of [datex](/docs/tools/datex).
+
+## Usage
+
+```bash
+datex -I [+FORMAT]
+datex --iso-8601[=FMT] [+FORMAT]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-I` | `--iso-8601` | `FMT` (optional) |  | output `date`/time in ISO 8601 format. FMT='`date`' for `date` only (the default), 'hours', 'minutes', 'seconds', or 'ns' |
+
+## Examples
+
+### Get today's date in a sortable form for a file name
+
+```bash tab="bash" tab-group="shell"
+datex -I
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+datex -I
+```
+
+### Stamp a log line with a precise, sortable time
+
+```bash tab="bash" tab-group="shell"
+datex -Iseconds
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+datex -Iseconds
+```
+
+## Help in the terminal
+
+```bash
+gnux help datex --iso-8601
+```

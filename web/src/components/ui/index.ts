@@ -1,4 +1,4 @@
-export { AnimatedBackground } from './animated-background';
+export { AnimatedBackground, ViewportGlow } from './animated-background';
 export { Badge } from './badge';
 export { Button, buttonVariants, type ButtonProps } from './button';
 export { Card, CardContent, CardDescription, CardHeader } from './card';
@@ -10,8 +10,10 @@ export { Heading } from './heading';
 export { Keyboard } from './keyboard';
 export { Kbd, Keycap, type KeycapTone } from './keycap';
 export { Logo, LOGO_CUTS, LogoLockup, logoSvg } from './logo';
+export { Marquee } from './marquee';
+export { Monitor } from './monitor';
 export { Reveal } from './reveal';
-export { Container, Section } from './section';
+export { Container, Frame, GridCell, pad2, Section } from './section';
 export { TerminalWindow } from './terminal-window';
 export { TypingCode } from './typing-code';
 export { TypingTerminal } from './typing-terminal';

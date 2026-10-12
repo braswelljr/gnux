@@ -19,23 +19,23 @@ wcx --total=WHEN [FILE]...
 
 ## Examples
 
-Count several files without the total line, or force it for a single file:
+### Count several files without the total line, or force it for a single file
 
-```bash
+```bash tab="bash" tab-group="shell"
 wcx -l --total=never *.go && wcx -l --total=always main.go
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -l --total=never (Get-ChildItem *.go -Name); wcx -l --total=always main.go
 ```
 
-Print only the grand total for a list of files found elsewhere:
+### Print only the grand total for a list of files found elsewhere
 
-```bash
+```bash tab="bash" tab-group="shell"
 find . -name '*.go' -print0 | wcx -l --files0-from=- --total=only
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 wcx -l --total=only (Get-ChildItem -Recurse *.go).FullName
 ```
 

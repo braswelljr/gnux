@@ -20,13 +20,13 @@ lsx --atime [FILE]...
 
 ## Examples
 
-Sort by last access time (`-u`) or status change time (`-c`), showing that time:
+### Sort by last access time (-u) or status change time (-c), showing that time
 
-```bash
+```bash tab="bash" tab-group="shell"
 lsx -ltu cache/ && lsx -lt --time=ctime cache/
 ```
 
-```powershell
+```powershell tab="PowerShell" tab-group="shell"
 lsx -ltu cache; lsx -lt --time=ctime cache
 ```
 
