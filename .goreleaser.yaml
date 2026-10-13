@@ -177,7 +177,7 @@ aurs:
     maintainers:
       - braswelljr <braswelljr at users dot noreply dot github dot com>
     license: MIT
-    private_key: '{{ envOrDefault "AUR_KEY" "" }}'
+    private_key: "{{ .Env.AUR_KEY }}"
     git_url: ssh://aur@aur.archlinux.org/gnux-bin.git
     provides: [gnux]
     conflicts: [gnux]
@@ -203,7 +203,7 @@ homebrew_casks:
     repository:
       owner: '{{ envOrDefault "GITHUB_REPOSITORY_OWNER" "braswelljr" }}'
       name: gnux
-      token: '{{ envOrDefault "GITHUB_TOKEN" "" }}'
+      token: "{{ .Env.GITHUB_TOKEN }}"
     directory: Casks
     commit_msg_template: "release: Homebrew cask for {{ .Tag }}"
     commit_author:
@@ -238,7 +238,7 @@ scoops:
     repository:
       owner: '{{ envOrDefault "GITHUB_REPOSITORY_OWNER" "braswelljr" }}'
       name: gnux
-      token: '{{ envOrDefault "GITHUB_TOKEN" "" }}'
+      token: "{{ .Env.GITHUB_TOKEN }}"
     directory: bucket
     commit_msg_template: "release: Scoop manifest for {{ .Tag }}"
     commit_author:
@@ -269,7 +269,7 @@ winget:
       owner: braswelljr
       name: winget-pkgs
       branch: "gnux-{{ .Version }}"
-      token: '{{ envOrDefault "WINGET_GITHUB_TOKEN" "" }}'
+      token: "{{ .Env.WINGET_GITHUB_TOKEN }}"
       pull_request:
         enabled: true
         base:

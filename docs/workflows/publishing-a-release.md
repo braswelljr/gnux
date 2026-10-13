@@ -342,7 +342,7 @@ git tag -a v0.0.2 -m "gnux v0.0.2" && git push origin v0.0.2
 
 GoReleaser has a block for most of them (`nix`, `chocolateys`, `dockers`). To add one:
 
-1. Add its block to `.goreleaser.yaml`, with `skip_upload: auto` so that a prerelease stays out, and read its credential with `envOrDefault` so that the configuration is valid without it.
+1. Add its block to `.goreleaser.yaml`, with `skip_upload: auto` so that a prerelease stays out, and read its credential as `{{ .Env.NAME }}`: GoReleaser accepts nothing else in a `token` (no template function, `envOrDefault` included), and reads it only when that publisher runs, so the configuration stays valid without the secret.
 2. In `.github/workflows/release.yml`, pass the secret to `Choose what to publish` and to `Build and publish`, and add the publisher's name to `skip` when the secret is empty. `goreleaser release --help` lists the names `--skip` accepts.
 3. Run `make release/check` and `make release/snapshot`, and read the manifest it wrote into `dist/`.
 4. Add the channel to the tables on this page, to the README's Installation section, to [getting started](../../documentation/guides/getting-started.md), to the Installation section of `cmd/docs/guide.go` and to `web/src/config/install.ts`, and to `CHANGELOG.md`.
