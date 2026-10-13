@@ -52,7 +52,7 @@ jobs:
       # folder inside its own install that does not exist yet, which fails the
       # step. The store is pinned to one folder instead and cached below.
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
