@@ -64,6 +64,7 @@ for its subject, never for its status or its date.
 | Working on the website or the playground    | [`rules/`](rules/README.md), frontend half, and [workflows/wasm-playground](workflows/wasm-playground.md) |
 | Reviewing a pull request                    | [`rules/`](rules/README.md) and the verification column of the requirement registers              |
 | Debugging CI                                | [workflows/ci-and-release](workflows/ci-and-release.md)                                           |
+| Cutting a release                           | [workflows/publishing-a-release](workflows/publishing-a-release.md)                               |
 
 ## Guides
 

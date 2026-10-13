@@ -186,18 +186,46 @@ tar -xzf "gnux-$v-linux-amd64.tar.gz" && sudo mv "gnux-$v-linux-amd64/gnux" /usr
 
 ### Package managers
 
-Starting with the first release after v0.0.1, each release is also published to Homebrew (macOS
-and Linux), Scoop and winget (Windows):
+From v0.0.2 on, each release is also published to Homebrew (macOS and Linux), Scoop and winget
+(Windows), the Snap Store and the AUR (Linux):
 
 ```bash
 brew install --cask braswelljr/tap/gnux    # also installs bash, zsh and fish completion
 scoop bucket add braswelljr https://github.com/braswelljr/scoop-bucket
 scoop install braswelljr/gnux
 winget install braswelljr.gnux
+sudo snap install gnux                     # strictly confined: your home directory only
+yay -S gnux-bin                            # Arch Linux, from the AUR
+```
+
+and carries a `.deb`, an `.rpm` and an `.apk` for amd64, arm64 and riscv64:
+
+```bash
+v=v0.0.2
+curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/gnux-$v-linux-amd64.deb"
+sudo dpkg -i "gnux-$v-linux-amd64.deb"                        # Debian, Ubuntu
+sudo rpm -i "gnux-$v-linux-amd64.rpm"                         # Fedora, RHEL, openSUSE
+sudo apk add --allow-untrusted "gnux-$v-linux-amd64.apk"      # Alpine
 ```
 
 These install the `gnux` binary; link the tool names to it as shown under `go install` below,
-or run each tool as `gnux rmx ...`.
+or run each tool as `gnux rmx ...`. A package manager shows up a little after the release it
+belongs to, winget last, since each new version is reviewed there.
+
+### A particular version
+
+`gnux --version` reports what is installed. To install one version rather than the newest:
+
+| With             | Command                                                                  |
+|------------------|--------------------------------------------------------------------------|
+| A release archive or package | set `v=` above to the tag: every release stays available     |
+| `go install`     | `go install github.com/braswelljr/gnux@v0.0.2`                           |
+| winget           | `winget install braswelljr.gnux --version 0.0.2`                         |
+| Scoop            | `scoop install braswelljr/gnux@0.0.2`                                    |
+| Snap             | `sudo snap install gnux --channel=edge` for the newest prerelease        |
+| setup-gnux       | `version: v0.0.2`                                                        |
+
+Homebrew and the AUR carry the newest version only.
 
 ### In GitHub Actions
 
@@ -397,7 +425,7 @@ doc. Commit the regenerated files with your change.
 | Docs     | regenerates `documentation/` and `web/content/docs/` and fails if the committed copies are stale         |
 | Web      | builds the WebAssembly binary, then lints, type-checks, tests and builds the website                     |
 | Action   | installs a release with the setup-gnux action (`action.yml`) on Linux, macOS and Windows runners and uses the tools |
-| Release  | on a `v*` tag: re-runs the checks, then GoReleaser (`.goreleaser.yaml`) builds an archive per platform, publishes them with checksums, a provenance attestation and the tag's [`CHANGELOG.md`](CHANGELOG.md) section as notes, and updates the Homebrew, Scoop and winget manifests |
+| Release  | on a `v*` tag: re-runs the checks, then GoReleaser (`.goreleaser.yaml`) builds an archive per platform, publishes them with `.deb`, `.rpm` and `.apk` packages, checksums, a provenance attestation and the tag's [`CHANGELOG.md`](CHANGELOG.md) section as notes, and publishes to Homebrew, Scoop, winget, the Snap Store and the AUR ([how](docs/workflows/publishing-a-release.md)) |
 
 ## Documentation
 

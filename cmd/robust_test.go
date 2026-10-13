@@ -44,7 +44,7 @@ func (g *generated) Read(p []byte) (int, error) {
 }
 
 // streaming lists command lines that must handle any amount of input in a
-// fixed amount of memory (NFR-7): filters, counters, digests and encoders.
+// fixed amount of memory: filters, counters, digests and encoders.
 // Tools that need the whole input by nature (sortx, tacx, shufx) are not here.
 var streaming = []string{
 	"cat", "cat -n", "cat -A", "tee", "wc", "wc -l", "head -n 3", "head -c 1M", "tail -n 3", "tail -c 100",

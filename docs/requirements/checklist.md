@@ -93,12 +93,18 @@ findutils.
 - [x] winget manifest, sent as a pull request to `microsoft/winget-pkgs` (FR-36)
   - Needs: a fork at `braswelljr/winget-pkgs` and a `WINGET_GITHUB_TOKEN` secret (a classic
     token with `public_repo`).
+- [x] `.deb`, `.rpm` and `.apk` packages on every release (FR-36)
+- [x] A snap, strictly confined, published to the Snap Store (FR-36)
+  - Needs: the name `gnux` registered and a `SNAPCRAFT_STORE_CREDENTIALS` secret.
+- [x] `gnux-bin` on the AUR (FR-36)
+  - Needs: an AUR account with an SSH key and an `AUR_KEY` secret.
+- [ ] A formula in `homebrew/core`, so that `brew install gnux` needs no tap
 - [x] Build provenance attestation for every release archive (FR-36)
 - [ ] An SBOM for every release archive (GoReleaser `sboms`, with syft)
 - [ ] cosign signatures for `checksums.txt`
 - [ ] The Docker image published to GHCR on every release
 - [ ] A `FROM scratch` image with the per-tool links, as a busybox-style base
-- [ ] AUR and Nix packages
+- [ ] A Nix package
 - [ ] An npm package (`@gnux/cli`) that installs the right binary, for Node projects
 - [ ] A WASI build (`GOOS=wasip1`) for wasmtime, wasmer and edge runtimes
 

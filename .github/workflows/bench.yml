@@ -1,5 +1,5 @@
 # Requirement enforced: a pull request does not make a tool markedly slower or
-# make it allocate markedly more (NFR-52). The benchmark suite runs on the
+# make it allocate markedly more. The benchmark suite runs on the
 # base commit and on the pull request, one after the other on the same
 # runner, and tools/benchcheck fails the job when a benchmark's runs are all
 # slower than all of the base's by more than the tolerance, or its

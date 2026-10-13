@@ -13,6 +13,7 @@ How gnux's technical processes actually run inside the code, one document per pr
 | [adding-a-tool](adding-a-tool.md)                                     | A compiling engine and adapter skeleton, registration, the test that catches each mistake, and a checklist |
 | [documentation-generation](documentation-generation.md)               | The registry to four reference formats and the website: `gendocs`, `cmd/docs`, determinism, `wrapCode`, `mdxEscape`, link rewriting, the Docs check |
 | [ci-and-release](ci-and-release.md)                                   | Every GitHub workflow: trigger, steps, requirements enforced, local reproduction, common failures; the tag-to-release flow; where the version comes from |
+| [publishing-a-release](publishing-a-release.md)                       | A version to every place it is installed from: the one-time setup of Homebrew, Scoop, winget, the Snap Store and the AUR, cutting and checking a release, installing one particular version, and recovering from a bad one |
 | [error-handling-and-exit-status](error-handling-and-exit-status.md)   | `ErrFailed`, `ExitError`, `UsageError`, `ErrText`, `Describe`, closed pipes, and a table of every special status |
 | [benchmarking-and-robustness](benchmarking-and-robustness.md)         | `make bench` and comparing two runs; the memory, goroutine and open-file tests; `core.FlushIfIdle`; the fuzz targets; where a panic is contained |
 
@@ -25,7 +26,8 @@ How gnux's technical processes actually run inside the code, one document per pr
 | Add a tool                                      | [adding-a-tool](adding-a-tool.md)                                                        |
 | Change the shell language                       | [shell-execution](shell-execution.md)                                                    |
 | Work on the website or the playground           | [wasm-playground](wasm-playground.md) and [documentation-generation](documentation-generation.md) |
-| Fix a red CI run, or cut a release              | [ci-and-release](ci-and-release.md)                                                      |
+| Fix a red CI run                                | [ci-and-release](ci-and-release.md)                                                      |
+| Cut a release, or set up a package manager      | [publishing-a-release](publishing-a-release.md)                                          |
 | Make something faster, or check a change did not make it slower | [benchmarking-and-robustness](benchmarking-and-robustness.md)            |
 
 ## How to read them

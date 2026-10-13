@@ -2,11 +2,12 @@
 # a statically linked (CGO_ENABLED=0) gnux archive for every supported platform
 # - linux on amd64/arm64/riscv64, darwin and freebsd on amd64/arm64, windows on
 # amd64/arm64 - each reporting the tag as its version, plus a checksums file
-# and a build provenance attestation (FR-36, FR-38, NFR-1, NFR-2). Its notes
-# are the tag's section of CHANGELOG.md, which a release must have; only a
-# prerelease without one falls back to notes generated from the commits. The
-# archives, checksums and package manifests (Homebrew, Scoop, winget) are
-# described in .goreleaser.yaml.
+# and a build provenance attestation. Its notes are the tag's section of
+# CHANGELOG.md, which a release must have; only a prerelease without one falls
+# back to notes generated from the commits. The archives, checksums, Linux
+# packages (.deb, .rpm, .apk) and package managers (Homebrew, Scoop, winget,
+# the Snap Store, the AUR) are described in .goreleaser.yaml, and
+# docs/workflows/publishing-a-release.md says how to set each one up.
 name: Release
 
 on:
@@ -15,7 +16,7 @@ on:
     # action is used by (v0, v1) are moved by this workflow, not released.
     tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
 
-# Read-only by default (NFR-37); only the publishing job may write releases.
+# Read-only by default; only the publishing job may write releases.
 permissions:
   contents: read
 
@@ -103,24 +104,37 @@ jobs:
           name: release-notes
           path: notes
 
-      # Each package manager publishes to a repository of its own with a token
-      # stored as a secret; one whose secret is missing is skipped rather than
-      # failing the release.
+      # Each package manager publishes to a repository or store of its own
+      # with a credential stored as a secret; one whose secret is missing is
+      # skipped rather than failing the release.
       - name: Choose what to publish
         id: plan
         env:
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
           SCOOP_BUCKET_GITHUB_TOKEN: ${{ secrets.SCOOP_BUCKET_GITHUB_TOKEN }}
           WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          AUR_KEY: ${{ secrets.AUR_KEY }}
         run: |
           skip=""
           [ -z "$HOMEBREW_TAP_GITHUB_TOKEN" ] && skip="${skip},homebrew"
           [ -z "$SCOOP_BUCKET_GITHUB_TOKEN" ] && skip="${skip},scoop"
           [ -z "$WINGET_GITHUB_TOKEN" ] && skip="${skip},winget"
+          [ -z "$AUR_KEY" ] && skip="${skip},aur"
+          if [ -z "$SNAPCRAFT_STORE_CREDENTIALS" ]; then
+            skip="${skip},snapcraft"
+          else
+            echo "snap=true" >> "$GITHUB_OUTPUT"
+          fi
           args="--clean"
           [ -n "$skip" ] && args="$args --skip=${skip#,}"
           [ -s notes/release-notes.md ] && args="$args --release-notes=notes/release-notes.md"
           echo "args=$args" >> "$GITHUB_OUTPUT"
+
+      # GoReleaser packs and uploads the snap with the snapcraft command.
+      - name: Install snapcraft
+        if: steps.plan.outputs.snap == 'true'
+        run: sudo snap install snapcraft --classic
 
       - name: Build and publish
         uses: goreleaser/goreleaser-action@v6
@@ -133,6 +147,8 @@ jobs:
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
           SCOOP_BUCKET_GITHUB_TOKEN: ${{ secrets.SCOOP_BUCKET_GITHUB_TOKEN }}
           WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          AUR_KEY: ${{ secrets.AUR_KEY }}
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v4

@@ -1,6 +1,6 @@
 # CI and Release
 
-What each GitHub Actions workflow in `.github/workflows/` does, step by step: when it triggers, which jobs and steps it runs, which requirements it enforces, how to reproduce it locally with the Makefile, and what its common failures mean. Five workflows guard every change (Test, Build, Lint, Docs, Web), a sixth (Action) exercises the setup-gnux GitHub Action, and a seventh (Release) turns a pushed `v*` tag, through GoReleaser, into a GitHub release carrying a statically linked archive per platform, a `checksums.txt` and a provenance attestation, and updates the Homebrew, Scoop and winget manifests. The page ends with where the version string a binary reports comes from, which differs between `make`, `go build`, `go install ...@vX` and a release.
+What each GitHub Actions workflow in `.github/workflows/` does, step by step: when it triggers, which jobs and steps it runs, which requirements it enforces, how to reproduce it locally with the Makefile, and what its common failures mean. Five workflows guard every change (Test, Build, Lint, Docs, Web), a sixth (Action) exercises the setup-gnux GitHub Action, and a seventh (Release) turns a pushed `v*` tag, through GoReleaser, into a GitHub release carrying a statically linked archive per platform, `.deb`, `.rpm` and `.apk` packages, a `checksums.txt` and a provenance attestation, and publishes to Homebrew, Scoop, winget, the Snap Store and the AUR. Setting those up and cutting a release is its own page, [publishing-a-release](publishing-a-release.md). The page ends with where the version string a binary reports comes from, which differs between `make`, `go build`, `go install ...@vX` and a release.
 
 ## Overview
 
@@ -249,9 +249,9 @@ What is built and published is described once, in `.goreleaser.yaml`.
 ```mermaid
 flowchart LR
     T["git push origin v0.1.0"] --> V["verify<br/>go vet, go test -race,<br/>docs freshness,<br/>CHANGELOG.md section"]
-    V --> G["release (contents: write)<br/>goreleaser release<br/>9 archives, checksums.txt"]
+    V --> G["release (contents: write)<br/>goreleaser release<br/>9 archives, 9 packages, checksums.txt"]
     G --> R["GitHub release v0.1.0"]
-    G --> M["Homebrew cask, Scoop manifest,<br/>winget pull request"]
+    G --> M["Homebrew cask, Scoop manifest,<br/>winget pull request, snap, AUR"]
     G --> A["build provenance attestation"]
 ```
 
@@ -287,12 +287,15 @@ legs, or Web; those are expected to be green on `main` before tagging.
 
 1. Check out with full history (GoReleaser reads the previous tag for generated notes), set up
    Go from `go.mod`, and download the `release-notes` artifact.
-2. **Choose what to publish.** Each package manager is pushed to a repository of its own with a
-   token stored as a secret: `HOMEBREW_TAP_GITHUB_TOKEN` (`braswelljr/homebrew-tap`),
-   `SCOOP_BUCKET_GITHUB_TOKEN` (`braswelljr/scoop-bucket`) and `WINGET_GITHUB_TOKEN` (a fork,
-   `braswelljr/winget-pkgs`, from which a pull request to `microsoft/winget-pkgs` is opened).
-   A missing secret adds that publisher to `--skip`, so a fork can still release. The notes
-   file is passed as `--release-notes` when it is not empty.
+2. **Choose what to publish.** Each package manager is pushed to a repository or store of its
+   own with a credential stored as a secret: `HOMEBREW_TAP_GITHUB_TOKEN`
+   (`braswelljr/homebrew-tap`), `SCOOP_BUCKET_GITHUB_TOKEN` (`braswelljr/scoop-bucket`),
+   `WINGET_GITHUB_TOKEN` (a fork, `braswelljr/winget-pkgs`, from which a pull request to
+   `microsoft/winget-pkgs` is opened), `SNAPCRAFT_STORE_CREDENTIALS` (the Snap Store) and
+   `AUR_KEY` (`gnux-bin` on the AUR). A missing secret adds that publisher to `--skip`, so a
+   fork can still release; with the snap's secret set, the next step installs `snapcraft`. The
+   notes file is passed as `--release-notes` when it is not empty.
+   [publishing-a-release](publishing-a-release.md) says how to create each secret.
 3. **Build and publish** with `goreleaser/goreleaser-action@v6` (GoReleaser v2):
    - the `before` hook writes `completions/gnux.{bash,zsh,fish,ps1}` with `go run . completion`;
    - builds `unix` (linux amd64/arm64/riscv64, darwin and freebsd amd64/arm64) and `windows`
@@ -300,11 +303,15 @@ legs, or Web; those are expected to be green on `main` before tagging.
    - archives `gnux-<tag>-<os>-<arch>`, wrapped in a directory of the same name, with
      `LICENSE`, `README.md` and the completions, plus `man/` from `documentation/man` on Unix;
      `.tar.gz` on Unix and `.zip` on Windows, the naming every earlier release used;
-   - `checksums.txt` (SHA-256);
+   - `gnux-<tag>-linux-<arch>.deb`, `.rpm` and `.apk` for the three Linux architectures, each
+     installing `/usr/bin/gnux` and the completions;
+   - `checksums.txt` (SHA-256), covering the archives and the packages;
    - the release, titled `gnux <tag>`, a prerelease when the tag has a hyphen, and with
      `mode: replace` so a release already drafted in GitHub's web interface is completed;
    - the Homebrew cask (installs the completions and clears the quarantine flag), the Scoop
-     manifest and the winget manifests.
+     manifest, the winget manifests, a strictly confined snap per Linux architecture and the
+     AUR's `gnux-bin`. A prerelease reaches none of them but the snap's `edge` channel
+     (`skip_upload: auto`).
 4. **Attest build provenance** with `actions/attest-build-provenance@v2` over every file in
    `checksums.txt`; `gh attestation verify <archive> --repo braswelljr/gnux` checks one.
 5. **Move the major version tag** (`v0` for `v0.1.0`) to the release, unless it is a prerelease,
@@ -322,12 +329,14 @@ gnux-v0.1.0-linux-arm64.tar.gz
 gnux-v0.1.0-linux-riscv64.tar.gz
 gnux-v0.1.0-windows-amd64.zip
 gnux-v0.1.0-windows-arm64.zip
+gnux-v0.1.0-linux-{amd64,arm64,riscv64}.{deb,rpm,apk}
 checksums.txt
 ```
 
 ### Cutting a release
 
-`CHANGELOG.md` is kept as changes are made, under `## [Unreleased]`. To release:
+`CHANGELOG.md` is kept as changes are made, under `## [Unreleased]`. In short (the full
+procedure, with the checks before and after, is [publishing-a-release](publishing-a-release.md)):
 
 1. Rename that heading to the version and date, `## [0.1.0] - 2026-10-20`, and start a new,
    empty `## [Unreleased]` above it.
@@ -348,8 +357,9 @@ git push origin main v0.1.0
 
 `make release/check` validates `.goreleaser.yaml`, and `make release/snapshot` runs the whole
 build without publishing (`goreleaser release --snapshot --clean --skip=publish`): every
-archive, `checksums.txt`, and the generated cask, Scoop manifest and winget manifests, in
-`dist/`. Both need [GoReleaser](https://goreleaser.com/install/) v2 on `PATH`.
+archive and package, `checksums.txt`, and the generated cask, Scoop manifest, winget manifests
+and `PKGBUILD`, in `dist/`. Both need [GoReleaser](https://goreleaser.com/install/) v2 on
+`PATH`; the snaps are built only where `snapcraft` is installed.
 
 ```text
 $ make release/snapshot

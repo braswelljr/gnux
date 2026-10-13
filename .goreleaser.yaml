@@ -5,8 +5,7 @@
 #
 # Every archive keeps the naming the first releases used,
 # gnux-<tag>-<os>-<arch>.tar.gz (.zip on Windows), unpacking into a directory of
-# the same name, so install instructions and the setup-gnux action keep working
-# (FR-36, FR-38, NFR-1, NFR-2).
+# the same name, so install instructions and the setup-gnux action keep working.
 version: 2
 
 project_name: gnux
@@ -92,12 +91,111 @@ release:
   mode: replace
   replace_existing_artifacts: true
 
-# Package managers. Each publishes to a repository of its own and needs a
-# token with write access to it; the Release workflow skips any whose secret
-# is not configured, so a fork can release without them.
+# Linux packages, attached to the release beside the archives and listed in
+# checksums.txt: .deb (Debian, Ubuntu), .rpm (Fedora, RHEL, openSUSE) and .apk
+# (Alpine). They need no account or secret. Each installs /usr/bin/gnux and the
+# completions; the tool names are linked by the user, as with every other
+# install (`gnux --list`).
+nfpms:
+  - id: packages
+    ids: [unix]
+    package_name: gnux
+    file_name_template: "{{ .ProjectName }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
+    vendor: braswelljr
+    homepage: https://github.com/braswelljr/gnux
+    maintainer: braswelljr <braswelljr@users.noreply.github.com>
+    description: |-
+      GNU core utilities in one portable, multi-call binary.
+      gnux carries rmx, cpx, lsx and the rest, with GNU's flags, messages and
+      exit statuses, plus a small portable shell.
+    license: MIT
+    formats: [deb, rpm, apk]
+    bindir: /usr/bin
+    section: utils
+    contents:
+      - src: LICENSE
+        dst: /usr/share/doc/gnux/LICENSE
+      - src: completions/gnux.bash
+        dst: /usr/share/bash-completion/completions/gnux
+      - src: completions/gnux.fish
+        dst: /usr/share/fish/vendor_completions.d/gnux.fish
+      # Debian's zsh reads vendor-completions; every other distribution reads
+      # site-functions.
+      - src: completions/gnux.zsh
+        dst: /usr/share/zsh/vendor-completions/_gnux
+        packager: deb
+      - src: completions/gnux.zsh
+        dst: /usr/share/zsh/site-functions/_gnux
+        packager: rpm
+      - src: completions/gnux.zsh
+        dst: /usr/share/zsh/site-functions/_gnux
+        packager: apk
+
+# Package managers. Each publishes to a repository or store of its own and
+# needs a credential for it; the Release workflow skips any whose secret is
+# not configured, so a fork can release without them.
+#
+# The snap is strictly confined: it reaches the user's home directory and
+# removable media and nothing else, which the store accepts without a review.
+# A prerelease goes to the snap's edge channel and to no other package manager
+# (skip_upload: auto).
+snapcrafts:
+  - id: gnux
+    ids: [unix]
+    name: gnux
+    name_template: "{{ .ProjectName }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
+    title: gnux
+    summary: GNU core utilities in one portable, multi-call binary
+    description: |
+      gnux is a portable, GNU-compatible implementation of the GNU core
+      utilities: one binary carrying rmx, cpx, lsx and the rest, with GNU's
+      flags, messages and exit statuses, plus a small portable shell.
+
+      Run a tool as `gnux rmx ...`, or a script with `gnux shell`. This snap is
+      strictly confined: the tools see your home directory and, once
+      `snap connect gnux:removable-media` is run, removable media.
+    license: MIT
+    base: core24
+    grade: stable
+    confinement: strict
+    publish: true
+    channel_templates:
+      - "{{ if .Prerelease }}edge{{ else }}stable{{ end }}"
+    apps:
+      gnux:
+        command: gnux
+        plugs: [home, removable-media]
+
+# gnux-bin on the Arch User Repository: the release archive, repackaged.
+aurs:
+  - name: gnux-bin
+    ids: [unix]
+    skip_upload: auto
+    homepage: https://github.com/braswelljr/gnux
+    description: GNU core utilities in one portable, multi-call binary
+    maintainers:
+      - braswelljr <braswelljr at users dot noreply dot github dot com>
+    license: MIT
+    private_key: '{{ envOrDefault "AUR_KEY" "" }}'
+    git_url: ssh://aur@aur.archlinux.org/gnux-bin.git
+    provides: [gnux]
+    conflicts: [gnux]
+    commit_author:
+      name: braswelljr
+      email: braswelljr@users.noreply.github.com
+    # The archive unpacks into gnux-<tag>-linux-<arch>/.
+    package: |-
+      cd gnux-*/
+      install -Dm755 gnux "${pkgdir}/usr/bin/gnux"
+      install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/gnux-bin/LICENSE"
+      install -Dm644 completions/gnux.bash "${pkgdir}/usr/share/bash-completion/completions/gnux"
+      install -Dm644 completions/gnux.zsh "${pkgdir}/usr/share/zsh/site-functions/_gnux"
+      install -Dm644 completions/gnux.fish "${pkgdir}/usr/share/fish/vendor_completions.d/gnux.fish"
+
 homebrew_casks:
   - name: gnux
     ids: [unix]
+    skip_upload: auto
     repository:
       owner: braswelljr
       name: homebrew-tap
@@ -129,6 +227,7 @@ homebrew_casks:
 scoops:
   - name: gnux
     ids: [windows]
+    skip_upload: auto
     repository:
       owner: braswelljr
       name: scoop-bucket
@@ -146,6 +245,7 @@ winget:
     publisher: braswelljr
     publisher_url: https://github.com/braswelljr
     ids: [windows]
+    skip_upload: auto
     short_description: GNU core utilities in one portable, multi-call binary
     description: |
       gnux is a portable, GNU-compatible implementation of the GNU core

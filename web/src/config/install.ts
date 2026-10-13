@@ -64,7 +64,7 @@ export const installPlatforms: InstallPlatform[] = [
         code: checkUnix
       }
     ],
-    note: 'The package managers are published from the first release after v0.0.1. Until then, use Go or a release archive.'
+    note: 'The cask always installs the newest release. For one particular version, use Go (go install github.com/braswelljr/gnux@v0.0.2) or a release archive.'
   },
   {
     id: 'windows',
@@ -89,19 +89,20 @@ scoop install braswelljr/gnux`
 lsx -la`
       }
     ],
-    note: 'Hard links need neither Developer Mode nor elevation. Copying gnux.exe to each name also works, at the cost of disk space; rerun either loop after an upgrade.'
+    note: 'Hard links need neither Developer Mode nor elevation. Copying gnux.exe to each name also works, at the cost of disk space; rerun either loop after an upgrade. For one particular version: winget install braswelljr.gnux --version 0.0.2, or scoop install braswelljr/gnux@0.0.2.'
   },
   {
     id: 'linux',
     name: 'Linux and FreeBSD',
-    summary: 'A release archive, checked against its checksums, for amd64, arm64 or riscv64.',
+    summary:
+      'A package for your distribution or a release archive, checked against its checksums, for amd64, arm64 or riscv64.',
     steps: [
       {
         title: 'Download and verify',
         detail:
           'Pick the archive for your platform from the releases page; the checksum file proves it arrived intact.',
         shell: 'Shell',
-        code: `v=v0.0.1
+        code: `v=v0.0.2
 curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/gnux-$v-linux-amd64.tar.gz"
 curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/checksums.txt"
 sha256sum --check --ignore-missing checksums.txt`
@@ -121,12 +122,13 @@ sudo mv "gnux-$v-linux-amd64/gnux" /usr/local/bin/`
         code: checkUnix
       }
     ],
-    note: 'Homebrew works on Linux too: brew install --cask braswelljr/tap/gnux.'
+    note: 'Every release also carries a .deb, an .rpm and an .apk under the same name (sudo dpkg -i "gnux-$v-linux-amd64.deb"), and is published as a snap (sudo snap install gnux, confined to your home directory), on the AUR (gnux-bin) and as a Homebrew cask (brew install --cask braswelljr/tap/gnux). Set v to any tag to install that version.'
   },
   {
     id: 'go',
     name: 'Any platform, with Go',
-    summary: 'Builds the latest version from source with the Go toolchain, 1.25 or newer.',
+    summary:
+      'Builds the latest version from source with the Go toolchain, 1.25 or newer; name a tag instead of latest (@v0.0.2) for that version.',
     steps: [
       {
         title: 'Install',

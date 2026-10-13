@@ -43,9 +43,38 @@ $env:Path = "$(go env GOPATH)\bin;$env:Path"   # add to your $PROFILE
 gnux --version
 ```
 
-To pin a version, name a tag instead of `latest`: `go install github.com/braswelljr/gnux@v0.1.0`.
+To pin a version, name a tag instead of `latest`: `go install github.com/braswelljr/gnux@v0.0.2`. `gnux --version` then reports that tag.
 
-A plain `go install` does not stamp the version string, so `gnux --version` prints `gnux dev`. Use `make install` or `install.sh --from-source` when you want the real version reported.
+## Install with a package manager
+
+From v0.0.2 on, every release is published to the package managers below. Each installs the `gnux` binary (and, except on Windows, shell completion); link the tool names afterwards, as the next section shows.
+
+| Platform | Package manager | Install | A particular version |
+|----------|-----------------|---------|----------------------|
+| macOS, Linux | Homebrew | `brew install --cask braswelljr/tap/gnux` | The newest only |
+| Windows | winget | `winget install braswelljr.gnux` | `winget install braswelljr.gnux --version 0.0.2` |
+| Windows | Scoop | `scoop bucket add braswelljr https://github.com/braswelljr/scoop-bucket`, then `scoop install braswelljr/gnux` | `scoop install braswelljr/gnux@0.0.2` |
+| Linux | Snap | `sudo snap install gnux` | `--channel=edge` for the newest prerelease |
+| Arch Linux | AUR | `yay -S gnux-bin` | The newest only |
+| Debian, Ubuntu | `.deb` from the release | `sudo dpkg -i gnux-v0.0.2-linux-amd64.deb` | Download that version's file |
+| Fedora, RHEL, openSUSE | `.rpm` from the release | `sudo rpm -i gnux-v0.0.2-linux-amd64.rpm` | Download that version's file |
+| Alpine | `.apk` from the release | `sudo apk add --allow-untrusted gnux-v0.0.2-linux-amd64.apk` | Download that version's file |
+
+The packages are on the [releases page](https://github.com/braswelljr/gnux/releases), for amd64, arm64 and riscv64, beside the plain archives (`gnux-<version>-<os>-<arch>.tar.gz`, `.zip` for Windows) and a `checksums.txt` that covers them all:
+
+```bash
+v=v0.0.2
+curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/gnux-$v-linux-amd64.deb"
+curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/checksums.txt"
+sha256sum --check --ignore-missing checksums.txt
+sudo dpkg -i "gnux-$v-linux-amd64.deb"
+```
+
+Three things to know:
+
+- **The snap is strictly confined.** The tools see your home directory and, after `sudo snap connect gnux:removable-media`, removable media; they do not see the rest of the system. The snap provides the `gnux` command only, so run tools as `gnux rmx ...`. For anything system-wide, use another install.
+- **winget lags a release** by the time its review takes, from hours to a few days.
+- **Whichever way gnux arrived, `gnux --version` says which version it is**, and every tool answers the same way (`rmx --version`).
 
 ## Link the tool names
 

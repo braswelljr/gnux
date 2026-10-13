@@ -27,10 +27,10 @@ The entry under each requirement names what checks it, and the wording is delibe
 onward were added since. The document is ordered by quality attribute, so the numbers do not
 run in order down the page.
 
-Three gaps are worth knowing before reading further. Start-up time (NFR-8) and accessibility
-(NFR-24) have no automated check. Formatting of the Go code (NFR-28) is not checked in CI. And
-the suite runs on Linux and Windows only in CI: a developer's own machine exercises one
-platform, so a change that breaks another is found by the Test workflow, not before it.
+Two gaps are worth knowing before reading further. Start-up time (NFR-8) is measured but
+nothing fails when it gets slower, and accessibility (NFR-24) has no automated check. And a
+developer's own machine exercises one platform, so a change that breaks another is found by
+the Test workflow, which runs the suite on Linux, macOS and Windows, not before it.
 
 ## 1. Compatibility and portability
 

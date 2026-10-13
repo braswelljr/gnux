@@ -3208,9 +3208,13 @@ container image.
   per supported platform, named `gnux-<tag>-<os>-<arch>` (`.tar.gz`, `.zip` on Windows), each
   with the tool's completion scripts, a `checksums.txt` of their SHA-256 sums and a build
   provenance attestation.
+- **Acceptance (packages).** The same release carries a `.deb`, an `.rpm` and an `.apk` for
+  each Linux architecture, each installing `/usr/bin/gnux` and the completion scripts.
 - **Acceptance (package managers).** The same release updates a Homebrew cask
-  (`braswelljr/homebrew-tap`), a Scoop manifest (`braswelljr/scoop-bucket`) and a winget
-  manifest (a pull request to `microsoft/winget-pkgs`), each when its token is configured.
+  (`braswelljr/homebrew-tap`), a Scoop manifest (`braswelljr/scoop-bucket`), a winget
+  manifest (a pull request to `microsoft/winget-pkgs`), a strictly confined snap (`gnux` on
+  the Snap Store) and an AUR package (`gnux-bin`), each when its secret is configured. A
+  prerelease reaches none of them but the snap's `edge` channel.
 - **Acceptance (GitHub Actions).** `uses: braswelljr/gnux@v0` (`action.yml`) installs a release
   on a Linux, macOS or Windows runner, verifies it against `checksums.txt` and puts gnux and
   every tool name on `PATH`.

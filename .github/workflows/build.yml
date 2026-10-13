@@ -1,6 +1,6 @@
 # Requirement enforced: gnux cross-compiles, statically (CGO_ENABLED=0), for
 # every platform it supports - linux on amd64/arm64/riscv64, darwin and freebsd
-# on amd64/arm64, windows on amd64/arm64 (NFR-1).
+# on amd64/arm64, windows on amd64/arm64.
 name: Build
 
 on:

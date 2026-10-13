@@ -83,7 +83,7 @@ gnux/
     workflows/             # Hand-written: how each process runs inside the code
     rules/                 # Hand-written: the cross-cutting rules, one file each (indexed below)
   action.yml               # setup-gnux: the composite GitHub Action (uses: braswelljr/gnux@v0)
-  .goreleaser.yaml         # What a release is: archives, checksums, Homebrew/Scoop/winget manifests
+  .goreleaser.yaml         # What a release is: archives, deb/rpm/apk, checksums, Homebrew/Scoop/winget/snap/AUR
   .github/workflows/       # test.yml, build.yml, lint.yml, docs.yml, web.yml, bench.yml, action.yml, release.yml
 ```
 
@@ -475,13 +475,14 @@ cleanup, and best-effort `fmt.Fprint*` diagnostic writes. `_test.go` files are e
 | `web.yml`   | builds the wasm, then lints, type-checks, tests and builds the website                  |
 | `bench.yml` | on a pull request: benchmarks the base commit and the change in one job and fails on a regression (`tools/benchcheck`) |
 | `action.yml` | runs the setup-gnux action (`action.yml` at the root) on linux/macos/windows runners and uses the tools |
-| `release.yml` | on a `vX.Y.Z` tag: re-runs vet/test/docs checks, requires the tag's `CHANGELOG.md` section, then GoReleaser (`.goreleaser.yaml`) builds per-platform archives with completions, publishes a GitHub release with `checksums.txt`, a provenance attestation and that section as its notes, updates the Homebrew/Scoop/winget manifests whose token secret is set, and moves the `vX` major tag |
+| `release.yml` | on a `vX.Y.Z` tag: re-runs vet/test/docs checks, requires the tag's `CHANGELOG.md` section, then GoReleaser (`.goreleaser.yaml`) builds per-platform archives with completions and `.deb`/`.rpm`/`.apk` packages, publishes a GitHub release with `checksums.txt`, a provenance attestation and that section as its notes, publishes to each of Homebrew, Scoop, winget, the Snap Store and the AUR whose secret is set, and moves the `vX` major tag |
 
 Every notable change goes into `CHANGELOG.md` under `## [Unreleased]` in the same change
 (Keep a Changelog: Added, Changed, Fixed, Removed). It is published as `/docs/changelog`. To
 release, turn that section into `## [X.Y.Z] - YYYY-MM-DD`, open a new empty Unreleased above it,
 update the link definitions, commit, then `git tag -a vX.Y.Z && git push origin vX.Y.Z`; a tag
-with a hyphen is a prerelease. The release's notes are that section (`go run
+with a hyphen is a prerelease. `docs/workflows/publishing-a-release.md` is the full procedure,
+with the one-time setup of each package manager. The release's notes are that section (`go run
 ./tools/changelog vX.Y.Z` prints them), and a release tag without one fails before it builds. Every workflow is `permissions: contents: read`; only the release's `release` job gets
 `contents: write` (plus `id-token`/`attestations: write` for the attestation). Without link flags, `common.Version` falls back to the build-info module
 version, so `go install ...@vX.Y.Z` reports the tag.

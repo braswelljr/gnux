@@ -39,13 +39,16 @@ build/all: ## Cross-compile every release platform, statically, into bin/
 	GOOS=windows GOARCH=amd64   go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-windows-amd64.exe .
 	GOOS=windows GOARCH=arm64   go build -trimpath $(LDFLAGS) -o $(BIN_DIR)/$(BINARY)-windows-arm64.exe .
 
+# A literal comma, for use inside $(if ...).
+comma := ,
+
 .PHONY: release/check
 release/check: ## Validate .goreleaser.yaml
 	goreleaser check
 
 .PHONY: release/snapshot
-release/snapshot: ## Build every release archive into dist/ without publishing
-	goreleaser release --snapshot --clean --skip=publish
+release/snapshot: ## Build every release archive and package into dist/ without publishing
+	goreleaser release --snapshot --clean --skip=publish$(if $(shell command -v snapcraft),,$(comma)snapcraft)
 
 .PHONY: completions
 completions: ## Write bash/zsh/fish/PowerShell completion scripts into completions/
