@@ -64,7 +64,7 @@ func IsDummy(typ string) bool { return dummyTypes[typ] }
 
 // remoteTypes are network file systems by name, for platforms that report
 // a name rather than a magic number.
-var remoteTypes = map[string]bool{
+var remoteTypes = map[string]bool{ //nolint:unused // read by the Unix mount tables only
 	"nfs": true, "nfs4": true, "smbfs": true, "cifs": true, "afpfs": true,
 	"webdav": true, "smb2": true, "afs": true, "9p": true, "ceph": true,
 	"fuse.sshfs": true, "coda": true, "ncpfs": true, "smb3": true, "glusterfs": true,
@@ -74,7 +74,7 @@ var remoteTypes = map[string]bool{
 
 // isRemote reports a network file system from its type or its source: a
 // "host:path" export or a "//server/share".
-func isRemote(typ, source string) bool {
+func isRemote(typ, source string) bool { //nolint:unused // called by the Unix mount tables only
 	if remoteTypes[typ] {
 		return true
 	}

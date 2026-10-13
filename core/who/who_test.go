@@ -35,6 +35,7 @@ type fakeInfo struct {
 func (f fakeInfo) Mode() os.FileMode  { return f.mode }
 func (f fakeInfo) ModTime() time.Time { return f.modTime }
 func (f fakeInfo) Sys() any           { return nil }
+func (f fakeInfo) Size() int64        { return 0 }
 
 func run(t *testing.T, opts Options, args ...string) (string, error) {
 	t.Helper()
