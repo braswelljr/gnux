@@ -1,0 +1,71 @@
+---
+title: "-r, --recursive"
+description: "Like --directories=recurse."
+---
+
+An option of [grepx](/docs/tools/grepx).
+
+## Usage
+
+```bash
+grepx -r PATTERNS [FILE]...
+grepx --recursive PATTERNS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-r` | `--recursive` | none |  | like `--directories`=recurse |
+
+## Examples
+
+### Search a source tree for a whole word, with file names and line numbers
+
+```bash tab="bash" tab-group="shell"
+grepx -rnw 'TODO' src
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -rnw 'TODO' src
+```
+
+```text title="Output"
+src/main.go:42:    // TODO: handle the empty case
+```
+
+### List the files under the current directory that contain a string
+
+```bash tab="bash" tab-group="shell"
+grepx -rl 'deprecated' .
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -rl 'deprecated' .
+```
+
+### List the Go files that lack a license header
+
+```bash tab="bash" tab-group="shell"
+grepx -rL --include='*.go' 'SPDX-License-Identifier' .
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -rL --include='*.go' 'SPDX-License-Identifier' .
+```
+
+### Search a tree but skip the dependency and VCS directories
+
+```bash tab="bash" tab-group="shell"
+grepx -rn --exclude-dir=node_modules --exclude-dir=.git 'fetch(' .
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -rn --exclude-dir=node_modules --exclude-dir=.git 'fetch(' .
+```
+
+## Help in the terminal
+
+```bash
+gnux help grepx --recursive
+```

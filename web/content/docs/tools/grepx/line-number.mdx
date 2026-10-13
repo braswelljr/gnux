@@ -1,0 +1,71 @@
+---
+title: "-n, --line-number"
+description: "Print the line number with output lines."
+---
+
+An option of [grepx](/docs/tools/grepx).
+
+## Usage
+
+```bash
+grepx -n PATTERNS [FILE]...
+grepx --line-number PATTERNS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-n` | `--line-number` | none |  | print the line number with output lines |
+
+## Examples
+
+### Search a source tree for a whole word, with file names and line numbers
+
+```bash tab="bash" tab-group="shell"
+grepx -rnw 'TODO' src
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -rnw 'TODO' src
+```
+
+```text title="Output"
+src/main.go:42:    // TODO: handle the empty case
+```
+
+### Search a tree but skip the dependency and VCS directories
+
+```bash tab="bash" tab-group="shell"
+grepx -rn --exclude-dir=node_modules --exclude-dir=.git 'fetch(' .
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -rn --exclude-dir=node_modules --exclude-dir=.git 'fetch(' .
+```
+
+### Stop after the first three matches and number them
+
+```bash tab="bash" tab-group="shell"
+grepx -n -m 3 'panic' crash.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -n -m 3 'panic' crash.log
+```
+
+### Search in the portable gnux shell, the same on every platform
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'catx notes.txt | grepx -n urgent'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'catx notes.txt | grepx -n urgent'
+```
+
+## Help in the terminal
+
+```bash
+gnux help grepx --line-number
+```

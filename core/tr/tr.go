@@ -7,7 +7,6 @@
 package tr
 
 import (
-	"bufio"
 	"errors"
 	"io"
 
@@ -16,9 +15,6 @@ import (
 
 // Name is the command name, used as the prefix of every diagnostic.
 const Name = "trx"
-
-// bufSize is the read chunk.
-const bufSize = 64 << 10
 
 // Options mirrors the GNU tr flag surface.
 type Options struct {
@@ -216,8 +212,8 @@ func mark(table *[256]bool, set []byte) {
 
 // filter copies standard input to standard output through the tables.
 func (t *Tr) filter() {
-	out := bufio.NewWriterSize(t.streams.Out, bufSize)
-	buf := make([]byte, bufSize)
+	out := core.NewWriter(t.streams.Out)
+	buf := make([]byte, core.BufferSize)
 	last, haveLast := byte(0), false
 	for {
 		n, rerr := t.streams.In.Read(buf)
@@ -234,8 +230,9 @@ func (t *Tr) filter() {
 			last, haveLast = c, true
 			_ = out.WriteByte(c)
 		}
-		// Write errors are sticky in the buffered writer.
-		if _, werr := out.Write(nil); werr != nil {
+		// One write for each read: a slow producer is answered as it goes,
+		// and a fast one fills the whole buffer anyway.
+		if werr := out.Flush(); werr != nil {
 			t.writeError(werr)
 			return
 		}

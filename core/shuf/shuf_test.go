@@ -87,6 +87,39 @@ func TestPermutation(t *testing.T) {
 	}
 }
 
+// TestHeadCountIsAPrefix checks that -n only cuts the shuffle short. A short
+// and a full shuffle store their permutation differently, and the same draws
+// must still give the same lines.
+func TestHeadCountIsAPrefix(t *testing.T) {
+	var in strings.Builder
+	for i := range 100 {
+		in.WriteString(strings.Repeat("l", i%5) + string(rune('a'+i%26)) + "\n")
+	}
+	// A fixed sequence of draws, restarted for each run.
+	draws := func() func(uint64) (uint64, error) {
+		state := uint64(42)
+		return func(n uint64) (uint64, error) {
+			state = state*6364136223846793005 + 1442695040888963407
+			return (state >> 33) % n, nil
+		}
+	}
+
+	full, _, err := run(shuf.Options{}, draws(), in.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, n := range []int64{1, 7, 49, 50, 99} {
+		got, _, err := run(shuf.Options{HeadCount: n, HeadCountSet: true}, draws(), in.String())
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := strings.Join(strings.SplitAfter(full, "\n")[:n], "")
+		if got != want {
+			t.Fatalf("-n %d = %q, want the first %d lines of the full shuffle %q", n, got, n, want)
+		}
+	}
+}
+
 func TestFileAndOutput(t *testing.T) {
 	dir := t.TempDir()
 	in := filepath.Join(dir, "in")

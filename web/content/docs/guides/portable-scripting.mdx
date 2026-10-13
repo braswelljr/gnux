@@ -288,6 +288,32 @@ The shell is a portable subset, not a bash clone. The differences are few and on
 - **No external programs by name.** Only tools and builtins are commands. See the next section.
 - **Diagnostics name the shell `gnux`**, as in `gnux: frob: command not found`.
 
+## Finding, filtering and editing files
+
+`findx`, `grepx`, `sedx` and `xargsx` are the GNU tools scripts use next to coreutils, and in
+`gnux shell` they answer to `find`, `grep`, `sed` and `xargs` too:
+
+```bash
+# delete every source map under dist, however the names are spelled
+findx dist -name '*.map' -print0 | xargsx -0 rmx -v
+
+# list the Go files that still carry a TODO
+grepx -rl --include='*.go' TODO .
+
+# stamp a version into a file, in place
+sedx -i "s/@VERSION@/$VERSION/" dist/index.html
+
+# count the lines of every text file, a batch at a time
+findx docs -name '*.md' -exec wcx -l {} +
+```
+
+A command that `xargsx` or `findx -exec` is told to run is a gnux tool when it has a tool's
+name, run inside the gnux process, so `xargsx rm` behaves the same on Windows as on Linux. Any
+other name is a program found on `PATH`.
+
+Patterns are regular expressions without back references: `grepx 'a\(b\)\1'` is refused
+rather than matched some other way.
+
 ## Running external programs through `envx`
 
 `envx` runs any program found on `PATH`, so it is the shell's door to the rest of the system:

@@ -86,6 +86,46 @@ download: ## Download module dependencies
 test: ## Run tests with the race detector
 	go test -race ./...
 
+# The fuzz targets, as PACKAGE:TARGET. Each reads text gnux did not write: a
+# shell script, a sed script, a pattern, a find expression, xargs input.
+FUZZ_TARGETS := core/shell:FuzzParse core/shell:FuzzExpand core/sed:FuzzScript \
+	core/grep:FuzzPattern core/find:FuzzExpression core/xargs:FuzzInput
+FUZZTIME ?= 30s
+
+.PHONY: fuzz
+fuzz: ## Fuzz every parser for FUZZTIME each (default 30s)
+	@for t in $(FUZZ_TARGETS); do \
+		echo "== $$t"; \
+		go test -run='^$$' -fuzz="^$${t##*:}\$$" -fuzztime=$(FUZZTIME) ./$${t%%:*} || exit 1; \
+	done
+
+# Benchmarks of the real tools (cmd/bench_test.go). BENCH is a -bench regexp
+# (BENCH='Stream/grep'), COUNT repeats each one so a comparison has a spread,
+# BENCHTIME is how long each run lasts.
+BENCH ?= .
+COUNT ?= 1
+BENCHTIME ?= 1s
+# How far a benchmark may regress before bench/check fails, in percent.
+BENCH_TIME_TOLERANCE ?= 25
+BENCH_ALLOCS_TOLERANCE ?= 10
+
+.PHONY: bench
+bench: ## Benchmark the tools into bench/latest.txt (BENCH=regexp, COUNT=n, BENCHTIME=1s)
+	@mkdir -p bench
+	go test -run='^$$' -bench='$(BENCH)' -benchmem -count=$(COUNT) -benchtime=$(BENCHTIME) ./cmd | tee bench/latest.txt
+
+.PHONY: bench/check
+bench/check: ## Fail if bench/latest.txt regressed against bench/baseline.txt
+	go run ./tools/benchcheck -time $(BENCH_TIME_TOLERANCE) -allocs $(BENCH_ALLOCS_TOLERANCE) bench/baseline.txt bench/latest.txt
+
+.PHONY: bench/save
+bench/save: ## Keep bench/latest.txt as the baseline to compare against
+	cp bench/latest.txt bench/baseline.txt
+
+.PHONY: bench/compare
+bench/compare: ## Compare bench/latest.txt with bench/baseline.txt (downloads benchstat)
+	go run golang.org/x/perf/cmd/benchstat@latest bench/baseline.txt bench/latest.txt
+
 .PHONY: cover
 cover: ## Run tests and write coverage.out
 	go test -race -covermode=atomic -coverprofile=coverage.out ./...

@@ -134,7 +134,8 @@ func withoutCode(md string) string {
 			continue
 		}
 		if !inCode {
-			b.WriteString(line + "\n")
+			b.WriteString(line)
+			b.WriteString("\n")
 		}
 	}
 	return b.String()
@@ -243,9 +244,15 @@ func TestGenerateMDX(t *testing.T) {
 		if !strings.HasPrefix(content, "---\ntitle: \"") {
 			t.Errorf("%s: missing title frontmatter", name)
 		}
-		// Outside code, MDX would parse a bare brace or angle bracket.
+		// Outside code, MDX would parse a bare brace or angle bracket. The
+		// frontmatter is YAML, not MDX: a quoted description may hold either
+		// (the default of xargsx -i is "{}").
+		prose := content
+		if _, rest, ok := strings.Cut(strings.TrimPrefix(content, "---\n"), "\n---\n"); ok {
+			prose = rest
+		}
 		inFence := false
-		for _, line := range strings.Split(content, "\n") {
+		for _, line := range strings.Split(prose, "\n") {
 			if strings.HasPrefix(line, "```") {
 				inFence = !inFence
 				continue
@@ -265,7 +272,22 @@ func TestGenerateMDX(t *testing.T) {
 	}
 }
 
-var unescapedRe = regexp.MustCompile(`(^|[^\\])[{}<]`)
+// unescapedRe finds a brace or angle bracket MDX would parse: one with no
+// backslash before it, or with an even run of them (escaped backslashes, which
+// leave the character bare).
+var unescapedRe = regexp.MustCompile(`(^|[^\\])(\\\\)*[{}<]`)
+
+func TestMDXEscapeKeepsLiteralBackslashes(t *testing.T) {
+	// grep's help names the operators \{ and \}: the backslash is text.
+	got := mdxEscape(`where \{ \} and \\< are operators`)
+	want := `where \\\{ \\\} and \\\\\< are operators`
+	if got != want {
+		t.Fatalf("mdxEscape = %q, want %q", got, want)
+	}
+	if unescapedRe.MatchString(got) {
+		t.Fatalf("%q still holds a character MDX would parse", got)
+	}
+}
 
 func TestMDXEscape(t *testing.T) {
 	in := "use ${NAME} or <file> but not `${code}`\n```bash\necho ${x} <in\n```\nafter {x}"

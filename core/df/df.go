@@ -3,7 +3,6 @@
 package df
 
 import (
-	"bufio"
 	"fmt"
 	"math"
 	"os"
@@ -616,7 +615,7 @@ func clean(s string) string {
 
 // print writes the table: text columns left-aligned, numbers right-aligned.
 func (d *Df) print() {
-	w := bufio.NewWriter(d.streams.Out)
+	w := core.NewWriter(d.streams.Out)
 	defer func() {
 		if err := w.Flush(); err != nil && !core.IsClosedPipe(err) {
 			d.diag.Errorf("write error: %s", core.ErrText(err))

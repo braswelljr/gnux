@@ -122,7 +122,7 @@ func (q *Seq) Run(args []string) error {
 		}
 	}
 
-	q.out = bufio.NewWriter(q.streams.Out)
+	q.out = core.NewWriter(q.streams.Out)
 	format := func(x *big.Rat) string {
 		if directive != "" {
 			f, _ := x.Float64()
@@ -143,9 +143,10 @@ func (q *Seq) Run(args []string) error {
 		return x.Cmp(last.val) < 0
 	}
 
-	if directive == "" && first.isInt && step.isInt && last.inf == 0 && last.isInt &&
-		fitsInt64(first.val) && fitsInt64(step.val) && fitsInt64(last.val) {
-		return q.integers(first.val.Num().Int64(), step.val.Num().Int64(), last.val.Num().Int64(), sep, width)
+	if directive == "" && last.inf == 0 {
+		if x, by, end, ok := fixedPoint(first.val, step.val, last.val, prec); ok {
+			return q.fixed(x, by, end, prec, sep, width)
+		}
 	}
 
 	x := new(big.Rat).Set(first.val)
@@ -163,8 +164,36 @@ func (q *Seq) Run(args []string) error {
 	return q.end(printed)
 }
 
-// integers is the fast path for a sequence of integers that fit in 64 bits.
-func (q *Seq) integers(x, step, last int64, sep string, width int) error {
+// maxFixedPrec is the most digits after the point the fast path carries: a
+// 64-bit count of 10^-18 units still spans the integers up to nine.
+const maxFixedPrec = 18
+
+// fixedPoint expresses a sequence in units of 10^-prec, when FIRST and
+// INCREMENT are whole numbers of them and everything fits in 64 bits. Every
+// term is then a whole number of units too, and the sequence is plain integer
+// arithmetic. LAST only bounds the sequence, so it is rounded toward FIRST.
+func fixedPoint(first, step, last *big.Rat, prec int) (x, by, end int64, ok bool) {
+	if prec > maxFixedPrec {
+		return 0, 0, 0, false
+	}
+	unit := new(big.Rat).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(prec)), nil))
+	units := func(r *big.Rat) *big.Rat { return new(big.Rat).Mul(r, unit) }
+
+	f, s, l := units(first), units(step), units(last)
+	// Div rounds toward negative infinity: the bound of an ascending sequence.
+	bound := new(big.Int).Div(l.Num(), l.Denom())
+	if s.Sign() < 0 && !l.IsInt() {
+		bound.Add(bound, big.NewInt(1))
+	}
+	if !f.IsInt() || !s.IsInt() || !f.Num().IsInt64() || !s.Num().IsInt64() || !bound.IsInt64() {
+		return 0, 0, 0, false
+	}
+	return f.Num().Int64(), s.Num().Int64(), bound.Int64(), true
+}
+
+// fixed is the fast path: a sequence counted in 64-bit units of 10^-prec
+// (see fixedPoint), which is every sequence of integers and most others.
+func (q *Seq) fixed(x, step, last int64, prec int, sep string, width int) error {
 	printed := false
 	var buf []byte
 	for (step > 0 && x <= last) || (step < 0 && x >= last) {
@@ -172,11 +201,7 @@ func (q *Seq) integers(x, step, last int64, sep string, width int) error {
 		if printed {
 			buf = append(buf, sep...)
 		}
-		if width > 0 {
-			buf = append(buf, zeroPad(strconv.FormatInt(x, 10), width)...)
-		} else {
-			buf = strconv.AppendInt(buf, x, 10)
-		}
+		buf = appendFixed(buf, x, prec, width)
 		if _, err := q.out.Write(buf); err != nil {
 			return q.writeErr(err)
 		}
@@ -190,6 +215,42 @@ func (q *Seq) integers(x, step, last int64, sep string, width int) error {
 	return q.end(printed)
 }
 
+// appendFixed appends x units of 10^-prec as a decimal number with prec digits
+// after the point, padded with zeros after any sign to width: what
+// zeroPad(decimal(x/10^prec, prec), width) renders.
+func appendFixed(dst []byte, x int64, prec, width int) []byte {
+	u := uint64(x)
+	if x < 0 {
+		u = -u
+		dst = append(dst, '-')
+		width--
+	}
+	var digits [20]byte // the longest uint64
+	text := strconv.AppendUint(digits[:0], u, 10)
+
+	// At least one digit stands before the point: 5 units of 0.01 are "0.05".
+	whole := max(len(text)-prec, 1)
+	if prec > 0 {
+		width -= prec + 1
+	}
+	for zeros := width - whole; zeros > 0; zeros-- {
+		dst = append(dst, '0')
+	}
+	if len(text) <= prec {
+		dst = append(dst, '0', '.')
+		for zeros := prec - len(text); zeros > 0; zeros-- {
+			dst = append(dst, '0')
+		}
+		return append(dst, text...)
+	}
+	dst = append(dst, text[:whole]...)
+	if prec > 0 {
+		dst = append(dst, '.')
+		dst = append(dst, text[whole:]...)
+	}
+	return dst
+}
+
 // end terminates the output with a newline and flushes it.
 func (q *Seq) end(printed bool) error {
 	if printed {
@@ -199,11 +260,6 @@ func (q *Seq) end(printed bool) error {
 		return q.writeErr(err)
 	}
 	return nil
-}
-
-// fitsInt64 reports whether the integer r fits in an int64.
-func fitsInt64(r *big.Rat) bool {
-	return r.Num().IsInt64()
 }
 
 // writeErr reports a write failure, except a reader that has gone away,

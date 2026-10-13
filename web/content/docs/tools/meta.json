@@ -24,8 +24,10 @@
     "expandx",
     "exprx",
     "falsex",
+    "findx",
     "fmtx",
     "foldx",
+    "grepx",
     "headx",
     "hostnamex",
     "idx",
@@ -52,6 +54,7 @@
     "realpathx",
     "rmdirx",
     "rmx",
+    "sedx",
     "seqx",
     "sha1sumx",
     "sha224sumx",
@@ -81,6 +84,7 @@
     "wcx",
     "whoamix",
     "whox",
+    "xargsx",
     "yesx"
   ]
 }

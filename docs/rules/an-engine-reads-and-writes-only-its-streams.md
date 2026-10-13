@@ -28,9 +28,9 @@ func Stdio() Streams {
 
 The entry point, [`main.go`](../../main.go), is the only caller that hands the process's streams in: `os.Exit(cmd.Main(os.Args, core.Stdio()))`. Diagnostics and prompts are built from the same streams: `core.NewDiag(Name, s)` and `core.NewPrompter(Name, s)`.
 
-Do: `fmt.Fprintln(s.Out, line)`, or `r.diag.Printf(...)`.
+Do: `fmt.Fprintln(s.Out, line)`, or `r.diag.Printf(...)`. An engine that reads or writes more than a few lines buffers the streams with `core.NewReader(s.In)` and `core.NewWriter(s.Out)`, which share one size (`core.BufferSize`), and flushes the writer before it returns (`core.FlushOutput`).
 
-Do not: `fmt.Println(line)` or `bufio.NewReader(os.Stdin)` in an engine.
+Do not: `fmt.Println(line)` or `bufio.NewReader(os.Stdin)` in an engine, and not `bufio.NewReader` or `bufio.NewWriter` over a stream either: their 4096-byte default costs a read or write call every few dozen lines.
 
 ## How it is checked
 

@@ -1,0 +1,37 @@
+---
+title: "-e, --regexp"
+description: "Use PATTERNS for matching."
+---
+
+An option of [grepx](/docs/tools/grepx).
+
+## Usage
+
+```bash
+grepx -e PATTERNS PATTERNS [FILE]...
+grepx --regexp=PATTERNS PATTERNS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-e` | `--regexp` | `PATTERNS` |  | use PATTERNS for matching |
+
+## Examples
+
+### Drop comment lines and empty lines from a configuration file
+
+```bash tab="bash" tab-group="shell"
+grepx -v -e '^#' -e '^$' app.conf
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -v -e '^#' -e '^$' app.conf
+```
+
+## Help in the terminal
+
+```bash
+gnux help grepx --regexp
+```

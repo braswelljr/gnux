@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/braswelljr/gnux/core"
@@ -250,4 +251,43 @@ func TestInjectedRemoveFn(t *testing.T) {
 		t.Fatalf("removed = %v, want %v", removed, want)
 	}
 	mustExist(t, root, true) // RemoveFn was a no-op recorder
+}
+
+// A panic on one of the workers that remove operands in parallel is raised on
+// the goroutine that called Run, where a host can recover it, and the other
+// operands are still handled.
+func TestWorkerPanicReachesTheCaller(t *testing.T) {
+	dir := t.TempDir()
+	var paths []string
+	for _, name := range []string{"a", "b", "c", "d"} {
+		p := filepath.Join(dir, name)
+		if err := os.WriteFile(p, nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		paths = append(paths, p)
+	}
+	r, _, _ := newEngine(rm.Options{})
+	var mu sync.Mutex
+	seen := 0
+	r.RemoveFn = func(p string) error {
+		mu.Lock()
+		seen++
+		mu.Unlock()
+		if filepath.Base(p) == "b" {
+			panic("remove failed badly")
+		}
+		return nil
+	}
+
+	var got *core.Panic
+	func() {
+		defer func() { got, _ = recover().(*core.Panic) }()
+		_ = r.Run(paths)
+	}()
+	if got == nil || got.Value != "remove failed badly" {
+		t.Fatalf("recovered %+v, want the worker's panic", got)
+	}
+	if seen != len(paths) {
+		t.Errorf("%d of %d operands were handled", seen, len(paths))
+	}
 }

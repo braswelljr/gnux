@@ -64,8 +64,10 @@ func toolMarkdown(t tool.Spec, flags *pflag.FlagSet) string {
 		}
 	}
 
-	b.WriteString("\n" + exitStatusMarkdown(t, "###"))
-	b.WriteString("\n" + terminalHelpMarkdown(t, "###"))
+	b.WriteString("\n")
+	b.WriteString(exitStatusMarkdown(t, "###"))
+	b.WriteString("\n")
+	b.WriteString(terminalHelpMarkdown(t, "###"))
 
 	b.WriteString("\n### See also\n\n")
 	for _, r := range t.Meta.SeeAlso {
@@ -161,7 +163,7 @@ var (
 var proseWords = map[string]bool{
 	"cat": true, "echo": true, "env": true, "false": true, "head": true,
 	"sleep": true, "tail": true, "touch": true, "true": true, "yes": true,
-	"sort": true, "cut": true, "tee": true,
+	"sort": true, "cut": true, "tee": true, "find": true,
 }
 
 // cmdWordRe matches standalone command names: gnux, every tool, and the GNU

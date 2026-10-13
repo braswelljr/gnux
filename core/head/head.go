@@ -74,7 +74,7 @@ func (h *Head) Run(args []string) error {
 	if len(args) == 0 {
 		args = []string{"-"}
 	}
-	h.out = bufio.NewWriter(h.streams.Out)
+	h.out = core.NewWriter(h.streams.Out)
 	headers := !h.Quiet && (h.Verbose || len(args) > 1)
 
 	for _, name := range args {
@@ -177,6 +177,11 @@ func (h *Head) firstLines(r io.Reader, n int64) error {
 			n--
 		}
 		if _, werr := h.out.Write(buf[:end]); werr != nil {
+			return werr
+		}
+		// One write for each read, so the lines of a slow producer are
+		// passed on as they come.
+		if werr := h.out.Flush(); werr != nil {
 			return werr
 		}
 		if n == 0 {

@@ -72,7 +72,7 @@ func (t *Tac) Run(args []string) error {
 		args = []string{"-"}
 	}
 
-	out := bufio.NewWriter(t.streams.Out)
+	out := core.NewWriter(t.streams.Out)
 	for _, name := range args {
 		data, ok := t.read(name)
 		if !ok {

@@ -57,7 +57,7 @@ func (u *Unexpand) Run(args []string) error {
 
 	in := expand.NewInput(args, u.streams, u.diag)
 	defer in.Close()
-	out := bufio.NewWriter(u.streams.Out)
+	out := core.NewWriter(u.streams.Out)
 	pending := make([]byte, 0, min(max(tabs.MaxWidth(), 1), 4096))
 
 	for {
@@ -150,6 +150,9 @@ func (u *Unexpand) Run(args []string) error {
 				return u.writeFailed(werr)
 			}
 			if c == '\n' {
+				if in.Idle() {
+					_ = out.Flush()
+				}
 				break
 			}
 		}

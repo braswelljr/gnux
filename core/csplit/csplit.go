@@ -132,7 +132,7 @@ func (c *Csplit) Run(args []string) error {
 	if r == nil {
 		r = strings.NewReader("")
 	}
-	c.in = bufio.NewReaderSize(r, 64*1024)
+	c.in = core.NewReader(r)
 
 	controls, err := c.parse(args[1:])
 	if err != nil {
@@ -381,7 +381,7 @@ func (c *Csplit) createOutput() error {
 	}
 	c.created++
 	c.outFile, c.outName, c.written = f, name, 0
-	c.out = bufio.NewWriter(f)
+	c.out = core.NewWriter(f)
 	return nil
 }
 

@@ -9,7 +9,7 @@ import "bufio"
 // the run's named error result:
 //
 //	func (t *Tool) Run(args []string) (err error) {
-//		out := bufio.NewWriter(t.streams.Out)
+//		out := core.NewWriter(t.streams.Out)
 //		defer core.FlushOutput(out, t.diag, &err)
 func FlushOutput(w *bufio.Writer, d *Diag, err *error) {
 	ferr := w.Flush()

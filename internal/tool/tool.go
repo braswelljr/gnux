@@ -21,6 +21,14 @@ const (
 	diagNameKey  = "gnux/diag-name"  // name diagnostics are prefixed with
 )
 
+// RunTool runs a registered tool by either of its names and reports whether
+// there is one: it is cmd.RunTool, set by package cmd, which owns the registry
+// and which the adapters cannot import. The adapters of tools that run other
+// commands (xargsx, findx) hand it to their engine, so that a command named
+// after a tool runs in-process. It is nil only in a program that never loaded
+// package cmd.
+var RunTool func(name string, args []string, s core.Streams) (status int, found bool)
+
 // Spec describes one tool.
 type Spec struct {
 	// Meta is the tool's documentation. Meta.Name is the command name ("rmx")

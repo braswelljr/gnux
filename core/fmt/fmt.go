@@ -167,7 +167,7 @@ func (f *Fmt) setPrefix(p string) {
 // input. A failing operand is reported and the rest still run. The returned
 // error is core.ErrFailed if anything failed, otherwise nil.
 func (f *Fmt) Run(args []string) error {
-	f.out = bufio.NewWriter(f.streams.Out)
+	f.out = core.NewWriter(f.streams.Out)
 	if len(args) == 0 {
 		args = []string{"-"}
 	}
@@ -208,7 +208,7 @@ func (f *Fmt) Run(args []string) error {
 
 // format formats one input.
 func (f *Fmt) format(r io.Reader) {
-	f.in = bufio.NewReader(r)
+	f.in = core.NewReader(r)
 	f.readErr = nil
 	f.tabs = false
 	f.otherIndent = 0

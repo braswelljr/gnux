@@ -4,7 +4,6 @@
 package sort
 
 import (
-	"bufio"
 	"bytes"
 	"errors"
 	"io"
@@ -335,7 +334,9 @@ func (s *Sort) setup() error {
 		}
 		s.keys = append(s.keys, k)
 	}
-	if len(s.keys) == 0 && (global.hasOrdering() || global.reverse) {
+	// A lone -r needs no key: the last-resort comparison reverses whole lines
+	// itself, without the per-comparison field extraction a key costs.
+	if len(s.keys) == 0 && global.hasOrdering() {
 		s.keys = []*key{global}
 	}
 
@@ -581,7 +582,7 @@ func (s *Sort) write(lines [][]byte, file *os.File) error {
 		w, name = file, s.Output
 	}
 
-	bw := bufio.NewWriter(w)
+	bw := core.NewWriter(w)
 	for _, line := range lines {
 		_, _ = bw.Write(line)
 		_ = bw.WriteByte(s.delim)

@@ -119,7 +119,7 @@ func (st *Stat) Run(args []string) (err error) {
 	if len(args) == 0 {
 		return core.Usagef("missing operand")
 	}
-	st.out = bufio.NewWriter(st.streams.Out)
+	st.out = core.NewWriter(st.streams.Out)
 	defer core.FlushOutput(st.out, st.diag, &err)
 
 	format, format2, escapes, trailing := st.formats()

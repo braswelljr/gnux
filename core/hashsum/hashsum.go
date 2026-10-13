@@ -8,7 +8,6 @@
 package hashsum
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/md5"
 	"crypto/sha1"
@@ -370,7 +369,7 @@ func (h *Sum) checkList(list string) bool {
 	}
 
 	var res checkResult
-	br := bufio.NewReader(r)
+	br := core.NewReader(r)
 	for lineNo := 1; ; lineNo++ {
 		raw, err := br.ReadString('\n')
 		if raw == "" && err != nil {

@@ -1,0 +1,36 @@
+---
+title: "--exclude-dir"
+description: "Skip directories that match GLOB."
+---
+
+An option of [grepx](/docs/tools/grepx).
+
+## Usage
+
+```bash
+grepx --exclude-dir=GLOB PATTERNS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--exclude-dir` | `GLOB` |  | skip directories that match GLOB |
+
+## Examples
+
+### Search a tree but skip the dependency and VCS directories
+
+```bash tab="bash" tab-group="shell"
+grepx -rn --exclude-dir=node_modules --exclude-dir=.git 'fetch(' .
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -rn --exclude-dir=node_modules --exclude-dir=.git 'fetch(' .
+```
+
+## Help in the terminal
+
+```bash
+gnux help grepx --exclude-dir
+```

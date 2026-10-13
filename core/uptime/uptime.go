@@ -4,7 +4,6 @@
 package uptime
 
 import (
-	"bufio"
 	"fmt"
 	"time"
 
@@ -81,7 +80,7 @@ func (u *Uptime) Run(args []string) (err error) {
 		}
 	}
 
-	out := bufio.NewWriter(u.streams.Out)
+	out := core.NewWriter(u.streams.Out)
 	defer core.FlushOutput(out, u.diag, &err)
 	loc := u.Location
 	if loc == nil {

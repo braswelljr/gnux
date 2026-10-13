@@ -102,6 +102,7 @@ type Od struct {
 	streams core.Streams
 	diag    *core.Diag
 	formats []format
+	scratch []byte // the output lines of the block being printed
 	order   binary.ByteOrder
 }
 
@@ -257,12 +258,12 @@ func (o *Od) Run(args []string) error {
 		r = io.LimitReader(in, max(o.Limit, 0))
 	}
 
-	w := bufio.NewWriter(o.streams.Out)
+	w := core.NewWriter(o.streams.Out)
 	var err error
 	if o.Strings > 0 {
-		err = o.dumpStrings(w, bufio.NewReader(r))
+		err = o.dumpStrings(w, core.NewReader(r))
 	} else {
-		err = o.dump(w, r)
+		err = o.dump(w, core.NewReader(r))
 	}
 	if ferr := w.Flush(); err == nil {
 		err = ferr
@@ -356,32 +357,59 @@ func (o *Od) dump(w *bufio.Writer, r io.Reader) error {
 }
 
 func (o *Od) address(a int64) string {
+	return string(o.appendAddress(nil, a))
+}
+
+// appendAddress appends the offset a in the -A radix: nothing for none.
+func (o *Od) appendAddress(dst []byte, a int64) []byte {
 	switch o.Radix {
 	case RadixDecimal:
-		return fmt.Sprintf("%07d", a)
+		return appendZeroFilled(dst, uint64(a), 10, 7)
 	case RadixHex:
-		return fmt.Sprintf("%06x", a)
+		return appendZeroFilled(dst, uint64(a), 16, 6)
 	case RadixNone:
-		return ""
+		return dst
 	default:
-		return fmt.Sprintf("%07o", a)
+		return appendZeroFilled(dst, uint64(a), 8, 7)
 	}
 }
 
+// appendZeroFilled appends u in the given base, zero-filled to width digits.
+func appendZeroFilled(dst []byte, u uint64, base, width int) []byte {
+	var digits [64]byte
+	text := strconv.AppendUint(digits[:0], u, base)
+	for fill := width - len(text); fill > 0; fill-- {
+		dst = append(dst, '0')
+	}
+	return append(dst, text...)
+}
+
+func appendSpaces(dst []byte, n int) []byte {
+	for ; n > 0; n-- {
+		dst = append(dst, ' ')
+	}
+	return dst
+}
+
 // line prints one block: a line per format, the first prefixed with the
-// offset and the others with as many spaces.
+// offset and the others with as many spaces. The lines are built in o.scratch
+// and written at once: od prints several values for every input byte, so
+// formatting each through fmt would dominate the run.
 func (o *Od) line(w *bufio.Writer, addr int64, data []byte, block int) error {
 	// A partial last block is padded with zero bytes up to a whole value.
-	padded := make([]byte, block)
-	copy(padded, data)
+	padded := data
+	if len(data) < block {
+		padded = make([]byte, block)
+		copy(padded, data)
+	}
 	n := len(data)
 
-	lead := o.address(addr)
+	out := o.appendAddress(o.scratch[:0], addr)
+	lead := len(out)
+	var value [32]byte
 	for i, f := range o.formats {
-		if i == 0 {
-			_, _ = w.WriteString(lead)
-		} else {
-			_, _ = w.WriteString(strings.Repeat(" ", len(lead)))
+		if i > 0 {
+			out = appendSpaces(out, lead)
 		}
 		fields := block / f.size
 		blank := (block - n) / f.size
@@ -391,29 +419,28 @@ func (o *Od) line(w *bufio.Writer, addr int64, data []byte, block int) error {
 			next := f.pad * (k - 1) / fields
 			adj := padLeft - next + f.width
 			padLeft = next
-			v := o.value(f, padded[idx*f.size:(idx+1)*f.size])
-			_ = w.WriteByte(' ')
-			_, _ = w.WriteString(strings.Repeat(" ", max(adj-len(v), 0)))
-			_, _ = w.WriteString(v)
+			v := o.appendValue(value[:0], f, padded[idx*f.size:(idx+1)*f.size])
+			out = appendSpaces(out, 1+max(adj-len(v), 0))
+			out = append(out, v...)
 		}
 		if f.trailer {
 			// Space out the missing fields so the trailer lines up.
-			_, _ = w.WriteString(strings.Repeat(" ", blank*(f.width+1)+f.pad*blank/fields))
-			_, _ = w.WriteString("  >")
+			out = appendSpaces(out, blank*(f.width+1)+f.pad*blank/fields)
+			out = append(out, "  >"...)
 			for _, c := range data {
 				if c >= 0x20 && c < 0x7f {
-					_ = w.WriteByte(c)
+					out = append(out, c)
 				} else {
-					_ = w.WriteByte('.')
+					out = append(out, '.')
 				}
 			}
-			_ = w.WriteByte('<')
+			out = append(out, '<')
 		}
-		if err := w.WriteByte('\n'); err != nil {
-			return err
-		}
+		out = append(out, '\n')
 	}
-	return nil
+	o.scratch = out
+	_, err := w.Write(out)
+	return err
 }
 
 var named = [...]string{
@@ -424,49 +451,49 @@ var named = [...]string{
 	"sp",
 }
 
-// value formats one value, unpadded except for the zero-filled octal and
-// hexadecimal conversions.
-func (o *Od) value(f format, b []byte) string {
+// appendValue appends one formatted value, unpadded except for the
+// zero-filled octal and hexadecimal conversions.
+func (o *Od) appendValue(dst []byte, f format, b []byte) []byte {
 	switch f.kind {
 	case kindNamed:
 		c := b[0] & 0x7f
 		switch {
 		case int(c) < len(named):
-			return named[c]
+			return append(dst, named[c]...)
 		case c == 0x7f:
-			return "del"
+			return append(dst, "del"...)
 		default:
-			return string(rune(c))
+			return append(dst, c)
 		}
 	case kindChar:
 		switch c := b[0]; c {
 		case 0:
-			return `\0`
+			return append(dst, `\0`...)
 		case '\a':
-			return `\a`
+			return append(dst, `\a`...)
 		case '\b':
-			return `\b`
+			return append(dst, `\b`...)
 		case '\f':
-			return `\f`
+			return append(dst, `\f`...)
 		case '\n':
-			return `\n`
+			return append(dst, `\n`...)
 		case '\r':
-			return `\r`
+			return append(dst, `\r`...)
 		case '\t':
-			return `\t`
+			return append(dst, `\t`...)
 		case '\v':
-			return `\v`
+			return append(dst, `\v`...)
 		default:
 			if c >= 0x20 && c < 0x7f {
-				return string(rune(c))
+				return append(dst, c)
 			}
-			return fmt.Sprintf("%03o", c)
+			return appendZeroFilled(dst, uint64(c), 8, 3)
 		}
 	case kindFloat:
 		if f.size == 4 {
-			return formatFloat(float64(math.Float32frombits(o.order.Uint32(b))), 32)
+			return append(dst, formatFloat(float64(math.Float32frombits(o.order.Uint32(b))), 32)...)
 		}
-		return formatFloat(math.Float64frombits(o.order.Uint64(b)), 64)
+		return append(dst, formatFloat(math.Float64frombits(o.order.Uint64(b)), 64)...)
 	}
 
 	var u uint64
@@ -482,11 +509,11 @@ func (o *Od) value(f format, b []byte) string {
 	}
 	switch f.kind {
 	case kindOctal:
-		return fmt.Sprintf("%0*o", f.width, u)
+		return appendZeroFilled(dst, u, 8, f.width)
 	case kindHex:
-		return fmt.Sprintf("%0*x", f.width, u)
+		return appendZeroFilled(dst, u, 16, f.width)
 	case kindUnsign:
-		return strconv.FormatUint(u, 10)
+		return strconv.AppendUint(dst, u, 10)
 	default:
 		var v int64
 		switch f.size {
@@ -499,7 +526,7 @@ func (o *Od) value(f format, b []byte) string {
 		default:
 			v = int64(u)
 		}
-		return strconv.FormatInt(v, 10)
+		return strconv.AppendInt(dst, v, 10)
 	}
 }
 

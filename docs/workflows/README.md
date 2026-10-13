@@ -14,6 +14,7 @@ How gnux's technical processes actually run inside the code, one document per pr
 | [documentation-generation](documentation-generation.md)               | The registry to four reference formats and the website: `gendocs`, `cmd/docs`, determinism, `wrapCode`, `mdxEscape`, link rewriting, the Docs check |
 | [ci-and-release](ci-and-release.md)                                   | Every GitHub workflow: trigger, steps, requirements enforced, local reproduction, common failures; the tag-to-release flow; where the version comes from |
 | [error-handling-and-exit-status](error-handling-and-exit-status.md)   | `ErrFailed`, `ExitError`, `UsageError`, `ErrText`, `Describe`, closed pipes, and a table of every special status |
+| [benchmarking-and-robustness](benchmarking-and-robustness.md)         | `make bench` and comparing two runs; the memory, goroutine and open-file tests; `core.FlushIfIdle`; the fuzz targets; where a panic is contained |
 
 ## Where to start
 
@@ -25,6 +26,7 @@ How gnux's technical processes actually run inside the code, one document per pr
 | Change the shell language                       | [shell-execution](shell-execution.md)                                                    |
 | Work on the website or the playground           | [wasm-playground](wasm-playground.md) and [documentation-generation](documentation-generation.md) |
 | Fix a red CI run, or cut a release              | [ci-and-release](ci-and-release.md)                                                      |
+| Make something faster, or check a change did not make it slower | [benchmarking-and-robustness](benchmarking-and-robustness.md)            |
 
 ## How to read them
 

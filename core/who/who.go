@@ -124,7 +124,7 @@ func (w *Who) Run(args []string) (err error) {
 		return core.Usagef("extra operand '%s'", args[2])
 	}
 	w.resolve()
-	w.out = bufio.NewWriter(w.streams.Out)
+	w.out = core.NewWriter(w.streams.Out)
 	defer core.FlushOutput(w.out, w.diag, &err)
 	if w.Count {
 		w.count(entries)

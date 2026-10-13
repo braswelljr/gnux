@@ -10,7 +10,7 @@ Every consumer of a tool is built from `cmd.Tools()` in `cmd/registry.go` (NFR-2
 | Consumer                                   | Built from                                   | Workflow |
 |--------------------------------------------|----------------------------------------------|----------|
 | `gnux nprocx`, `gnux nproc`                | `NewRoot` adds `Commands()`                  | [command-line-to-tool-run](command-line-to-tool-run.md) |
-| `nprocx`, `nproc` as program names         | `Lookup` walks `Tools()`                     | same     |
+| `nprocx`, `nproc` as program names         | `Lookup` indexes `Tools()`                    | same     |
 | `gnux --list`, hence `make links`, `install.sh`, the `Dockerfile` | `Tools()`             | same     |
 | a command in `gnux shell`                  | `cmd.RunTool`                                | [shell-execution](shell-execution.md) |
 | a command in the playground                | the same shell, compiled to wasm             | [wasm-playground](wasm-playground.md) |
@@ -328,21 +328,21 @@ also the order of `--list`, the help and the documentation:
 		pwdx.Spec(),
 ```
 
-With the skeleton above registered in a scratch copy of the tree, the real binary behaves as
-the contract says:
+With the skeleton above registered in a scratch copy of the tree and built with `make build`,
+the real binary behaves as the contract says:
 
 ```text
-$ ./gnux nprocx
+$ ./bin/gnux nprocx
 15
-$ ./gnux nprocx --ignore=2
+$ ./bin/gnux nprocx --ignore=2
 13
-$ ./gnux nproc x
+$ ./bin/gnux nproc x
 nprocx: extra operand 'x'
 Try 'nprocx --help' for more information.          # status 1
-$ ./gnux nprocx --ignore=-1
+$ ./bin/gnux nprocx --ignore=-1
 nprocx: invalid argument "-1" for "--ignore" flag: strconv.ParseUint: parsing "-1": invalid syntax
 Try 'nprocx --help' for more information.          # status 1
-$ ./gnux nprocx --version
+$ ./bin/gnux nprocx --version
 nprocx (gnux) dev
 ```
 

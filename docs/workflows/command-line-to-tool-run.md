@@ -1,6 +1,6 @@
 # Command Line to Tool Run
 
-How a command line becomes a tool run inside gnux: `main.go` hands the raw `argv` and the process streams to `cmd.Main`, which reduces `argv[0]` to a bare program name, looks it up in the registry, and either runs that tool's cobra command directly or falls back to the `gnux` root command, where the first argument picks the tool. Every tool command is built from a `tool.Spec` by `Spec.Command`, which adds `--help` and `--version`, honors `RawArgs` and `NoInterspersed`, and records the tool's diagnostic name and usage-error status on the command so that `cmd.Main` can turn whatever the engine returns into a GNU-style message and exit status. Every other workflow (the shell, the playground, the library's `cmd.RunTool`) passes through the same code.
+How a command line becomes a tool run inside gnux: `main.go` hands the raw `argv` and the process streams to `cmd.Main`, which reduces `argv[0]` to a bare program name, looks it up in the registry, and runs that tool's cobra command directly; when `argv[0]` is not a tool, the first argument is looked up the same way, `gnux shell` is run directly as well, and only what is left (`gnux --list`, `gnux help`, an unknown name) builds the `gnux` root command. Every tool command is built from a `tool.Spec` by `Spec.Command`, which adds `--help` and `--version`, honors `RawArgs` and `NoInterspersed`, and records the tool's diagnostic name and usage-error status on the command so that `cmd.Main` can turn whatever the engine returns into a GNU-style message and exit status. Every other workflow (the shell, the playground, the library's `cmd.RunTool`) passes through the same code.
 
 ## The path at a glance
 
@@ -24,10 +24,13 @@ sequenceDiagram
     alt argv[0] names a tool (rmx, rm, RMX.EXE)
         Reg-->>RT: spec, true
         RT->>Cmd: spec.Command(streams) then execute
-    else argv[0] is gnux or anything else
+    else argv[0] is gnux and argv[1] names a tool (gnux rmx, gnux rm)
+        CM->>RT: RunTool(argv[1], argv[2:], streams)
+        RT->>Cmd: spec.Command(streams) then execute
+    else anything else (gnux --list, gnux help; gnux shell runs directly too)
         Reg-->>RT: false
         CM->>Root: execute(NewRoot(streams), argv[1:])
-        Root->>Cmd: cobra selects subcommand by name or GNU alias
+        Root->>Cmd: cobra handles the flags, or selects the command
     end
     Cmd->>Cmd: parse flags (unless RawArgs), handle --help/--version
     Cmd->>Adp: Spec.Run(fs, args, streams)
@@ -101,53 +104,66 @@ and `RMX.EXE`.
 if status, ok := RunTool(progName(argv[0]), args, s); ok {
 	return status
 }
+if len(args) > 0 {
+	if status, ok := RunTool(args[0], args[1:], s); ok {
+		return status
+	}
+	if shell := ShellSpec(); args[0] == shell.Name() {
+		return execute(shell.Command(s), args[1:], s)
+	}
+}
 return execute(NewRoot(s), args, s)
 ```
 
-`RunTool` calls `Lookup` in `cmd/registry.go`, which walks `Tools()` and matches either the
-command name (`s.Name()`, that is `Meta.Name`, such as `rmx`) or the GNU name (`s.GNU`, such as
-`rm`):
+`RunTool` calls `Lookup` in `cmd/registry.go`, which finds the spec under either the command
+name (`s.Name()`, that is `Meta.Name`, such as `rmx`) or the GNU name (`s.GNU`, such as `rm`):
 
 ```go
-for _, s := range Tools() {
-	if name == s.Name() || (s.GNU != "" && name == s.GNU) {
-		return s, true
-	}
+func Lookup(name string) (tool.Spec, bool) {
+	s, ok := byName()[name]
+	return s, ok
 }
 ```
 
 So a binary linked or copied to `rmx` or to `rm` runs `rmx` directly with the remaining
-arguments (FR-19, FR-20). Anything else, including `gnux` itself, falls through to the root
-command (FR-18).
+arguments (FR-19, FR-20), and so does `gnux rmx` or `gnux rm` (FR-18): the tool is the same
+`spec.Command(streams)` either way, which is why `TestSubcommandMatchesArgv0` can require
+identical output from both. `gnux shell` is not a tool, since no program name selects it, but it is run the same way so that a script does not wait for the root command. Only a first argument that is neither reaches the root command.
+
+The second lookup is there for speed. The root command carries a cobra command for every tool,
+flags included, and building all of them to run one cost about a hundred times what the tool's
+own command does (`BenchmarkDispatch` in `cmd/main_test.go`, NFR-8).
 
 Two consequences of using `Tools()` rather than `Commands()` here:
 
 - `gnux shell` is in `Commands()` but not in `Tools()`, so a binary named `shell` does not start
   the shell, and `RunTool("shell", ...)` reports `ok == false` (FR-77). The shell is reachable
   only as `gnux shell`.
-- `Tools()` builds every `Spec` on each call. That is cheap (each `Spec()` only fills a struct)
-  and keeps the registry a plain function with no package-level state.
+- `Tools()` builds every `Spec` on each call, which keeps the list a plain function. `Lookup`
+  does not pay for that each time: `byName` builds an index from `Tools()` once per process
+  (`sync.OnceValue`), because the shell looks up every command a script runs. The index is
+  derived from the one list, never a second copy of it.
 
-Real output from a build in a scratch directory, where `rmx`, `rm` and `RMX.EXE` are links or
-copies of the same binary:
+Real output from `make build`, with `bin/rmx`, `bin/rm` and `bin/RMX.EXE` made as links to or
+copies of `bin/gnux`:
 
 ```text
-$ ./gnux --version
+$ ./bin/gnux --version
 gnux v0.0.0-20260702171831-1d15ddee257f+dirty
-$ ./rmx --version
+$ ./bin/rmx --version
 rmx (gnux) v0.0.0-20260702171831-1d15ddee257f+dirty
-$ ./rm --version
+$ ./bin/rm --version
 rmx (gnux) v0.0.0-20260702171831-1d15ddee257f+dirty
-$ ./RMX.EXE --version
+$ ./bin/RMX.EXE --version
 rmx (gnux) v0.0.0-20260702171831-1d15ddee257f+dirty
-$ ./gnux rm --version
+$ ./bin/gnux rm --version
 rmx (gnux) v0.0.0-20260702171831-1d15ddee257f+dirty
 ```
 
 The version is a pseudo-version because that build had no `-ldflags`; see
 [ci-and-release](ci-and-release.md#where-the-version-comes-from).
 
-## Step 4: the root command (only when `argv[0]` is not a tool)
+## Step 4: the root command (only when neither `argv[0]` nor the first argument is a tool)
 
 `cmd.NewRoot` in `cmd/root.go` builds the `gnux` command:
 
@@ -172,9 +188,9 @@ return command.Help()
 `Dockerfile` loop over to create the per-tool links (FR-21, FR-37):
 
 ```text
-$ ./gnux --list | tr '\n' ' '
+$ ./bin/gnux --list | tr '\n' ' '
 basenamex catx cpx dirnamex echox envx falsex headx lnx lsx mkdirx mvx pwdx realpathx rmdirx rmx sleepx tailx touchx truex wcx yesx
-$ ./gnux nosuchtool
+$ ./bin/gnux nosuchtool
 gnux: unknown tool 'nosuchtool'
 Try 'gnux --help' for more information.
 $ echo $?
@@ -231,7 +247,7 @@ return s.Run(fs, args, streams)
   `--version`. With anything else beside it, the word is data, as in GNU:
 
   ```text
-  $ ./gnux echox --help extra
+  $ ./bin/gnux echox --help extra
   --help extra
   ```
 
@@ -296,18 +312,18 @@ and is never ignored (FR-73). `ran` is the command cobra actually executed, so f
 Real output:
 
 ```text
-$ ./rmx
+$ ./bin/rmx
 rmx: missing operand
 Try 'rmx --help' for more information.          # status 1
-$ ./gnux rmx --no-such-flag
+$ ./bin/gnux rmx --no-such-flag
 rmx: unknown flag: --no-such-flag
 Try 'rmx --help' for more information.          # status 1
-$ ./rmx missing
+$ ./bin/rmx missing
 rmx: cannot remove 'missing': No such file or directory   # status 1, no hint
-$ ./gnux lsx --bogus
+$ ./bin/gnux lsx --bogus
 lsx: unknown flag: --bogus
 Try 'lsx --help' for more information.          # status 2 (lsx UsageExit)
-$ ./gnux envx --bogus
+$ ./bin/gnux envx --bogus
 envx: unknown flag: --bogus
 Try 'envx --help' for more information.         # status 125 (envx UsageExit)
 ```

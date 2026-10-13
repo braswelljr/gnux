@@ -108,7 +108,7 @@ func (d *Date) Run(args []string) (err error) {
 
 	loc := d.location()
 	now := d.Now().In(loc)
-	out := bufio.NewWriter(d.streams.Out)
+	out := core.NewWriter(d.streams.Out)
 	defer core.FlushOutput(out, d.diag, &err)
 
 	switch {
@@ -233,7 +233,7 @@ func (d *Date) batch(out *bufio.Writer, format string, now time.Time) {
 		defer f.Close()
 		in = f
 	}
-	r := bufio.NewReader(in)
+	r := core.NewReader(in)
 	for {
 		line, err := r.ReadString('\n')
 		if line != "" || err == nil {

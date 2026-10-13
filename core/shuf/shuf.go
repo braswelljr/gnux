@@ -142,7 +142,7 @@ func (sh *Shuf) Run(args []string) error {
 		defer f.Close()
 		out = f
 	}
-	w := bufio.NewWriter(out)
+	w := core.NewWriter(out)
 
 	item := func(i uint64) []byte {
 		if ranged {
@@ -210,29 +210,45 @@ func (sh *Shuf) emit(w *bufio.Writer, n, limit uint64, random func(uint64) (uint
 	if count == 0 {
 		return nil
 	}
-	// A partial Fisher-Yates shuffle over an index permutation. Indexes that
-	// have not been touched map to themselves, so a huge -i range with a small
-	// -n costs memory only for the swaps made.
-	perm := map[uint64]uint64{}
-	at := func(i uint64) uint64 {
-		if v, ok := perm[i]; ok {
-			return v
-		}
-		return i
-	}
+	// A partial Fisher-Yates shuffle over an index permutation.
+	at, swap := permutation(n, count)
 	for i := uint64(0); i < count; i++ {
 		r, err := random(n - i)
 		if err != nil {
 			return err
 		}
 		j := i + r
-		vi, vj := at(i), at(j)
-		perm[i], perm[j] = vj, vi
+		vj := at(j)
+		swap(i, j)
 		if err := put(item(vj)); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// permutation returns the identity permutation of n indexes as a pair of
+// accessors, stored to suit a shuffle that outputs count of them. Outputting
+// most of the indexes touches most of them, so they sit in a slice. Outputting
+// a few of many (a small -n over a huge -i range) keeps only the indexes that
+// were swapped, in a map: the rest still map to themselves.
+func permutation(n, count uint64) (at func(uint64) uint64, swap func(i, j uint64)) {
+	if count >= n/2 {
+		perm := make([]uint64, n)
+		for i := range perm {
+			perm[i] = uint64(i)
+		}
+		return func(i uint64) uint64 { return perm[i] },
+			func(i, j uint64) { perm[i], perm[j] = perm[j], perm[i] }
+	}
+	perm := map[uint64]uint64{}
+	at = func(i uint64) uint64 {
+		if v, ok := perm[i]; ok {
+			return v
+		}
+		return i
+	}
+	return at, func(i, j uint64) { perm[i], perm[j] = at(j), at(i) }
 }
 
 func (sh *Shuf) delim() byte {

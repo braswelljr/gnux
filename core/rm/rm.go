@@ -75,12 +75,18 @@ func (r *Rm) runConcurrent(paths []string) {
 
 	jobs := make(chan string)
 	var wg sync.WaitGroup
+	// A panic in a worker is caught per path, so the worker lives on to take
+	// the paths still coming, and is raised again here once all have ended.
+	var trap core.Trap
 	wg.Add(workers)
 	for range workers {
 		go func() {
 			defer wg.Done()
 			for p := range jobs {
-				r.removeArg(p)
+				func() {
+					defer trap.Catch()
+					r.removeArg(p)
+				}()
 			}
 		}()
 	}
@@ -89,6 +95,7 @@ func (r *Rm) runConcurrent(paths []string) {
 	}
 	close(jobs)
 	wg.Wait()
+	trap.Release()
 }
 
 // removeArg handles a single top-level operand.

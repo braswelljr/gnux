@@ -11,6 +11,7 @@ What each GitHub Actions workflow in `.github/workflows/` does, step by step: wh
 | Lint       | `lint.yml`    | push and PR to `main` and `staging`                              | NFR-28, NFR-42                                      | `make lint`                           |
 | Docs       | `docs.yml`    | push and PR to `main` touching Go, `docs/`, `web/content/docs/`, `tools/` or `go.mod` | FR-41, FR-46, FR-82, NFR-29 | `make docs/check`              |
 | Web        | `web.yml`     | push and PR to `main` touching `web/`, Go, `go.mod` or the workflow | NFR-3, NFR-11, NFR-19, NFR-33, FR-47, FR-84, FR-85 | `make web/test`, then `pnpm` steps |
+| Bench      | `bench.yml`   | PR to `main` touching Go, `go.mod`, the `Makefile` or the workflow | NFR-52 | `make bench COUNT=5 && make bench/save` on the base, then `make bench COUNT=5 && make bench/check` |
 | Action     | `action.yml`  | push and PR to `main` touching `action.yml` or the workflow      | FR-36                                               | the install script with `RUNNER_*` set |
 | Release    | `release.yml` | push of a tag matching `v*`                                      | FR-36, FR-38, FR-95, NFR-1, NFR-2, NFR-37           | `make ci`, then `make release/snapshot` |
 
@@ -45,7 +46,7 @@ reinterpret the coverage arguments.
 | Test (race + coverage)             | `go test -race -covermode=atomic -coverprofile=coverage.out ./...`       | the race detector is always on (NFR-15, NFR-31) |
 | Smoke test (multi-call dispatch)   | build `bin/gnux[.exe]`, copy it to `bin/pwdx[.exe]`, run `gnux --list`, `gnux pwdx`, `./bin/pwdx` | proves `argv[0]` dispatch with a real binary on every OS; a copy, not a symlink, so it works on Windows (FR-19, FR-37) |
 | Build for WebAssembly (ubuntu only) | `GOOS=js GOARCH=wasm go build -o /dev/null ./tools/wasm`                 | every tool must keep compiling for the playground (NFR-3, NFR-4) |
-| Fuzz the shell (ubuntu only)       | `go test -run='^$' -fuzz='^FuzzParse$' -fuzztime=30s ./core/shell`, then `FuzzExpand` | no script text panics the lexer, parser or expansion (NFR-48) |
+| Fuzz the parsers (ubuntu only)     | `make fuzz FUZZTIME=30s`: the shell's `FuzzParse` and `FuzzExpand`, then `FuzzScript` (sed), `FuzzPattern` (grep), `FuzzExpression` (find), `FuzzInput` (xargs) | no text gnux did not write panics a parser (NFR-48) |
 | Upload coverage (ubuntu only)      | artifact `coverage`                                                      |                                              |
 
 Running the suite on three operating systems is what verifies that platform code is isolated

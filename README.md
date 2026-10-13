@@ -61,8 +61,10 @@ against an in-memory filesystem.
 | `expandx`    | `expand`    | Convert tabs to spaces |
 | `exprx`      | `expr`      | Evaluate an expression and print its value |
 | `falsex`     | `false`     | Do nothing, unsuccessfully |
+| `findx`      | `find`      | Search for files in a directory hierarchy |
 | `fmtx`       | `fmt`       | Reformat each paragraph of text |
 | `foldx`      | `fold`      | Wrap each input line to fit in a specified width |
+| `grepx`      | `grep`      | Print the lines that match patterns |
 | `headx`      | `head`      | Print the first part of each file |
 | `hostnamex`  | `hostname`  | Print the name of the current host system |
 | `idx`        | `id`        | Print real and effective user and group IDs |
@@ -89,6 +91,7 @@ against an in-memory filesystem.
 | `realpathx`  | `realpath`  | Print the resolved absolute file name |
 | `rmdirx`     | `rmdir`     | Remove the DIRECTORY(ies), if they are empty |
 | `rmx`        | `rm`        | Remove (unlink) files and directories |
+| `sedx`       | `sed`       | Filter and transform text with a stream editor |
 | `seqx`       | `seq`       | Print a sequence of numbers |
 | `sha1sumx`   | `sha1sum`   | Print or check SHA-1 (160-bit) checksums |
 | `sha224sumx` | `sha224sum` | Print or check SHA-224 (224-bit) checksums |
@@ -118,10 +121,16 @@ against an in-memory filesystem.
 | `wcx`        | `wc`        | Print newline, word, and byte counts for each file |
 | `whoamix`    | `whoami`    | Print the user name associated with the current effective user ID |
 | `whox`       | `who`       | Show who is logged on |
+| `xargsx`     | `xargs`     | Build and run command lines from standard input |
 | `yesx`       | `yes`       | Output a string repeatedly until killed |
 
 `gnux --list` prints the tool names; `gnux --help` lists them with a summary. The few
 remaining coreutils tools are on the [roadmap](#roadmap).
+
+Four of the tools are not part of GNU coreutils: `grepx` (GNU grep), `sedx` (GNU sed), and
+`findx` and `xargsx` (GNU findutils). They are here because a build or CI script rarely stays
+inside coreutils: the first `find . -name '*.map' | xargs rm` or `sed -i` would otherwise send
+it back to the system's own tools, which differ between Linux, macOS and Windows.
 
 ## Requirements
 

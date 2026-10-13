@@ -80,7 +80,8 @@ func flagBody(t tool.Spec, m docmeta.Meta, own []*pflag.Flag) string {
 	b.WriteString("## Usage\n\n```bash\n")
 	for _, f := range own {
 		for _, form := range forms(f) {
-			b.WriteString(synopsisWith(t.Meta.Use, form) + "\n")
+			b.WriteString(synopsisWith(t.Meta.Use, form))
+			b.WriteString("\n")
 		}
 	}
 	b.WriteString("```\n\n")

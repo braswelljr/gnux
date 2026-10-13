@@ -98,16 +98,53 @@ operation requires it.
 
 - **Measure.** `catx`, `headx`, `tailx` and `wcx` read through fixed-size buffers. `headx` stops
   reading once it has enough; `tailx` seeks to the end of a regular file and reads backward.
+  Every engine buffers its streams through `core.NewReader` and `core.NewWriter`, which share
+  one size, `core.BufferSize` (64 KiB).
 - **Verified by.** `TestLargeInputs` (`core/head`, `core/tail`),
   `TestLargeInputCrossesBuffers` (`core/cat`) and `TestChunkBoundaries` (`core/wc`) prove
-  correctness across buffer boundaries. Memory use itself is not measured.
+  correctness across buffer boundaries. `TestStreamingToolsUseBoundedMemory` in
+  `cmd/robust_test.go` measures memory: every streaming tool reads 4 MiB while the live heap
+  may grow by 1 MiB, and `TestMemoryTestSeesAToolThatKeepsItsInput` checks that the
+  measurement does catch a tool that keeps its input.
 
 ### NFR-8: start-up time
 
 Tools must start in a time imperceptible in interactive use.
 
-- **Verified by.** Not verified. There is no benchmark or timing check. A benchmark of
-  `cmd.Main` for a trivial tool would be the place to start.
+- **Measure.** Naming a tool, by `argv[0]` or as the first argument, builds that tool's command
+  only, never the root command that carries all of them. `Lookup` reads an index built once per
+  process.
+  `gnux shell` is run directly too.
+- **Verified by.** `BenchmarkDispatch` in `cmd/main_test.go` measures `cmd.Main` for a trivial
+  tool under each way of naming it, and `BenchmarkShell/true` the shell
+  (`make bench BENCH='Dispatch|Shell/true'`). They are measurements, not checks: nothing fails
+  when they get slower.
+
+### NFR-51: a filter answers each line
+
+A tool that turns each input line into output must pass a line on when it has it, without
+waiting for more input.
+
+- **Rationale.** Behind a slow producer (`tail -f`, a build log, a terminal) a filter that
+  waits for its output buffer to fill looks hung.
+- **Measure.** Filters call `core.FlushIfIdle` after each record: the output is flushed when
+  no more input is buffered, which costs nothing on bulk input.
+- **Verified by.** `TestLineFiltersAnswerEachLine` in `cmd/robust_test.go`.
+
+### NFR-52: throughput is measured
+
+The speed of the tools must be measurable with one command, and a change that makes a tool
+markedly slower, or makes it allocate markedly more, must fail a check.
+
+- **Measure.** `make bench` runs `cmd/bench_test.go`: the real tools on generated text, a
+  directory tree and shell pipelines, reporting MB/s and allocations. `make bench/check`
+  compares two runs made on the same machine with `tools/benchcheck`: a benchmark is slower
+  when all of its new runs are slower than all of its old ones by more than the tolerance, and
+  its allocations are compared by their medians.
+- **Verified by.** The Bench workflow, which measures the base commit and the pull request in
+  one job and fails on a regression beyond 40 percent in time or 10 percent in allocations;
+  `tools/benchcheck/main_test.go`. A slowdown inside the tolerance is not caught. See
+  [benchmarking-and-robustness](../workflows/benchmarking-and-robustness.md).
 
 ### NFR-9: concurrency where it is safe
 
@@ -162,6 +199,32 @@ Writing to a closed pipe must end the tool quietly, as it does for the GNU tools
 
 - **Verified by.** `TestWriteErrors` (`core/cat`, `core/head`, `core/tail`, `core/wc`);
   `TestRunStopsQuietlyOnARealClosedPipe` and `TestRunReportsOtherWriteErrors` (`core/yes`).
+
+### NFR-49: a panic stays in the tool
+
+A bug that makes a tool panic must not end the process that ran it.
+
+- **Rationale.** A tool may be one stage of a shell pipeline, a command in the playground or a
+  call from an embedding program.
+- **Measure.** `cmd.Main` and `cmd.RunTool` recover the panic, print `<tool>: internal error`
+  with the stack, and return status 2. The engines that start goroutines (`core/rm`,
+  `core/du`, `core/xargs`, `core/shell`) carry a panic on one of them back to the calling
+  goroutine with a `core.Trap`, and keep their channels and pipes moving so that nothing waits
+  for the goroutine that died.
+- **Verified by.** `TestPanicIsContained` and `TestCarriedPanicShowsItsOwnStack` in
+  `cmd/main_test.go`; `core/trap_test.go`; `TestWorkerPanicReachesTheCaller` (`core/rm`),
+  `TestParallelPanicReachesTheCaller` (`core/xargs`) and
+  `TestPipelineStagePanicReachesTheCaller` (`core/shell`).
+
+### NFR-50: nothing is left behind
+
+A command must leave no goroutine running and no file open when it returns.
+
+- **Rationale.** A host that runs many commands in one process would otherwise collect them
+  until it ran out.
+- **Verified by.** `TestNoGoroutineIsLeftBehind` in `cmd/robust_test.go` (shell pipelines,
+  readers that stop early, `xargsx -P`) and `TestNoFileIsLeftOpen` in
+  `cmd/robust_unix_test.go` (the file-handling tools, failure paths included; Unix only).
 
 ### NFR-15: no data races
 
@@ -391,9 +454,10 @@ The playground's filesystem must be tested against the real WebAssembly build.
 - **Verified by.** `web/test/wasm.test.ts`, run by `make web/test` and the Web workflow after
   `make web/wasm`.
 
-### NFR-48: the shell survives arbitrary input
+### NFR-48: parsers survive arbitrary input
 
-No script text may make the shell's lexer, parser or expansion panic.
+No script text may make the shell's lexer, parser or expansion panic, and no sed script, grep
+pattern, find expression or xargs input may make its tool panic.
 
 - **Rationale.** `gnux shell` reads scripts it did not write, including whatever a visitor
   types into the playground.
@@ -401,8 +465,11 @@ No script text may make the shell's lexer, parser or expansion panic.
   accepted line always yields non-empty pipelines and commands, and every word at least one
   argument. `FuzzExpand` globs through `Shell.Glob` against an in-memory file list: a pattern
   such as `/*/*/*/*` against a real Linux runner's disk walks `/proc` and stalls the fuzzer.
+  `FuzzScript` (`core/sed`), `FuzzPattern` (`core/grep`), `FuzzExpression` (`core/find`) and
+  `FuzzInput` (`core/xargs`) run the engines on generated input, each kept from touching the
+  rest of the machine.
 - **Verified by.** The seeds run in every `go test`; the Test workflow fuzzes each target for
-  30 seconds on Linux.
+  30 seconds on Linux (`make fuzz`).
 
 ### NFR-43: a new tool is covered on registration
 
