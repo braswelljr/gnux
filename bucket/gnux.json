@@ -1,0 +1,22 @@
+{
+    "version": "0.0.2",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/braswelljr/gnux/releases/download/v0.0.2/gnux-v0.0.2-windows-amd64.zip",
+            "bin": [
+                "gnux-v0.0.2-windows-amd64/gnux.exe"
+            ],
+            "hash": "7cf60b8deec3bf77ac11fc64becbcebec7ed386f2bfbddf7e17df68b3a5ef162"
+        },
+        "arm64": {
+            "url": "https://github.com/braswelljr/gnux/releases/download/v0.0.2/gnux-v0.0.2-windows-arm64.zip",
+            "bin": [
+                "gnux-v0.0.2-windows-arm64/gnux.exe"
+            ],
+            "hash": "210dc2754f7928a7788910e84dbba61550389fcb7224558d107a58884f2d998b"
+        }
+    },
+    "homepage": "https://github.com/braswelljr/gnux",
+    "license": "MIT",
+    "description": "GNU core utilities in one portable, multi-call binary"
+}
