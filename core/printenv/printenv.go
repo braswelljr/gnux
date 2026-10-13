@@ -4,7 +4,6 @@
 package printenv
 
 import (
-	"bufio"
 	"os"
 	"strings"
 
@@ -44,7 +43,7 @@ func (p *Printenv) Run(args []string) (err error) {
 	if p.Null {
 		end = "\x00"
 	}
-	out := bufio.NewWriter(p.streams.Out)
+	out := core.NewWriter(p.streams.Out)
 	defer core.FlushOutput(out, core.NewDiag(Name, p.streams), &err)
 
 	env := p.Environ()

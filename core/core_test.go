@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"math"
 	"os"
 	"syscall"
 	"testing"
@@ -40,6 +41,39 @@ func TestErrText(t *testing.T) {
 type failWriter struct{ err error }
 
 func (f failWriter) Write([]byte) (int, error) { return 0, f.err }
+
+func TestAppendInt(t *testing.T) {
+	tests := []struct {
+		n     int64
+		width int
+		want  string
+	}{
+		{1, 6, "     1"},
+		{123456, 6, "123456"},
+		{1234567, 6, "1234567"},
+		{-42, 6, "   -42"},
+		{0, 0, "0"},
+		{7, -3, "7"},
+		{math.MinInt64, 0, "-9223372036854775808"},
+	}
+	for _, tt := range tests {
+		if got := string(core.AppendInt([]byte("x"), tt.n, tt.width)); got != "x"+tt.want {
+			t.Errorf("AppendInt(%d, %d) = %q, want %q", tt.n, tt.width, got, "x"+tt.want)
+		}
+		if want := fmt.Sprintf("%*d", max(tt.width, 0), tt.n); tt.want != want {
+			t.Errorf("AppendInt(%d, %d): the expectation %q is not what %%*d prints, %q", tt.n, tt.width, tt.want, want)
+		}
+	}
+}
+
+func TestBuffersUseBufferSize(t *testing.T) {
+	if got := core.NewReader(bytes.NewReader(nil)).Size(); got != core.BufferSize {
+		t.Errorf("NewReader buffers %d bytes, want %d", got, core.BufferSize)
+	}
+	if got := core.NewWriter(&bytes.Buffer{}).Size(); got != core.BufferSize {
+		t.Errorf("NewWriter buffers %d bytes, want %d", got, core.BufferSize)
+	}
+}
 
 func TestFlushOutput(t *testing.T) {
 	var errb bytes.Buffer

@@ -6,7 +6,6 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -155,13 +154,13 @@ func (u *Uniq) Run(args []string) error {
 		defer f.Close()
 		w = f
 	}
-	u.out = bufio.NewWriter(w)
+	u.out = core.NewWriter(w)
 
 	display := in
 	if in == "-" {
 		display = "standard input"
 	}
-	err := u.filter(bufio.NewReader(r))
+	err := u.filter(core.NewReader(r))
 	if werr := u.out.Flush(); werr != nil {
 		if !core.IsClosedPipe(werr) {
 			u.diag.Errorf("write error: %s", core.ErrText(werr))
@@ -226,7 +225,8 @@ func (u *Uniq) filter(r *bufio.Reader) error {
 			return
 		}
 		if u.Count {
-			fmt.Fprintf(u.out, "%7d ", n+1)
+			_, _ = u.out.Write(core.AppendInt(u.out.AvailableBuffer(), n+1, 7))
+			_ = u.out.WriteByte(' ')
 		}
 		_, _ = u.out.Write(line)
 		_ = u.out.WriteByte(u.delim)
@@ -299,6 +299,7 @@ func (u *Uniq) simple(r *bufio.Reader) error {
 			_ = u.out.WriteByte(u.delim)
 			prev, havePrev = line, true
 			printedGroup = true
+			core.FlushIfIdle(u.out, r)
 		}
 		if err != nil {
 			return err

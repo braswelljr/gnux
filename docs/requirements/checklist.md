@@ -69,6 +69,16 @@ entry ([adding-a-tool](../workflows/adding-a-tool.md)).
 - [ ] `[` as another name for `testx`, requiring the closing `]`
 - [x] `ddx` (FR-106)
 
+### Beyond coreutils
+
+The tools a build or CI script reaches for next to coreutils, from GNU grep, GNU sed and GNU
+findutils.
+
+- [x] `grepx` (FR-149)
+- [x] `sedx` (FR-150)
+- [x] `findx` (FR-148)
+- [x] `xargsx` (FR-151)
+
 ## 2. Distribution
 
 - [x] Releases built by GoReleaser from `.goreleaser.yaml`, keeping the existing archive names
@@ -108,6 +118,12 @@ entry ([adding-a-tool](../workflows/adding-a-tool.md)).
 ## 4. Quality
 
 - [x] Fuzz tests for the shell's parser and expansion, run in CI (NFR-48)
+- [x] Fuzz tests for `sedx` scripts, `grepx` patterns, `findx` expressions and `xargsx` input,
+  run in CI (NFR-48)
+- [x] A benchmark suite over the real tools, `make bench`, with `benchstat` comparison and a
+  pass/fail check against the base commit on every pull request (NFR-52)
+- [x] Tests for bounded memory, leftover goroutines and open files, and line-by-line response
+  (NFR-7, NFR-50, NFR-51)
 - [x] Dependabot for the website's pnpm packages, next to Go modules and Actions (NFR-20)
 - [ ] A GNU conformance harness: run each case through GNU coreutils and gnux on Linux and
   diff stdout, stderr and the exit status

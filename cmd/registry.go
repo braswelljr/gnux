@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"sync"
+
 	"github.com/braswelljr/gnux/cmd/b2sumx"
 	"github.com/braswelljr/gnux/cmd/base32x"
 	"github.com/braswelljr/gnux/cmd/base64x"
@@ -24,8 +26,10 @@ import (
 	"github.com/braswelljr/gnux/cmd/expandx"
 	"github.com/braswelljr/gnux/cmd/exprx"
 	"github.com/braswelljr/gnux/cmd/falsex"
+	"github.com/braswelljr/gnux/cmd/findx"
 	"github.com/braswelljr/gnux/cmd/fmtx"
 	"github.com/braswelljr/gnux/cmd/foldx"
+	"github.com/braswelljr/gnux/cmd/grepx"
 	"github.com/braswelljr/gnux/cmd/headx"
 	"github.com/braswelljr/gnux/cmd/hostnamex"
 	"github.com/braswelljr/gnux/cmd/idx"
@@ -52,6 +56,7 @@ import (
 	"github.com/braswelljr/gnux/cmd/realpathx"
 	"github.com/braswelljr/gnux/cmd/rmdirx"
 	"github.com/braswelljr/gnux/cmd/rmx"
+	"github.com/braswelljr/gnux/cmd/sedx"
 	"github.com/braswelljr/gnux/cmd/seqx"
 	"github.com/braswelljr/gnux/cmd/sha1sumx"
 	"github.com/braswelljr/gnux/cmd/sha224sumx"
@@ -81,9 +86,14 @@ import (
 	"github.com/braswelljr/gnux/cmd/wcx"
 	"github.com/braswelljr/gnux/cmd/whoamix"
 	"github.com/braswelljr/gnux/cmd/whox"
+	"github.com/braswelljr/gnux/cmd/xargsx"
 	"github.com/braswelljr/gnux/cmd/yesx"
 	"github.com/braswelljr/gnux/internal/tool"
 )
+
+func init() {
+	tool.RunTool = RunTool
+}
 
 // Tools is the registry of every tool gnux ships, in the order they are listed
 // in help and documentation. Add a new tool's Spec here to make it available as
@@ -113,8 +123,10 @@ func Tools() []tool.Spec {
 		expandx.Spec(),
 		exprx.Spec(),
 		falsex.Spec(),
+		findx.Spec(),
 		fmtx.Spec(),
 		foldx.Spec(),
+		grepx.Spec(),
 		headx.Spec(),
 		hostnamex.Spec(),
 		idx.Spec(),
@@ -141,6 +153,7 @@ func Tools() []tool.Spec {
 		realpathx.Spec(),
 		rmdirx.Spec(),
 		rmx.Spec(),
+		sedx.Spec(),
 		seqx.Spec(),
 		sha1sumx.Spec(),
 		sha224sumx.Spec(),
@@ -170,6 +183,7 @@ func Tools() []tool.Spec {
 		wcx.Spec(),
 		whoamix.Spec(),
 		whox.Spec(),
+		xargsx.Spec(),
 		yesx.Spec(),
 	}
 }
@@ -183,10 +197,22 @@ func Commands() []tool.Spec {
 // Lookup finds a tool by its command name ("rmx") or the name of its GNU counterpart
 // ("rm").
 func Lookup(name string) (tool.Spec, bool) {
-	for _, s := range Tools() {
-		if name == s.Name() || (s.GNU != "" && name == s.GNU) {
-			return s, true
+	s, ok := byName()[name]
+	return s, ok
+}
+
+// byName indexes Tools() by both names a tool answers to. It is built once
+// per process: Lookup runs for every command a gnux shell script executes, and
+// building every Spec each time would cost more than most of the tools do.
+var byName = sync.OnceValue(func() map[string]tool.Spec {
+	tools := Tools()
+	index := make(map[string]tool.Spec, 2*len(tools))
+	for _, s := range tools {
+		for _, name := range []string{s.Name(), s.GNU} {
+			if _, taken := index[name]; name != "" && !taken {
+				index[name] = s
+			}
 		}
 	}
-	return tool.Spec{}, false
-}
+	return index
+})

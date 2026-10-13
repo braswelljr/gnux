@@ -55,8 +55,10 @@ see_also:
     - gnux expandx - Convert tabs to spaces.
     - gnux exprx - Evaluate an expression and print its value.
     - gnux falsex - Do nothing, unsuccessfully.
+    - gnux findx - Search for files in a directory hierarchy.
     - gnux fmtx - Reformat each paragraph of text.
     - gnux foldx - Wrap each input line to fit in a specified width.
+    - gnux grepx - Print the lines that match patterns.
     - gnux headx - Print the first part of each file.
     - gnux hostnamex - Print the name of the current host system.
     - gnux idx - Print real and effective user and group IDs.
@@ -83,6 +85,7 @@ see_also:
     - gnux realpathx - Print the resolved absolute file name.
     - gnux rmdirx - Remove the DIRECTORY(ies), if they are empty.
     - gnux rmx - Remove (unlink) files and directories.
+    - gnux sedx - Filter and transform text with a stream editor.
     - gnux seqx - Print a sequence of numbers.
     - gnux sha1sumx - Print or check SHA-1 (160-bit) checksums.
     - gnux sha224sumx - Print or check SHA-224 (224-bit) checksums.
@@ -113,4 +116,5 @@ see_also:
     - gnux wcx - Print newline, word, and byte counts for each file.
     - gnux whoamix - Print the user name associated with the current effective user ID.
     - gnux whox - Show who is logged on.
+    - gnux xargsx - Build and run command lines from standard input.
     - gnux yesx - Output a string repeatedly until killed.

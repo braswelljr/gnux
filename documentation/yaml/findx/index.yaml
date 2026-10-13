@@ -1,0 +1,117 @@
+name: findx
+synopsis: Search for files in a directory hierarchy.
+description: |-
+    findx walks the directory tree under each STARTING-POINT (the current directory when none is given) and evaluates EXPRESSION, from left to right, against every file it meets. The starting points end at the first argument that begins with '-' or is '(', ')', ',' or '!'. -P (the default) never follows symbolic links, -H follows only those named as starting points, and -L follows all of them; of several, the last one given wins. An expression is made of options, tests and actions joined by operators, here from the tightest binding: ( EXPR ); ! EXPR or -not EXPR; EXPR1 EXPR2, EXPR1 -a EXPR2 or -and (EXPR2 is not evaluated when EXPR1 is false); EXPR1 -o EXPR2 or -or (EXPR2 is not evaluated when EXPR1 is true); EXPR1 , EXPR2 (both are evaluated, the value is EXPR2's). When the expression holds no action other than -prune, -print is performed on the files for which the whole expression is true. Parentheses, the semicolon and patterns must be quoted from the shell.
+
+    Options (always true): -maxdepth N and -mindepth N limit the levels descended and the levels acted on (the starting points are level 0); -depth (or -d) processes a directory's contents before the directory; -xdev (or -mount) stays on the starting point's file system; -daystart measures the day tests from the start of today instead of from 24 hours ago; -regextype TYPE chooses the syntax of the -regex tests that follow; -follow is -L from where it stands; -warn and -nowarn turn warnings on and off (they are on when standard input is a terminal); -noleaf, -ignore_readdir_race and -noignore_readdir_race are accepted. Before the starting points, -O0 to -O3 are accepted and change nothing: the expression is always evaluated as written.
+
+    Tests: -name PATTERN and -iname match the last component of the path against a shell pattern (* ? [...] and a quoting backslash; a wildcard also matches a leading dot); -path PATTERN (also -wholename), -ipath and -iwholename match the whole path, where a wildcard also matches '/'; -lname and -ilname match the target of a symbolic link; -regex PATTERN and -iregex match the whole path against a regular expression, in Emacs syntax unless -regextype says otherwise; -type C and -xtype C test the type (b block device, c character device, d directory, p named pipe, f regular file, l symbolic link, s socket; several separated by commas), -xtype looking at the other side of a symbolic link than -type does; -size N[cwbkMG] compares the size rounded up to units of bytes (c), two-byte words (w), 512-byte blocks (b, the default), kibibytes, mebibytes or gibibytes; -empty is an empty regular file or directory; -newer FILE, -anewer and -cnewer compare the modification, access or status change time with FILE's modification time, and -newerXY REFERENCE compares time X of the file (a, c, m or B for birth) with time Y of REFERENCE, or with the date REFERENCE spells when Y is t; -mtime N, -atime and -ctime count whole 24-hour periods, and -mmin N, -amin and -cmin minutes; -perm MODE matches exactly these permission bits, -perm -MODE all of them and -perm /MODE any of them, MODE being octal or symbolic; -user NAME, -group NAME, -uid N and -gid N test the owner, -nouser and -nogroup an owner with no name; -links N, -inum N and -samefile FILE test the hard links; -readable, -writable and -executable ask what the invoking user may do; -true and -false are constants. A numeric argument N may be written +N (more than N), -N (less than N) or N (exactly N). For the day tests any fraction of a day is dropped first, so -mtime +1 means at least two days ago.
+
+    Actions: -print and -print0 write the path followed by a newline or a NUL; -printf FORMAT writes FORMAT with the escapes \a \b \c \f \n \r \t \v \0 \\ \NNN and the directives %p (path), %f (name), %h (directory), %P (path below the starting point), %H (starting point), %d (depth), %s (size), %b and %k (512-byte and 1K blocks), %S (sparseness), %m and %M (permissions in octal and as ls prints them), %u %g %U %G (owner and group, by name and number), %y and %Y (type, and type with links followed), %l (link target), %n (links), %i (inode), %D (device), %a %c %t (access, change and modification time) and %Ak %Ck %Tk %Bk for one field k of those times and of the birth time (@ for seconds since the epoch, + for date+time, and the strftime letters), each taking a flag, width and precision as in %-20p or %8s; -fprint FILE, -fprint0 FILE and -fprintf FILE FORMAT write to FILE instead; -ls and -fls FILE list the file as ls -dils would; -delete removes the file (it implies -depth and leaves '.' alone); -prune does not descend into the directory; -quit stops at once; -exec COMMAND ; runs COMMAND with every {} replaced by the path and is true when it exits with status 0; -exec COMMAND {} + runs it on as many paths at a time as fit; -execdir is -exec run from the directory holding the file, which is passed as ./NAME; -ok and -okdir ask on standard error first and run the command only when the answer read from standard input begins with y or Y.
+
+    Differences from GNU find: the entries of a directory are visited in name order, where GNU uses the order the file system returns them, so that the output is the same everywhere. A COMMAND named after a gnux tool, by its own name (rmx) or its GNU name (rm, echo), runs inside the findx process instead of as a program found on PATH, so that '-exec rm {} ;' works where no GNU tools are installed; any other name is a program found on PATH, and 'envx COMMAND' forces the program. Such an in-process tool cannot be started in another directory, so under -execdir and -okdir it is given the path as findx knows it instead of ./NAME. A COMMAND that cannot be run is diagnosed and also makes the exit status 1, which GNU leaves at 0 for the ';' form. '-exec ... {} +' collects up to 128 KiB of paths per command rather than what the system allows, and with -execdir runs one command per directory. Regular expressions are compiled with RE2: back references (\1) and the [= =] and [. .] bracket forms are refused, and the regular expression types are reduced to three families (Emacs: findutils-default, emacs; POSIX basic: posix-basic, posix-minimal-basic, sed, grep, ed; POSIX extended: posix-extended, posix-egrep, egrep, awk, posix-awk, gnu-awk), each treated as its most common member. -newerXt reads the common spellings of a date (2024-06-14, '2024-06-14 10:30:15', the same with T and a zone, 'Jun 14 2024', @SECONDS), not everything GNU's date parser does. The names below a starting point are joined with '/' on every platform, Windows included (which accepts it), so that a -path pattern or a -regex written on one platform matches on the others. Where the platform keeps no numeric owners, inode numbers, link counts or device numbers (Windows), -uid, -gid, -user and -group never match, -nouser and -nogroup are false, the owner prints as 0, the inode and device as 0 and the link count as 1, -xdev has no effect, the status change time is taken to be the modification time, and -readable, -writable and -executable are judged from the read-only attribute and the file type. A command-line mistake is followed by the usual 'Try findx --help' hint. Not supported, and refused with a diagnostic: -fstype, -context, -used, -files0-from, the -D debug options, the %F and %Z directives of -printf, -type D, and -help and -version inside an expression (use --help and --version alone). GNU's warning about a pattern that looks unquoted is not given.
+
+    EXIT STATUS.
+      0  every starting point was walked and every action succeeded
+      1  a file or directory could not be examined, -delete failed, a command of '-exec ... +' failed or could not be run, or the command line was wrong
+
+    HELP. findx --help shows the options and the first examples; gnux help findx prints the full manual, and gnux help findx OPTION explains one option.
+
+    SEE ALSO. xargsx, lsx, statx, dux, rmx, testx, gnux shell.
+
+    PERMISSIONS. findx needs search permission on every directory it passes through and read permission on every directory it lists; a directory it cannot read is diagnosed, the walk continues with the rest and the exit status is 1. Tests that look at metadata (-size, -perm, -mtime, -user and the like) need only search permission on the containing directory, not read permission on the file. -perm tests the permission bits as stored; -readable, -writable and -executable ask the system what the invoking user may actually do, which also accounts for group membership and read-only file systems. -delete needs write and search permission on the directory holding each file, exactly as rmx does, and never asks for confirmation. The commands run by -exec and its relatives run with the privileges of findx itself.
+
+    USE CASES.
+      - Finding files by name, extension or path anywhere under a directory.
+      - Listing what changed recently, or what has not been touched for months.
+      - Finding the largest files, or the empty files and directories, in a tree.
+      - Running a command on every match, one at a time or in batches, without a shell loop.
+      - Feeding names safely to xargsx with -print0, whatever characters they contain.
+      - Cleaning up build outputs, caches and temporary files with -delete.
+      - Auditing permissions: world-writable files, setuid programs, files with no owner.
+      - Skipping directories such as .git or node_modules with -prune.
+      - Producing a custom listing (size, time, owner, path) with -printf.
+      - Writing one search that behaves the same on Linux, macOS and Windows.
+usage: findx [-H] [-L] [-P] [STARTING-POINT]... [EXPRESSION]
+options:
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # List everything under the current directory
+      findx .
+
+      # Find files by name, whatever the case
+      findx . -iname '*.jpg'
+
+      # Find regular files only, at most two levels down
+      findx src -maxdepth 2 -type f -name '*.go'
+
+      # Find files changed in the last 24 hours
+      findx . -type f -mtime -1
+
+      # Find files changed in the last ten minutes
+      findx /var/log -type f -mmin -10
+
+      # Find files larger than 100 MiB
+      findx . -type f -size +100M
+
+      # Find empty files and directories
+      findx . -empty
+
+      # Skip a directory entirely
+      findx . -name node_modules -prune -o -type f -name '*.js' -print
+
+      # Combine tests with or (quote the parentheses)
+      findx . -type f \( -name '*.png' -o -name '*.gif' \)
+
+      # Everything except what matches
+      findx . -type f ! -name '*.md'
+
+      # Run a command on each match
+      findx . -name '*.log' -exec gzip {} \;
+
+      # Run one command on many matches at a time
+      findx . -name '*.tmp' -exec rm -v {} +
+
+      # Ask before each command
+      findx . -name '*.bak' -ok rm {} \;
+
+      # Delete matching files (try it with -print first)
+      findx build -name '*.o' -delete
+
+      # Remove empty directories, deepest first
+      findx . -type d -empty -delete
+
+      # Hand names to xargsx safely, whatever they contain
+      findx . -type f -print0 | xargsx -0 sha256sumx
+
+      # Print size and path, then sort by size
+      findx . -type f -printf '%s\t%p\n' | sortx -n
+
+      # Print the modification date with each name
+      findx . -type f -printf '%TY-%Tm-%Td %TH:%TM %f\n'
+
+      # Match the whole path with a regular expression
+      findx . -regextype posix-extended -regex '.*/test_[0-9]+\.(py|sh)'
+
+      # Find files newer than another file, or than a date
+      findx . -newer Makefile -o -newermt 2024-06-01
+
+      # Find world-writable files and setuid programs
+      findx / -xdev -type f -perm /o+w,u+s
+
+      # Find broken symbolic links
+      findx . -xtype l
+
+      # List matches in long format
+      findx /etc -maxdepth 1 -name '*.conf' -ls
+
+      # Stop at the first match
+      findx . -name go.mod -print -quit
+
+      # Search in the portable gnux shell
+      gnux shell -c "findx . -name '*.txt' -exec wc -l {} +"

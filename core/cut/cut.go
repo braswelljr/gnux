@@ -94,7 +94,7 @@ func (c *Cut) Run(args []string) error {
 	if len(args) == 0 {
 		args = []string{"-"}
 	}
-	c.out = bufio.NewWriter(c.streams.Out)
+	c.out = core.NewWriter(c.streams.Out)
 	for _, name := range args {
 		if !c.file(name) {
 			break
@@ -272,7 +272,7 @@ func (c *Cut) file(name string) bool {
 		r = f
 	}
 
-	err := c.lines(bufio.NewReader(r))
+	err := c.lines(core.NewReader(r))
 	if werr := c.out.Flush(); werr != nil {
 		if !core.IsClosedPipe(werr) {
 			c.diag.Errorf("write error: %s", core.ErrText(werr))
@@ -302,6 +302,7 @@ func (c *Cut) lines(r *bufio.Reader) error {
 			} else {
 				c.bytes(line)
 			}
+			core.FlushIfIdle(c.out, r)
 		}
 		if err != nil {
 			if errors.Is(err, io.EOF) {

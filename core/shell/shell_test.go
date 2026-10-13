@@ -11,6 +11,7 @@ import (
 	"strings"
 	"syscall"
 	"testing"
+	"time"
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/shell"
@@ -364,5 +365,33 @@ func TestGlobInjection(t *testing.T) {
 	}
 	if want := []string{"*.md", "none*"}; strings.Join(seen, ",") != strings.Join(want, ",") {
 		t.Fatalf("Glob called with %q, want %q (a quoted pattern is not globbed)", seen, want)
+	}
+}
+
+// A stage that panics closes its pipes, so its neighbors end too, and the
+// panic is raised on the goroutine that called Run.
+func TestPipelineStagePanicReachesTheCaller(t *testing.T) {
+	exec := func(name string, args []string, s core.Streams) (int, bool) {
+		if name == "boom" {
+			panic("stage failed badly")
+		}
+		return fakeExec(name, args, s)
+	}
+	sh := shell.New(shell.Options{}, exec, core.Streams{In: strings.NewReader(""), Out: io.Discard, Err: io.Discard})
+
+	var got *core.Panic
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		defer func() { got, _ = recover().(*core.Panic) }()
+		_ = sh.Run(strings.NewReader("echo a | boom | cat\n"))
+	}()
+	select {
+	case <-done:
+	case <-time.After(10 * time.Second):
+		t.Fatal("the pipeline did not end after a stage panicked")
+	}
+	if got == nil || got.Value != "stage failed badly" {
+		t.Fatalf("recovered %+v, want the stage's panic", got)
 	}
 }

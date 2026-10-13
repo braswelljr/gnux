@@ -1,0 +1,78 @@
+# Requirement enforced: a pull request does not make a tool markedly slower or
+# make it allocate markedly more (NFR-52). The benchmark suite runs on the
+# base commit and on the pull request, one after the other on the same
+# runner, and tools/benchcheck fails the job when a benchmark's runs are all
+# slower than all of the base's by more than the tolerance, or its
+# allocations grew.
+name: Bench
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "**.go"
+      - go.mod
+      - go.sum
+      - Makefile
+      - .github/workflows/bench.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bench:
+    name: Bench
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The base commit, beside the pull request's tree, so that both are
+      # measured by the same job on the same machine.
+      - name: Check out the base commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # A base from before the suite existed has nothing to compare against;
+      # the check then passes, and the first pull request after it is measured.
+      - name: Benchmark the base commit
+        id: base
+        working-directory: base
+        run: |
+          if grep -q '^bench:' Makefile && [ -f cmd/bench_test.go ]; then
+            make bench COUNT=5 BENCHTIME=200ms
+            echo "measured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "The base commit has no benchmark suite; skipping the comparison."
+          fi
+
+      - name: Benchmark the pull request
+        if: steps.base.outputs.measured == 'true'
+        run: make bench COUNT=5 BENCHTIME=200ms
+
+      # A shared runner is noisier than a desk, so the time tolerance is wider
+      # here than the Makefile's default; allocations do not vary with load.
+      - name: Compare
+        if: steps.base.outputs.measured == 'true'
+        run: |
+          cp base/bench/latest.txt bench/baseline.txt
+          make bench/check BENCH_TIME_TOLERANCE=40
+
+      - name: Upload the results
+        if: always() && steps.base.outputs.measured == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: bench
+          path: bench/*.txt

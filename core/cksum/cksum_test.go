@@ -27,6 +27,10 @@ func TestAlgorithmsOnStdin(t *testing.T) {
 		{"", "hello\n", "3015617425 6\n"},
 		{"crc", "", "4294967295 0\n"},
 		{"crc", "hello\n", "3015617425 6\n"},
+		// Eight bytes at a time, with and without bytes left over.
+		{"crc", "12345678", "2796357287 8\n"},
+		{"crc", "123456789", "930766865 9\n"},
+		{"crc", strings.Repeat("0123456789", 100) + "x", "3426585712 1001\n"},
 		{"crc32b", "hello\n", "909783072 6\n"},
 		{"sysv", "hello\n", "542 1\n"},
 		{"bsd", "hello\n", "36979     1\n"},

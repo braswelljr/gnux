@@ -46,6 +46,11 @@ func TestSequence(t *testing.T) {
 		{"hex operands", seq.Options{}, []string{"0x10", "0x11"}, lines("16", "17")},
 		{"plus sign", seq.Options{}, []string{"+2"}, lines("1", "2")},
 		{"big integers", seq.Options{}, []string{"99999999999999999998", "99999999999999999999"}, lines("99999999999999999998", "99999999999999999999")},
+		{"precision of a whole first", seq.Options{}, []string{"1.0", "3"}, lines("1.0", "2.0", "3.0")},
+		{"decimals counting down", seq.Options{}, []string{"1", "-0.5", "-1.3"}, lines("1.0", "0.5", "0.0", "-0.5", "-1.0")},
+		{"decimals below one", seq.Options{}, []string{"-0.05", "0.05", "0.05"}, lines("-0.05", "0.00", "0.05")},
+		{"last between two terms", seq.Options{}, []string{"2", "-0.5", "0.25"}, lines("2.0", "1.5", "1.0", "0.5")},
+		{"more decimals than 64 bits hold", seq.Options{}, []string{"0.0000000000000000001", "0.0000000000000000001", "0.0000000000000000002"}, lines("0.0000000000000000001", "0.0000000000000000002")},
 		{"near the int64 limit", seq.Options{}, []string{"9223372036854775806", "9223372036854775807"}, lines("9223372036854775806", "9223372036854775807")},
 
 		{"separator", comma, []string{"3"}, "1,2,3\n"},
@@ -56,6 +61,7 @@ func TestSequence(t *testing.T) {
 		{"equal width from last operand", seq.Options{EqualWidth: true}, []string{"1", "4", "10"}, lines("01", "05", "09")},
 		{"equal width negative", seq.Options{EqualWidth: true}, []string{"-1", "1"}, lines("-1", "00", "01")},
 		{"equal width decimals", seq.Options{EqualWidth: true}, []string{"1", "4.5", "10"}, lines("01.0", "05.5", "10.0")},
+		{"equal width negative decimals", seq.Options{EqualWidth: true}, []string{"-0.5", "0.5", "1"}, lines("-0.5", "00.0", "00.5", "01.0")},
 
 		{"format", seq.Options{Format: "%.2f"}, []string{"1", "0.5", "2"}, lines("1.00", "1.50", "2.00")},
 		{"format text and percent", seq.Options{Format: "n=%g%%"}, []string{"2"}, lines("n=1%", "n=2%")},

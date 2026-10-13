@@ -1,0 +1,25 @@
+---
+title: "-l, --line-length"
+description: "Specify the desired line-wrap length N for the 'l' command (0 never wraps; default 70)."
+---
+
+An option of [sedx](/docs/tools/sedx).
+
+## Usage
+
+```bash
+sedx -l N {script-only-if-no-other-script} [input-file]...
+sedx --line-length=N {script-only-if-no-other-script} [input-file]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-l` | `--line-length` | `N` |  | specify the desired line-wrap length N for the 'l' command (0 never wraps; default 70) |
+
+## Help in the terminal
+
+```bash
+gnux help sedx --line-length
+```

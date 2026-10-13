@@ -114,7 +114,7 @@ func (c *Cksum) Run(args []string) (err error) {
 		}
 	}
 
-	out := bufio.NewWriter(c.streams.Out)
+	out := core.NewWriter(c.streams.Out)
 	defer core.FlushOutput(out, c.diag, &err)
 	if len(args) == 0 {
 		c.legacy(out, alg, "-", false)
@@ -200,10 +200,13 @@ func (c *Cksum) legacy(out *bufio.Writer, alg, name string, named bool) {
 	_, _ = out.WriteString(line + end)
 }
 
-// crcTable is the table for the POSIX cksum polynomial 0x04C11DB7,
-// processed most significant bit first.
-var crcTable = func() (t [256]uint32) {
-	for i := range t {
+// crcTables are the tables for the POSIX cksum polynomial 0x04C11DB7,
+// processed most significant bit first. crcTables[0] advances the CRC by one
+// byte; crcTables[k] advances it by that byte followed by k zero bytes, which
+// lets posixCRC fold eight input bytes into the CRC in one step
+// ("slicing-by-8") instead of one table lookup after another.
+var crcTables = func() (t [8][256]uint32) {
+	for i := range t[0] {
 		c := uint32(i) << 24
 		for range 8 {
 			if c&0x80000000 != 0 {
@@ -212,7 +215,12 @@ var crcTable = func() (t [256]uint32) {
 				c <<= 1
 			}
 		}
-		t[i] = c
+		t[0][i] = c
+	}
+	for k := 1; k < len(t); k++ {
+		for i, c := range t[k-1] {
+			t[k][i] = c<<8 ^ t[0][c>>24]
+		}
 	}
 	return t
 }()
@@ -221,14 +229,21 @@ var crcTable = func() (t [256]uint32) {
 // in as few bytes as hold it (least significant first), then complemented.
 func posixCRC(r io.Reader) (sum, n uint64, err error) {
 	var crc uint32
+	t := &crcTables
 	err = each(r, func(b []byte) {
-		for _, c := range b {
-			crc = crc<<8 ^ crcTable[byte(crc>>24)^c]
-		}
 		n += uint64(len(b))
+		for ; len(b) >= 8; b = b[8:] {
+			hi := crc ^ binary.BigEndian.Uint32(b)
+			lo := binary.BigEndian.Uint32(b[4:])
+			crc = t[7][hi>>24] ^ t[6][byte(hi>>16)] ^ t[5][byte(hi>>8)] ^ t[4][byte(hi)] ^
+				t[3][lo>>24] ^ t[2][byte(lo>>16)] ^ t[1][byte(lo>>8)] ^ t[0][byte(lo)]
+		}
+		for _, c := range b {
+			crc = crc<<8 ^ t[0][byte(crc>>24)^c]
+		}
 	})
 	for l := n; l > 0; l >>= 8 {
-		crc = crc<<8 ^ crcTable[byte(crc>>24)^byte(l)]
+		crc = crc<<8 ^ t[0][byte(crc>>24)^byte(l)]
 	}
 	return uint64(^crc), n, err
 }

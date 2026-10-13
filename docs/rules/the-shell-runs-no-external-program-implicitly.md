@@ -1,6 +1,6 @@
 # The shell runs no external program implicitly
 
-`gnux shell` runs its builtins and the registered tools, in process, and nothing else. A name that is neither is `command not found` with status 127, never a lookup on `PATH`. The one way to start an external program is to ask for it by name through `envx`.
+`gnux shell` runs its builtins and the registered tools, in process, and nothing else. A name that is neither is `command not found` with status 127, never a lookup on `PATH`. An external program starts only when a tool whose purpose is running a command is asked to run it: `envx` (and `timeoutx`, `nicex`, `nohupx`), `xargsx`, and `findx -exec`.
 
 ## Why
 
@@ -28,9 +28,9 @@ sh.diag.Errorf("%s: command not found", name)
 return 127
 ```
 
-`cmd.NewShell` wires in `cmd.RunTool`, which knows only the registry. The only `os/exec` import outside tests is [`core/env/env.go`](../../core/env/env.go), behind `envx`, where running a program is the tool's stated purpose.
+`cmd.NewShell` wires in `cmd.RunTool`, which knows only the registry. `os/exec` is imported outside tests only where running a program is the tool's stated purpose: `core/env`, `core/timeout`, `core/nice`, `core/nohup`, and [`core/internal/run`](../../core/internal/run/run.go), which `xargsx` and `findx -exec` share. That package asks the registry first, so `xargsx rm` and `findx -exec rm {} +` run gnux's own `rm` in-process and behave the same on a machine with no GNU tools; only a name that is not a tool is looked up on `PATH`.
 
-Do: `envx git status` when a script really needs an external program.
+Do: `envx git status` when a script really needs an external program, or `findx . -name '*.go' | xargsx gofmt -l` when the program is what a tool is told to run.
 
 Do not: add a `PATH` fallback to `runCommand`, or import `os/exec` in `core/shell`.
 

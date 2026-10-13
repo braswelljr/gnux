@@ -1,0 +1,301 @@
+.nh
+.TH "GREPX" "1" "Jan 2024" "gnux" "gnux manual"
+
+.SH NAME
+grepx - Print the lines that match patterns.
+
+
+.SH SYNOPSIS
+\fBgrepx [OPTION]... PATTERNS [FILE]...\fP
+
+
+.SH DESCRIPTION
+grepx searches each FILE for PATTERNS and prints every line that matches one. PATTERNS is the first operand, unless -e or -f supplied patterns, and may hold several patterns separated by newlines; a line is selected when any of them matches. With no FILE, or when FILE is -, standard input is searched (shown as '(standard input)', or as the --label); with -r and no FILE, the working directory.
+
+.PP
+Pattern syntax. Patterns are POSIX basic regular expressions by default (-G), where ( ) { } | + \\? are the operators; -E takes extended regular expressions, where ( ) { } | + ? are, and a { that does not start an interval is literal; -F takes fixed strings. Both regular syntaxes accept bracket expressions with POSIX classes ([[:alpha:]], [[:digit:]], ...), and the GNU escapes \\w \\W \\s \\S \\b \\B < > ` \\'. -i ignores case, -w accepts only matches that are whole words, -x only matches of the whole line, and -v selects the lines that do not match. An empty pattern matches every line; an empty -f file matches none.
+
+.PP
+Output. Each selected line is printed, prefixed on request with the file name (-H, the default when several files or a directory are searched; -h turns it off), the line number (-n) and the byte offset (-b), each followed by ':'. -o prints only the matched parts, one to a line. -c prints a count of selected lines per file, -l the names of the files with a selected line, -L the names of those without, and -q nothing at all, stopping at the first selected line. -m NUM stops reading a file after NUM selected lines. -A, -B and -C (or -NUM) add lines of context, which are prefixed with '-' in place of ':' and set apart in groups by a line holding '--' (--group-separator, --no-group-separator). -Z ends each file name with a NUL and -z reads and writes lines ending with a NUL. --color highlights matches, file names, line numbers, offsets and separators with GNU's default colors, which GREP_COLORS overrides; --color=auto colors only when standard output is a terminal and TERM is set (which is not required on Windows) and is not 'dumb'.
+
+.PP
+File selection. -r searches directories recursively, following only the symbolic links named as operands; -R follows them all. Files are visited in name order. --include and --exclude select files by wildcard on their base name (for a file named on the command line, on the name or any trailing part of it after a slash); when several match, the last one given decides, and when none matches a file is searched unless the first of them is an --include. --exclude-dir skips directories. Without -r a directory operand is an error ('Is a directory') unless -d skip. Devices, FIFOs and sockets are read when named and skipped when met during a recursive search, unless -D says otherwise. A file with a NUL byte is binary: its lines are not printed, and 'grepx: FILE: binary file matches' is written to standard error instead (as GNU grep has done since 3.5), unless -a treats it as text or -I as a file without a match.
+
+.PP
+Where GNU grep lets the last of several conflicting options win, grepx applies a fixed order, whatever order they were given in: -F beats -E, which beats -G; -H beats -h; --no-ignore-case beats -i; -A and -B beat -C, which beats -NUM; -I beats -a, and either beats --binary-files; -R beats -r, and either beats -d; -l beats -L; --no-group-separator beats --group-separator; --color beats --colour. As in GNU, -q overrides -l and -L, which override -c.
+
+.PP
+Differences from GNU grep: -P (Perl-compatible regular expressions) is refused, because the regular expression engine is RE2, not PCRE. Back references (\\1 to \\9) are refused for the same reason. < and > both match at any word boundary, as \\b does, and the boundary escapes see ASCII words only; \\w, \\W, -w and the letter classes know Unicode letters and digits. Input is read as UTF-8 whatever the locale, a byte that is not valid UTF-8 matches like any other character, and such bytes do not make a file binary: only a NUL byte does. With -z nothing is binary. Multi-character collating symbols and equivalence classes are refused. A repetition count above 1000 is refused ('Regular expression too big'), where GNU allows 32767. A regular expression error is reported without the file and line number of a -f pattern. GREP_COLOR (the deprecated variable) is not read; GREP_COLORS is. The digits of -NUM given in separate arguments (-1 -2) are read as one number (12). -D does not apply to standard input. --line-buffered is implied when standard output is a terminal. -U (--binary) is accepted and has no effect: no platform's line endings are translated. The obsolete -u and the short form -V (use --version) are not accepted, and long options cannot be abbreviated. A file that is also the output is not detected. A missing pattern is reported as 'missing PATTERNS operand' rather than with a usage line. Directory entries are searched in name order, where GNU uses directory order.
+
+.PP
+EXIT STATUS.
+  0  a line was selected
+  1  no line was selected
+  2  an error occurred (a file could not be read, a pattern is invalid, a command-line mistake), even if a line was selected, unless -q found one
+
+.PP
+HELP. grepx --help shows the options and the first examples; gnux help grepx prints the full manual, and gnux help grepx OPTION explains one option.
+
+.PP
+SEE ALSO. sedx, findx, xargsx, headx, tailx, wcx, cutx, sortx, uniqx, gnux shell.
+
+.PP
+PERMISSIONS. Needs read permission on every FILE searched and on the files named by -f and --exclude-from, and search (execute) permission on the directories leading to them. A recursive search also needs read permission on each directory it descends into. A file that cannot be opened is reported ('Permission denied') and the search goes on with the rest; the exit status is then 2. -s silences those messages but not the status. grepx never modifies the files it searches.
+
+.PP
+USE CASES.
+  - Finding the lines of a log that mention an error, with or without surrounding context.
+  - Searching a source tree for every use of a name with -r, -n and -w.
+  - Listing the files that contain, or lack, a string with -l and -L.
+  - Counting occurrences per file with -c.
+  - Testing in a script whether a file contains a pattern with -q and the exit status.
+  - Filtering a pipeline, keeping (or with -v dropping) the lines that match.
+  - Extracting only the matching parts, such as addresses or identifiers, with -o.
+  - Searching for text that contains regular expression characters with -F.
+  - Restricting a recursive search to some file types with --include and --exclude-dir.
+  - Feeding NUL-separated file names to xargsx -0 with -lZ.
+
+
+.SH OPTIONS
+\fB-A\fP, \fB--after-context\fP=""
+	print \fBNUM\fR lines of trailing context
+
+.PP
+\fB-G\fP, \fB--basic-regexp\fP[=false]
+	PATTERNS are basic regular expressions (the default)
+
+.PP
+\fB-B\fP, \fB--before-context\fP=""
+	print \fBNUM\fR lines of leading context
+
+.PP
+\fB-U\fP, \fB--binary\fP[=false]
+	accepted for compatibility; has no effect
+
+.PP
+\fB--binary-files\fP=""
+	assume that binary files are \fBTYPE\fR: binary (the default), text or without-match; -I is --binary-files=without-match
+
+.PP
+\fB-b\fP, \fB--byte-offset\fP[=false]
+	print the byte offset with output lines
+
+.PP
+\fB--color\fP[=""]
+	highlight matches, names and separators; \fBWHEN\fR is always, never or auto
+
+.PP
+\fB--colour\fP[=""]
+	same as --color=\fBWHEN\fR
+
+.PP
+\fB-C\fP, \fB--context\fP=""
+	print \fBNUM\fR lines of output context; -NUM is the same
+
+.PP
+\fB-c\fP, \fB--count\fP[=false]
+	print only a count of selected lines per FILE
+
+.PP
+\fB-R\fP, \fB--dereference-recursive\fP[=false]
+	likewise, but follow all symbolic links
+
+.PP
+\fB-D\fP, \fB--devices\fP=""
+	how to handle devices, FIFOs and sockets; \fBACTION\fR is read or skip
+
+.PP
+\fB-d\fP, \fB--directories\fP=""
+	how to handle directories; \fBACTION\fR is read (the default), recurse or skip
+
+.PP
+\fB--exclude\fP=
+	skip files that match \fBGLOB\fR
+
+.PP
+\fB--exclude-dir\fP=
+	skip directories that match \fBGLOB\fR
+
+.PP
+\fB--exclude-from\fP=
+	skip files that match any file pattern from \fBFILE\fR
+
+.PP
+\fB-E\fP, \fB--extended-regexp\fP[=false]
+	PATTERNS are extended regular expressions
+
+.PP
+\fB-f\fP, \fB--file\fP=
+	take PATTERNS from \fBFILE\fR
+
+.PP
+\fB-l\fP, \fB--files-with-matches\fP[=false]
+	print only the names of FILEs with selected lines
+
+.PP
+\fB-L\fP, \fB--files-without-match\fP[=false]
+	print only the names of FILEs with no selected lines
+
+.PP
+\fB-F\fP, \fB--fixed-strings\fP[=false]
+	PATTERNS are strings
+
+.PP
+\fB--group-separator\fP=""
+	print \fBSEP\fR on the line between groups of matches with context
+
+.PP
+\fB--help\fP[=false]
+	display this help and exit
+
+.PP
+\fB-i\fP, \fB--ignore-case\fP[=false]
+	ignore case distinctions in patterns and data
+
+.PP
+\fB--include\fP=
+	search only files that match \fBGLOB\fR (a file pattern)
+
+.PP
+\fB-T\fP, \fB--initial-tab\fP[=false]
+	make tabs line up (put a tab before the line)
+
+.PP
+\fB-v\fP, \fB--invert-match\fP[=false]
+	select the lines that do not match
+
+.PP
+\fB--label\fP=""
+	use \fBLABEL\fR as the file name of standard input
+
+.PP
+\fB--line-buffered\fP[=false]
+	flush the output on every line
+
+.PP
+\fB-n\fP, \fB--line-number\fP[=false]
+	print the line number with output lines
+
+.PP
+\fB-x\fP, \fB--line-regexp\fP[=false]
+	match only whole lines
+
+.PP
+\fB-m\fP, \fB--max-count\fP=""
+	stop after \fBNUM\fR selected lines
+
+.PP
+\fB-h\fP, \fB--no-filename\fP[=false]
+	suppress the file name prefix on output
+
+.PP
+\fB--no-group-separator\fP[=false]
+	do not print a separator between groups of matches with context
+
+.PP
+\fB--no-ignore-case\fP[=false]
+	do not ignore case distinctions (the default)
+
+.PP
+\fB-s\fP, \fB--no-messages\fP[=false]
+	suppress error messages about files that do not exist or cannot be read
+
+.PP
+\fB-Z\fP, \fB--null\fP[=false]
+	print a NUL byte after each FILE name
+
+.PP
+\fB-z\fP, \fB--null-data\fP[=false]
+	a data line ends in a NUL byte, not a newline
+
+.PP
+\fB-o\fP, \fB--only-matching\fP[=false]
+	print only the matched (non-empty) parts of lines, one to a line
+
+.PP
+\fB-P\fP, \fB--perl-regexp\fP[=false]
+	PATTERNS are Perl regular expressions (not supported: refused)
+
+.PP
+\fB-q\fP, \fB--quiet\fP[=false]
+	suppress all normal output; stop at the first selected line
+
+.PP
+\fB-r\fP, \fB--recursive\fP[=false]
+	like --directories=recurse
+
+.PP
+\fB-e\fP, \fB--regexp\fP=
+	use \fBPATTERNS\fR for matching
+
+.PP
+\fB--silent\fP[=false]
+	same as --quiet
+
+.PP
+\fB-a\fP, \fB--text\fP[=false]
+	equivalent to --binary-files=text
+
+.PP
+\fB--version\fP[=false]
+	output version information and exit
+
+.PP
+\fB-H\fP, \fB--with-filename\fP[=false]
+	print the file name with output lines
+
+.PP
+\fB-w\fP, \fB--word-regexp\fP[=false]
+	match only whole words
+
+
+.SH EXAMPLE
+.EX
+  # Find the lines of a log that mention an error
+  grepx error app.log
+
+  # Search a source tree for a whole word, with file names and line numbers
+  grepx -rnw 'TODO' src
+
+  # Ignore case and show two lines of context around each match
+  grepx -i -C 2 'timeout' server.log
+
+  # Match either of two words with an extended regular expression
+  grepx -E 'warn(ing)?|error' build.log
+
+  # Search for text that holds regular expression characters, literally
+  grepx -F 'price[0] * 1.5' *.js
+
+  # List the files under the current directory that contain a string
+  grepx -rl 'deprecated' .
+
+  # List the Go files that lack a license header
+  grepx -rL --include='*.go' 'SPDX-License-Identifier' .
+
+  # Count the matching lines in each file
+  grepx -c '^func ' *.go
+
+  # Drop comment lines and empty lines from a configuration file
+  grepx -v -e '^#' -e '^$' app.conf
+
+  # Print only the matched parts, here every IPv4-looking address
+  grepx -oE '[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+' access.log
+
+  # Test in a script whether a file contains a line, printing nothing
+  grepx -q '^version = ' config.toml && echo found
+
+  # Search a tree but skip the dependency and VCS directories
+  grepx -rn --exclude-dir=node_modules --exclude-dir=.git 'fetch(' .
+
+  # Stop after the first three matches and number them
+  grepx -n -m 3 'panic' crash.log
+
+  # Take the patterns from a file, one to a line, as fixed strings
+  grepx -F -f blocklist.txt users.csv
+
+  # Filter another tool's output in a pipeline
+  lsx -l | grepx -i '\\.log$'
+
+  # Search in the portable gnux shell, the same on every platform
+  gnux shell -c 'catx notes.txt | grepx -n urgent'
+.EE

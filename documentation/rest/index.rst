@@ -72,8 +72,10 @@ SEE ALSO
 * `gnux expandx <expandx/index.rst>`_ 	 - Convert tabs to spaces.
 * `gnux exprx <exprx/index.rst>`_ 	 - Evaluate an expression and print its value.
 * `gnux falsex <falsex/index.rst>`_ 	 - Do nothing, unsuccessfully.
+* `gnux findx <findx/index.rst>`_ 	 - Search for files in a directory hierarchy.
 * `gnux fmtx <fmtx/index.rst>`_ 	 - Reformat each paragraph of text.
 * `gnux foldx <foldx/index.rst>`_ 	 - Wrap each input line to fit in a specified width.
+* `gnux grepx <grepx/index.rst>`_ 	 - Print the lines that match patterns.
 * `gnux headx <headx/index.rst>`_ 	 - Print the first part of each file.
 * `gnux hostnamex <hostnamex/index.rst>`_ 	 - Print the name of the current host system.
 * `gnux idx <idx/index.rst>`_ 	 - Print real and effective user and group IDs.
@@ -100,6 +102,7 @@ SEE ALSO
 * `gnux realpathx <realpathx/index.rst>`_ 	 - Print the resolved absolute file name.
 * `gnux rmdirx <rmdirx/index.rst>`_ 	 - Remove the DIRECTORY(ies), if they are empty.
 * `gnux rmx <rmx/index.rst>`_ 	 - Remove (unlink) files and directories.
+* `gnux sedx <sedx/index.rst>`_ 	 - Filter and transform text with a stream editor.
 * `gnux seqx <seqx/index.rst>`_ 	 - Print a sequence of numbers.
 * `gnux sha1sumx <sha1sumx/index.rst>`_ 	 - Print or check SHA-1 (160-bit) checksums.
 * `gnux sha224sumx <sha224sumx/index.rst>`_ 	 - Print or check SHA-224 (224-bit) checksums.
@@ -130,5 +133,6 @@ SEE ALSO
 * `gnux wcx <wcx/index.rst>`_ 	 - Print newline, word, and byte counts for each file.
 * `gnux whoamix <whoamix/index.rst>`_ 	 - Print the user name associated with the current effective user ID.
 * `gnux whox <whox/index.rst>`_ 	 - Show who is logged on.
+* `gnux xargsx <xargsx/index.rst>`_ 	 - Build and run command lines from standard input.
 * `gnux yesx <yesx/index.rst>`_ 	 - Output a string repeatedly until killed.
 

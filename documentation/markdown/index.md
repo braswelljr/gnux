@@ -64,8 +64,10 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux expandx](expandx/index.md)	 - Convert tabs to spaces.
 * [gnux exprx](exprx/index.md)	 - Evaluate an expression and print its value.
 * [gnux falsex](falsex/index.md)	 - Do nothing, unsuccessfully.
+* [gnux findx](findx/index.md)	 - Search for files in a directory hierarchy.
 * [gnux fmtx](fmtx/index.md)	 - Reformat each paragraph of text.
 * [gnux foldx](foldx/index.md)	 - Wrap each input line to fit in a specified width.
+* [gnux grepx](grepx/index.md)	 - Print the lines that match patterns.
 * [gnux headx](headx/index.md)	 - Print the first part of each file.
 * [gnux hostnamex](hostnamex/index.md)	 - Print the name of the current host system.
 * [gnux idx](idx/index.md)	 - Print real and effective user and group IDs.
@@ -92,6 +94,7 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux realpathx](realpathx/index.md)	 - Print the resolved absolute file name.
 * [gnux rmdirx](rmdirx/index.md)	 - Remove the DIRECTORY(ies), if they are empty.
 * [gnux rmx](rmx/index.md)	 - Remove (`unlink`) files and directories.
+* [gnux sedx](sedx/index.md)	 - Filter and transform text with a stream editor.
 * [gnux seqx](seqx/index.md)	 - Print a sequence of numbers.
 * [gnux sha1sumx](sha1sumx/index.md)	 - Print or check SHA-1 (160-bit) checksums.
 * [gnux sha224sumx](sha224sumx/index.md)	 - Print or check SHA-224 (224-bit) checksums.
@@ -122,5 +125,6 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux wcx](wcx/index.md)	 - Print newline, word, and byte counts for each file.
 * [gnux whoamix](whoamix/index.md)	 - Print the user name associated with the current effective user ID.
 * [gnux whox](whox/index.md)	 - Show `who` is logged on.
+* [gnux xargsx](xargsx/index.md)	 - Build and run command lines from standard input.
 * [gnux yesx](yesx/index.md)	 - Output a string repeatedly until killed.
 

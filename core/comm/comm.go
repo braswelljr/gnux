@@ -125,7 +125,7 @@ func (c *Comm) Run(args []string) error {
 			}
 			r, closer = f, f
 		}
-		in[i] = &input{name: name, r: bufio.NewReader(r), closer: closer}
+		in[i] = &input{name: name, r: core.NewReader(r), closer: closer}
 	}
 	defer func() {
 		for _, f := range in {
@@ -135,7 +135,7 @@ func (c *Comm) Run(args []string) error {
 		}
 	}()
 
-	c.out = bufio.NewWriter(c.streams.Out)
+	c.out = core.NewWriter(c.streams.Out)
 	err := c.compare(in)
 	if ferr := c.out.Flush(); ferr != nil && !core.IsClosedPipe(ferr) {
 		c.diag.Errorf("write error: %s", core.ErrText(ferr))

@@ -90,7 +90,7 @@ func (i *ID) Run(args []string) (err error) {
 		return core.Usagef("option --zero not permitted in default format")
 	}
 
-	i.out = bufio.NewWriter(i.streams.Out)
+	i.out = core.NewWriter(i.streams.Out)
 	defer core.FlushOutput(i.out, i.diag, &err)
 
 	if len(args) == 0 {

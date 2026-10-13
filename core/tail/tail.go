@@ -151,7 +151,7 @@ func (t *Tail) RunContext(ctx context.Context, args []string) error {
 		t.diag.Warnf("warning: PID ignored; --pid=PID is useful only when following")
 	}
 
-	t.out = bufio.NewWriter(t.streams.Out)
+	t.out = core.NewWriter(t.streams.Out)
 	t.headers = !t.Quiet && (t.Verbose || len(args) > 1)
 
 	var targets []*target

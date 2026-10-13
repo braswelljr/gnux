@@ -118,6 +118,7 @@ type Du struct {
 	seen       map[devIno]bool
 	seenPath   map[string]bool // where file IDs are unknown (Windows), by absolute path
 	sem        chan struct{}
+	trap       core.Trap // a panic on a scanning goroutine, raised again by the caller
 }
 
 type devIno struct{ dev, ino uint64 }
@@ -159,7 +160,7 @@ func (d *Du) Run(args []string) (err error) {
 		d.hashAll = true
 	}
 
-	d.out = bufio.NewWriter(d.streams.Out)
+	d.out = core.NewWriter(d.streams.Out)
 	defer core.FlushOutput(d.out, d.diag, &err)
 	var grand sums
 	for _, name := range operands {
@@ -346,6 +347,7 @@ func (d *Du) scanRoot(name string) *entry {
 		return root
 	}
 	d.scanDir(root, root.id.dev, []devIno{root.id})
+	d.trap.Release()
 	return root
 }
 
@@ -396,7 +398,18 @@ func isSep(c byte) bool { return c == '/' || c == os.PathSeparator }
 // scanDir reads a directory and its subdirectories, in parallel. ancestors
 // are the directories above it, to stop at a cycle under -L.
 func (d *Du) scanDir(e *entry, rootDev uint64, ancestors []devIno) {
+	// The slot is given back as soon as the directory has been read, and by
+	// the defer if reading it panics: a slot never returned would leave the
+	// other readers waiting for it.
 	d.sem <- struct{}{}
+	reading := true
+	done := func() {
+		if reading {
+			reading = false
+			<-d.sem
+		}
+	}
+	defer done()
 	dirents, err := os.ReadDir(e.path)
 	children := make([]*entry, 0, len(dirents))
 	for _, de := range dirents {
@@ -418,7 +431,7 @@ func (d *Du) scanDir(e *entry, rootDev uint64, ancestors []devIno) {
 		}
 		children = append(children, c)
 	}
-	<-d.sem
+	done()
 	if err != nil {
 		e.readErr = err
 	}
@@ -437,6 +450,7 @@ func (d *Du) scanDir(e *entry, rootDev uint64, ancestors []devIno) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			defer d.trap.Catch()
 			d.scanDir(c, rootDev, append(slices.Clip(ancestors), c.id))
 		}()
 	}

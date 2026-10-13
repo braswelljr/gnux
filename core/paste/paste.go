@@ -114,8 +114,8 @@ func (p *Paste) Run(args []string) error {
 	if in == nil {
 		in = strings.NewReader("")
 	}
-	p.stdin = bufio.NewReader(in)
-	p.out = bufio.NewWriter(p.streams.Out)
+	p.stdin = core.NewReader(in)
+	p.out = core.NewWriter(p.streams.Out)
 
 	if p.Serial {
 		p.serial(args)
@@ -143,7 +143,7 @@ func (p *Paste) open(name string) (*source, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &source{name: name, r: bufio.NewReader(f), closer: f}, nil
+	return &source{name: name, r: core.NewReader(f), closer: f}, nil
 }
 
 func (s *source) close() {
@@ -213,6 +213,10 @@ func (p *Paste) parallel(names []string) {
 				_, _ = p.out.Write(line)
 				if i+1 == n {
 					_ = p.out.WriteByte(p.eol)
+					// The next read is of the first file again.
+					if files[0] != nil {
+						core.FlushIfIdle(p.out, files[0].r)
+					}
 				} else {
 					p.writeDelim(nextDelim())
 				}

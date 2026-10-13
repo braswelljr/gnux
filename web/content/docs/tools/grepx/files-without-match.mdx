@@ -1,0 +1,37 @@
+---
+title: "-L, --files-without-match"
+description: "Print only the names of FILEs with no selected lines."
+---
+
+An option of [grepx](/docs/tools/grepx).
+
+## Usage
+
+```bash
+grepx -L PATTERNS [FILE]...
+grepx --files-without-match PATTERNS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-L` | `--files-without-match` | none |  | print only the names of FILEs with no selected lines |
+
+## Examples
+
+### List the Go files that lack a license header
+
+```bash tab="bash" tab-group="shell"
+grepx -rL --include='*.go' 'SPDX-License-Identifier' .
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -rL --include='*.go' 'SPDX-License-Identifier' .
+```
+
+## Help in the terminal
+
+```bash
+gnux help grepx --files-without-match
+```

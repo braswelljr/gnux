@@ -88,7 +88,7 @@ func (c *Coder) Run(args []string) error {
 		r = f
 	}
 
-	out := bufio.NewWriter(c.streams.Out)
+	out := core.NewWriter(c.streams.Out)
 	var err error
 	if c.Decode {
 		err = c.decode(r, out)
@@ -181,7 +181,7 @@ func (c *Coder) decode(r io.Reader, out *bufio.Writer) error {
 	enc := c.encoder()
 	q := make([]byte, 0, size)
 	dst := make([]byte, enc.DecodedLen(size))
-	br := bufio.NewReader(r)
+	br := core.NewReader(r)
 	for {
 		b, err := br.ReadByte()
 		if err == io.EOF {

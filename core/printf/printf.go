@@ -58,7 +58,7 @@ func (p *Printf) Run(args []string) error {
 
 	// Write errors are sticky in a bufio.Writer, so the individual writes go
 	// unchecked and finish reports the first one when it flushes.
-	p.out = bufio.NewWriter(p.streams.Out)
+	p.out = core.NewWriter(p.streams.Out)
 	for {
 		used, err := p.once(format, args)
 		if err != nil {

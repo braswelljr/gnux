@@ -57,7 +57,7 @@ func New(opts Options, s core.Streams) *Fold {
 // A failing operand is reported and the rest still run. The returned error is
 // core.ErrFailed if any operand failed, otherwise nil.
 func (f *Fold) Run(args []string) error {
-	f.out = bufio.NewWriter(f.streams.Out)
+	f.out = core.NewWriter(f.streams.Out)
 	if len(args) == 0 {
 		args = []string{"-"}
 	}
@@ -92,7 +92,7 @@ func (f *Fold) file(name string) bool {
 		r = file
 	}
 
-	err := f.fold(bufio.NewReader(r))
+	err := f.fold(core.NewReader(r))
 	if werr := f.out.Flush(); werr != nil {
 		if !closedPipe(werr) {
 			f.diag.Errorf("write error: %s", core.ErrText(werr))
@@ -145,6 +145,7 @@ func (f *Fold) fold(r *bufio.Reader) error {
 			line = append(line, c)
 			_, _ = f.out.Write(line)
 			line, col = line[:0], 0
+			core.FlushIfIdle(f.out, r)
 			continue
 		}
 

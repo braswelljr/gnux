@@ -24,7 +24,7 @@ belongs in the project and whether a release is ready.
 
 ### 1.2 Scope
 
-gnux is one multi-call binary carrying 81 tools, each named after its GNU counterpart with an
+gnux is one multi-call binary carrying 85 tools, each named after its GNU counterpart with an
 `x` appended. The same code is offered as commands, as a Go library and as a portable shell,
 and is documented and demonstrated on a website with a WebAssembly playground. What is in and
 out of scope is listed in [business-requirements](business-requirements.md).

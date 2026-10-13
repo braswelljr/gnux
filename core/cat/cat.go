@@ -6,7 +6,6 @@ package cat
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -17,9 +16,6 @@ import (
 
 // Name is the command name, used as the prefix of every diagnostic.
 const Name = "catx"
-
-// bufSize is the read chunk of the transforming path.
-const bufSize = 64 << 10
 
 // Options mirrors the GNU cat flag surface. The compound flags (-A, -e, -t)
 // are expanded by the command adapter; -u has no effect and no field.
@@ -72,7 +68,7 @@ func (c *Cat) Run(args []string) error {
 	if len(args) == 0 {
 		args = []string{"-"}
 	}
-	c.out = bufio.NewWriter(c.streams.Out)
+	c.out = core.NewWriter(c.streams.Out)
 
 	for _, name := range args {
 		if !c.file(name) {
@@ -194,15 +190,17 @@ func plainCopy(w io.Writer, r io.Reader) (rerr, werr error) {
 // transform copies r through the line-numbering and character-revealing
 // filters. A write failure surfaces when the caller flushes.
 func (c *Cat) transform(r io.Reader) error {
-	buf := make([]byte, bufSize)
+	buf := make([]byte, core.BufferSize)
 	for {
 		n, err := r.Read(buf)
 		for _, b := range buf[:n] {
 			c.put(b)
 		}
-		// Stop reading once output has failed; the sticky error is picked
-		// up by the flush.
-		if _, werr := c.out.Write(nil); werr != nil {
+		// One write for each read: a slow producer is answered as it goes,
+		// and a fast one fills the whole buffer anyway. Reading stops once
+		// output has failed; the error stays with the writer for the
+		// caller's flush to report.
+		if werr := c.out.Flush(); werr != nil {
 			return nil
 		}
 		if err != nil {
@@ -275,7 +273,8 @@ func (c *Cat) put(b byte) {
 
 func (c *Cat) number() {
 	c.lineNo++
-	fmt.Fprintf(c.out, "%6d\t", c.lineNo)
+	_, _ = c.out.Write(core.AppendInt(c.out.AvailableBuffer(), c.lineNo, 6))
+	_ = c.out.WriteByte('\t')
 }
 
 func (c *Cat) endLine() {

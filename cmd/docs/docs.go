@@ -157,7 +157,9 @@ func toolTopicMeta(t tool.Spec) docmeta.Meta {
 	fmt.Fprintf(&b, "\nHELP. %s --help shows the options and the first examples; %s help %s prints "+
 		"the full manual, and %s help %s OPTION explains one option.", t.DiagName(), common.AppName, t.Name(), common.AppName, t.Name())
 	if len(m.SeeAlso) > 0 {
-		b.WriteString("\n\nSEE ALSO. " + strings.Join(m.SeeAlso, ", ") + ".")
+		b.WriteString("\n\nSEE ALSO. ")
+		b.WriteString(strings.Join(m.SeeAlso, ", "))
+		b.WriteString(".")
 	}
 	m.Long = b.String()
 	return m

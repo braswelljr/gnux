@@ -4,7 +4,6 @@
 package ls
 
 import (
-	"bufio"
 	"os"
 	"path"
 	"strconv"
@@ -53,7 +52,7 @@ func (l *Ls) Run(args []string) error {
 	if err := l.prepare(); err != nil {
 		return err
 	}
-	l.out = bufio.NewWriter(l.streams.Out)
+	l.out = core.NewWriter(l.streams.Out)
 	defer func() { _ = l.out.Flush() }()
 
 	if len(args) == 0 {

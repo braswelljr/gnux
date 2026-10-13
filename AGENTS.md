@@ -68,6 +68,7 @@ gnux/
   tools/gendocs/           # `go run ./tools/gendocs [dir] [format]` - reference generator
   tools/wasm/              # js/wasm entry point for the playground (build tag js && wasm)
   tools/changelog/         # `go run ./tools/changelog vX.Y.Z` - a release's CHANGELOG.md section
+  tools/benchcheck/        # `go run ./tools/benchcheck OLD NEW` - fail on a benchmark regression
   CHANGELOG.md             # Release history (Keep a Changelog); published as /docs/changelog
   web/                     # Next.js + Fumadocs site and playground (own go.mod: not part of ./...)
     content/docs/          # Generated MDX (committed) - never edit by hand
@@ -83,25 +84,31 @@ gnux/
     rules/                 # Hand-written: the cross-cutting rules, one file each (indexed below)
   action.yml               # setup-gnux: the composite GitHub Action (uses: braswelljr/gnux@v0)
   .goreleaser.yaml         # What a release is: archives, checksums, Homebrew/Scoop/winget manifests
-  .github/workflows/       # test.yml, build.yml, lint.yml, docs.yml, web.yml, action.yml, release.yml
+  .github/workflows/       # test.yml, build.yml, lint.yml, docs.yml, web.yml, bench.yml, action.yml, release.yml
 ```
 
 ## Tools
 
 `b2sumx`, `base32x`, `base64x`, `basenamex`, `catx`, `chgrpx`, `chmodx`, `chownx`, `cksumx`,
 `commx`, `cpx`, `csplitx`, `cutx`, `datex`, `ddx`, `dfx`, `dirnamex`, `dux`, `echox`, `envx`,
-`expandx`, `exprx`, `falsex`, `fmtx`, `foldx`, `headx`, `hostnamex`, `idx`, `installx`, `joinx`,
-`killx`, `linkx`, `lnx`, `lsx`, `md5sumx`, `mkdirx`, `mktempx`, `mvx`, `nicex`, `nlx`, `nohupx`,
-`nprocx`, `odx`, `pastex`, `printenvx`, `printfx`, `pwdx`, `readlinkx`, `realpathx`, `rmdirx`,
-`rmx`, `seqx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `shufx`,
-`sleepx`, `sortx`, `splitx`, `statx`, `tacx`, `tailx`, `teex`, `testx`, `timeoutx`, `touchx`,
-`truex`, `truncatex`, `trx`, `ttyx`, `unamex`, `unexpandx`, `uniqx`, `unlinkx`, `uptimex`, `wcx`,
-`whoamix`, `whox`, `yesx`. The README's roadmap lists what is not implemented yet.
+`expandx`, `exprx`, `falsex`, `findx`, `fmtx`, `foldx`, `grepx`, `headx`, `hostnamex`, `idx`,
+`installx`, `joinx`, `killx`, `linkx`, `lnx`, `lsx`, `md5sumx`, `mkdirx`, `mktempx`, `mvx`, `nicex`,
+`nlx`, `nohupx`, `nprocx`, `odx`, `pastex`, `printenvx`, `printfx`, `pwdx`, `readlinkx`,
+`realpathx`, `rmdirx`, `rmx`, `sedx`, `seqx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`,
+`sha512sumx`, `shufx`, `sleepx`, `sortx`, `splitx`, `statx`, `tacx`, `tailx`, `teex`, `testx`,
+`timeoutx`, `touchx`, `truex`, `truncatex`, `trx`, `ttyx`, `unamex`, `unexpandx`, `uniqx`,
+`unlinkx`, `uptimex`, `wcx`, `whoamix`, `whox`, `xargsx`, `yesx`. The README's roadmap lists what is
+not implemented yet.
+
+`grepx`, `sedx`, `findx` and `xargsx` mirror GNU grep, GNU sed and GNU findutils, not coreutils:
+they are the tools a build script reaches for next. `xargsx` and `findx -exec` run a command
+named after a gnux tool in-process (`tool.RunTool`, wired to `cmd.RunTool`) and anything else
+as a program on `PATH`, through `core/internal/run`.
 
 ## Development Commands
 
 ```bash
-make build         # go build -o ./bin/gnux .
+make build         # go build -o ./bin/gnux .   (the binary lives in bin/ and is run from there)
 make links         # build, then symlink every tool name in ./bin to gnux
 make install       # go install (with version ldflags)
 make install/links # install, then symlink every tool name in GOBIN
@@ -111,6 +118,10 @@ make format        # golangci-lint fmt (gofmt -s + goimports, in .golangci.yml),
 make hooks         # lefthook install: the Git hooks in lefthook.yml
 make docs          # regenerate documentation/ (all formats) and web/content/docs (also: go generate ./...)
 make ci            # vet + lint + test + docs freshness check
+make bench         # benchmark the real tools into bench/latest.txt (BENCH=regexp, COUNT=n)
+make bench/save    # keep the latest results as the baseline; make bench/compare runs benchstat
+make bench/check   # fail if bench/latest.txt regressed against bench/baseline.txt (tools/benchcheck)
+make fuzz          # fuzz every parser for FUZZTIME each (default 30s)
 make web/wasm      # compile gnux to web/public/gnux.wasm (+ wasm_exec.js)
 make web/dev       # wasm + docs content, then `pnpm dev` in web/
 make web/test      # test the playground's in-memory fs against the real wasm
@@ -118,6 +129,10 @@ make web/build     # production build of the website
 make release/check # validate .goreleaser.yaml (needs goreleaser v2)
 make release/snapshot # every release archive and manifest into dist/, nothing published
 make completions   # bash/zsh/fish/PowerShell completion scripts into completions/
+
+# Always build into bin/ and run ./bin/gnux (or the links make links puts beside it). A bare
+# `go build` at the root drops a `gnux` binary there: .gitignore keeps it out of a commit, and
+# nothing in the Makefile, the hooks or CI builds or runs one outside bin/.
 
 # Version is injected at link time:
 go build -ldflags "-X github.com/braswelljr/gnux/internal/common.Version=$(git describe --tags --always)" -o bin/gnux .
@@ -155,8 +170,9 @@ These are mirrored for users in the README's Requirements section and the guide'
 
 - if it names a tool - by its own name (`rmx`) or the GNU name (`rm`) - that tool's command runs
   directly with the remaining arguments;
-- otherwise the root command runs and the first argument picks the tool (`gnux rmx …`, or
-  `gnux rm …` via the alias).
+- otherwise the first argument picks the tool (`gnux rmx …`, or `gnux rm …`) and it runs just as
+  directly, as does `gnux shell`; the root command, which carries every tool, is built only
+  for what is left (`gnux --list`, `gnux help`, an unknown name).
 
 `gnux --list` prints every tool name; `make links`, `install.sh` and the Dockerfile use it to
 create the per-tool links.
@@ -207,10 +223,19 @@ func (r *Rm) Run(args []string) error          // run against the operands
   `rm.Options{Recursive: true}` and get everything else as plain `rm`. Name a field for the
   negative when the default is "on" (`NoPreserveRoot`, not `PreserveRoot`).
 - Read and write only through the `core.Streams` given to `New` - never `os.Stdin`/`os.Stdout`.
+  Buffer them with `core.NewReader` / `core.NewWriter` (one shared size, `core.BufferSize`), not
+  `bufio.NewReader` / `bufio.NewWriter`, and flush the writer before returning
+  (`core.FlushOutput`). Write a per-line number with `core.AppendInt`, not `fmt.Fprintf`.
+  A filter calls `core.FlushIfIdle(out, in)` after each record it writes, so that it answers a
+  slow producer line by line, and is listed in `streaming` and `lineFilters` in
+  `cmd/robust_test.go`.
 - Write diagnostics through `core.NewDiag(Name, s)` in GNU's exact wording
   (`rmx: cannot remove 'x': No such file or directory`); use `core.ErrText(err)` for the
   capitalized, platform-normalized syscall text and `core.Describe(info)` for file-type nouns.
 - A failing operand does not stop the remaining operands.
+- An engine that starts a goroutine defers `trap.Catch()` in it and calls `trap.Release()`
+  once it has ended (`core.Trap`): a panic on a goroutine of its own would otherwise end the
+  whole process, not just the tool.
 - Expose injection points as exported fields for anything that needs a terminal, a clock or the
   real environment (`PromptFn`, `RemoveFn`, `Now`, `Getenv`, …).
 
@@ -427,6 +452,12 @@ cleanup, and best-effort `fmt.Fprint*` diagnostic writes. `_test.go` files are e
 - `cmd/shell_test.go` - `gnux shell` end to end with the real tools, `RunTool`, `NewShell`.
 - `cmd/main_test.go` - registry invariants, argv[0] and subcommand dispatch (by tool name and by
   GNU name), exit statuses and usage-error formatting.
+- `cmd/robust_test.go`, `cmd/robust_unix_test.go` - the real tools held to their limits:
+  streaming tools in a fixed amount of memory, no goroutine or open file left behind, a filter
+  answering each line while its input stays open.
+- `cmd/bench_test.go` - the benchmark suite (`make bench`); `core/{sed,grep,find,xargs}/fuzz_test.go`
+  and `core/shell/fuzz_test.go` - the fuzz targets (`make fuzz`). All of it is described in
+  `docs/workflows/benchmarking-and-robustness.md`.
 - `cmd/docs/docs_test.go` - `wrapCode`/`fenceLang`, an end-to-end `GenerateAll` (a page per tool
   per format, markdown links resolve, man stays plain, output is deterministic) and
   `GenerateMDX` (a page per tool, frontmatter present, no unescaped MDX characters).
@@ -437,11 +468,12 @@ cleanup, and best-effort `fmt.Fprint*` diagnostic writes. `_test.go` files are e
 
 | File        | What it does                                                                            |
 |-------------|-----------------------------------------------------------------------------------------|
-| `test.yml`  | `go vet` + `go test -race` on ubuntu/macos/windows, a multi-call smoke test, wasm build, 30s fuzzing of the shell |
+| `test.yml`  | `go vet` + `go test -race` on ubuntu/macos/windows, a multi-call smoke test, wasm build, 30s fuzzing of every parser (`make fuzz`) |
 | `build.yml` | cross-compiles `gnux` for every release platform and uploads the binaries               |
 | `lint.yml`  | `golangci-lint` (pinned v2 release)                                                     |
 | `docs.yml`  | regenerates `documentation/` and `web/content/docs/`; fails if the committed copies are stale |
 | `web.yml`   | builds the wasm, then lints, type-checks, tests and builds the website                  |
+| `bench.yml` | on a pull request: benchmarks the base commit and the change in one job and fails on a regression (`tools/benchcheck`) |
 | `action.yml` | runs the setup-gnux action (`action.yml` at the root) on linux/macos/windows runners and uses the tools |
 | `release.yml` | on a `vX.Y.Z` tag: re-runs vet/test/docs checks, requires the tag's `CHANGELOG.md` section, then GoReleaser (`.goreleaser.yaml`) builds per-platform archives with completions, publishes a GitHub release with `checksums.txt`, a provenance attestation and that section as its notes, updates the Homebrew/Scoop/winget manifests whose token secret is set, and moves the `vX` major tag |
 

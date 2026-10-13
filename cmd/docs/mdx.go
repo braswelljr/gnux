@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -171,14 +172,22 @@ func mdxEscape(md string) string {
 		}
 		parts := strings.Split(line, "`")
 		for j := 0; j < len(parts); j += 2 {
-			parts[j] = mdxReplacer.Replace(parts[j])
+			parts[j] = mdxSpecial.ReplaceAllStringFunc(parts[j], func(m string) string {
+				// Backslashes before the character are text too (grep's
+				// "\{"): doubled, they stay literal instead of escaping
+				// the escape.
+				slashes := m[:len(m)-1]
+				return slashes + slashes + `\` + m[len(m)-1:]
+			})
 		}
 		lines[i] = strings.Join(parts, "`")
 	}
 	return strings.Join(lines, "\n")
 }
 
-var mdxReplacer = strings.NewReplacer("{", `\{`, "}", `\}`, "<", `\<`)
+// mdxSpecial matches a character MDX would read as the start of JSX or of an
+// expression, with any backslashes right before it.
+var mdxSpecial = regexp.MustCompile(`\\*[{}<]`)
 
 // mdxIndex is the documentation landing page: what gnux is and what it ships.
 func mdxIndex() string {
@@ -206,12 +215,14 @@ func mdxGuide() string {
 	for _, s := range guideSections {
 		fmt.Fprintf(&b, "## %s\n\n", s.title)
 		for _, p := range s.body {
-			b.WriteString(p + "\n\n")
+			b.WriteString(p)
+			b.WriteString("\n\n")
 		}
 	}
 	b.WriteString("## Examples\n\n```bash\n")
 	for _, line := range strings.Split(guideExample, "\n") {
-		b.WriteString(strings.TrimPrefix(line, "  ") + "\n")
+		b.WriteString(strings.TrimPrefix(line, "  "))
+		b.WriteString("\n")
 	}
 	b.WriteString("```\n")
 	return b.String()
@@ -241,8 +252,10 @@ func mdxTool(t tool.Spec, flags *pflag.FlagSet, options []flagPage) string {
 			fmt.Fprintf(&b, "- [%s](/docs/tools/%s/%s): %s\n", o.title, t.Name(), o.name, o.description)
 		}
 	}
-	b.WriteString("\n" + exitStatusMarkdown(t, "##"))
-	b.WriteString("\n" + terminalHelpMarkdown(t, "##"))
+	b.WriteString("\n")
+	b.WriteString(exitStatusMarkdown(t, "##"))
+	b.WriteString("\n")
+	b.WriteString(terminalHelpMarkdown(t, "##"))
 	if len(m.SeeAlso) > 0 {
 		b.WriteString("\n## See also\n\n")
 		for _, r := range m.SeeAlso {

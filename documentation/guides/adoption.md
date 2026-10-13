@@ -1,6 +1,6 @@
 # Adoption
 
-How to adopt gnux next to the GNU coreutils you already know. gnux does not replace them: it brings the same interface to the places they are missing (Windows, containers without coreutils, the browser, Go programs), so the GNU tools stay where they are and gnux is added where it helps. This guide sets the two side by side: how each of the 81 gnux tools maps onto its GNU counterpart, which flags it supports, every documented deviation (the places where gnux must choose differently because it cannot see option order, or because Windows cannot express a feature), the GNU options that are not implemented yet, the places where gnux deliberately does better than GNU, and the few coreutils tools still on the roadmap. If a behavior is not listed here as a difference, gnux aims to match GNU exactly, down to the wording of its diagnostics and its exit statuses.
+How to adopt gnux next to the GNU coreutils you already know. gnux does not replace them: it brings the same interface to the places they are missing (Windows, containers without coreutils, the browser, Go programs), so the GNU tools stay where they are and gnux is added where it helps. This guide sets the two side by side: how each of the 85 gnux tools maps onto its GNU counterpart, which flags it supports, every documented deviation (the places where gnux must choose differently because it cannot see option order, or because Windows cannot express a feature), the GNU options that are not implemented yet, the places where gnux deliberately does better than GNU, and the few coreutils tools still on the roadmap. If a behavior is not listed here as a difference, gnux aims to match GNU exactly, down to the wording of its diagnostics and its exit statuses.
 
 ## The short version
 
@@ -37,8 +37,10 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `expand` | `expandx` | `-i`, `-t N, LIST` | [expandx](../markdown/expandx/index.md) |
 | `expr` | `exprx` | EXPRESSION: `\|`, `&`, comparisons, `+ - * / %`, `:`, `match`, `substr`, `index`, `length`, `+ TOKEN`, parentheses | [exprx](../markdown/exprx/index.md) |
 | `false` | `falsex` | none (arguments ignored) | [falsex](../markdown/falsex/index.md) |
+| `find` (findutils) | `findx` | An expression, not options: `-H`, `-L`, `-P`; `( )`, `!`, `-a`, `-o`, `,`; tests such as `-name`, `-path`, `-regex`, `-type`, `-size`, `-newer`, `-mtime`, `-perm`, `-user`, `-empty`; `-maxdepth`, `-mindepth`, `-depth`, `-xdev`; actions `-print`, `-print0`, `-printf`, `-ls`, `-delete`, `-prune`, `-quit`, `-exec`, `-execdir`, `-ok` | [findx](../markdown/findx/index.md) |
 | `fmt` | `fmtx` | `-c`, `-g STRING`, `-p STRING`, `-s`, `-t`, `-u`, `-w WIDTH` | [fmtx](../markdown/fmtx/index.md) |
 | `fold` | `foldx` | `-b`, `-s`, `-w WIDTH` | [foldx](../markdown/foldx/index.md) |
+| `grep` (GNU grep) | `grepx` | `-E`, `-F`, `-G`, `-e PATTERNS`, `-f FILE`, `-i`, `-v`, `-w`, `-x`, `-c`, `-l`, `-L`, `-m NUM`, `-o`, `-q`, `-s`, `-b`, `-H`, `-h`, `-n`, `-T`, `-Z`, `-z`, `-A NUM`, `-B NUM`, `-C NUM`, `-NUM`, `-r`, `-R`, `-d ACTION`, `-D ACTION`, `-a`, `-I`, `-U`, `--binary-files=TYPE`, `--color[=WHEN]`, `--include=GLOB`, `--exclude=GLOB`, `--exclude-from=FILE`, `--exclude-dir=GLOB`, `--group-separator=SEP`, `--no-group-separator`, `--label=LABEL`, `--line-buffered`, `--no-ignore-case` | [grepx](../markdown/grepx/index.md) |
 | `head` | `headx` | `-c [-]NUM`, `-n [-]NUM`, `-NUM`, `-q`, `-v`, `-z`, size suffixes | [headx](../markdown/headx/index.md) |
 | `hostname` | `hostnamex` | none | [hostnamex](../markdown/hostnamex/index.md) |
 | `id` | `idx` | `-a`, `-Z`, `-g`, `-G`, `-n`, `-r`, `-u`, `-z` | [idx](../markdown/idx/index.md) |
@@ -65,6 +67,7 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `realpath` | `realpathx` | `-e`, `-L`, `-m`, `-P`, `-q`, `-s`/`--no-symlinks`, `-z`, `--relative-to`, `--relative-base` | [realpathx](../markdown/realpathx/index.md) |
 | `rm` | `rmx` | `-d`, `-f`, `-i`, `-I`, `-r`/`-R`, `-v`, `--interactive[=WHEN]`, `--one-file-system`, `--preserve-root`, `--no-preserve-root` | [rmx](../markdown/rmx/index.md) |
 | `rmdir` | `rmdirx` | `-p`, `-v`, `--ignore-fail-on-non-empty` | [rmdirx](../markdown/rmdirx/index.md) |
+| `sed` (GNU sed) | `sedx` | `-n`, `-e SCRIPT`, `-f SCRIPT-FILE`, `-E`/`-r`, `-i[SUFFIX]`, `-s`, `-z`, `-u`, `-l N`, `-b`, `--follow-symlinks`, `--posix`, `--sandbox`; the whole script language except the `e` command | [sedx](../markdown/sedx/index.md) |
 | `seq` | `seqx` | `-f FORMAT`, `-s STRING`, `-w` | [seqx](../markdown/seqx/index.md) |
 | `sha1sum` | `sha1sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha1sumx](../markdown/sha1sumx/index.md) |
 | `sha224sum` | `sha224sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha224sumx](../markdown/sha224sumx/index.md) |
@@ -93,6 +96,7 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `uptime` | `uptimex` | none | [uptimex](../markdown/uptimex/index.md) |
 | `wc` | `wcx` | `-c`, `-l`, `-L`, `-m`, `-w`, `--files0-from=F`, `--total=WHEN` | [wcx](../markdown/wcx/index.md) |
 | `who` | `whox` | `-a`, `-b`, `-q`, `-d`, `-H`, `-l`, `--lookup`, `-T`, `--message`, `-m`, `-p`, `-r`, `-s`, `-t`, `-u`, `-w` | [whox](../markdown/whox/index.md) |
+| `xargs` (findutils) | `xargsx` | `-0`, `-a FILE`, `-d CHARACTER`, `-E END`, `-e[END]`, `-I R`, `-i[R]`, `-L MAX-LINES`, `-l[MAX-LINES]`, `-n MAX-ARGS`, `-P MAX-PROCS`, `-p`, `-r`, `-s MAX-CHARS`, `-t`, `-x`, `--show-limits` | [xargsx](../markdown/xargsx/index.md) |
 | `whoami` | `whoamix` | none | [whoamix](../markdown/whoamix/index.md) |
 | `yes` | `yesx` | STRING... (no options) | [yesx](../markdown/yesx/index.md) |
 
@@ -118,6 +122,8 @@ GNU lets the last of conflicting options win. The command-line framework gnux us
 | `chmodx` | `-P` > `-H` > `-L`; `--preserve-root` over `--no-preserve-root` | `chmodx -RLP g+w d` follows no symbolic link |
 | `chownx`, `chgrpx` | `-P` > `-H` > `-L`; `-h` over `--dereference`; `--preserve-root` over `--no-preserve-root` | `chownx -h --dereference u l` changes the link itself |
 | `dux` | `-P` > `-H`/`-D` > `-L` | `dux -LP` follows no symbolic link |
+| `grepx` | `-F` > `-E` > `-G`; `-H` > `-h`; `--no-ignore-case` > `-i`; `-A`/`-B` > `-C` > `-NUM`; `-I` > `-a` > `--binary-files`; `-R` > `-r` > `-d`; `-l` > `-L` | `grepx -hH x a` prints the file name |
+| `xargsx` | `-I`/`-i` > `-L`/`-l` > `-n`; `-0` > `-d` | `xargsx -n 2 -I {} echo {}` runs one command per line and warns that `-n` is ignored |
 | `commx`, `joinx` | `--check-order` over `--nocheck-order` | |
 | `cksumx` | `--tag` over `--untagged` | |
 | digest tools (`md5sumx`, `sha*sumx`, `b2sumx`) | `-t` (text) over `-b` (binary) | `sha256sumx -bt f` prints the text-mode mark |
@@ -160,6 +166,9 @@ The rule is in the project's [rules](../../docs/rules/README.md) as "conflicts r
 | digest tools (`md5sumx`, `sha*sumx`, `b2sumx`) | `-t` wins over `-b` when both are given |
 | `expandx`, `unexpandx` | GNU's comma form `-4,8` is not accepted, and two `-N` options in a row run together (`-4 -8` reads as `-48`); write `-t 4,8` |
 | `exprx` | Strings are measured and compared in bytes; back references and `[= =]`/`[. .]` are not supported in a regex |
+| `findx` | Directory entries are visited in name order, and paths are joined with `/` on every platform. A command named after a gnux tool runs in-process (under `-execdir` it is given the full path); a command that cannot be run makes the status 1. Regular expressions are RE2, so back references are refused. `-newerXt` takes a fixed set of date spellings. Off Unix there are no owners, inodes or devices. `findx -L` detects loops; `findx` itself always follows GNU's `-P`/`-H`/`-L` last-one-wins, because it parses its own command line |
+| `grepx` | Patterns are translated to RE2: back references are refused, `\<` and `\>` behave as `\b`, a repetition count above 1000 is too big. Input is treated as UTF-8 and only a NUL byte makes a file binary. Directory entries are searched in name order. A missing pattern is a usage error in gnux's form. `GREP_COLOR` is not read |
+| `sedx` | The `e` command is refused: sedx does not run commands. Regular expressions are RE2: back references inside a pattern are refused when the script is parsed (`\1` in a replacement works), `\<` and `\>` behave as `\b`. `--posix` changes only `n` and `N` at end of input. `-i` keeps the permission bits but not the owner, group or extended attributes |
 | `hostnamex` | Never sets the host name: `NAME` fails with "Operation not supported" |
 | `idx` | `-Z` (SELinux) fails as on a kernel without SELinux. On Windows the IDs are SIDs |
 | `killx` | Options are read wherever they appear before `--`, so `killx 1234 -9` sends KILL to 1234 rather than signaling process group 9. On Windows only KILL and TERM (both terminate) and 0 can be sent |
@@ -167,6 +176,10 @@ The rule is in the project's [rules](../../docs/rules/README.md) as "conflicts r
 | `nohupx` | Runs COMMAND as a child. On Windows it starts COMMAND detached from the console, so closing the window or pressing Ctrl-C no longer ends it |
 | `nprocx` | Both counts come from Go's `runtime.NumCPU`, so `--all` cannot count offline processors |
 | `odx` | Characters are read in the C locale; long double is read as double; `-S` and `-w` need a value; the traditional offset operand and `--traditional` are not implemented |
+| `findx` | `-fstype`, `-context`, `-used`, `-files0-from`, `-D`, `%F` and `%Z` in `-printf` (each refused by name) |
+| `grepx` | `-P` (refused with a message), `-u` |
+| `sedx` | `--debug`; the `e` command and the `e` flag of `s` (refused when the script is parsed) |
+| `xargsx` | `-o`, `--open-tty`, `--process-slot-var` (each refused by name) |
 | `shufx` | The order drawn from a given `--random-source` differs from GNU's, though it is just as reproducible |
 | `splitx` | `--filter` is not implemented; `-u` has no effect. Two `-N` options in a row run together |
 | `statx` | The device is shown as `major,minor`, as GNU 9 shows it. Missing data is shown honestly: `-` for an unknown birth time, `?` for owners on Windows. `%C` (SELinux) is not supported; `--cached` has no effect. "cannot stat", not Linux's "cannot statx", on every platform |
@@ -177,6 +190,7 @@ The rule is in the project's [rules](../../docs/rules/README.md) as "conflicts r
 | `unamex` | Prints the same fields on every platform; on Windows the kernel name is `Windows_NT` and the operating system `MS/Windows` |
 | `uptimex` | Windows keeps no load average, so that part is left out there |
 | `whox` | Reads Linux utmp, macOS utmpx and FreeBSD utx.active without the C library. On Windows it lists the signed-in console and Remote Desktop sessions; FILE is not supported there |
+| `xargsx` | A command named after a gnux tool runs in-process; anything else is a program on `PATH`. `-P 0` runs at most 128 commands at once. The default size limit is a fixed figure, not asked of the system. A NUL in the input outside `-0` mode is dropped with GNU's warning |
 | `basenamex`, `base32x`, `base64x`, `dirnamex`, `echox`, `falsex`, `foldx`, `fmtx`, `headx`, `installx`, `linkx`, `mktempx`, `pastex`, `printenvx`, `readlinkx`, `rmdirx`, `sleepx`, `trx`, `truex`, `truncatex`, `unlinkx`, `wcx`, `whoamix`, `yesx` | None known beyond what their reference pages state |
 
 ## Not implemented yet
@@ -219,11 +233,11 @@ If a script uses one, the fix is usually simple: drop `--backup` and copy first 
 1. Call the x names (`rmx` for `rm`) where the script should run the same everywhere, or leave the names as they are and run the script with `gnux shell`, where both names work. The GNU tools on the machine are left untouched.
 2. Check every option against the "not implemented" table.
 3. If the script uses only pipelines, `&&`, `||`, `;`, redirection, variables and globs, it can run under `gnux shell` unchanged and becomes portable to Windows. Loops, functions, `if`, `case`, command substitution and here-documents are not part of the [gnux shell language](portable-scripting.md), so those scripts stay with bash, calling the x tools.
-4. Calls to other programs (`git`, `go`, `make`) go through `envx` inside `gnux shell`: `envx git status`.
+4. Calls to other programs (`git`, `go`, `make`) go through `envx` inside `gnux shell`: `envx git status`. `xargsx` and `findx -exec` also run a program when the command they are given is not a gnux tool.
 
 ## What is not in gnux yet
 
-gnux covers 81 tools today, nearly all of coreutils. Still on the [roadmap in the README](../../README.md#roadmap): `[` (as another name for `testx`), `basenc`, `numfmt`, `pr`, `tsort`, `factor`, `sum`, `mkfifo`, `mknod`, `pathchk`, `logname`, `groups`, `users`, `pinky`, `stdbuf`, `sync`, `shred`, `dircolors`, `dir`, `vdir`, `arch`, `hostid`, `ptx` and `stty`. `chroot`, `chcon` and `runcon` are out of scope by design: they change system-wide state that gnux leaves to the system's own tools.
+gnux covers 85 tools today: nearly all of coreutils, plus `grepx`, `sedx`, `findx` and `xargsx` from GNU grep, GNU sed and GNU findutils. Still on the [roadmap in the README](../../README.md#roadmap): `[` (as another name for `testx`), `basenc`, `numfmt`, `pr`, `tsort`, `factor`, `sum`, `mkfifo`, `mknod`, `pathchk`, `logname`, `groups`, `users`, `pinky`, `stdbuf`, `sync`, `shred`, `dircolors`, `dir`, `vdir`, `arch`, `hostid`, `ptx` and `stty`. `chroot`, `chcon` and `runcon` are out of scope by design: they change system-wide state that gnux leaves to the system's own tools.
 
 Until then, `idx -Gn` covers `groups`, `whoamix` covers `logname`, `whox -q` covers `users`, `unamex -m` covers `arch`, `lsx -C` and `lsx -l` cover `dir` and `vdir`, and `cksumx -a bsd` covers `sum`.
 

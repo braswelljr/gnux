@@ -87,7 +87,7 @@ func (sh *Shell) Run(r io.Reader) error {
 	if wd, err := os.Getwd(); err == nil {
 		defer func() { _ = os.Chdir(wd) }()
 	}
-	reader := bufio.NewReader(r)
+	reader := core.NewReader(r)
 	for !sh.exited {
 		if sh.Interactive { fmt.Fprint(sh.streams.Err, Prompt) } // "gnux> "
 		line, err := reader.ReadString('\n')

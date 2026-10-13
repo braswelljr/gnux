@@ -104,7 +104,7 @@ func New(opts Options, s core.Streams) *Wc {
 // failing operand is reported and the rest still run. The returned error is
 // core.ErrFailed if any operand failed, otherwise nil.
 func (w *Wc) Run(args []string) error {
-	w.out = bufio.NewWriter(w.streams.Out)
+	w.out = core.NewWriter(w.streams.Out)
 
 	// A nil name is standard input given implicitly, which prints no name.
 	var names []*string

@@ -69,7 +69,7 @@ func (e *Expand) Run(args []string) error {
 	}
 	in := NewInput(args, e.streams, e.diag)
 	defer in.Close()
-	out := bufio.NewWriter(e.streams.Out)
+	out := core.NewWriter(e.streams.Out)
 
 	var c byte
 	var err error
@@ -119,6 +119,9 @@ func (e *Expand) Run(args []string) error {
 				return e.writeFailed(werr)
 			}
 			if c == '\n' {
+				if in.Idle() {
+					_ = out.Flush()
+				}
 				break
 			}
 		}
@@ -180,6 +183,12 @@ func (in *Input) ReadByte() (byte, error) {
 	}
 }
 
+// Idle reports that no more input is buffered: the next ReadByte will wait
+// for whoever produces the input (see core.FlushIfIdle).
+func (in *Input) Idle() bool {
+	return in.cur == nil || in.cur.Buffered() == 0
+}
+
 // next opens the next readable operand, reporting the ones that fail.
 func (in *Input) next() bool {
 	for len(in.names) > 0 {
@@ -190,7 +199,7 @@ func (in *Input) next() bool {
 			if r == nil {
 				r = strings.NewReader("")
 			}
-			in.cur, in.name = bufio.NewReader(r), name
+			in.cur, in.name = core.NewReader(r), name
 			return true
 		}
 		f, err := os.Open(name)
@@ -203,7 +212,7 @@ func (in *Input) next() bool {
 			f.Close()
 			continue
 		}
-		in.cur, in.file, in.name = bufio.NewReader(f), f, name
+		in.cur, in.file, in.name = core.NewReader(f), f, name
 		return true
 	}
 	return false

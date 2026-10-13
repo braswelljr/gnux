@@ -8,6 +8,9 @@
 # Test binary, built with `go test -c`
 *.test
 
+# Benchmark results (`make bench`): they describe one machine
+/bench/
+
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
@@ -34,6 +37,11 @@ pnpmfile.js
 bin/
 dist/
 completions/
+
+# The binary belongs in bin/ (make build) and is run from there. A bare
+# `go build` at the root drops it here instead; it must never be committed.
+/gnux
+/gnux.exe
 
 # The playground's WebAssembly build (make web/wasm); rebuilt, never committed
 web/public/gnux.wasm

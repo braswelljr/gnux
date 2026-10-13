@@ -25,7 +25,6 @@
 package shell
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -120,7 +119,7 @@ func (sh *Shell) Run(r io.Reader) error {
 		defer func() { _ = os.Chdir(wd) }()
 	}
 
-	reader := bufio.NewReader(r)
+	reader := core.NewReader(r)
 	for !sh.exited {
 		if sh.Interactive {
 			fmt.Fprint(sh.streams.Err, Prompt)
@@ -249,24 +248,31 @@ func (sh *Shell) runPipeline(pl pipeline) int {
 
 	statuses := make([]int, len(pl))
 	var wg sync.WaitGroup
+	// A stage that panics still closes its pipes, or its neighbors would
+	// wait on it for ever; the panic is raised again once all have ended.
+	var trap core.Trap
 	for i, st := range stages {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			defer st.closeFiles()
-			statuses[i] = sh.runCommand(st.prepared, st.streams, st.redirected, true)
 			// Closing our end tells the reader "end of input" and the writer
 			// upstream "nobody is listening", which is what ends `yes | head`.
-			if st.out != nil {
-				_ = st.out.Close()
-			}
-			if st.upstream != nil {
-				_ = st.upstream.Close()
-			}
+			defer func() {
+				if st.out != nil {
+					_ = st.out.Close()
+				}
+				if st.upstream != nil {
+					_ = st.upstream.Close()
+				}
+			}()
+			defer trap.Catch()
+			statuses[i] = sh.runCommand(st.prepared, st.streams, st.redirected, true)
 		}()
 	}
 
 	wg.Wait()
+	trap.Release()
 	return statuses[len(pl)-1]
 }
 

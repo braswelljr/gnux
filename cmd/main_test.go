@@ -2,10 +2,13 @@ package cmd
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/spf13/cobra"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -124,6 +127,79 @@ func TestDispatch(t *testing.T) {
 		}
 		gone(t, f)
 	})
+}
+
+// A tool named by the first argument runs without the root command being
+// built, so it must answer exactly as it does under its own name.
+func TestSubcommandMatchesArgv0(t *testing.T) {
+	for _, args := range [][]string{{"--help"}, {"--version"}, {}, {"--no-such-flag"}, {"--", "-missing"}} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			wantStatus, wantOut, wantErr := run(t, append([]string{"rmx"}, args...)...)
+			for _, name := range []string{"rmx", "rm"} {
+				status, out, errb := run(t, append([]string{"gnux", name}, args...)...)
+				if status != wantStatus || out != wantOut || errb != wantErr {
+					t.Errorf("gnux %s %q = (%d, %q, %q), want (%d, %q, %q)",
+						name, args, status, out, errb, wantStatus, wantOut, wantErr)
+				}
+			}
+		})
+	}
+}
+
+// BenchmarkDispatch measures what gnux spends before a tool starts, for each
+// way of naming one. None of them builds the root command, so they cost about
+// the same.
+func BenchmarkDispatch(b *testing.B) {
+	for _, argv := range [][]string{{"truex"}, {"gnux", "truex"}, {"gnux", "true"}} {
+		b.Run(strings.Join(argv, " "), func(b *testing.B) {
+			s := core.Discard()
+			b.ReportAllocs()
+			for b.Loop() {
+				Main(argv, s)
+			}
+		})
+	}
+}
+
+// A tool that panics is reported as a bug and gives a status; it does not take
+// its host (a shell pipeline, the playground, an embedding program) down.
+func TestPanicIsContained(t *testing.T) {
+	boom := &cobra.Command{
+		Use:           "boomx",
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE:          func(*cobra.Command, []string) error { panic("kaboom") },
+	}
+	var errb bytes.Buffer
+	status := runCommand(boom, nil, core.Streams{In: strings.NewReader(""), Out: io.Discard, Err: &errb})
+	if status != ExitInternal {
+		t.Errorf("status = %d, want %d", status, ExitInternal)
+	}
+	for _, want := range []string{"boomx: internal error: kaboom\n", "goroutine ", "boomx: this is a bug in gnux; please report it\n"} {
+		if !strings.Contains(errb.String(), want) {
+			t.Errorf("stderr lacks %q:\n%s", want, errb.String())
+		}
+	}
+}
+
+// A panic an engine brought back from one of its own goroutines is reported
+// with the stack of where it happened.
+func TestCarriedPanicShowsItsOwnStack(t *testing.T) {
+	boom := &cobra.Command{
+		Use:           "boomx",
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(*cobra.Command, []string) error {
+			panic(&core.Panic{Value: "worker kaboom", Stack: []byte("goroutine 7 [running]:\nthe worker's stack\n")})
+		},
+	}
+	var errb bytes.Buffer
+	status := runCommand(boom, nil, core.Streams{In: strings.NewReader(""), Out: io.Discard, Err: &errb})
+	want := "boomx: internal error: worker kaboom\ngoroutine 7 [running]:\nthe worker's stack\n" +
+		"boomx: this is a bug in gnux; please report it\n"
+	if status != ExitInternal || errb.String() != want {
+		t.Errorf("status = %d, stderr = %q, want %d, %q", status, errb.String(), ExitInternal, want)
+	}
 }
 
 func TestDiagnostics(t *testing.T) {

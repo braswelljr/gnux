@@ -76,9 +76,10 @@ packages, and an interpreter that runs a script using nothing but that binary.
 
 **In scope.**
 
-- The 22 tools listed in the README: `basenamex`, `catx`, `cpx`, `dirnamex`, `echox`, `envx`,
-  `falsex`, `headx`, `lnx`, `lsx`, `mkdirx`, `mvx`, `pwdx`, `realpathx`, `rmx`, `rmdirx`,
-  `sleepx`, `tailx`, `touchx`, `truex`, `wcx` and `yesx`.
+- The 85 tools listed in the README: nearly all of GNU coreutils, and the four tools a build
+  or CI script uses beside them, `grepx` (GNU grep), `sedx` (GNU sed), and `findx` and `xargsx`
+  (GNU findutils). They are in scope because a script that leaves gnux for the system's `find`
+  or `sed` is no longer portable; other GNU packages are not.
 - The multi-call binary `gnux`, including dispatch on the name it was started under.
 - The Go API: the engines under `core/`, and `cmd.Main`, `cmd.RunTool` and `cmd.NewShell`.
 - `gnux shell`, the portable script interpreter.

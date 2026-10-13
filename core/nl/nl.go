@@ -191,7 +191,7 @@ func (n *Nl) Run(args []string) error {
 	if len(args) == 0 {
 		args = []string{"-"}
 	}
-	n.out = bufio.NewWriter(n.streams.Out)
+	n.out = core.NewWriter(n.streams.Out)
 	for _, name := range args {
 		if !n.file(name) {
 			break
@@ -218,13 +218,14 @@ func (n *Nl) file(name string) bool {
 	if r == nil {
 		return true
 	}
-	br := bufio.NewReader(r)
+	br := core.NewReader(r)
 	for {
 		line, err := br.ReadBytes('\n')
 		if len(line) > 0 {
 			if !n.line(bytes.TrimSuffix(line, []byte("\n"))) {
 				return false
 			}
+			core.FlushIfIdle(n.out, br)
 		}
 		if err == io.EOF {
 			return true
@@ -288,7 +289,7 @@ func (n *Nl) line(text []byte) bool {
 		case "rz":
 			fmt.Fprintf(n.out, "%0*d", n.Width, n.lineNo)
 		default:
-			fmt.Fprintf(n.out, "%*d", n.Width, n.lineNo)
+			_, _ = n.out.Write(core.AppendInt(n.out.AvailableBuffer(), n.lineNo, n.Width))
 		}
 		_, _ = n.out.WriteString(n.Separator)
 		n.lineNo, n.overflow = add(n.lineNo, n.Increment)

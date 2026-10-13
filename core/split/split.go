@@ -278,7 +278,7 @@ func (sp *Split) openNext() error {
 		return err
 	}
 	sp.out, sp.name = f, name
-	sp.outBuf = bufio.NewWriterSize(f, 64*1024)
+	sp.outBuf = core.NewWriter(f)
 	return nil
 }
 
@@ -340,7 +340,7 @@ func (sp *Split) emptyFile() error {
 
 // lines writes Count lines to each file.
 func (sp *Split) lines(in io.Reader) error {
-	r := bufio.NewReaderSize(in, 64*1024)
+	r := core.NewReader(in)
 	n := sp.Count
 	for {
 		line, err := r.ReadSlice(sp.eol)
@@ -400,7 +400,7 @@ func (sp *Split) bytes(in io.Reader) error {
 // lineBytes writes as many whole lines as fit in Count bytes to each file;
 // a line longer than that is split across files.
 func (sp *Split) lineBytes(in io.Reader) error {
-	r := bufio.NewReaderSize(in, 64*1024)
+	r := core.NewReader(in)
 	used := int64(0)
 	open := false
 	for {
@@ -440,13 +440,13 @@ func (sp *Split) lineBytes(in io.Reader) error {
 // roundRobin deals lines out to Count files in turn, or with Chunk writes
 // every Count-th line, starting with line Chunk, to standard output.
 func (sp *Split) roundRobin(in io.Reader) (err error) {
-	r := bufio.NewReaderSize(in, 64*1024)
+	r := core.NewReader(in)
 	var stdout *bufio.Writer
 	var files []*os.File
 	var bufs []*bufio.Writer
 	var names []string
 	if sp.Chunk > 0 {
-		stdout = bufio.NewWriter(sp.streams.Out)
+		stdout = core.NewWriter(sp.streams.Out)
 		defer sp.flushStdout(stdout, &err)
 	} else {
 		for range sp.Count {
@@ -481,7 +481,7 @@ func (sp *Split) roundRobin(in io.Reader) (err error) {
 					if cerr != nil {
 						return cerr
 					}
-					files[i], bufs[i] = f, bufio.NewWriter(f)
+					files[i], bufs[i] = f, core.NewWriter(f)
 				}
 				if _, werr := bufs[i].Write(line); werr != nil {
 					return sp.fail("%s: %s", names[i], core.ErrText(werr))
@@ -585,10 +585,10 @@ func (sp *Split) chunks(in io.Reader, inFile *os.File, infile string) (err error
 		}
 		return n - 1
 	}
-	r := bufio.NewReaderSize(io.NewSectionReader(src, 0, size), 64*1024)
+	r := core.NewReader(io.NewSectionReader(src, 0, size))
 	var stdout *bufio.Writer
 	if sp.Chunk > 0 {
-		stdout = bufio.NewWriter(sp.streams.Out)
+		stdout = core.NewWriter(sp.streams.Out)
 		defer sp.flushStdout(stdout, &err)
 	}
 	current := int64(-1) // the chunk whose file is open

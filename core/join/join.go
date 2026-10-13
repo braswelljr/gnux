@@ -155,11 +155,11 @@ func (j *Join) Run(args []string) error {
 			}
 			r, closer = f, f
 		}
-		j.files[i] = &input{name: name, r: bufio.NewReader(r), closer: closer}
+		j.files[i] = &input{name: name, r: core.NewReader(r), closer: closer}
 	}
 	defer j.close()
 
-	j.out = bufio.NewWriter(j.streams.Out)
+	j.out = core.NewWriter(j.streams.Out)
 	j.join()
 	if err := j.out.Flush(); err != nil && !core.IsClosedPipe(err) {
 		j.diag.Errorf("write error: %s", core.ErrText(err))

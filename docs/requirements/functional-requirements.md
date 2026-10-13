@@ -1,7 +1,7 @@
 # Functional Requirements
 
 Functional requirements define what gnux must do: the behavior every tool shares, the options
-each of the 81 tools must support, the safeguards on destructive operations, how a tool is
+each of the 85 tools must support, the safeguards on destructive operations, how a tool is
 invoked, the portable shell, the Go library, installation, the generated documentation, the
 website, the playground and its discoverability. Each requirement has a stable identifier
 (`FR-n`), a rationale, acceptance criteria and the check that verifies it.
@@ -944,6 +944,45 @@ falsex [ignored command line arguments]
 - **Deviations.** None. `falsex` has no engine package: the adapter is the whole tool.
 - **Verified by.** `cmd/falsex/falsex_test.go`.
 
+### FR-148: findx
+
+`findx` must search for files in a directory hierarchy, as GNU `find` (findutils) does.
+
+```text
+findx [-H] [-L] [-P] [STARTING-POINT]... [EXPRESSION]
+```
+
+`findx` takes an expression, not GNU-style options, so the engine parses the whole command
+line; `--help` and `--version` are honored as the sole argument.
+
+| Group      | Supported                                                                    |
+|------------|------------------------------------------------------------------------------|
+| Symlinks   | `-P` (default), `-H`, `-L`: the last one given wins                           |
+| Operators  | `( )`, `!` / `-not`, `-a` / `-and` (also implied), `-o` / `-or`, `,`          |
+| Options    | `-maxdepth`, `-mindepth`, `-depth` / `-d`, `-xdev` / `-mount`, `-daystart`, `-regextype`, `-follow`, `-warn`, `-nowarn`; `-noleaf`, `-ignore_readdir_race`, `-noignore_readdir_race` and `-O0` to `-O3` are accepted and do nothing |
+| Tests      | `-name`, `-iname`, `-path` / `-wholename`, `-ipath` / `-iwholename`, `-lname`, `-ilname`, `-regex`, `-iregex`, `-type`, `-xtype`, `-size`, `-empty`, `-newer`, `-anewer`, `-cnewer`, `-newerXY`, `-mtime`, `-atime`, `-ctime`, `-mmin`, `-amin`, `-cmin`, `-perm`, `-user`, `-group`, `-uid`, `-gid`, `-nouser`, `-nogroup`, `-links`, `-inum`, `-samefile`, `-readable`, `-writable`, `-executable`, `-true`, `-false` |
+| Actions    | `-print`, `-print0`, `-printf`, `-fprint`, `-fprint0`, `-fprintf`, `-ls`, `-fls`, `-delete`, `-prune`, `-quit`, `-exec` and `-execdir` (with `;` and `{} +`), `-ok` and `-okdir` |
+
+- **Behavior.** With no starting point findx searches `.`; with no action it prints each
+  matching path. Operators bind as in GNU and evaluation short-circuits. `-delete` implies
+  `-depth` and refuses `.`. `-exec COMMAND ;` is true when the command exits 0; `-exec COMMAND
+  {} +` runs the command on as many paths as fit and makes the exit status 1 when a batch
+  fails. An unreadable directory is diagnosed and the walk continues. The exit status is 0
+  when everything was processed and 1 otherwise.
+- **Deviations.** Directory entries are visited in name order, where GNU uses the order the
+  file system returns. Paths are joined with `/` on every platform, so `-path` and `-regex`
+  patterns are portable. A command named after a gnux tool runs in-process, and anything else
+  is a program on `PATH`; under `-execdir` an in-process tool is given the full path, since it
+  cannot change directory. A command that cannot be run makes the exit status 1, which GNU
+  leaves at 0 for the `;` form. Regular expressions are translated to RE2, so back references
+  are refused. `-newerXt` accepts a fixed set of date spellings and `@SECONDS`. A command-line
+  mistake is followed by the "Try" hint. Off Unix there are no owners, inodes or devices: IDs
+  print 0, links 1, `-xdev` does nothing and ctime is the modification time. Not implemented,
+  and refused: `-fstype`, `-context`, `-used`, `-files0-from`, `-D`, and `%F` and `%Z` in
+  `-printf`.
+- **Verified by.** `core/find/find_test.go`, `core/find/find_unix_test.go`,
+  `core/find/internal_test.go`, `cmd/findx/findx_test.go`.
+
 ### FR-111: fmtx
 
 `fmtx` must reformat each paragraph of text, as GNU `fmt` does.
@@ -1003,6 +1042,48 @@ foldx [OPTION]... [FILE]...
   Like GNU fold in the C locale, foldx counts bytes rather than characters, so a multibyte UTF-8
   character takes more than one column.
 - **Verified by.** `core/fold/fold_test.go`, `cmd/foldx/foldx_test.go`.
+
+### FR-149: grepx
+
+`grepx` must print the lines that match patterns, as GNU `grep` does.
+
+```text
+grepx [OPTION]... PATTERNS [FILE]...
+```
+
+| Option                              | Meaning                                                            |
+|-------------------------------------|--------------------------------------------------------------------|
+| `-G`, `-E`, `-F`                    | PATTERNS are basic (default), extended regular expressions, or fixed strings |
+| `-e PATTERNS`, `-f FILE`            | Take the patterns from the option or from FILE; both repeat         |
+| `-i`, `-y`, `--no-ignore-case`      | Ignore, or do not ignore, case                                      |
+| `-v`, `-w`, `-x`                    | Select non-matching lines; match whole words; match whole lines     |
+| `-c`, `-l`, `-L`, `-q`, `-o`        | Print a count, the matching files, the non-matching files, nothing, or only the matched parts |
+| `-m NUM`                            | Stop after NUM selected lines                                       |
+| `-b`, `-H`, `-h`, `-n`, `-T`, `-Z`, `--label=LABEL` | Control the prefix of each output line              |
+| `-A NUM`, `-B NUM`, `-C NUM`, `-NUM`, `--group-separator=SEP`, `--no-group-separator` | Context lines |
+| `-r`, `-R`, `-d ACTION`, `-D ACTION` | Recurse (without or with following symbolic links); handle directories and devices |
+| `--include=GLOB`, `--exclude=GLOB`, `--exclude-from=FILE`, `--exclude-dir=GLOB` | Select the files a recursive search reads |
+| `-a`, `-I`, `--binary-files=TYPE`, `-U` | Treat binary files as text, skip them, or choose; `-U` does nothing |
+| `-s`                                | Suppress messages about missing or unreadable files                 |
+| `-z`                                | Lines end in NUL, not newline                                       |
+| `--color[=WHEN]`, `--colour[=WHEN]` | Highlight matches, names and separators with GNU's default colors   |
+| `--line-buffered`                   | Flush the output after every line                                   |
+
+- **Behavior.** PATTERNS is the first operand unless `-e` or `-f` gave patterns, and may hold
+  several patterns separated by newlines. With no FILE, standard input is searched, or `.`
+  under `-r`. A file with a NUL byte is binary: a match in it is reported as `FILE: binary file
+  matches` on standard error. The exit status is 0 when a line was selected, 1 when none was
+  and 2 on an error, including a command-line error, unless `-q` found a match.
+- **Deviations.** Conflicting options take a fixed precedence instead of last-one-wins: `-F`
+  over `-E` over `-G`; `-H` over `-h`; `--no-ignore-case` over `-i`; `-A`/`-B` over `-C` over
+  `-NUM`; `-I` over `-a` over `--binary-files`; `-R` over `-r` over `-d`; `-l` over `-L`.
+  Patterns are translated to RE2: back references and `-P` are refused with status 2, `\<` and
+  `\>` behave as `\b`, and a repetition count above 1000 is too big. Input is treated as
+  UTF-8. Directory entries are searched in name order. A missing pattern is a usage error in
+  gnux's form, not GNU's usage line. `GREP_COLOR` is not read, and an input file that is also
+  the output is not detected. Not implemented: `-P`, `-u`, abbreviated long options.
+- **Verified by.** `core/grep/grep_test.go`, `core/grep/grep_unix_test.go`,
+  `cmd/grepx/grepx_test.go`.
 
 ### FR-58: headx
 
@@ -1795,6 +1876,47 @@ rmx [OPTION]... [FILE]...
   and `--prompt-once`. Off Unix, `--one-file-system` has no effect, because no device number is
   available. Not implemented: `--preserve-root=all`.
 - **Verified by.** `core/rm/rm_test.go`, `cmd/rmx/rmx_test.go`.
+
+### FR-150: sedx
+
+`sedx` must filter and transform text with a script, as GNU `sed` does.
+
+```text
+sedx [OPTION]... {script-only-if-no-other-script} [input-file]...
+```
+
+| Option                            | Meaning                                                              |
+|-----------------------------------|----------------------------------------------------------------------|
+| `-n`, `--quiet`, `--silent`       | Suppress automatic printing of the pattern space                     |
+| `-e SCRIPT`, `-f SCRIPT-FILE`     | Add commands to the script; both repeat and keep their order          |
+| `-E`, `-r`, `--regexp-extended`   | Use extended regular expressions                                     |
+| `-i[SUFFIX]`, `--in-place[=SUFFIX]` | Edit files in place, keeping a backup when SUFFIX is given          |
+| `--follow-symlinks`               | Follow symbolic links when editing in place                          |
+| `-s`, `--separate`                | Treat files separately rather than as one stream                     |
+| `-z`, `--null-data`               | Lines end in NUL, not newline                                        |
+| `-u`, `--unbuffered`              | Flush the output after every line                                    |
+| `-l N`, `--line-length=N`         | Line-wrap length for the `l` command                                 |
+| `--posix`                         | Print nothing when `n` or `N` finds no next line                     |
+| `--sandbox`                       | Refuse the `r`, `R`, `w` and `W` commands                            |
+| `-b`, `--binary`                  | Accepted; has no effect                                              |
+
+- **Behavior.** The script language is GNU's: addresses (`N`, `$`, `/regex/` with `I` and `M`,
+  `first~step`, `addr1,addr2`, `addr1,+N`, `addr1,~N`, `0,/regex/`, `!`), blocks, and the
+  commands `s y d D p P n N g G h H x a i c = l q Q r R w W b t T : z F #`. The `s` command
+  takes the flags `g`, `p`, a number, `i`, `m` and `w FILE`, and its replacement takes `&`,
+  `\1` to `\9`, `\n` and the case conversions `\L \U \l \u \E`. The whole script is parsed
+  before any input is read. In-place editing writes a temporary file beside the original and
+  renames it, keeping the permission bits. The exit status is 0 on success, 1 for a script,
+  regular expression or option error, 2 when an input file could not be read (the others are
+  still processed), 4 for an I/O error, and the status given to `q` or `Q`.
+- **Deviations.** The `e` command and the `e` flag of `s` are refused: sedx does not run
+  commands. Regular expressions are translated to RE2: back references inside a pattern are
+  refused at parse time, `\<` and `\>` behave as `\b`, `\w`, `\s` and `\b` are ASCII, and a
+  repetition count above 1000 is too big. Patterns must be valid UTF-8. `--posix` changes only
+  `n` and `N` at end of input. `-u` flushes per line but still reads in blocks. In-place
+  editing does not keep the owner, group or extended attributes. Not implemented: `--debug`,
+  abbreviated long options.
+- **Verified by.** `core/sed/sed_test.go`, `cmd/sedx/sedx_test.go`.
 
 ### FR-93: seqx
 
@@ -2659,6 +2781,47 @@ whox [OPTION]... [ FILE | ARG1 ARG2 ]
   FILE is not supported.
 - **Verified by.** `core/who/who_test.go`, `cmd/whox/whox_test.go`.
 
+### FR-151: xargsx
+
+`xargsx` must build and run command lines from standard input, as GNU `xargs` (findutils)
+does.
+
+```text
+xargsx [OPTION]... [COMMAND [INITIAL-ARGUMENT]...]
+```
+
+| Option                                   | Meaning                                                        |
+|------------------------------------------|----------------------------------------------------------------|
+| `-0`, `--null`                           | Items end in NUL; quotes and backslashes are literal            |
+| `-d CHARACTER`, `--delimiter=CHARACTER`  | Items end in CHARACTER; quotes and backslashes are literal      |
+| `-a FILE`, `--arg-file=FILE`             | Read items from FILE, not standard input                        |
+| `-E END`, `-e[END]`, `--eof[=END]`       | Stop at an item equal to END                                    |
+| `-n MAX-ARGS`, `--max-args=MAX-ARGS`     | At most MAX-ARGS items per command line                         |
+| `-L MAX-LINES`, `-l[MAX-LINES]`, `--max-lines[=MAX-LINES]` | At most MAX-LINES input lines per command line |
+| `-I R`, `-i[R]`, `--replace[=R]`         | One command per input line, with R replaced by the line         |
+| `-s MAX-CHARS`, `--max-chars=MAX-CHARS`  | Limit the length of a command line                              |
+| `-x`, `--exit`                           | Exit if the size limit is exceeded                              |
+| `-r`, `--no-run-if-empty`                | Do not run COMMAND when there are no items                      |
+| `-t`, `--verbose`                        | Print each command line on standard error before running it     |
+| `-p`, `--interactive`                    | Ask before running each command line                            |
+| `-P MAX-PROCS`, `--max-procs=MAX-PROCS`  | Run up to MAX-PROCS commands at once                            |
+| `--show-limits`                          | Show the limits on command-line length                          |
+
+- **Behavior.** COMMAND defaults to `echo`. Without `-n`, `-L` or `-I`, each command line is
+  filled up to the size limit. Without `-r` the command runs once even when there is no input.
+  The exit status is 0 on success, 123 when any command exited with a status from 1 to 125,
+  124 when one exited with status 255 (xargsx stops), 125 when a signal ended one, 126 when the
+  command cannot be run, 127 when it is not found, and 1 for other errors.
+- **Deviations.** A command named after a gnux tool, by either name, runs in-process;
+  anything else is a program found on `PATH`. Conflicting options take a fixed precedence
+  instead of last-one-wins, each with GNU's warning for the ignored one: `-I`/`-i` over
+  `-L`/`-l` over `-n`, and `-0` over `-d`. `-P 0` runs at most 128 commands at once. The
+  default size limit is a fixed figure, not one asked of the system. A NUL in the input
+  outside `-0` mode is dropped with GNU's warning. Not implemented, and refused: `-o` /
+  `--open-tty`, `--process-slot-var`, and changing `-P` with signals while running.
+- **Verified by.** `core/xargs/xargs_test.go`, `core/xargs/xargs_unix_test.go`,
+  `cmd/xargsx/xargsx_test.go`.
+
 ### FR-72: yesx
 
 `yesx` must print a string repeatedly, as GNU `yes` does.
@@ -2759,7 +2922,8 @@ All tools must ship in one binary, `gnux`.
 
 A tool must be runnable as a subcommand: `gnux rmx ...`.
 
-- **Verified by.** `TestDispatch` ("subcommand") in `cmd/main_test.go`.
+- **Verified by.** `TestDispatch` ("subcommand") in `cmd/main_test.go`;
+  `TestSubcommandMatchesArgv0` requires the same output and status as the own-name form.
 
 ### FR-19: own-name form
 
