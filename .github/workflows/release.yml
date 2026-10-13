@@ -99,7 +99,7 @@ jobs:
           cache: true
 
       - name: Download release notes
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-notes
           # Outside the checkout: GoReleaser refuses to release from a tree
