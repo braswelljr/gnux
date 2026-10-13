@@ -51,8 +51,8 @@ reach Homebrew, Scoop, winget, the Snap Store, the AUR and `.deb` / `.rpm` / `.a
 - Releases built by GoReleaser (`.goreleaser.yaml`), for four more platforms (`linux/riscv64`,
   `freebsd/amd64`, `freebsd/arm64`, `windows/arm64`), with shell completions in every archive
   and a build provenance attestation. Archive names are unchanged.
-- Package managers, published with each release: a Homebrew cask
-  (`brew install --cask braswelljr/tap/gnux`), Scoop and winget manifests, a snap
+- Package managers, published with each release: a Homebrew cask and
+  a Scoop manifest, both served from this repository (`Casks/`, `bucket/`), winget manifests, a snap
   (`snap install gnux`), an AUR package (`gnux-bin`), and `.deb`, `.rpm` and `.apk` packages
   attached to the release for Debian, Ubuntu, Fedora, RHEL, openSUSE and Alpine.
 - setup-gnux, a GitHub Action (`uses: braswelljr/gnux@v0`) that installs a checksum-verified

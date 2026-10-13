@@ -47,12 +47,13 @@ var guideSections = []section{
 			`this for a source build, make install/links and install.sh do it next to the installed ` +
 			`binary, and the examples show the loop to run by hand.`,
 		`Each release is also published as an archive per platform with a checksums file, as ` +
-			`.deb, .rpm and .apk packages for Linux, and to Homebrew (brew install --cask ` +
-			`braswelljr/tap/gnux), Scoop and winget (winget install braswelljr.gnux), the Snap Store ` +
+			`.deb, .rpm and .apk packages for Linux, and to Homebrew (brew tap braswelljr/gnux ` +
+			`https://github.com/braswelljr/gnux, then brew install --cask braswelljr/gnux/gnux), Scoop ` +
+			`(scoop bucket add gnux https://github.com/braswelljr/gnux) and winget (winget install braswelljr.gnux), the Snap Store ` +
 			`(snap install gnux) and the AUR (gnux-bin). In GitHub Actions, the step uses: ` +
 			`braswelljr/gnux@v0 installs a release on any runner and puts every tool on PATH.`,
 		`To install one particular version, name it: go install github.com/braswelljr/gnux@v0.0.2, ` +
-			`winget install braswelljr.gnux --version 0.0.2, scoop install braswelljr/gnux@0.0.2, or ` +
+			`winget install braswelljr.gnux --version 0.0.2, scoop install gnux/gnux@0.0.2, or ` +
 			`the archive or package of that release. gnux --version reports the version installed.`,
 		`gnux completion SHELL prints a tab-completion script for bash, zsh, fish or powershell; ` +
 			`the release archives carry them pre-generated.`,

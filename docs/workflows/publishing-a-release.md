@@ -1,6 +1,6 @@
 # Publishing a Release
 
-How a gnux version gets from a commit on `main` to every place a user installs it from: the GitHub release, the `.deb`, `.rpm` and `.apk` packages, Homebrew, Scoop, winget, the Snap Store, the AUR, `go install` and the setup-gnux action. Pushing a `vX.Y.Z` tag does all of it, but each package manager first needs something set up once, outside this repository: a repository, an account, a registered name, a secret. This page is that setup, channel by channel, then the release itself step by step, how to check each channel afterwards, how a user installs one particular version from each, and what to do when a release goes wrong. What the Release workflow runs, job by job, is in [ci-and-release](ci-and-release.md); what a release contains is written once, in `.goreleaser.yaml`.
+How a gnux version gets from a commit on `main` to every place a user installs it from: the GitHub release, the `.deb`, `.rpm` and `.apk` packages, Homebrew, Scoop, winget, the Snap Store, the AUR, `go install` and the setup-gnux action. Pushing a `vX.Y.Z` tag does all of it, and Homebrew and Scoop are served from this repository with nothing to set up, but winget, the Snap Store and the AUR each first need something set up once, outside it: a fork, an account, a registered name, a secret. This page is that setup, channel by channel, then the release itself step by step, how to check each channel afterwards, how a user installs one particular version from each, and what to do when a release goes wrong. What the Release workflow runs, job by job, is in [ci-and-release](ci-and-release.md); what a release contains is written once, in `.goreleaser.yaml`.
 
 ## Where a release goes
 
@@ -10,14 +10,14 @@ How a gnux version gets from a commit on `main` to every place a user installs i
 | Linux packages     | `sudo dpkg -i`, `sudo rpm -i`, `sudo apk add` on a file from the release | GoReleaser (`nfpms`)  | Nothing                                                             |
 | `go install`       | `go install github.com/braswelljr/gnux@v0.0.2`    | The tag itself                       | Nothing                                                             |
 | setup-gnux action  | `uses: braswelljr/gnux@v0`                        | The workflow moves the `v0` tag      | Nothing                                                             |
-| Homebrew (own tap) | `brew install --cask braswelljr/tap/gnux`         | GoReleaser (`homebrew_casks`)        | The `braswelljr/homebrew-tap` repository, `HOMEBREW_TAP_GITHUB_TOKEN` |
-| Scoop              | `scoop install braswelljr/gnux`                   | GoReleaser (`scoops`)                | The `braswelljr/scoop-bucket` repository, `SCOOP_BUCKET_GITHUB_TOKEN` |
+| Homebrew (own tap) | `brew tap braswelljr/gnux https://github.com/braswelljr/gnux`, then `brew install --cask braswelljr/gnux/gnux` | GoReleaser (`homebrew_casks`), into `Casks/` here | Nothing |
+| Scoop              | `scoop bucket add gnux https://github.com/braswelljr/gnux`, then `scoop install gnux/gnux` | GoReleaser (`scoops`), into `bucket/` here | Nothing |
 | winget             | `winget install braswelljr.gnux`                  | GoReleaser (`winget`), then Microsoft's review | A fork of `microsoft/winget-pkgs`, `WINGET_GITHUB_TOKEN`    |
 | Snap Store         | `sudo snap install gnux`                          | GoReleaser (`snapcrafts`)            | An Ubuntu One account, the name `gnux` registered, `SNAPCRAFT_STORE_CREDENTIALS` |
 | AUR                | `yay -S gnux-bin`                                 | GoReleaser (`aurs`)                  | An AUR account with an SSH key, `AUR_KEY`                           |
 | Homebrew core      | `brew install gnux`                               | A pull request to `Homebrew/homebrew-core`, by hand | Homebrew's acceptance; see [Homebrew core](#homebrew-core-a-formula) |
 
-**A channel whose secret is not set is skipped, not failed.** The `Choose what to publish` step of the Release workflow adds it to GoReleaser's `--skip`, so the first four rows work today and each of the others starts working at the first release after its secret exists. Nothing has to be set up all at once.
+**A channel whose secret is not set is skipped, not failed.** The `Choose what to publish` step of the Release workflow adds it to GoReleaser's `--skip`, so the first six rows work today and each of the others starts working at the first release after its secret exists. Nothing has to be set up all at once.
 
 **A prerelease stays out of the package managers.** A tag with a hyphen (`v0.0.2-rc.1`) gets a GitHub prerelease with every archive and package, and a snap on the `edge` channel; Homebrew, Scoop, winget and the AUR are left alone (`skip_upload: auto`), and `v0` does not move.
 
@@ -27,34 +27,17 @@ Every command below is run once, by the repository's owner. `gh` is the [GitHub 
 
 ### Homebrew tap and Scoop bucket
 
-Both are plain GitHub repositories that GoReleaser commits one file to: `Casks/gnux.rb` in the tap, `gnux.json` in the bucket.
+Nothing to set up. The gnux repository is its own tap and its own bucket: on each stable release, GoReleaser commits `Casks/gnux.rb` and `bucket/gnux.json` to `main` with the release job's token, which already has `contents: write` here. Those two files are generated; do not edit them by hand.
 
-1. Create the repositories. The names matter: `brew` finds `braswelljr/tap` only as `homebrew-tap`.
+What follows from that:
 
-   ```bash
-   gh repo create braswelljr/homebrew-tap --public --add-readme \
-     --description "Homebrew tap for gnux"
-   gh repo create braswelljr/scoop-bucket --public --add-readme \
-     --description "Scoop bucket for gnux"
-   ```
-
-   Each needs one commit (the README) so that it has a default branch to push to.
-
-2. Create one token for both: GitHub, Settings, Developer settings, **Fine-grained tokens**, Generate new token.
-   - Repository access: **Only select repositories**, `homebrew-tap` and `scoop-bucket`.
-   - Repository permissions: **Contents: Read and write**. Nothing else.
-   - Give it an expiry and put the date in a calendar: an expired token fails the push with a 401, and the release is otherwise fine.
-
-3. Store it under both names in the gnux repository:
-
-   ```bash
-   gh secret set HOMEBREW_TAP_GITHUB_TOKEN --repo braswelljr/gnux
-   gh secret set SCOOP_BUCKET_GITHUB_TOKEN --repo braswelljr/gnux
-   ```
-
-   `gh secret set` asks for the value, so the token never lands in the shell history.
+- **Two commits appear on `main` after every release**, `release: Homebrew cask for v0.0.2` and `release: Scoop manifest for v0.0.2`, authored by the workflow. They come after the tag, so `git pull` before the next piece of work. A push made with the workflow's token does not start other workflows, so they run no CI.
+- **`main` must accept that push.** If a branch protection rule or ruleset ever requires pull requests on `main`, the two commits are refused with a 403; add the GitHub Actions app to the rule's bypass list, or move to separate repositories as described below.
+- **Users name the repository when they add it**, because it is not called `homebrew-tap`: `brew tap braswelljr/gnux https://github.com/braswelljr/gnux`, and `scoop bucket add gnux https://github.com/braswelljr/gnux`. Both clone this whole repository once.
 
 The cask installs the binary and the bash, zsh and fish completions, and clears the quarantine flag macOS puts on a download, because the binary is not notarized. It works on Linux with Homebrew too.
+
+**Moving to repositories of their own later** gives the shorter `brew install --cask braswelljr/tap/gnux`: create `braswelljr/homebrew-tap` and `braswelljr/scoop-bucket`, each with one commit; create a fine-grained token with Contents read and write on those two only and store it as a secret; then in `.goreleaser.yaml` point each `repository` at its new name and that token, drop `directory: Casks` for the tap, and pass the secret to the `Build and publish` step.
 
 ### winget
 
@@ -215,8 +198,6 @@ Once it is merged, the README and the install page can say `brew install gnux`. 
 
 | Secret                        | Channel   | What it is                                                         | Expires                    |
 |-------------------------------|-----------|--------------------------------------------------------------------|----------------------------|
-| `HOMEBREW_TAP_GITHUB_TOKEN`   | Homebrew  | Fine-grained token, Contents read and write on `homebrew-tap`      | When you set it to         |
-| `SCOOP_BUCKET_GITHUB_TOKEN`   | Scoop     | The same token, or one like it for `scoop-bucket`                  | When you set it to         |
 | `WINGET_GITHUB_TOKEN`         | winget    | Classic token with `public_repo`                                   | When you set it to         |
 | `SNAPCRAFT_STORE_CREDENTIALS` | Snap Store | Output of `snapcraft export-login`, limited to the `gnux` snap    | After a year, by default   |
 | `AUR_KEY`                     | AUR       | An ed25519 private key whose public half is on the AUR account     | Never                      |
@@ -304,8 +285,8 @@ Check each channel that was not skipped. Every line should end with the new vers
 | Attestation      | `gh attestation verify gnux-v0.0.2-linux-amd64.tar.gz --repo braswelljr/gnux`                 | At once                            |
 | `go install`     | `go install github.com/braswelljr/gnux@v0.0.2 && gnux --version`                              | Within minutes (the module proxy)  |
 | setup-gnux       | `git ls-remote origin refs/tags/v0 refs/tags/v0.0.2^{}` shows the same commit                 | At once                            |
-| Homebrew         | `brew update && brew info --cask braswelljr/tap/gnux`                                         | At once                            |
-| Scoop            | `scoop update; scoop info braswelljr/gnux`                                                    | At once                            |
+| Homebrew         | `brew update && brew info --cask braswelljr/gnux/gnux`                                         | At once                            |
+| Scoop            | `scoop update; scoop info gnux/gnux`                                                    | At once                            |
 | winget           | The pull request on `microsoft/winget-pkgs`, then `winget show braswelljr.gnux`               | After review: hours to days        |
 | Snap Store       | `snapcraft status gnux`, or `snap info gnux`                                                  | Minutes, after the automatic review |
 | AUR              | `https://aur.archlinux.org/packages/gnux-bin`                                                 | At once                            |
@@ -324,7 +305,7 @@ Users pin a version for reproducible builds; this is what each channel offers, a
 | `go install`     | `go install github.com/braswelljr/gnux@v0.0.2`                          | Reports `v0.0.2` through the module's build info             |
 | setup-gnux       | `with: { version: v0.0.2 }`                                             | `latest` is the default                                      |
 | winget           | `winget install braswelljr.gnux --version 0.0.2`                        | No `v`; every accepted version stays in the index            |
-| Scoop            | `scoop install braswelljr/gnux@0.0.2`                                   | Scoop rebuilds the manifest from the bucket's history; `scoop hold gnux` stops upgrades |
+| Scoop            | `scoop install gnux/gnux@0.0.2`                                   | Scoop rebuilds the manifest from the bucket's history; `scoop hold gnux` stops upgrades |
 | `.deb` / `.rpm` / `.apk` | Download the file from the version's release                    | `sudo apt-mark hold gnux` if a repository ever carries it    |
 | Snap             | `sudo snap install gnux --channel=edge` for a prerelease; `sudo snap refresh --hold gnux` stays on the installed revision | A channel holds one revision; older ones are not installable by version |
 | Homebrew         | The newest only. `brew pin` does not apply to casks                     | For an older version, use the archive or `go install`        |
@@ -340,15 +321,15 @@ git push --delete origin v0.0.2 && git tag -d v0.0.2
 git tag -a v0.0.2 -m "gnux v0.0.2" && git push origin v0.0.2
 ```
 
-**After the GitHub release exists but a package manager failed** (a 403 on the tap, an expired token): fix the secret and re-run the failed `release` job from the Actions page. The release is completed in place (`mode: replace`, `replace_existing_artifacts`), and the archives are rebuilt from the same commit.
+**After the GitHub release exists but a package manager failed** (an expired credential, a store that was down): fix the secret and re-run the failed `release` job from the Actions page. The release is completed in place (`mode: replace`, `replace_existing_artifacts`), and the archives are rebuilt from the same commit.
 
 **After users could have installed it**: do not move the tag. The Go module proxy has recorded `v0.0.2` permanently, a snap revision cannot be replaced, winget's manifest carries the archive's checksum, and anyone who verified `checksums.txt` would see it change. Fix the problem and release `v0.0.3`. If the version is harmful, mark the GitHub release as a prerelease or delete it, and for Go add a `retract` directive to `go.mod` in the next version.
 
 | Symptom                                                   | Cause                                                             | Fix                                                             |
 |-----------------------------------------------------------|-------------------------------------------------------------------|-----------------------------------------------------------------|
 | A channel is missing and the job is green                 | Its secret is not set, so it was in `--skip`                      | Set the secret; the next release publishes it                   |
-| Homebrew or Scoop: `403` or `404` on push                 | The repository does not exist, or the token cannot write to it    | Create it; give the token Contents read and write on it         |
-| Homebrew or Scoop: `401 Bad credentials`                  | The token expired                                                 | Issue a new one, set the secret, re-run the job                 |
+| Homebrew or Scoop: `403` on push                          | `main` is protected against direct pushes                         | Let the release job bypass the rule, or move to repositories of their own (below) |
+| GoReleaser: `git is in a dirty state`                     | A step wrote a file into the checkout before GoReleaser ran       | Write it under `$RUNNER_TEMP` or a gitignored path              |
 | winget: `422` creating the pull request                   | A fine-grained token, or no fork                                  | Use a classic token with `public_repo`; fork `winget-pkgs`      |
 | winget: validation fails on the pull request              | The installer URL was not reachable yet, or a manifest field is wrong | Comment `@wingetbot run` to retry; otherwise fix the `winget` block and release again |
 | snapcraft: `not logged in` or `invalid credentials`       | The exported login expired, or does not cover the channel         | Export a new one with `--channels=stable,edge`                  |

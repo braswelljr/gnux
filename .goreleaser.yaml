@@ -131,9 +131,10 @@ nfpms:
         dst: /usr/share/zsh/site-functions/_gnux
         packager: apk
 
-# Package managers. Each publishes to a repository or store of its own and
-# needs a credential for it; the Release workflow skips any whose secret is
-# not configured, so a fork can release without them.
+# Package managers. Homebrew and Scoop are served from this repository (Casks/
+# and bucket/), which the release job can already write to. winget, the Snap
+# Store and the AUR each need a credential of their own; the Release workflow
+# skips any whose secret is not configured, so a fork can release without them.
 #
 # The snap is strictly confined: it reaches the user's home directory and
 # removable media and nothing else, which the store accepts without a review.
@@ -196,10 +197,15 @@ homebrew_casks:
   - name: gnux
     ids: [unix]
     skip_upload: auto
+    # The tap is this repository: the cask is committed to Casks/ on the
+    # default branch with the release job's own token, so there is no second
+    # repository and no secret. In a fork, the fork is the tap.
     repository:
-      owner: braswelljr
-      name: homebrew-tap
-      token: '{{ envOrDefault "HOMEBREW_TAP_GITHUB_TOKEN" "" }}'
+      owner: '{{ envOrDefault "GITHUB_REPOSITORY_OWNER" "braswelljr" }}'
+      name: gnux
+      token: '{{ envOrDefault "GITHUB_TOKEN" "" }}'
+    directory: Casks
+    commit_msg_template: "release: Homebrew cask for {{ .Tag }}"
     commit_author:
       name: braswelljr
       email: braswelljr@users.noreply.github.com
@@ -228,10 +234,13 @@ scoops:
   - name: gnux
     ids: [windows]
     skip_upload: auto
+    # The bucket is this repository too: Scoop reads a repository's bucket/.
     repository:
-      owner: braswelljr
-      name: scoop-bucket
-      token: '{{ envOrDefault "SCOOP_BUCKET_GITHUB_TOKEN" "" }}'
+      owner: '{{ envOrDefault "GITHUB_REPOSITORY_OWNER" "braswelljr" }}'
+      name: gnux
+      token: '{{ envOrDefault "GITHUB_TOKEN" "" }}'
+    directory: bucket
+    commit_msg_template: "release: Scoop manifest for {{ .Tag }}"
     commit_author:
       name: braswelljr
       email: braswelljr@users.noreply.github.com

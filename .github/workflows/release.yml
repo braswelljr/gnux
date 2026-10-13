@@ -102,7 +102,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: release-notes
-          path: notes
+          # Outside the checkout: GoReleaser refuses to release from a tree
+          # with a file git does not know.
+          path: ${{ runner.temp }}/notes
 
       # Each package manager publishes to a repository or store of its own
       # with a credential stored as a secret; one whose secret is missing is
@@ -110,15 +112,12 @@ jobs:
       - name: Choose what to publish
         id: plan
         env:
-          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
-          SCOOP_BUCKET_GITHUB_TOKEN: ${{ secrets.SCOOP_BUCKET_GITHUB_TOKEN }}
           WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
           AUR_KEY: ${{ secrets.AUR_KEY }}
+          NOTES: ${{ runner.temp }}/notes/release-notes.md
         run: |
           skip=""
-          [ -z "$HOMEBREW_TAP_GITHUB_TOKEN" ] && skip="${skip},homebrew"
-          [ -z "$SCOOP_BUCKET_GITHUB_TOKEN" ] && skip="${skip},scoop"
           [ -z "$WINGET_GITHUB_TOKEN" ] && skip="${skip},winget"
           [ -z "$AUR_KEY" ] && skip="${skip},aur"
           if [ -z "$SNAPCRAFT_STORE_CREDENTIALS" ]; then
@@ -128,7 +127,7 @@ jobs:
           fi
           args="--clean"
           [ -n "$skip" ] && args="$args --skip=${skip#,}"
-          [ -s notes/release-notes.md ] && args="$args --release-notes=notes/release-notes.md"
+          [ -s "$NOTES" ] && args="$args --release-notes=$NOTES"
           echo "args=$args" >> "$GITHUB_OUTPUT"
 
       # GoReleaser packs and uploads the snap with the snapcraft command.
@@ -144,8 +143,6 @@ jobs:
           args: release ${{ steps.plan.outputs.args }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
-          SCOOP_BUCKET_GITHUB_TOKEN: ${{ secrets.SCOOP_BUCKET_GITHUB_TOKEN }}
           WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
           AUR_KEY: ${{ secrets.AUR_KEY }}

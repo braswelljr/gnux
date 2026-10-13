@@ -286,11 +286,11 @@ legs, or Web; those are expected to be green on `main` before tagging.
 `needs: verify`, with `contents: write`, `id-token: write` and `attestations: write`:
 
 1. Check out with full history (GoReleaser reads the previous tag for generated notes), set up
-   Go from `go.mod`, and download the `release-notes` artifact.
-2. **Choose what to publish.** Each package manager is pushed to a repository or store of its
-   own with a credential stored as a secret: `HOMEBREW_TAP_GITHUB_TOKEN`
-   (`braswelljr/homebrew-tap`), `SCOOP_BUCKET_GITHUB_TOKEN` (`braswelljr/scoop-bucket`),
-   `WINGET_GITHUB_TOKEN` (a fork, `braswelljr/winget-pkgs`, from which a pull request to
+   Go from `go.mod`, and download the `release-notes` artifact into `$RUNNER_TEMP`, outside
+   the checkout, which GoReleaser requires to be clean.
+2. **Choose what to publish.** The Homebrew cask and the Scoop manifest are committed to this
+   repository (`Casks/gnux.rb`, `bucket/gnux.json`) with the job's own token. The other package
+   managers each publish elsewhere with a credential stored as a secret: `WINGET_GITHUB_TOKEN` (a fork, `braswelljr/winget-pkgs`, from which a pull request to
    `microsoft/winget-pkgs` is opened), `SNAPCRAFT_STORE_CREDENTIALS` (the Snap Store) and
    `AUR_KEY` (`gnux-bin` on the AUR). A missing secret adds that publisher to `--skip`, so a
    fork can still release; with the snap's secret set, the next step installs `snapcraft`. The
@@ -389,8 +389,8 @@ gh attestation verify gnux-v0.1.0-linux-amd64.tar.gz --repo braswelljr/gnux
 | `verify` fails                                | The tagged commit fails a test or has stale docs             | Fix on `main`, delete the tag (`git push --delete origin v0.1.0`), tag again |
 | GoReleaser fails to build one target and nothing is published | A platform-specific compile error                | Fix it (`make build/all` reproduces it); re-tag            |
 | GoReleaser: "git is in a dirty state"          | A step wrote into the checkout before GoReleaser ran       | Write into `dist/` or a gitignored path (`completions/` is ignored) |
-| A package manager is not updated               | Its token secret is not set, so it was skipped              | Add the secret; the next release publishes it              |
-| Homebrew/Scoop push fails with 403/404         | The tap or bucket repository is missing, or the token cannot write to it | Create the repository; give the token `contents: write` on it |
+| winget, the snap or the AUR is not updated     | Its secret is not set, so it was skipped                    | Add the secret; the next release publishes it              |
+| Homebrew/Scoop push fails with 403             | `main` is protected against direct pushes                   | Let the release job bypass the rule, or move the tap and bucket to repositories of their own |
 | Man pages in the archive carry "Jan 2024"     | `docs.ManDate` is pinned for reproducibility, and nothing sets it per release | Known gap                                 |
 
 ## Where the version comes from

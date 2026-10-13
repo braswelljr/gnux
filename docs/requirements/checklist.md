@@ -86,10 +86,9 @@ findutils.
 - [x] More release platforms: `windows/arm64`, `linux/riscv64`, `freebsd/amd64`,
   `freebsd/arm64` (NFR-1)
 - [x] Homebrew cask, with shell completions (FR-36)
-  - Needs: the `braswelljr/homebrew-tap` repository and a `HOMEBREW_TAP_GITHUB_TOKEN` secret
-    that can write to it.
+  - Served from this repository (`Casks/gnux.rb`), written by the release job. Needs nothing.
 - [x] Scoop manifest (FR-36)
-  - Needs: the `braswelljr/scoop-bucket` repository and a `SCOOP_BUCKET_GITHUB_TOKEN` secret.
+  - Served from this repository (`bucket/gnux.json`). Needs nothing.
 - [x] winget manifest, sent as a pull request to `microsoft/winget-pkgs` (FR-36)
   - Needs: a fork at `braswelljr/winget-pkgs` and a `WINGET_GITHUB_TOKEN` secret (a classic
     token with `public_repo`).

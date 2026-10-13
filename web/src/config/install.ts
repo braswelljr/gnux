@@ -51,9 +51,11 @@ export const installPlatforms: InstallPlatform[] = [
     steps: [
       {
         title: 'Install',
-        detail: 'The cask installs the gnux binary and its completions.',
+        detail:
+          'The gnux repository is its own Homebrew tap; the cask installs the gnux binary and its completions.',
         shell: 'Terminal',
-        code: 'brew install --cask braswelljr/tap/gnux'
+        code: `brew tap braswelljr/gnux https://github.com/braswelljr/gnux
+brew install --cask braswelljr/gnux/gnux`
       },
       linkStep(linkUnix, 'Terminal'),
       {
@@ -77,8 +79,8 @@ export const installPlatforms: InstallPlatform[] = [
         shell: 'PowerShell',
         code: `winget install braswelljr.gnux
 # or
-scoop bucket add braswelljr https://github.com/braswelljr/scoop-bucket
-scoop install braswelljr/gnux`
+scoop bucket add gnux https://github.com/braswelljr/gnux
+scoop install gnux/gnux`
       },
       linkStep(linkWindows, 'PowerShell'),
       {
@@ -89,7 +91,7 @@ scoop install braswelljr/gnux`
 lsx -la`
       }
     ],
-    note: 'Hard links need neither Developer Mode nor elevation. Copying gnux.exe to each name also works, at the cost of disk space; rerun either loop after an upgrade. For one particular version: winget install braswelljr.gnux --version 0.0.2, or scoop install braswelljr/gnux@0.0.2.'
+    note: 'Hard links need neither Developer Mode nor elevation. Copying gnux.exe to each name also works, at the cost of disk space; rerun either loop after an upgrade. For one particular version: winget install braswelljr.gnux --version 0.0.2, or scoop install gnux/gnux@0.0.2.'
   },
   {
     id: 'linux',
@@ -122,7 +124,7 @@ sudo mv "gnux-$v-linux-amd64/gnux" /usr/local/bin/`
         code: checkUnix
       }
     ],
-    note: 'Every release also carries a .deb, an .rpm and an .apk under the same name (sudo dpkg -i "gnux-$v-linux-amd64.deb"), and is published as a snap (sudo snap install gnux, confined to your home directory), on the AUR (gnux-bin) and as a Homebrew cask (brew install --cask braswelljr/tap/gnux). Set v to any tag to install that version.'
+    note: 'Every release also carries a .deb, an .rpm and an .apk under the same name (sudo dpkg -i "gnux-$v-linux-amd64.deb"), and is published as a snap (sudo snap install gnux, confined to your home directory), on the AUR (gnux-bin) and as a Homebrew cask (the macOS steps work on Linux too). Set v to any tag to install that version.'
   },
   {
     id: 'go',

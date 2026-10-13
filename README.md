@@ -190,9 +190,10 @@ From v0.0.2 on, each release is also published to Homebrew (macOS and Linux), Sc
 (Windows), the Snap Store and the AUR (Linux):
 
 ```bash
-brew install --cask braswelljr/tap/gnux    # also installs bash, zsh and fish completion
-scoop bucket add braswelljr https://github.com/braswelljr/scoop-bucket
-scoop install braswelljr/gnux
+brew tap braswelljr/gnux https://github.com/braswelljr/gnux
+brew install --cask braswelljr/gnux/gnux   # also installs bash, zsh and fish completion
+scoop bucket add gnux https://github.com/braswelljr/gnux
+scoop install gnux/gnux
 winget install braswelljr.gnux
 sudo snap install gnux                     # strictly confined: your home directory only
 yay -S gnux-bin                            # Arch Linux, from the AUR
@@ -221,7 +222,7 @@ belongs to, winget last, since each new version is reviewed there.
 | A release archive or package | set `v=` above to the tag: every release stays available     |
 | `go install`     | `go install github.com/braswelljr/gnux@v0.0.2`                           |
 | winget           | `winget install braswelljr.gnux --version 0.0.2`                         |
-| Scoop            | `scoop install braswelljr/gnux@0.0.2`                                    |
+| Scoop            | `scoop install gnux/gnux@0.0.2`                                          |
 | Snap             | `sudo snap install gnux --channel=edge` for the newest prerelease        |
 | setup-gnux       | `version: v0.0.2`                                                        |
 
