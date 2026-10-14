@@ -441,6 +441,10 @@ nothing depends on following a link.
 - **The playground never touches the visitor's files** - the real gnux runs on an in-memory filesystem the page supplies, with no disk access, uploads or external programs. ([file](docs/rules/the-playground-never-touches-the-visitors-files.md))
 - **A memfs error carries a code Go knows** - every error is an `FsError` whose code is in Go's `errnoByCode` table, and the real wasm in `pnpm test` is the judge. ([file](docs/rules/a-memfs-error-carries-a-code-go-knows.md))
 
+### Working on the repository
+
+- **Agents hand over the git commands, and the maintainer runs them** - never `git commit`, `git push`, `git tag`, a force-push, or `gh release create` / `delete`, even when asked to release; prepare and check the change, then end with the exact commands and the commit or tag message to paste. ([file](docs/rules/agents-hand-over-git-commands.md))
+
 ## Code Style
 
 - Doc comments on exported symbols; comment the *why*, not the obvious.
@@ -499,6 +503,8 @@ cleanup, and best-effort `fmt.Fprint*` diagnostic writes. `_test.go` files are e
 | `bench.yml` | on a pull request: benchmarks the base commit and the change in one job and fails on a regression (`tools/benchcheck`) |
 | `action.yml` | runs the setup-gnux action (`action.yml` at the root) on linux/macos/windows runners and uses the tools |
 | `release.yml` | on a `vX.Y.Z` tag: re-runs vet/test/docs checks, requires the tag's `CHANGELOG.md` section, then GoReleaser (`.goreleaser.yaml`) builds per-platform archives with completions and `.deb`/`.rpm`/`.apk` packages, publishes a GitHub release with `checksums.txt`, a provenance attestation and that section as its notes, publishes to each of Homebrew, Scoop, winget, the Snap Store and the AUR whose secret is set, and moves the `vX` major tag |
+
+An agent prepares a release (changelog section, `make docs`, `make ci`, `make release/check`) and hands the maintainer the commit, push and tag commands; it never runs them ([rule](docs/rules/agents-hand-over-git-commands.md)).
 
 Every notable change goes into `CHANGELOG.md` under `## [Unreleased]` in the same change
 (Keep a Changelog: Added, Changed, Fixed, Removed). It is published as `/docs/changelog`. To

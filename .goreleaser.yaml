@@ -103,7 +103,7 @@ nfpms:
     file_name_template: "{{ .ProjectName }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
     vendor: braswelljr
     homepage: https://github.com/braswelljr/gnux
-    maintainer: braswelljr <braswelljr@users.noreply.github.com>
+    maintainer: braswelljr <braswellkenneth7@gmail.com>
     description: |-
       GNU core utilities in one portable, multi-call binary.
       gnux carries rmx, cpx, lsx and the rest, with GNU's flags, messages and
@@ -175,7 +175,7 @@ aurs:
     homepage: https://github.com/braswelljr/gnux
     description: GNU core utilities in one portable, multi-call binary
     maintainers:
-      - braswelljr <github.com/braswelljr>
+      - braswelljr <braswellkenneth7 at gmail dot com>
     license: MIT
     private_key: "{{ .Env.AUR_KEY }}"
     git_url: ssh://aur@aur.archlinux.org/gnux-bin.git
@@ -252,7 +252,7 @@ winget:
   - name: gnux
     package_identifier: braswelljr.gnux
     publisher: braswelljr
-    publisher_url: https://github.com/braswelljr
+    publisher_url: https://braswelljr.vercel.app
     ids: [windows]
     skip_upload: auto
     short_description: GNU core utilities in one portable, multi-call binary

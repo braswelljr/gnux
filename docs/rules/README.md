@@ -1,6 +1,6 @@
 # Rules
 
-The cross-cutting rules the gnux code follows, one file each. A rule is a convention that holds across many files, so no single file states it: how engines are shaped, how failures are reported, how the reference stays true, how the website is built. Each file gives the rule in one sentence, why it exists, what it looks like in the code, and what checks it. Where nothing automated checks a rule, the file says "review" instead of pretending otherwise. The backend half covers the Go code: engines, adapters, the shell, the documentation generator and CI. The frontend half covers `web/`: the website and the playground.
+The cross-cutting rules the gnux code follows, one file each. A rule is a convention that holds across many files, so no single file states it: how engines are shaped, how failures are reported, how the reference stays true, how the website is built. Each file gives the rule in one sentence, why it exists, what it looks like in the code, and what checks it. Where nothing automated checks a rule, the file says "review" instead of pretending otherwise. The backend half covers the Go code: engines, adapters, the shell, the documentation generator and CI. The frontend half covers `web/`: the website and the playground. The last section covers how work reaches the repository.
 
 ## Backend
 
@@ -46,3 +46,9 @@ The cross-cutting rules the gnux code follows, one file each. A rule is a conven
 - [Workflows](../workflows/README.md): how the processes these rules constrain actually run.
 - [Guides](../../documentation/guides/README.md)
 - [`AGENTS.md`](../../AGENTS.md) and [`web/AGENTS.md`](../../web/AGENTS.md), which repeat each statement inline.
+
+## Working on the repository
+
+| Rule | Statement | Checked by |
+|------|-----------|------------|
+| [agents-hand-over-git-commands](agents-hand-over-git-commands.md) | An agent never commits, tags, pushes or releases; it prepares the change and hands the maintainer the commands and the message | Review |
