@@ -213,7 +213,7 @@ The line could not be parsed, so nothing on it ran. A script stops at a syntax e
 gnux: frob: command not found
 ```
 
-Only the tools (by either name) and the builtins `cd`, `exit` and `help` are commands. External programs go through `envx`: `envx git status`. Loops, functions and `if` are not part of the language, so `for`, `while` and `if` are unknown commands too.
+Only the tools (by either name) and the shell's builtins (`cd`, `exit`, `help`, `set`, `shift`, `break`, `continue`, `[`) are commands. External programs go through `envx`: `envx git status`. Functions, `until` and `( )` grouping are not part of the language; `if`, `for`, `while` and `case` are.
 
 ### The script file cannot be opened, status 127
 
@@ -221,23 +221,43 @@ Only the tools (by either name) and the builtins `cd`, `exit` and `help` are com
 gnux: nofile.gnux: No such file or directory
 ```
 
-### Extra operand, status 2
+### An `if`, loop or `case` is never closed, status 2
 
 ```text
-gnux shell: extra operand 'b'
-Try 'gnux shell --help' for more information.
+gnux: syntax error: expected 'fi'
 ```
 
-`gnux shell` takes one script file, or `-c STRING`, not both and not two files.
+The script ended inside a construct: an `if` needs its `fi`, a loop its `done`, a `case` its `esac`, a `$(` its `)`. `then`, `do`, `fi` and `done` count only at the start of a command, so they need a newline or a `;` before them: `if truex; then echox yes; fi`.
+
+### Unexpected `(` or `)`, status 2
+
+```text
+gnux: syntax error: unexpected '('
+```
+
+Parentheses belong to `$(...)` and to `case` patterns. Quote them where a tool expects them: `findx . '(' -name a -o -name b ')'`.
+
+### Unbound variable, status 1
+
+```text
+gnux: BUILD_DIR: unbound variable
+```
+
+The script runs with `-u` (or `set -u`) and read a variable nothing set, often a misspelling. Give it a default where it may be missing: `${BUILD_DIR:-build}`. An environment variable that is set but empty counts as unset.
+
+### A script's option was taken by `gnux shell`
+
+Options are read only before the script: `gnux shell -e build.gnux -v` gives `-e` to the shell and `-v` to the script as `$1`.
 
 ### The script continued after a failure
 
-Without `-e`, a failing command does not stop the script. Run it with `gnux shell -e`. With `-e`, a command tested by `&&` or `||` still does not stop the script, so `cmd || truex` is the way to say "this may fail".
+Without `-e`, a failing command does not stop the script. Run it with `gnux shell -e`. With `-e`, a command whose status is tested (before `&&` or `||`, after `!`, or as the condition of an `if` or a `while`) still does not stop the script, so `cmd || truex` is the way to say "this may fail".
 
 ### A variable did not expand where I expected
 
 - `X=1 echox $X` prints an empty line: the line is expanded before the assignment runs, as in sh. The next line sees `X`.
 - `F="*.go"; echox $F` prints `*.go`: a variable's value is never re-globbed or re-split, by design.
+- `for w in $(echox a b c)` runs once, with `a b c`: an unquoted `$(...)` is split into lines, not words. List the words themselves (`for w in a b c`), or print one per line.
 - `C:\Users\me\*.txt` loses the backslash before `*` and the glob does not match: write `C:/Users/me/*.txt`.
 
 ### `cd -` fails

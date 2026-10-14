@@ -90,8 +90,9 @@ packages, and an interpreter that runs a script using nothing but that binary.
 
 **Out of scope.**
 
-- A general-purpose shell. `gnux shell` has no loops, functions, conditionals beyond `&&` and
-  `||`, job control, command substitution or here-documents.
+- A general-purpose shell. `gnux shell` has the control flow a build script needs (`if`, `for`,
+  `while`, `case`) and command substitution, and stops there: no functions, arithmetic, job
+  control or here-documents.
 - Locale-dependent behavior. Sorting, case and character classes follow the C locale with
   UTF-8 text.
 - SELinux contexts and ACLs.

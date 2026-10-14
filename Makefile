@@ -91,7 +91,7 @@ test: ## Run tests with the race detector
 
 # The fuzz targets, as PACKAGE:TARGET. Each reads text gnux did not write: a
 # shell script, a sed script, a pattern, a find expression, xargs input.
-FUZZ_TARGETS := core/shell:FuzzParse core/shell:FuzzExpand core/sed:FuzzScript \
+FUZZ_TARGETS := core/shell:FuzzParse core/shell:FuzzRun core/sed:FuzzScript \
 	core/grep:FuzzPattern core/find:FuzzExpression core/xargs:FuzzInput
 FUZZTIME ?= 30s
 

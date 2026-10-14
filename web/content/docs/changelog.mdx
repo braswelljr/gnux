@@ -5,6 +5,58 @@ description: "Every notable change to gnux, release by release, newest first. Th
 
 ## [Unreleased]
 
+`gnux shell` can now run a real script: it branches, loops, takes arguments and reads the
+output of a command.
+
+### Added
+
+- Control flow in `gnux shell`: `if` / `elif` / `else` / `fi`, `for NAME in WORD...; do ...;
+  done` (over the script's arguments when `in` is left out), `while ...; do ...; done` and
+  `case WORD in PATTERN | PATTERN) ... ;; esac`, on one line or over several, with `break [N]`
+  and `continue [N]`. A whole construct can be redirected or piped.
+- Command substitution, `$(command)`. Unquoted, its output becomes one word per line, never one
+  per space, so file names with spaces survive `for f in $(findx ...)`; quoted, it is a single
+  word. It runs as a subshell: variables it sets and a `cd` it makes end with it.
+- Script arguments: `gnux shell SCRIPT ARG...` and `gnux shell -c STRING NAME ARG...` reach the
+  script as `$1`, `$2`, ..., `$#`, `$0`, `"$@"` and `$*`, with the builtins `shift [N]` and
+  `set -- ARG...`.
+- `gnux shell -u`, and `set -u` inside a script: expanding a variable that was never set stops
+  the script with `gnux: NAME: unbound variable` and status 1. `${NAME:-default}` reads one that
+  may be missing.
+- `! command` inverts an exit status, `[ EXPRESSION ]` runs the `test` tool, and `set -e` /
+  `set +e` turn `-e` on and off from inside a script.
+- An interactive session continues an unfinished `if`, loop or `case` on the next line, at the
+  prompt `> `.
+- For Go callers of `core/shell`: `Options.NoUnset`, `Shell.SetArgs`, `Shell.LoopLimit`,
+  `ContinuePrompt` and `Incomplete`.
+
+### Changed
+
+- `gnux shell SCRIPT EXTRA` and `gnux shell -c STRING EXTRA` are no longer usage errors: the
+  extra operands are the script's arguments. Options are read only before `SCRIPT`.
+- `(` and `)` are syntax in `gnux shell`. Quote them where a tool expects them:
+  `findx . '(' -name a -o -name b ')'`.
+- `$1` to `$9`, `$#`, `$@`, `$*` and `$0` are expanded in `gnux shell`; they used to be literal
+  text. Write `\$1` or use single quotes for the characters themselves.
+- With `gnux shell -e`, the condition of an `if` or a `while` and a command after `!` may fail
+  without stopping the script, as in sh.
+- In `gnux shell`, the value of an assignment is never globbed (`X=*` stores `*`), a leading `~`
+  in it is the home directory (`X=~/bin`), and `A=1 B=$A` on one line gives `B` the new `A`.
+- The keyboard on the website's home page is the visitor's own: a MacBook Pro's on an Apple
+  device and a Microsoft Surface's anywhere else, each with its function row, arrow keys and
+  legends.
+- Taking the keyboard on the home page now runs what is typed: Enter hands the line to the
+  real gnux, loaded in the browser as the playground loads it, and the up and down arrows
+  bring back earlier lines. Nothing is downloaded until the keyboard is taken.
+- The shell's own diagnostics about a command (`command not found`, a redirection that cannot
+  be opened) go to that command's standard error, so `2>` captures them.
+
+### Fixed
+
+- The release workflow published the GitHub release and then failed on the Homebrew cask and
+  the Scoop manifest: GoReleaser accepts only `{{ .Env.NAME }}` in a `token`, not a template
+  function.
+
 ## [0.0.2] - 2026-10-13
 
 gnux grows from 22 tools to 85: nearly all of coreutils, plus `grepx`, `sedx`, `findx` and

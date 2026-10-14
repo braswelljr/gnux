@@ -46,7 +46,7 @@ Each tool's package has the same four pieces:
 | `core/touch` | `touchx` | `Now` |
 | `core/wc` | `wcx` | `Total*` constants |
 | `core/yes` | `yesx` | No `Options`: `New(streams)`, `Line(args)` |
-| `core/shell` | `gnux shell` | `New(opts, exec, streams)`, `Run`, `RunString`, `Eval`, `Set` |
+| `core/shell` | `gnux shell` | `New(opts, exec, streams)`, `Run`, `RunString`, `Eval`, `Set`, `SetArgs`, `Incomplete` |
 
 `truex` and `falsex` have no engine: in Go they are `return nil` and `return core.ErrFailed`.
 
@@ -145,9 +145,10 @@ Either the gnux name or the GNU name works. `ok` is false when no tool has that 
 |--------|------|
 | `Set(name, value)` | Defines a shell variable before running |
 | `RunString(script)` / `Run(reader)` | Runs a whole script, restores the working directory afterwards, and returns `nil` or `*core.ExitError` with the last status |
-| `Eval(line) int` | Runs one line and keeps every bit of state (variables, `cd`), for REPL-style hosts |
+| `SetArgs(name, args)` | Gives the script its `$0` and its arguments (`$1`, `$2`, ..., `"$@"`) |
+| `Eval(command) int` | Runs one command (a line, or a whole `if`, loop or `case`) and keeps every bit of state (variables, `cd`), for REPL-style hosts |
 
-`shell.Options{ErrExit: true}` is `-e`. For a custom command set, build the shell with `shell.New(opts, exec, streams)` and your own `ExecFunc`, as program 16 does.
+`shell.Options{ErrExit: true, NoUnset: true}` is `-eu`. `shell.Incomplete(text)` reports whether text is the start of a command that more lines would finish, which is how a host that reads line by line knows to ask for another before calling `Eval`. `Shell.LoopLimit` stops a loop after that many turns, for a host that has no way to interrupt a script. For a custom command set, build the shell with `shell.New(opts, exec, streams)` and your own `ExecFunc`, as program 16 does.
 
 `cd` changes the process-wide working directory while a script runs, because tools resolve relative paths against it. Do not run two shells concurrently in one process.
 

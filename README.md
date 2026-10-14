@@ -350,10 +350,28 @@ ls -1 $OUT | wc -l > $OUT/count.txt
 cat $OUT/count.txt || echo "nothing built"
 ```
 
-It understands a deliberately small subset of POSIX sh: pipelines, `&&` / `||` / `;`,
-redirection (`<`, `>`, `>>`), `NAME=value` variables with `$NAME`, `${NAME}` and `$?`, single
-and double quotes, globbing, `~` and `#` comments, with the builtins `cd`, `exit` and `help`.
-There are no loops or functions, and external programs are reached through `envx PROGRAM …`.
+```bash
+# release.gnux - run with: gnux shell -eu release.gnux v1.4.0
+VERSION=${1:-dev}
+for os in linux darwin windows; do
+  case $os in
+    windows) EXT=.exe ;;
+    *)       EXT= ;;
+  esac
+  if [ -f bin/$os/app$EXT ]; then
+    mkdir -p dist/$os && cp bin/$os/app$EXT dist/$os/
+    echo "$VERSION $(sha256sum dist/$os/app$EXT)" >> dist/SUMS
+  fi
+done
+```
+
+It understands a deliberately small subset of POSIX sh: pipelines, `&&` / `||` / `;` / `!`,
+redirection (`<`, `>`, `>>`), `NAME=value` variables with `$NAME`, `${NAME}`,
+`${NAME:-default}` and `$?`, script arguments (`$1`, `$#`, `"$@"`), command substitution
+`$(...)`, `if`, `for`, `while` and `case`, single and double quotes, globbing, `~` and `#`
+comments, with the builtins `cd`, `exit`, `help`, `set`, `shift`, `break`, `continue` and `[`.
+`-e` stops at the first failure and `-u` refuses a variable that was never set. There are no
+functions or arithmetic, and external programs are reached through `envx PROGRAM …`.
 
 ### As a library
 

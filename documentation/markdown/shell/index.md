@@ -5,16 +5,20 @@ Run a portable shell whose commands are the `gnux` tools.
 ### Synopsis
 
 ```bash
-gnux shell [OPTION]... [SCRIPT]
+gnux shell [OPTION]... [SCRIPT [ARG]...]
 ```
 
 ### Description
 
-`gnux shell` is a small command interpreter whose commands are the `gnux` tools, run inside the `gnux` process. Because nothing in it depends on the system's own shell or utilities, the same script behaves identically on Linux, macOS and Windows. With no SCRIPT it reads commands from standard input, prompting when that is a terminal; with `-c` it runs the given string.
+`gnux shell` is a small command interpreter whose commands are the `gnux` tools, run inside the `gnux` process. Because nothing in it depends on the system's own shell or utilities, the same script behaves identically on Linux, macOS and Windows. With no SCRIPT it reads commands from standard input, prompting when that is a terminal; with `-c` it runs the given string. The ARGs after SCRIPT are its arguments ($1, $2, ... and "$@"); after `-c` STRING, the first one is $0 and the rest are the arguments. Options are read only before SCRIPT, so everything after it reaches the script.
 
-The language is a deliberately small subset of POSIX sh: pipelines (a | b), the &&, || and ; connectors, redirection (<, >, >>, and 2> for standard error; /dev/null discards on every platform), NAME=value variables with $NAME, ${NAME}, $? and $PWD expansion, single and double quotes, globbing (*, ?, [...]), ~ for the home directory and # comments. The builtins are cd, exit and help. Tools answer to both names, so `rm` and `rmx` are the same command. There are no loops, functions or conditionals beyond && and ||, and a variable's value is never re-`split`, so paths with spaces need no quoting once stored. External programs are not looked up; run one through the env tool (`envx` PROGRAM ARG...).
+The language is a deliberately small subset of POSIX sh: pipelines (a | b), the &&, || and ; connectors, ! to invert a status, redirection (<, >, >>, and 2> for standard error; /dev/null discards on every platform), NAME=value variables with $NAME, ${NAME}, ${NAME:`-default`}, $? and $PWD expansion, the arguments $1 to $9, ${10}, $#, $0, $@ and $*, command substitution $(command), single and double quotes, globbing (*, ?, [...]), ~ for the home directory and # comments. Control flow is if/then/elif/else/fi, for NAME in WORD...; do ...; done (over the arguments when 'in' is left out), while ...; do ...; done and case WORD in PATTERN | PATTERN) ... ;; esac, each over as many lines as it needs. The builtins are cd, exit, help, set (`-e`, `-u`, +e, +u, -- ARG...), shift, break, continue and [ (the `test` tool, written [ EXPRESSION ]). Tools answer to both names, so `rm` and `rmx` are the same command. External programs are not looked up; run one through the env tool (`envx` PROGRAM ARG...).
 
-The exit status is that of the last command run, 2 for a syntax error, and 127 for an unknown command. With `-e` the script stops at the first failing command.
+It is not a full sh. There are no functions, no arithmetic (use `exprx`), no until, no here-documents, no backquotes, no ( ) or { } grouping and no background jobs. A quoted string does not span lines, a backslash does not `join` lines, and a line that ends in |, && or || is an error. A pipeline can hold one if, for, while or case, which runs as a subshell there.
+
+Two things differ from sh on purpose. A variable's value is never re-`split` or re-globbed, so a path with spaces needs no quoting once stored; for the same reason an unquoted $(command) becomes one word per line of output, never one per space, and a quoted one a single word. And NAME=value before a command sets the variable for the rest of the script, not just for that command. A $(command) runs as a subshell: what it sets, and a cd it makes, end with it.
+
+The exit status is that of the last command run, 2 for a syntax error, and 127 for an unknown command. With `-e` the script stops at the first failing command, except one whose status is tested: by &&, || or !, or as the condition of an if or a while. With `-u`, expanding a variable that is not set is an error that stops the script with status 1; ${NAME:`-default`} reads one that may be missing. An environment variable that is set but empty counts as unset.
 
 ### Permissions
 
@@ -32,6 +36,7 @@ The shell itself needs only read access to SCRIPT. Each command it runs needs wh
   -c, --command STRING   run the commands in STRING instead of reading a script
   -e, --errexit          exit at the first command that fails
       --help             display this help and exit
+  -u, --nounset          treat expanding an unset variable as an error
       --version          output version information and exit
 ```
 
@@ -67,6 +72,36 @@ gnux shell -e build.gnux
 gnux shell -e build.gnux
 ```
 
+Run a script with arguments, refusing unset variables:
+
+```bash
+gnux shell -eu release.gnux v1.2.3 dist
+```
+
+```powershell
+gnux shell -eu release.gnux v1.2.3 dist
+```
+
+Loop over files and branch on each:
+
+```bash
+gnux shell -c 'for f in *.txt; do if grepx -q TODO "$f"; then echox "$f"; fi; done'
+```
+
+```powershell
+gnux shell -c 'for f in *.txt; do if grepx -q TODO $f; then echox $f; fi; done'
+```
+
+Use a command's output:
+
+```bash
+gnux shell -c 'mkdirx -p "build/$(unamex -s)"'
+```
+
+```powershell
+gnux shell -c 'mkdirx -p build/$(unamex -s)'
+```
+
 Pipe a script in:
 
 ```bash
@@ -82,7 +117,7 @@ echo 'catx *.log | wcx -l' | gnux shell
 | Status | Meaning |
 |--------|---------|
 | N | the exit status of the last command run |
-| 1 | a redirection could not be opened (that command is not run) |
+| 1 | a redirection could not be opened (that command is not run), or with `-u` a variable was not set |
 | 2 | a syntax error, exit with a non-numeric argument, or a command-line mistake |
 | 127 | an unknown command, or a SCRIPT that cannot be opened |
 

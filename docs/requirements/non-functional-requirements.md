@@ -461,9 +461,11 @@ pattern, find expression or xargs input may make its tool panic.
 
 - **Rationale.** `gnux shell` reads scripts it did not write, including whatever a visitor
   types into the playground.
-- **Measure.** `FuzzParse` and `FuzzExpand` (`core/shell/fuzz_test.go`) find no failure; an
-  accepted line always yields non-empty pipelines and commands, and every word at least one
-  argument. `FuzzExpand` globs through `Shell.Glob` against an in-memory file list: a pattern
+- **Measure.** `FuzzParse` and `FuzzRun` (`core/shell/fuzz_test.go`) find no failure; an
+  accepted script always yields non-empty pipelines, and commands that are compound or have a
+  word, however deeply nested. `FuzzRun` runs what parses against a stub command set, with
+  `Shell.LoopLimit` ending any loop that would not, and globs through `Shell.Glob` against an
+  in-memory file list: a pattern
   such as `/*/*/*/*` against a real Linux runner's disk walks `/proc` and stalls the fuzzer.
   `FuzzScript` (`core/sed`), `FuzzPattern` (`core/grep`), `FuzzExpression` (`core/find`) and
   `FuzzInput` (`core/xargs`) run the engines on generated input, each kept from touching the

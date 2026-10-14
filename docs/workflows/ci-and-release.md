@@ -46,7 +46,7 @@ reinterpret the coverage arguments.
 | Test (race + coverage)             | `go test -race -covermode=atomic -coverprofile=coverage.out ./...`       | the race detector is always on (NFR-15, NFR-31) |
 | Smoke test (multi-call dispatch)   | build `bin/gnux[.exe]`, copy it to `bin/pwdx[.exe]`, run `gnux --list`, `gnux pwdx`, `./bin/pwdx` | proves `argv[0]` dispatch with a real binary on every OS; a copy, not a symlink, so it works on Windows (FR-19, FR-37) |
 | Build for WebAssembly (ubuntu only) | `GOOS=js GOARCH=wasm go build -o /dev/null ./tools/wasm`                 | every tool must keep compiling for the playground (NFR-3, NFR-4) |
-| Fuzz the parsers (ubuntu only)     | `make fuzz FUZZTIME=30s`: the shell's `FuzzParse` and `FuzzExpand`, then `FuzzScript` (sed), `FuzzPattern` (grep), `FuzzExpression` (find), `FuzzInput` (xargs) | no text gnux did not write panics a parser (NFR-48) |
+| Fuzz the parsers (ubuntu only)     | `make fuzz FUZZTIME=30s`: the shell's `FuzzParse` and `FuzzRun`, then `FuzzScript` (sed), `FuzzPattern` (grep), `FuzzExpression` (find), `FuzzInput` (xargs) | no text gnux did not write panics a parser (NFR-48) |
 | Upload coverage (ubuntu only)      | artifact `coverage`                                                      |                                              |
 
 Running the suite on three operating systems is what verifies that platform code is isolated

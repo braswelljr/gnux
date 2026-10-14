@@ -5,7 +5,7 @@ import { type SiteConfig } from '@/utils/metadata';
  * NEXT_PUBLIC_SITE_URL at build time, or replace this fallback, before the
  * site goes live: canonical URLs, the sitemap and Open Graph tags all use it.
  */
-const FALLBACK_URL = 'https://gnux.braswelljr.engineer';
+const FALLBACK_URL = 'https://gnux.vercel.app';
 
 export const siteConfig: SiteConfig = {
   url: (process.env.NEXT_PUBLIC_SITE_URL || FALLBACK_URL).replace(/\/+$/, ''),

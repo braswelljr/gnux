@@ -3017,16 +3017,19 @@ The name gnux was started under must be reduced to a bare tool name before it is
 a string (`-c`).
 
 - **Acceptance.** With no operand it reads standard input, prompting with `gnux> ` when that is
-  a terminal. With one operand it runs that file. With `-c STRING` it runs the string. A second
-  operand, or an operand with `-c`, is a usage error with status 2. A script that cannot be
-  opened is reported and exits 127.
+  a terminal. With an operand it runs that file. With `-c STRING` it runs the string. Further
+  operands are the script's arguments (FR-153). An unknown option is a usage error with status
+  2. A script that cannot be opened is reported and exits 127. A command that an `if`, a loop,
+  a `case` or a `$(` leaves unfinished is continued on the next line, prompted for with `> `.
 - **Verified by.** `TestShellCommand` in `cmd/shell_test.go`.
 
 ### FR-24: the language
 
-The shell must support pipelines, `&&`, `||`, `;`, input and output redirection (`<`, `>`,
-`>>`), `NAME=value` variables with `$NAME`, `${NAME}` and `$?`, single and double quotes,
-backslash escapes, globbing (`*`, `?`, `[...]`), `~` expansion and `#` comments.
+The shell must support pipelines, `&&`, `||`, `;`, `!`, input and output redirection (`<`, `>`,
+`>>`), `NAME=value` variables with `$NAME`, `${NAME}`, `${NAME:-default}` and `$?`, single and
+double quotes, backslash escapes, globbing (`*`, `?`, `[...]`), `~` expansion and `#` comments,
+together with control flow (FR-152), script arguments (FR-153) and command substitution
+(FR-155).
 
 - **Rationale.** This is the subset a build, clean or packaging script actually uses.
 - **Acceptance.** Each construct behaves as in POSIX sh, within the differences of FR-78. A
@@ -3046,11 +3049,17 @@ The shell must run tools in-process and must not depend on any system shell or u
 
 ### FR-26: builtins
 
-The shell must provide `cd`, `exit` and `help` as builtins.
+The shell must provide `cd`, `exit`, `help`, `set`, `shift`, `break`, `continue` and `[` as
+builtins.
 
 - **Acceptance.** `cd` with no argument goes to the home directory; `exit` takes an optional
-  status, masked to 0 to 255; `help` prints the language summary.
-- **Verified by.** `TestCd` and `TestSetAndHelp` in `core/shell/shell_test.go`.
+  status, masked to 0 to 255; `help` prints the language summary. `set` accepts `-e`, `-u`,
+  `+e`, `+u` and `-- ARG...` and refuses anything else with status 2. `shift [N]` drops the
+  first N arguments and fails when there are fewer. `break [N]` and `continue [N]` act on the
+  Nth enclosing loop and fail outside one. `[ EXPRESSION ]` runs the `test` tool and requires
+  its closing `]`.
+- **Verified by.** `TestCd` and `TestSetAndHelp` in `core/shell/shell_test.go`;
+  `TestControlFlow` and `TestParameters` in `core/shell/control_test.go`.
 
 ### FR-27: exit status
 
@@ -3064,10 +3073,14 @@ unknown command.
 
 ### FR-28: errexit
 
-With `-e`, the shell must stop at the first failing command whose status is not tested by `&&`
-or `||`.
+With `-e`, the shell must stop at the first failing command whose status is not tested.
 
-- **Verified by.** `TestErrExit` in `core/shell/shell_test.go`.
+- **Acceptance.** A status is tested when the command stands before `&&` or `||`, follows `!`,
+  or is part of the condition of an `if` or a `while`. `set -e` and `set +e` turn the option on
+  and off from inside the script. An assignment whose value is a failed `$(...)` is a failing
+  command.
+- **Verified by.** `TestErrExit` in `core/shell/shell_test.go`; `TestErrExitAndConditions` in
+  `core/shell/control_test.go`.
 
 ### FR-29: the same result everywhere
 
@@ -3094,11 +3107,14 @@ The shell's differences from POSIX sh must be few, deliberate and documented.
 - **Acceptance.** A variable's value is never re-split or re-globbed, so a path with spaces
   needs no quoting once stored. `NAME=value cmd` sets the variable for the rest of the script,
   not only for `cmd`. A variable is looked up among the shell's own variables first, then in
-  the environment. There are no loops, functions, conditionals beyond `&&` and `||`, command
-  substitution or here-documents. External programs are not looked up: they are reached through
-  `envx PROGRAM ARG...`.
-- **Verified by.** `TestScripts` and `TestGlob` in `core/shell/shell_test.go`; review of the
-  shell's reference page for the documentation half.
+  the environment. An unquoted `$(...)` is split into lines, never into words. Nothing spans
+  lines except an `if`, a loop, a `case` or a `$(...)`: not a quoted string, not a line ending
+  in `|`, `&&` or `||`, not a trailing backslash. There are no functions, arithmetic, `until`,
+  here-documents, backquotes, `( )` or `{ }` grouping, or background jobs. External programs
+  are not looked up: they are reached through `envx PROGRAM ARG...`.
+- **Verified by.** `TestScripts` and `TestGlob` in `core/shell/shell_test.go`;
+  `TestSubstitution` and `TestControlSyntaxErrors` in `core/shell/control_test.go`; review of
+  the shell's reference page for the documentation half.
 
 ### FR-79: pipelines
 
@@ -3110,9 +3126,69 @@ starts, and a stage must not be able to change the shell's own state.
 - **Acceptance.** Expansion, assignments and redirections happen in order before the stages
   run. A stage whose reader has gone sees a closed-pipe error and stops quietly. `cd` and
   `exit` inside a stage do not affect the shell. The pipeline's status is that of its last
-  stage.
+  stage, inverted when the pipeline starts with `!`. A pipeline holds at most one compound
+  command (FR-152), and what that one sets does not outlast the pipeline.
 - **Verified by.** `TestScripts` and `TestRedirection` in `core/shell/shell_test.go`;
+  `TestControlFlow` in `core/shell/control_test.go`;
   `TestRunRepeatsUntilThePipeCloses` in `core/yes/yes_test.go`.
+
+### FR-152: control flow
+
+The shell must support `if`/`then`/`elif`/`else`/`fi`, `for NAME in WORD...; do ...; done`,
+`while ...; do ...; done` and `case WORD in PATTERN | PATTERN) ... ;; esac`.
+
+- **Rationale.** A build script branches on what it finds and repeats a step per file or per
+  platform. Without these, the first such script goes back to the system's shell, and to the
+  differences between systems that BR-5 exists to remove.
+- **Acceptance.** The condition of an `if` or a `while` is any list of commands, and its last
+  status decides. A `for` without `in` runs over the script's arguments; its items are expanded
+  once, and a variable among them is not re-split. A `case` runs the first arm one of whose
+  patterns matches; a pattern uses `*`, `?` and `[...]`, `*` also matches `/`, and a quoted
+  pattern or one from a variable matches only itself. The status of a compound command is that
+  of the last command it ran, or 0 when it ran none. A compound command may be redirected as a
+  whole and may be one stage of a pipeline. Each may be written on one line or over several.
+  The reserved words mean something only as the first word of a command.
+- **Verified by.** `TestControlFlow`, `TestCompoundRedirection` and `TestControlSyntaxErrors`
+  in `core/shell/control_test.go`; `TestShellCommand` ("control flow with the real tools") in
+  `cmd/shell_test.go`.
+
+### FR-153: script arguments
+
+A script must be able to read the arguments it was started with.
+
+- **Acceptance.** The operands after `SCRIPT` are `$1`, `$2`, ... (`${10}` and beyond in
+  braces), `$#` is their count and `$0` the script's name; after `-c STRING` the first operand
+  is `$0`. `"$@"` and `$@` are the arguments as one word each, and nothing at all when there
+  are none; `$*` is one word, the arguments joined by spaces. Options are read only before
+  `SCRIPT`. A library caller sets them with `Shell.SetArgs`.
+- **Verified by.** `TestParameters` in `core/shell/control_test.go`; `TestShellCommand`
+  ("script arguments") in `cmd/shell_test.go`.
+
+### FR-154: nounset
+
+With `-u`, expanding a variable that is not set must be an error that stops the script.
+
+- **Rationale.** A misspelled or missing variable in `rmx -rf $OUT/` must not quietly become
+  `rmx -rf /`.
+- **Acceptance.** The shell writes `gnux: NAME: unbound variable`, does not run the command,
+  and stops with status 1; an interactive session loses that command only. This holds wherever
+  a variable is read: an argument, an assignment, a redirection target, a `for` list, a `case`.
+  `${NAME:-default}`, `$?`, `$#`, `$0`, `$@` and `$*` are never errors. An environment variable
+  that is set but empty counts as unset. `set -u` and `set +u` turn the option on and off.
+- **Verified by.** `TestNoUnset` in `core/shell/control_test.go`; `TestShellCommand`
+  ("-u refuses an unset variable") in `cmd/shell_test.go`.
+
+### FR-155: command substitution
+
+`$(COMMANDS)` must expand to what the commands write to standard output.
+
+- **Acceptance.** Trailing newlines are removed. Inside double quotes, and as the value of an
+  assignment, the result is one word. Unquoted, it is one word per non-empty line, and none
+  when there is no output; it is never split at spaces and never globbed (FR-78). It nests, and
+  may span lines. The commands run as a subshell: variables, options and arguments they change,
+  and a `cd` they make, end with the substitution. A command made only of assignments has the
+  status of its last substitution.
+- **Verified by.** `TestSubstitution` in `core/shell/control_test.go`.
 
 ## 6. The Go library
 

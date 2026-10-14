@@ -15,7 +15,7 @@ import (
 
 // DocsURL is where the online reference lives; a tool's page is
 // DocsURL + "/tools/<name>".
-const DocsURL = "https://gnux.braswelljr.engineer/docs"
+const DocsURL = "https://gnux.vercel.app/docs"
 
 // helpWidth is the column help text is wrapped to.
 const helpWidth = 80

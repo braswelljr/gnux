@@ -182,28 +182,49 @@ name and returns its exit status. The shell and the wasm build both go through i
 
 ## The gnux shell (`core/shell`, `cmd/shell.go`)
 
-`gnux shell [-e] [-c STRING | SCRIPT]` - interactive when reading a terminal. It is a gnux
-command, not a tool: `ShellSpec()` has no GNU name, is in `Commands()` but not `Tools()`, is not
-reachable through `argv[0]` and is not in `--list`.
+`gnux shell [-eu] [-c STRING | SCRIPT] [ARG]...` - interactive when reading a terminal. It is a
+gnux command, not a tool: `ShellSpec()` has no GNU name, is in `Commands()` but not `Tools()`,
+is not reachable through `argv[0]` and is not in `--list`. Options stop at `SCRIPT`
+(`NoInterspersed`); what follows is the script's arguments.
 
 - **Language** (keep it small - it is a portable subset, not a bash clone): pipelines, `&&`,
-  `||`, `;`, redirection `<` `>` `>>`, `NAME=value`, `$NAME` `${NAME}` `$?`, single/double
-  quotes, backslash before a special character only (so `C:\tools` survives unquoted), globbing,
-  `~`, `#` comments. Builtins: `cd`, `exit`, `help`. No loops, functions or external programs
-  (those go through `envx`).
-- **Deliberate differences from sh:** a variable's value is never re-split or re-globbed;
-  `NAME=value cmd` sets the variable for the rest of the script, not just for `cmd`.
+  `||`, `;`, `!`, redirection `<` `>` `>>` `2>`, `NAME=value`, `$NAME` `${NAME}`
+  `${NAME:-default}` `$?`, the arguments `$1`... `$#` `$0` `$@` `$*`, command substitution
+  `$(...)`, `if`/`elif`/`else`, `for`, `while`, `case`, single/double quotes, backslash before a
+  special character only (so `C:\tools` survives unquoted), globbing, `~`, `#` comments.
+  Builtins: `cd`, `exit`, `help`, `set` (`-e`, `-u`, `-- ARG...`), `shift`, `break`,
+  `continue`, `[` (the test tool). **Not in the language, on purpose:** functions, arithmetic,
+  `until`, here-documents, backquotes, `( )` / `{ }` grouping, background jobs, and external
+  programs (those go through `envx`). Adding any of them is a decision, not a patch.
+- **Deliberate differences from sh:** a variable's value is never re-split or re-globbed, and an
+  unquoted `$(...)` is split into lines, never words; `NAME=value cmd` sets the variable for the
+  rest of the script, not just for `cmd`; nothing spans lines except an `if`, a loop, a `case`
+  or a `$(...)` (not a quoted string, a trailing `|` / `&&` / `||`, or a backslash).
 - The interpreter reaches tools only through its `Exec` func (`shell.ExecFunc`), so `core/shell`
   does not import `cmd`; `cmd.NewShell` wires `RunTool` in.
+- `parse.go` is a recursive-descent parser over an on-demand lexer; `$(` is parsed in place by a
+  second parser on the same source. A `*syntaxError` with `incomplete` set means "more lines
+  could finish this", which is how `Run` knows to keep reading and what `shell.Incomplete`
+  reports to a line-based host.
+- Streams are passed down every call (`runList`, `runPipeline`, `runCommand`), never read from
+  the `Shell`, so a redirected loop reaches every command inside it.
 - Pipeline stages run as goroutines joined by `io.Pipe`. Expansion, assignments and opening
   redirections all happen *before* any stage starts (shell state is not goroutine-safe, and sh
   guarantees redirection targets exist first). A stage whose reader has gone sees `EPIPE`, which
-  the tools already treat as a quiet stop - that is what ends `yesx | headx`.
+  the tools already treat as a quiet stop - that is what ends `yesx | headx`. A pipeline may
+  hold **one** compound command (the parser refuses two): its body runs on its stage's
+  goroutine while the caller waits, so shell state still has one user at a time, and the state
+  is saved before and restored after (it is a subshell). `$(...)` saves and restores the same
+  state (`save` / `restore`) and puts the working directory back.
+- `-e` exempts a status that is tested: before `&&` / `||`, after `!`, and in the condition of
+  an `if` or `while` (`sh.testing`). `-u` makes an unset variable an expansion failure: the
+  command is not run and the script stops with status 1.
 - `Run` executes a whole script and restores the process working directory afterwards (`cd` is
-  process-wide because tools resolve relative paths against it). `Eval` runs one line and keeps
-  all state, for REPL-style hosts such as the playground.
+  process-wide because tools resolve relative paths against it). `Eval` runs one command and
+  keeps all state, for REPL-style hosts such as the playground, which also sets `LoopLimit`
+  because nothing can interrupt a script in a browser tab.
 - Exit status: last command's; 2 on a syntax error (which aborts a non-interactive script);
-  127 for an unknown command.
+  127 for an unknown command; 1 for an unset variable under `-u`.
 
 ## The tool contract
 
@@ -449,6 +470,8 @@ cleanup, and best-effort `fmt.Fprint*` diagnostic writes. `_test.go` files are e
 - `cmd/<gnu>x/<gnu>x_test.go` - `buildOptions`: every flag mapping and precedence rule.
 - `core/shell/shell_test.go` - the interpreter against a fake command set: quoting, expansion,
   globbing, connectors, pipelines, redirection, `cd`, `-e`, syntax errors, `Eval`.
+  `core/shell/control_test.go` - `if`, `for`, `while`, `case`, `$(...)`, script arguments, `-u`,
+  commands that span lines.
 - `cmd/shell_test.go` - `gnux shell` end to end with the real tools, `RunTool`, `NewShell`.
 - `cmd/main_test.go` - registry invariants, argv[0] and subcommand dispatch (by tool name and by
   GNU name), exit statuses and usage-error formatting.

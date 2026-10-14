@@ -363,6 +363,21 @@ describe('gnux.wasm on the in-memory filesystem', () => {
     assert.ok(r.stdout.length <= 1 << 20);
   });
 
+  test('a loop that never ends is stopped instead of hanging', async () => {
+    const r = await h.run('while truex; do truex; done; echox after');
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /loop stopped after 10000 iterations/);
+    assert.equal(r.stdout, '');
+  });
+
+  test('control flow and command substitution', async () => {
+    const r = await h.run(
+      'for n in 1 2 3; do if [ $n -eq 2 ]; then continue; fi; echox "n=$(exprx $n + 10)"; done'
+    );
+    assert.equal(r.status, 0);
+    assert.equal(r.stdout, 'n=11\nn=13\n');
+  });
+
   test('filling the filesystem fails cleanly', async () => {
     const r = await h.run('yesx > big');
     assert.equal(r.status, 1);

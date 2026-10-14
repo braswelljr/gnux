@@ -272,10 +272,18 @@ fresh instance without downloading again. The only network requests are for thes
   lays the terminal over the page with `position: fixed`, so it works where the Fullscreen API
   does not. Esc, the title-bar button or `/fullscreen` leaves it.
 - **A command that never returns** cannot be interrupted, since a WebAssembly call holds the
-  thread. While one runs, Esc or Ctrl+C in the prompt calls `reset()`.
+  thread. While one runs, Esc or Ctrl+C in the prompt calls `reset()`. A loop is the one such
+  command a visitor can write in the shell itself, so `tools/wasm` sets `Shell.LoopLimit`
+  (`loopLimit`, 10000 turns): `while truex; do truex; done` ends with
+  `gnux: loop stopped after 10000 iterations`.
 - **Completion** (`complete.ts`) completes command names (the tools plus the builtins) in
   command position and file names from the `MemFS` elsewhere, escaping special characters with
   a backslash.
+- **The home page's terminal** is a second, smaller host of the same session. Its animation is
+  a picture, but once a visitor takes the keyboard (`HeroStage`, `components/home`),
+  `useGnux(taken)` boots gnux exactly as the playground does and `HeroSession` runs each
+  entered line through `useTerminal`. `useGnux(false)` downloads nothing, so a visitor who never
+  takes the keyboard never fetches the module.
 - **A command in the URL** (`?cmd=...`) is sanitized to one printable line of at most 500
   characters and placed in the prompt. It is never run on arrival, because anyone can write a
   link.

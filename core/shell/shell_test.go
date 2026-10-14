@@ -18,9 +18,10 @@ import (
 )
 
 // fakeExec is a tiny command set that lets the interpreter be tested without
-// the real tools: echo, cat, upper (stdin upper-cased), fail (status 3), args
-// (one argument per line), exists (is the path there?) and spam (writes until
-// the pipe closes).
+// the real tools: echo, cat, upper (stdin upper-cased), fail (status 3), true,
+// eq (are the two arguments equal?), test (A = B only), args (one bracketed
+// argument per line), lines (one per line, bare), exists (is the path there?)
+// and spam (writes until the pipe closes).
 func fakeExec(name string, args []string, s core.Streams) (int, bool) {
 	switch name {
 	case "echo":
@@ -57,6 +58,19 @@ func fakeExec(name string, args []string, s core.Streams) (int, bool) {
 		fmt.Fprintln(s.Out, "out")
 	case "fail":
 		return 3, true
+	case "true":
+	case "eq", "test":
+		// eq A B, and test A = B: the one test the fake set knows.
+		if name == "test" && len(args) == 3 && args[1] == "=" {
+			args = []string{args[0], args[2]}
+		}
+		if len(args) != 2 || args[0] != args[1] {
+			return 1, true
+		}
+	case "lines":
+		for _, a := range args {
+			fmt.Fprintln(s.Out, a)
+		}
 	case "pwd":
 		wd, _ := os.Getwd()
 		fmt.Fprintln(s.Out, wd)

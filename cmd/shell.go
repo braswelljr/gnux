@@ -41,28 +41,50 @@ func ShellSpec() tool.Spec {
 			SeeAlso: []string{"envx", "truex", "falsex", "echox"},
 			ExitStatus: []docmeta.Status{
 				{Code: "N", Meaning: "the exit status of the last command run"},
-				{Code: "1", Meaning: "a redirection could not be opened (that command is not run)"},
+				{Code: "1", Meaning: "a redirection could not be opened (that command is not run), or with -u a variable was not set"},
 				{Code: "2", Meaning: "a syntax error, exit with a non-numeric argument, or a command-line mistake"},
 				{Code: "127", Meaning: "an unknown command, or a SCRIPT that cannot be opened"},
 			},
-			Use:   "shell [OPTION]... [SCRIPT]",
+			Use:   "shell [OPTION]... [SCRIPT [ARG]...]",
 			Short: "Run a portable shell whose commands are the gnux tools.",
 			Long: "gnux shell is a small command interpreter whose commands are the gnux tools, " +
 				"run inside the gnux process. Because nothing in it depends on the system's own " +
 				"shell or utilities, the same script behaves identically on Linux, macOS and " +
 				"Windows. With no SCRIPT it reads commands from standard input, prompting when " +
-				"that is a terminal; with -c it runs the given string.\n\n" +
+				"that is a terminal; with -c it runs the given string. The ARGs after SCRIPT are " +
+				"its arguments ($1, $2, ... and \"$@\"); after -c STRING, the first one is $0 and " +
+				"the rest are the arguments. Options are read only before SCRIPT, so everything " +
+				"after it reaches the script.\n\n" +
 				"The language is a deliberately small subset of POSIX sh: pipelines (a | b), the " +
-				"&&, || and ; connectors, redirection (<, >, >>, and 2> for standard error; " +
-				"/dev/null discards on every platform), NAME=value variables with " +
-				"$NAME, ${NAME}, $? and $PWD expansion, single and double quotes, globbing (*, ?, " +
-				"[...]), ~ for the home directory and # comments. The builtins are cd, exit and " +
-				"help. Tools answer to both names, so rm and rmx are the same command. There are " +
-				"no loops, functions or conditionals beyond && and ||, and a variable's value is " +
-				"never re-split, so paths with spaces need no quoting once stored. External " +
-				"programs are not looked up; run one through the env tool (envx PROGRAM ARG...).\n\n" +
+				"&&, || and ; connectors, ! to invert a status, redirection (<, >, >>, and 2> for " +
+				"standard error; /dev/null discards on every platform), NAME=value variables with " +
+				"$NAME, ${NAME}, ${NAME:-default}, $? and $PWD expansion, the arguments $1 to $9, " +
+				"${10}, $#, $0, $@ and $*, command substitution $(command), single and double " +
+				"quotes, globbing (*, ?, [...]), ~ for the home directory and # comments. Control " +
+				"flow is if/then/elif/else/fi, for NAME in WORD...; do ...; done (over the " +
+				"arguments when 'in' is left out), while ...; do ...; done and case WORD in " +
+				"PATTERN | PATTERN) ... ;; esac, each over as many lines as it needs. The builtins " +
+				"are cd, exit, help, set (-e, -u, +e, +u, -- ARG...), shift, break, continue and " +
+				"[ (the test tool, written [ EXPRESSION ]). Tools answer to both names, so rm and " +
+				"rmx are the same command. External programs are not looked up; run one through " +
+				"the env tool (envx PROGRAM ARG...).\n\n" +
+				"It is not a full sh. There are no functions, no arithmetic (use exprx), no " +
+				"until, no here-documents, no backquotes, no ( ) or { } grouping and no " +
+				"background jobs. A quoted string does not span lines, a backslash does not " +
+				"join lines, and a line that ends in |, && or || is an error. A pipeline can " +
+				"hold one if, for, while or case, which runs as a subshell there.\n\n" +
+				"Two things differ from sh on purpose. A variable's value is never re-split or " +
+				"re-globbed, so a path with spaces needs no quoting once stored; for the same " +
+				"reason an unquoted $(command) becomes one word per line of output, never one " +
+				"per space, and a quoted one a single word. And NAME=value before a command " +
+				"sets the variable for the rest of the script, not just for that command. A " +
+				"$(command) runs as a subshell: what it sets, and a cd it makes, end with it.\n\n" +
 				"The exit status is that of the last command run, 2 for a syntax error, and 127 " +
-				"for an unknown command. With -e the script stops at the first failing command.",
+				"for an unknown command. With -e the script stops at the first failing command, " +
+				"except one whose status is tested: by &&, || or !, or as the condition of an if " +
+				"or a while. With -u, expanding a variable that is not set is an error that " +
+				"stops the script with status 1; ${NAME:-default} reads one that may be missing. " +
+				"An environment variable that is set but empty counts as unset.",
 			Permissions: "The shell itself needs only read access to SCRIPT. Each command it " +
 				"runs needs whatever its tool needs; redirection creates files with mode 0644 " +
 				"(before the umask).",
@@ -88,6 +110,21 @@ func ShellSpec() tool.Spec {
 					PowerShell:  "gnux shell -e build.gnux",
 				},
 				{
+					Description: "Run a script with arguments, refusing unset variables:",
+					Bash:        "gnux shell -eu release.gnux v1.2.3 dist",
+					PowerShell:  "gnux shell -eu release.gnux v1.2.3 dist",
+				},
+				{
+					Description: "Loop over files and branch on each:",
+					Bash:        "gnux shell -c 'for f in *.txt; do if grepx -q TODO \"$f\"; then echox \"$f\"; fi; done'",
+					PowerShell:  "gnux shell -c 'for f in *.txt; do if grepx -q TODO $f; then echox $f; fi; done'",
+				},
+				{
+					Description: "Use a command's output:",
+					Bash:        "gnux shell -c 'mkdirx -p \"build/$(unamex -s)\"'",
+					PowerShell:  "gnux shell -c 'mkdirx -p build/$(unamex -s)'",
+				},
+				{
 					Description: "Pipe a script in:",
 					Bash:        "echo 'catx *.log | wcx -l' | gnux shell",
 					PowerShell:  "'catx *.log | wcx -l' | gnux shell",
@@ -97,29 +134,33 @@ func ShellSpec() tool.Spec {
 		Flags: func(fs *pflag.FlagSet) {
 			fs.StringP("command", "c", "", "run the commands in `STRING` instead of reading a script")
 			fs.BoolP("errexit", "e", false, "exit at the first command that fails")
+			fs.BoolP("nounset", "u", false, "treat expanding an unset variable as an error")
 		},
-		Run:       runShell,
-		UsageExit: 2,
+		Run: runShell,
+		// Options stop at SCRIPT: what follows it belongs to the script.
+		NoInterspersed: true,
+		UsageExit:      2,
 	}
 }
 
 func runShell(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	opts := shell.Options{}
 	opts.ErrExit, _ = fs.GetBool("errexit")
+	opts.NoUnset, _ = fs.GetBool("nounset")
 
+	// name is $0 and params are $1, $2, ...
+	name, params := shell.Name, []string(nil)
 	var script io.Reader
 	switch {
 	case fs.Changed("command"):
-		if len(args) > 0 {
-			return core.Usagef("extra operand '%s'", args[0])
-		}
 		command, _ := fs.GetString("command")
 		script = strings.NewReader(command)
+		// As in sh, the first operand after -c STRING names the script.
+		if len(args) > 0 {
+			name, params = args[0], args[1:]
+		}
 
-	case len(args) > 1:
-		return core.Usagef("extra operand '%s'", args[1])
-
-	case len(args) == 1:
+	case len(args) > 0:
 		f, err := os.Open(args[0])
 		if err != nil {
 			diag := core.NewDiag(shell.Name, s)
@@ -128,11 +169,14 @@ func runShell(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		}
 		defer f.Close()
 		script = f
+		name, params = args[0], args[1:]
 
 	default:
 		script = s.In
 		opts.Interactive = core.IsTerminal(s.In)
 	}
 
-	return NewShell(opts, s).Run(script)
+	sh := NewShell(opts, s)
+	sh.SetArgs(name, params)
+	return sh.Run(script)
 }

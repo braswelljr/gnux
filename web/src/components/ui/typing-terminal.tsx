@@ -27,10 +27,15 @@ type TypingTerminalProps = {
    * line, what they are typing, sits at a fresh prompt below it.
    */
   takenOver?: string;
+  /**
+   * What their own session has printed. While they have the keyboard it is
+   * shown in place of the animation, above the line they are typing.
+   */
+  scrollback?: ReactNode;
   className?: string;
   /** Classes for the window frame, such as dropping its border to fill a monitor's screen. */
   windowClassName?: string;
-  /** Sets the screen's height; older lines scroll off the top. */
+  /** Sets the screen's height; lines fill it from the top, and older ones scroll off the top. */
   screenClassName?: string;
 };
 
@@ -38,6 +43,8 @@ type TypingTerminalProps = {
  * A terminal that types real gnux commands and prints what they print. It is a
  * picture of a session, not a session: the window is hidden from assistive
  * technology and the same commands and output are given as text beside it.
+ * A caller that lets someone take the keyboard may pass their session's output
+ * as `scrollback`; the accessible terminal is the playground's.
  * It only runs while on screen, and under reduced motion it shows the finished
  * session and stays still.
  */
@@ -51,6 +58,7 @@ export function TypingTerminal({
   glow,
   onStroke,
   takenOver,
+  scrollback,
   className,
   windowClassName,
   screenClassName
@@ -81,33 +89,43 @@ export function TypingTerminal({
         className={windowClassName}
         data-paused={!inView}
       >
+        {/* Lines start at the top, as on a sheet of paper. Once they outgrow
+            the screen the newest stay in view and the oldest leave by the top:
+            a reversed column overflows upward, and the bottom margin takes the
+            spare room only while there is some. */}
         <div
           className={cn(
-            'flex h-40 flex-col justify-end overflow-hidden p-3 font-mono text-xs leading-relaxed sm:h-56 sm:p-4 sm:text-sm',
+            'flex h-40 flex-col-reverse overflow-hidden p-3 font-mono text-xs leading-relaxed sm:h-56 sm:p-4 sm:text-sm',
             screenClassName
           )}
         >
-          {shown.map((scene, i) => (
-            <div key={i}>
+          <div className="mb-auto">
+            {takenOver !== undefined && scrollback}
+            {(takenOver === undefined || scrollback === undefined) &&
+              shown.map((scene, i) => (
+                <div key={i}>
+                  <p className="break-words whitespace-pre-wrap">
+                    <span className="text-violet-700 select-none dark:text-violet-300">
+                      {prompt}{' '}
+                    </span>
+                    {scene.command}
+                    {scene.typing && takenOver === undefined && <Caret blinking={false} />}
+                  </p>
+                  {scene.output !== undefined && (
+                    <p className="break-words whitespace-pre-wrap text-fd-muted-foreground">
+                      {scene.output}
+                    </p>
+                  )}
+                </div>
+              ))}
+            {!typing && (
               <p className="break-words whitespace-pre-wrap">
                 <span className="text-violet-700 select-none dark:text-violet-300">{prompt} </span>
-                {scene.command}
-                {scene.typing && takenOver === undefined && <Caret blinking={false} />}
+                {takenOver}
+                <Caret blinking={!takenOver} />
               </p>
-              {scene.output !== undefined && (
-                <p className="break-words whitespace-pre-wrap text-fd-muted-foreground">
-                  {scene.output}
-                </p>
-              )}
-            </div>
-          ))}
-          {!typing && (
-            <p className="break-words whitespace-pre-wrap">
-              <span className="text-violet-700 select-none dark:text-violet-300">{prompt} </span>
-              {takenOver}
-              <Caret blinking={!takenOver} />
-            </p>
-          )}
+            )}
+          </div>
         </div>
       </TerminalWindow>
       <ol className="sr-only">

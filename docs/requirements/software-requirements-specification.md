@@ -267,7 +267,7 @@ with their rationale, acceptance criteria and verification, are in
 | 4.2 The 29 tools                          | FR-51 to FR-72, FR-88 to FR-94                          |
 | 4.3 Safeguards on destructive operations  | FR-12 to FR-16                                          |
 | 4.4 Invocation and multi-call dispatch    | FR-17 to FR-22, FR-75, FR-76, FR-87, FR-95              |
-| 4.5 The portable shell                    | FR-23 to FR-29, FR-77 to FR-79                          |
+| 4.5 The portable shell                    | FR-23 to FR-29, FR-77 to FR-79, FR-152 to FR-155        |
 | 4.6 The Go library                        | FR-30 to FR-35, FR-80, FR-81                            |
 | 4.7 Installation and distribution         | FR-36 to FR-38                                          |
 | 4.8 Documentation generation              | FR-39 to FR-44, FR-82, FR-83                            |
@@ -383,7 +383,7 @@ them. "Review" means a person checks it and nothing fails automatically.
 | BR-2 no platform differences      | FR-29, FR-76                                         | NFR-1 to NFR-6                              | Test workflow on three operating systems; Build workflow; `TestErrText`                        |
 | BR-3 adoptable in one step        | FR-17 to FR-22, FR-36 to FR-38                       | NFR-2, NFR-20, NFR-21                       | Build workflow; smoke test in the Test workflow; review of the installers                      |
 | BR-4 useful to programs           | FR-30 to FR-35, FR-80, FR-81                         | NFR-16, NFR-30, NFR-36, NFR-39              | Engine suites; `core/rm/example_test.go`; `cmd/shell_test.go`                                  |
-| BR-5 portable automation          | FR-23 to FR-29, FR-77 to FR-79                       | NFR-18                                      | `core/shell/shell_test.go`; `cmd/shell_test.go`                                                |
+| BR-5 portable automation          | FR-23 to FR-29, FR-77 to FR-79, FR-152 to FR-155     | NFR-18                                      | `core/shell/*_test.go`; `cmd/shell_test.go`                                                    |
 | BR-6 easy to evaluate and learn   | FR-39, FR-40, FR-44 to FR-48, FR-84, FR-85           | NFR-11, NFR-19, NFR-24, NFR-33              | Web workflow; `web/test/*.test.ts`; accessibility by review only                               |
 | BR-7 discoverable                 | FR-49, FR-50, FR-86                                  | NFR-34, NFR-35                              | Web workflow builds the routes; content by review                                              |
 | BR-8 safe with destructive work   | FR-9, FR-12 to FR-16, FR-73                          | NFR-12 to NFR-14, NFR-36                    | `core/rm`, `core/cp`, `core/mv`, `core/ln` suites; adapter precedence tests                    |

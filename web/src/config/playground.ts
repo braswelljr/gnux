@@ -62,8 +62,18 @@ export const examples: PlaygroundExample[] = [
     needs: ['basenamex', 'dirnamex']
   },
   { label: 'The environment', command: 'envx', needs: ['envx'] },
+  {
+    label: 'Loop over files',
+    command: 'for f in notes/*.txt; do echox "$(wcx -l < $f) $f"; done',
+    needs: ['echox', 'wcx']
+  },
+  {
+    label: 'Branch on a test',
+    command: 'if [ -d logs ]; then echox "logs is a directory"; else echox "no logs"; fi',
+    needs: ['echox', 'testx']
+  },
   { label: 'Shell syntax', command: 'help', needs: [] }
 ];
 
 /** Shell builtins, plus the playground's own `clear`, for tab completion. `/` commands complete on their own. */
-export const builtins = ['cd', 'exit', 'help', 'clear'];
+export const builtins = ['cd', 'exit', 'help', 'set', 'shift', 'break', 'continue', 'clear'];

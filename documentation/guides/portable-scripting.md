@@ -1,6 +1,6 @@
 # Portable scripting
 
-How to write scripts with `gnux shell`, the small interpreter whose commands are the gnux tools run inside the gnux process: the language subset it understands (variables, quoting, globbing, redirection, pipelines and the `&&`, `||` and `;` connectors), running scripts with `-e`, `-c`, files and standard input, exit statuses, `cd`, the deliberate differences from POSIX sh, and reaching external programs through `envx`. It ends with four complete, tested scripts (a project scaffold, a build-output cleanup, log rotation and release staging) that run unchanged on Linux, macOS and Windows, because nothing in them depends on the machine's own shell or utilities.
+How to write scripts with `gnux shell`, the small interpreter whose commands are the gnux tools run inside the gnux process: the language subset it understands (variables, script arguments, quoting, globbing, command substitution, redirection, pipelines, the `&&`, `||` and `;` connectors, and `if`, `for`, `while` and `case`), running scripts with `-e`, `-u`, `-c`, files and standard input, exit statuses, `cd`, the deliberate differences from POSIX sh, and reaching external programs through `envx`. It ends with complete, tested scripts (a project scaffold, a build-output cleanup, log rotation, release staging and a source tree check) that run unchanged on Linux, macOS and Windows, because nothing in them depends on the machine's own shell or utilities.
 
 ## Why a gnux script
 
@@ -18,6 +18,8 @@ The same file serves a developer laptop and every CI runner.
 gnux shell                          # interactive session (prompt: gnux> )
 gnux shell build.gnux               # run a script file
 gnux shell -e build.gnux            # ... stopping at the first failing command
+gnux shell -eu build.gnux           # ... and refusing a variable that was never set
+gnux shell -eu release.gnux v1.4.0  # arguments after the script are $1, $2, ...
 gnux shell -c 'lsx -l | wcx -l'     # run a one-liner
 gnux shell -e -c 'mkdirx -p dist && cpx -r assets dist/'
 echo 'pwdx' | gnux shell            # read the script from standard input
@@ -34,7 +36,7 @@ The file extension does not matter; `.gnux` is a convention that tells readers w
 On Linux and macOS a script can be made executable with a shebang. Because the first line starts with `#`, it is also an ordinary comment to gnux:
 
 ```bash
-#!/usr/bin/env -S gnux shell -e
+#!/usr/bin/env -S gnux shell -eu
 echox from shebang
 ```
 
@@ -50,22 +52,33 @@ gnux shell - commands are the gnux tools, run in-process.
   command arg...            run a tool (rmx or rm, lsx or ls, ...) or a builtin
   a | b                     pipe a's output into b
   a && b    a || b    a; b  run b on success / on failure / always
+  ! a                       invert a's exit status
   cmd < in > out >> log     redirect standard input and output
   cmd 2> errs               redirect standard error; /dev/null discards
   NAME=value                set a variable;  $NAME  ${NAME}  $?  $PWD  expand one
+  ${NAME:-default}          a default for an unset or empty variable
+  $1 $2 ...  $#  "$@"       the script's arguments, their count, all of them
+  $(command)                the output of a command; unquoted, one word per line
   'literal'  "with $vars"   quoting; \ escapes a special character
   *.go  file?.txt  [a-c]*   globbing;  ~  is the home directory
   # comment
 
-Builtins: cd [DIR], exit [STATUS], help.
-Run 'TOOL --help' for a tool's options. To run an external program: envx PROGRAM ARG...
+  if a; then b; elif c; then d; else e; fi
+  for NAME in word...; do a; done
+  while a; do b; done
+  case word in pattern | pattern) a ;; *) b ;; esac
+
+Builtins: cd [DIR], exit [STATUS], help [TOOL [OPTION]].
+          set -e | -u | -- ARG..., shift [N], break [N], continue [N], [ TEST ].
+Run 'TOOL --help' for a tool's options, 'help TOOL' for its full manual and
+'help TOOL OPTION' for one option. To run an external program: envx PROGRAM ARG...
 ```
 
 ## The language
 
 ### Commands
 
-A command is a tool, by its gnux name or its GNU name, or one of the builtins `cd`, `exit` and `help`. `rm` and `rmx` are the same command inside the shell, so scripts can read like ordinary shell scripts:
+A command is a tool, by its gnux name or its GNU name, or one of the [builtins](#builtins). `rm` and `rmx` are the same command inside the shell, so scripts can read like ordinary shell scripts:
 
 ```bash
 rm -rf dist && mkdir -p dist/logs
@@ -93,7 +106,43 @@ dist/my-service my-service_v2 my-service.log my-service-x
 - `$NAME` and `${NAME}` expand a variable; use braces when letters follow (`${NAME}_v2`).
 - `$?` is the status of the last command, `$PWD` the working directory.
 - A name not set in the script is looked up in the environment, so `$HOME`, `$PATH` and CI variables such as `$GITHUB_SHA` work.
-- An unset variable expands to nothing.
+- An unset variable expands to nothing, unless the script runs with `-u`, which makes it an error (see [Refusing unset variables with `-u`](#refusing-unset-variables-with--u)).
+- `${NAME:-default}` is the variable, or `default` when it is unset or empty: `OUT=${OUT:-dist}`.
+
+### Script arguments
+
+What follows the script on the command line reaches it as `$1`, `$2` and so on:
+
+```bash
+gnux shell -c 'echox $1 and $2 of $#: "$@"' name 'a b' c
+```
+
+```text
+a b and c of 2: a b c
+```
+
+- `$1` to `$9` and `${10}` onward are the arguments, `$#` how many there are and `$0` the script's name. After `-c STRING`, the first operand is `$0`, as in sh.
+- `"$@"` is all of them, one word each, which is how a script hands its arguments to a tool: `rmx -v "$@"`. `$*` is all of them joined by spaces into one word.
+- `shift` drops `$1` and moves the rest down (`shift 2` drops two); `set -- a b` replaces them.
+- Options are read only before the script, so `gnux shell build.gnux -v` passes `-v` to the script.
+
+### Command substitution
+
+`$(command)` runs the command and stands for what it printed, without the trailing newline:
+
+```bash
+VERSION=$(catx VERSION)
+mkdirx -p "build/$(unamex -s)"
+echox "$(wcx -l < notes.txt) lines"
+```
+
+Unquoted, the output becomes one word per line, never one per space, so file names with spaces survive:
+
+```bash
+for f in $(findx . -name '*.log'); do rmx -v "$f"; done
+```
+
+Inside double quotes it is always a single word, line breaks included. It runs as a subshell: variables it sets, and a `cd` it makes, end with it, so `ROOT=$(cd .. && pwdx)` leaves the script where it was. `X=$(command)` has the command's exit status, so `-e` stops on a failed one.
 
 ### Quoting
 
@@ -121,7 +170,7 @@ echox C:\tools\bin
 C:\tools\bin
 ```
 
-A quoted string cannot span lines: each line is parsed on its own, so an unterminated quote is a syntax error.
+A quoted string cannot span lines, so an unterminated quote is a syntax error on the line it is on, not a mystery further down. For the same reason a backslash at the end of a line does not join it to the next.
 
 ### Globbing and `~`
 
@@ -141,6 +190,61 @@ mkdirx -p dist && cpx -r assets dist/      # second only if the first succeeds
 catx config.local || cpx config.default config.local   # second only if the first fails
 echox one; echox two                       # always both
 ```
+
+A line that ends in `&&`, `||` or `|` is a syntax error: the command it connects to goes on the same line.
+
+### Conditions: `if`
+
+```bash
+if grepx -q TODO main.go; then
+  echox "main.go still has a TODO"
+elif [ -f main.go.bak ]; then
+  echox "a backup is lying around"
+else
+  echox clean
+fi
+```
+
+The condition is any command; its exit status decides. `[ ... ]` is the `testx` tool written the way scripts write it, so everything `testx` understands works: `[ -f FILE ]`, `[ -d DIR ]`, `[ -n "$X" ]`, `[ "$A" = "$B" ]`, `[ "$N" -lt 3 ]`. `!` inverts a status: `if ! [ -d dist ]; then mkdirx dist; fi`.
+
+`then`, `else`, `fi`, `do` and `done` go at the start of a command: after a newline or a `;`. Each construct may be written on one line or spread over many.
+
+### Loops: `for` and `while`
+
+```bash
+for os in linux darwin windows; do
+  mkdirx -p dist/$os
+done
+
+for f in *.tar.gz; do
+  sha256sumx "$f" > "$f.sha256"
+done
+
+for arg; do echox "argument: $arg"; done      # no 'in': the script's arguments
+```
+
+```bash
+N=0
+while [ $N -lt 3 ]; do
+  N=$(exprx $N + 1)
+  echox "attempt $N"
+done
+```
+
+`break` leaves the loop and `continue` starts its next turn; `break 2` and `continue 2` reach the loop outside. There is no arithmetic in the language itself: `exprx` does it. A loop can be redirected or piped as a whole (`for ...; done > out.txt`, `for ...; done | sortx`).
+
+### Choosing by pattern: `case`
+
+```bash
+case $(unamex -s) in
+  Linux)            EXT=so ;;
+  Darwin)           EXT=dylib ;;
+  MINGW* | Windows*) EXT=dll ;;
+  *)                echox "unsupported system" ; exit 1 ;;
+esac
+```
+
+The first pattern that matches wins. Patterns use `*`, `?` and `[...]` as globbing does, except that `*` also matches a `/`; `|` separates alternatives and `*` alone is the default. A quoted pattern, or one that comes from a variable, matches only itself.
 
 ### Redirection
 
@@ -190,9 +294,14 @@ mkdirx -p site   # idempotent
 |---------|--------------|
 | `cd [DIR]` | Change directory; with no argument, go home. `cd -` is not supported |
 | `exit [STATUS]` | Stop the script with STATUS, or with the last command's status |
-| `help` | Print the language summary |
+| `help [TOOL [OPTION]]` | Print the language summary, a tool's manual, or one option of it |
+| `set -e`, `set -u` | Turn on stopping at the first failure, and refusing unset variables; `+e` and `+u` turn them off |
+| `set -- ARG...` | Replace the script's arguments |
+| `shift [N]` | Drop the first N arguments (1 when absent) |
+| `break [N]`, `continue [N]` | Leave, or start the next turn of, the Nth enclosing loop |
+| `[ EXPRESSION ]` | Run `testx EXPRESSION` |
 
-`cd` changes the directory for the rest of the script and for every tool it runs. When the script ends, `gnux shell` restores the directory it started in. Inside a pipeline, `cd` and `exit` run as in a subshell and do not affect the script.
+`cd` changes the directory for the rest of the script and for every tool it runs. When the script ends, `gnux shell` restores the directory it started in. Inside a pipeline, these builtins run as in a subshell and do not affect the script; the same goes for an `if`, loop or `case` that is a stage of a pipeline, and for `$(...)`.
 
 ## Exit statuses
 
@@ -200,10 +309,11 @@ mkdirx -p site   # idempotent
 |-----------|--------|
 | Normal end | The last command's status |
 | `exit N` | N |
-| Syntax error (unterminated quote, dangling `&&`, redirection with no file) | 2, and a script stops |
+| Syntax error (unterminated quote, dangling `&&`, redirection with no file, an `if` without its `fi`) | 2, and a script stops |
+| An unset variable under `-u` | 1, and a script stops |
 | Unknown command | 127 |
 | The script file cannot be opened | 127 |
-| More than one script, or a script with `-c` | 2 |
+| An unknown option | 2 |
 
 ```bash
 gnux shell -c 'echox "unterminated'; echo $?
@@ -247,7 +357,7 @@ gnux shell -e -c 'falsex; echox after'; echo $?
 1
 ```
 
-A command whose status is tested by `&&` or `||` does not trigger `-e`, so failures you expect can be absorbed:
+A command whose status is tested does not trigger `-e`: one before `&&` or `||`, one after `!`, and the condition of an `if` or a `while`. So failures you expect can be absorbed:
 
 ```bash
 gnux shell -e -c 'falsex || echox recovered; echox after'
@@ -259,6 +369,23 @@ after
 ```
 
 The idiom `command || truex` marks a failure as acceptable, which the log rotation script below relies on.
+
+`set -e` turns it on from inside the script, which makes a script safe however it is started.
+
+## Refusing unset variables with `-u`
+
+A misspelled variable is the classic way for `rmx -rf $BUILD_DIR/` to become `rmx -rf /`. With `-u`, expanding a variable that was never set stops the script instead:
+
+```bash
+gnux shell -u -c 'echox $NOPE; echox after'; echo $?
+```
+
+```text
+gnux: NOPE: unbound variable
+1
+```
+
+`${NAME:-default}` reads a variable that may be missing, `$#` tells how many arguments there are, and `"$@"` is never an error. An environment variable that is set but empty counts as unset. Start scripts with `set -eu`, or run them with `gnux shell -eu`.
 
 ## Deliberate differences from sh
 
@@ -274,6 +401,8 @@ The shell is a portable subset, not a bash clone. The differences are few and on
   echox $F               # prints *.go, not the matching files
   ```
 
+- **An unquoted `$(command)` is split into lines, not words**, for the same reason: `for f in $(findx . -type f)` handles `my file.txt`. A quoted one is a single word.
+
 - **`NAME=value cmd` sets the variable for the rest of the script**, not only for `cmd`. As in sh, `$NAME` on the same line is expanded before the assignment happens:
 
   ```bash
@@ -283,7 +412,10 @@ The shell is a portable subset, not a bash clone. The differences are few and on
 
   To set an environment variable for one command, use `envx NAME=value command`.
 
-- **No loops, functions, `if`, `case`, command substitution or here-documents.** Conditionals are `&&` and `||`. A script that needs a loop is a sign that it belongs in a real programming language, or in a Go program using the [library](go-library.md).
+- **No functions, arithmetic, `until`, here-documents, backquotes, `( )` or `{ }` grouping, or background jobs.** `exprx` does arithmetic and `$(...)` replaces backquotes. A script that needs more than this belongs in a real programming language, or in a Go program using the [library](go-library.md).
+- **Parentheses are syntax.** Quote them where a tool expects them: `findx . '(' -name a -o -name b ')'`.
+- **A pipeline holds at most one `if`, loop or `case`**, and it runs there as a subshell: what it sets does not outlast the pipeline.
+- **Nothing spans lines except a construct that says so.** An `if`, loop, `case` or `$(...)` continues until it is closed; a quoted string, a trailing `|`, `&&` or `||`, and a trailing backslash do not.
 - **No external programs by name.** Only tools and builtins are commands. See the next section.
 - **Diagnostics name the shell `gnux`**, as in `gnux: frob: command not found`.
 
@@ -492,6 +624,53 @@ drwxr-xr-x 6 alice staff 192 Oct 11 18:55 myapp-1.4.0
 
 On Windows, `lnx -s` needs Developer Mode or an elevated prompt; on a runner without either, replace that line with `cpx -r $OUT dist/latest`.
 
+### Source tree check
+
+Walks a directory, sorts each file into a kind by its name, and fails when any Go file still carries a TODO. It takes the directory as an optional argument and is written for `-eu`.
+
+```bash
+# check.gnux - report on each file under a directory.
+# Usage: gnux shell -eu check.gnux [DIR]
+DIR=${1:-src}
+
+if ! [ -d "$DIR" ]; then
+  echox "check: $DIR: not a directory"
+  exit 1
+fi
+
+todo=0
+for f in $(findx "$DIR" -type f | sortx); do
+  case $f in
+    *.go)
+      if grepx -q TODO "$f"; then
+        echox "todo   $f"
+        todo=$(exprx $todo + 1)
+      else
+        echox "clean  $f"
+      fi
+      ;;
+    *.md | *.txt)
+      echox "doc    $f"
+      ;;
+    *)
+      echox "other  $f"
+      ;;
+  esac
+done
+
+echox "$todo file(s) with a TODO, on $(unamex -s)"
+[ "$todo" -eq 0 ]
+```
+
+```text
+todo   src/a.go
+clean  src/b.go
+doc    src/readme.txt
+1 file(s) with a TODO, on Darwin
+```
+
+The last line is the script's exit status: 1 here, because one file has a TODO.
+
 ### A pipeline-heavy report
 
 A shorter example that shows pipelines and redirection doing real work: a summary of a source tree written to a file.
@@ -510,11 +689,11 @@ catx $OUT
 
 ## Interactive use
 
-`gnux shell` with no arguments on a terminal is an interactive session with the prompt `gnux> `. A syntax error is reported and the session carries on; `exit` leaves it. It is a consistent shell for machines without the GNU tools installed: the same commands, flags and globbing on a Windows server as on a Linux laptop.
+`gnux shell` with no arguments on a terminal is an interactive session with the prompt `gnux> `. A syntax error is reported and the session carries on; `exit` leaves it. A command that is not finished yet (an `if` waiting for its `fi`, a loop for its `done`) is continued on the next line, at the prompt `> `. It is a consistent shell for machines without the GNU tools installed: the same commands, flags and globbing on a Windows server as on a Linux laptop.
 
 ## Embedding scripts in Go
 
-A Go program can run a script in-process with `cmd.NewShell(opts, streams).RunString(script)`, set variables with `Set` before running it, or drive the shell one line at a time with `Eval`. See [Go library](go-library.md) for complete programs.
+A Go program can run a script in-process with `cmd.NewShell(opts, streams).RunString(script)`, set variables with `Set` before running it, pass arguments with `SetArgs`, or drive the shell one command at a time with `Eval` (`shell.Incomplete` tells a line-based host whether a command needs another line). See [Go library](go-library.md) for complete programs.
 
 ## See also
 

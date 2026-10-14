@@ -97,7 +97,7 @@ A filter calls it after each record it has written. When input is still buffered
 
 | Target                        | Package      | Input                                                       |
 |-------------------------------|--------------|-------------------------------------------------------------|
-| `FuzzParse`, `FuzzExpand`     | `core/shell` | A script line                                               |
+| `FuzzParse`, `FuzzRun`        | `core/shell` | A script                                                    |
 | `FuzzScript`                  | `core/sed`   | A sed script and its input, in both regular expression syntaxes |
 | `FuzzPattern`                 | `core/grep`  | A pattern, an input and a combination of options            |
 | `FuzzExpression`              | `core/find`  | A find expression, evaluated over a small tree              |

@@ -175,7 +175,7 @@ aurs:
     homepage: https://github.com/braswelljr/gnux
     description: GNU core utilities in one portable, multi-call binary
     maintainers:
-      - braswelljr <braswelljr at users dot noreply dot github dot com>
+      - braswelljr <github.com/braswelljr>
     license: MIT
     private_key: "{{ .Env.AUR_KEY }}"
     git_url: ssh://aur@aur.archlinux.org/gnux-bin.git
@@ -183,7 +183,7 @@ aurs:
     conflicts: [gnux]
     commit_author:
       name: braswelljr
-      email: braswelljr@users.noreply.github.com
+      email: braswellkenneth7@gmail.com
     # The archive unpacks into gnux-<tag>-linux-<arch>/.
     package: |-
       cd gnux-*/
@@ -208,7 +208,7 @@ homebrew_casks:
     commit_msg_template: "release: Homebrew cask for {{ .Tag }}"
     commit_author:
       name: braswelljr
-      email: braswelljr@users.noreply.github.com
+      email: braswellkenneth7@gmail.com
     homepage: https://github.com/braswelljr/gnux
     description: GNU core utilities in one portable, multi-call binary
     license: MIT
@@ -243,7 +243,7 @@ scoops:
     commit_msg_template: "release: Scoop manifest for {{ .Tag }}"
     commit_author:
       name: braswelljr
-      email: braswelljr@users.noreply.github.com
+      email: braswellkenneth7@gmail.com
     homepage: https://github.com/braswelljr/gnux
     description: GNU core utilities in one portable, multi-call binary
     license: MIT

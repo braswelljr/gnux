@@ -39,6 +39,9 @@ import (
 // the page; past the cap, writes fail like a closed pipe and the tool stops.
 const outputBudget = 1 << 20
 
+// loopLimit caps how many times one loop of a script may run its body.
+const loopLimit = 10000
+
 // output is the stdout/stderr pair handed to the shell, sharing one budget.
 type output struct {
 	api       js.Value
@@ -86,6 +89,10 @@ func main() {
 		shell.Options{Interactive: true},
 		core.Streams{In: strings.NewReader(""), Out: writer{out, 1}, Err: writer{out, 2}},
 	)
+
+	// Nothing can interrupt a script in a browser tab, so a loop that never
+	// ends is stopped here.
+	sh.LoopLimit = loopLimit
 
 	var tools []any
 	for _, t := range cmd.Tools() {

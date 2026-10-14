@@ -232,7 +232,7 @@ If a script uses one, the fix is usually simple: drop `--backup` and copy first 
 
 1. Call the x names (`rmx` for `rm`) where the script should run the same everywhere, or leave the names as they are and run the script with `gnux shell`, where both names work. The GNU tools on the machine are left untouched.
 2. Check every option against the "not implemented" table.
-3. If the script uses only pipelines, `&&`, `||`, `;`, redirection, variables and globs, it can run under `gnux shell` unchanged and becomes portable to Windows. Loops, functions, `if`, `case`, command substitution and here-documents are not part of the [gnux shell language](portable-scripting.md), so those scripts stay with bash, calling the x tools.
+3. If the script uses only pipelines, `&&`, `||`, `;`, redirection, variables, globs, `$(...)`, `if`, `for`, `while` and `case`, it can run under `gnux shell` and becomes portable to Windows. Check two things first: an unquoted `$(...)` is split into lines, not words, and a variable's value is never re-split. Functions, arithmetic (`$((...))`), `until`, here-documents, backquotes and `( )` grouping are not part of the [gnux shell language](portable-scripting.md), so those scripts stay with bash, calling the x tools.
 4. Calls to other programs (`git`, `go`, `make`) go through `envx` inside `gnux shell`: `envx git status`. `xargsx` and `findx -exec` also run a program when the command they are given is not a gnux tool.
 
 ## What is not in gnux yet

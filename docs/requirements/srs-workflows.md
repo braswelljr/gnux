@@ -109,7 +109,7 @@ and anything on standard error is a diagnostic prefixed with the tool's name.
 
 - **Actors.** A script or CI author.
 - **Preconditions.** The gnux binary on the machine. Nothing else.
-- **Exercises.** FR-23 to FR-29, FR-77 to FR-79, NFR-18.
+- **Exercises.** FR-23 to FR-29, FR-77 to FR-79, FR-152 to FR-155, NFR-18.
 
 **Steps.**
 
@@ -124,10 +124,19 @@ and anything on standard error is a diagnostic prefixed with the tool's name.
    cat $OUT/count.txt || echo "nothing built"
    ```
 
-2. Run it, stopping at the first failure.
+   It can branch, loop and take arguments:
 
    ```bash
-   gnux shell -e build.gnux
+   for f in "$@"; do
+     if [ -f "$f" ]; then cp "$f" $OUT/; else echo "skipped $f"; fi
+   done
+   ```
+
+2. Run it, stopping at the first failure and refusing a variable that was never set. What
+   follows the script is passed to it.
+
+   ```bash
+   gnux shell -eu build.gnux README.md LICENSE
    ```
 
 3. Or run a one-liner, pipe a script in, or start an interactive session.
@@ -146,7 +155,8 @@ and anything on standard error is a diagnostic prefixed with the tool's name.
 
 | What happens                                          | Status | Why                                                                    |
 |-------------------------------------------------------|--------|------------------------------------------------------------------------|
-| `gnux: syntax error: ...`                             | 2      | An unterminated quote, a dangling `&&`, a redirection with no file name. A script stops; an interactive session carries on |
+| `gnux: syntax error: ...`                             | 2      | An unterminated quote, a dangling `&&`, a redirection with no file name, an `if` without its `fi`. A script stops; an interactive session carries on |
+| `gnux: NAME: unbound variable`                        | 1      | With `-u`, a variable nothing set. The script stops                    |
 | `gnux: NAME: command not found`                       | 127    | Not a builtin or a tool. External programs are run as `envx NAME ...`  |
 | `gnux: FILE: No such file or directory` at start      | 127    | The script file could not be opened                                    |
 | `gnux shell: extra operand 'b'`, then the hint        | 2      | More than one script, or a script together with `-c`                   |

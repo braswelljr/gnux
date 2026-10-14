@@ -14,13 +14,15 @@ export type GnuxState =
  *
  * `reset` throws the instance away, filesystem included, and boots a new one.
  * `generation` changes with every boot, so it can key the UI that holds
- * per-session state.
+ * per-session state. With `enabled` false nothing is downloaded and the state
+ * stays `loading`: a page where gnux is an extra turns it on when asked.
  */
-export function useGnux() {
+export function useGnux(enabled = true) {
   const [state, setState] = useState<GnuxState>({ status: 'loading' });
   const [generation, setGeneration] = useState(0);
 
   useEffect(() => {
+    if (!enabled) return;
     let cancelled = false;
     let current: GnuxSession | undefined;
 
@@ -46,7 +48,7 @@ export function useGnux() {
       cancelled = true;
       current?.dispose();
     };
-  }, [generation]);
+  }, [generation, enabled]);
 
   const reset = useCallback(() => {
     setState({ status: 'loading' });

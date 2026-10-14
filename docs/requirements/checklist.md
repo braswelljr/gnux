@@ -137,7 +137,9 @@ findutils.
 
 ## 5. Language and website
 
-- [ ] Shell language growth (`if`, `for`, functions, `$(...)`): a deliberate decision first,
-  since the shell is a small portable subset by design
+- [x] Shell control flow and command substitution: `if`, `for`, `while`, `case`, `$(...)`,
+  script arguments and `-u` (FR-152 to FR-155)
+- [ ] Shell functions and arithmetic: a deliberate decision first, since the shell is a small
+  portable subset by design
 - [x] `llms.txt` and `llms-full.txt` on the website (`web/src/app/llms*.txt`)
 - [ ] A plain markdown copy of every documentation page (`/docs/<page>.md`) for agents
