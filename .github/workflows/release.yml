@@ -347,7 +347,7 @@ jobs:
             type=raw,value=scratch,suffix=,enable=${{ !contains(github.ref_name, '-') }}
 
       - name: Build and push the Alpine image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -357,7 +357,7 @@ jobs:
           labels: ${{ steps.alpine.outputs.labels }}
 
       - name: Build and push the scratch image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           target: scratch
