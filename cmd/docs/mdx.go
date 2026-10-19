@@ -25,21 +25,26 @@ import (
 //	dir/guide.mdx          requirements, installation, usage, workflows
 //	dir/library.mdx        using the engines from Go
 //	dir/shell.mdx          the gnux shell
-//	dir/tools/<tool>/index.mdx    one page per tool
+//	dir/mcp.mdx            gnux mcp, the MCP server
+//	dir/tools/<tool>/index.mdx    one page per tool that has options
 //	dir/tools/<tool>/<flag>.mdx   one page per option, with its usage and examples
+//	dir/tools/<tool>.mdx          the page of a tool without options
 //	dir/meta.json, dir/tools/meta.json, dir/tools/<tool>/meta.json   navigation order
 //
 // In the sidebar the tools sit under a "Tools" heading rather than inside a
-// collapsible folder; each tool is a folder whose children are its options.
+// collapsible folder; a tool with options is a folder whose children are its
+// options, and a tool without any is a plain page, so the sidebar never shows
+// a folder with nothing in it. Both are served at /docs/tools/<tool>.
 //
 // extra pages are hand-written markdown (see HandwrittenPages): they are added
 // after the generated ones, each in the folder its Dir names.
 //
-// The directory is rebuilt from scratch. Pages carry title/description
+// The directory is rebuilt from scratch, but for the release snapshots in it
+// (v1.1/, see VersionDir), which tools/docsnap writes. Pages carry title/description
 // frontmatter and use only standard markdown, so they need no custom
 // components.
 func GenerateMDX(dir string, extra ...Page) error {
-	if err := os.RemoveAll(dir); err != nil {
+	if err := clearKeepingVersions(dir); err != nil {
 		return fmt.Errorf("clear docs dir %q: %w", dir, err)
 	}
 	discard := core.Discard()
@@ -55,6 +60,8 @@ func GenerateMDX(dir string, extra ...Page) error {
 
 	sh := cmd.ShellSpec()
 	docs = append(docs, doc{"", "shell", "gnux shell", sh.Meta.Short, mdxTool(sh, sh.Command(discard).Flags(), nil)})
+	mcp := cmd.MCPSpec()
+	docs = append(docs, doc{"", "mcp", "gnux mcp", mcp.Meta.Short, mdxTool(mcp, mcp.Command(discard).Flags(), nil)})
 
 	var names []string
 	toolFolders := map[string][]string{} // tool -> its option pages, in order
@@ -63,6 +70,10 @@ func GenerateMDX(dir string, extra ...Page) error {
 		sub := filepath.Join("tools", t.Name())
 		flags := t.Command(discard).Flags()
 		options := flagPages(t, flags)
+		if len(options) == 0 {
+			docs = append(docs, doc{"tools", t.Name(), t.Name(), t.Meta.Short, mdxTool(t, flags, options)})
+			continue
+		}
 		docs = append(docs, doc{sub, "index", t.Name(), t.Meta.Short, mdxTool(t, flags, options)})
 		toolFolders[t.Name()] = []string{}
 		for _, o := range options {
@@ -76,7 +87,7 @@ func GenerateMDX(dir string, extra ...Page) error {
 	// folder. The hand-written folders (the guides) come first, each page named
 	// by its path so the folder's landing page is not repeated under a heading
 	// of its own name; then the tools, laid out with "...tools".
-	order := []string{"index", "guide", "shell", "library"}
+	order := []string{"index", "guide", "shell", "mcp", "library"}
 	var sections []string            // extra folders, in order of first appearance
 	folders := map[string][]string{} // extra folder -> its pages, in order
 	for _, e := range extra {
@@ -134,6 +145,31 @@ func GenerateMDX(dir string, extra ...Page) error {
 		}
 	}
 	return writeMeta(filepath.Join(dir, "tools"), "Tools", names)
+}
+
+// VersionDir matches the folder of a release's snapshot (v1.1): the docs of
+// that version as it shipped, which tools/docsnap writes and GenerateMDX keeps.
+var VersionDir = regexp.MustCompile(`^v[0-9]+\.[0-9]+$`)
+
+// clearKeepingVersions empties dir for a fresh generation, but for the
+// release snapshots in it.
+func clearKeepingVersions(dir string) error {
+	entries, err := os.ReadDir(dir)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	for _, e := range entries {
+		if e.IsDir() && VersionDir.MatchString(e.Name()) {
+			continue
+		}
+		if err := os.RemoveAll(filepath.Join(dir, e.Name())); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // writeMeta writes a Fumadocs meta.json fixing a folder's title and page order.
@@ -276,7 +312,7 @@ const mdxLibrary = `gnux is a Go module as well as a binary. Everything the comm
 
 ## Requirements
 
-A Go module on Go 1.25 or newer. The engines depend only on the standard library and ` + "`github.com/mattn/go-isatty`" + `; cobra is compiled only into the command-line packages under ` + "`cmd/`" + `.
+A Go module on Go 1.26 or newer. The engines depend only on the standard library and ` + "`github.com/mattn/go-isatty`" + `; cobra is compiled only into the command-line packages under ` + "`cmd/`" + `.
 
 ` + "```bash" + `
 go get github.com/braswelljr/gnux

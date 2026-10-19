@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/run"
 )
@@ -70,7 +72,7 @@ func newRunner(x *Xargs) *runner {
 	// there is one: a child process inherits it directly.
 	r.stdin = r.streams.In
 	r.streams.In = emptyReader{}
-	if f, err := os.Open(os.DevNull); err == nil {
+	if f, err := fsys.Open(os.DevNull); err == nil {
 		r.null, r.streams.In = f, f
 	}
 	return r
@@ -241,7 +243,7 @@ func (r *runner) ask(command string) (bool, error) {
 		return r.x.PromptFn(command), nil
 	}
 	if r.tty == nil {
-		f, err := os.Open(ttyName)
+		f, err := fsys.Open(ttyName)
 		if err != nil {
 			return false, err
 		}

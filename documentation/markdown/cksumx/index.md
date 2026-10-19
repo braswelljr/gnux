@@ -17,7 +17,7 @@ cksumx [OPTION]... [FILE]...
 
 ### Description
 
-`cksumx` prints a checksum and the byte count of each FILE. With no FILE, or when FILE is -, it reads standard input (and, with no FILE at all, prints no name). By default it computes the POSIX CRC (the 'crc' algorithm), as plain `cksum` always has. `-a` ALGORITHM picks another: sysv and bsd (the legacy `sum` checksums, with a block count rather than a byte count), crc32b (the CRC-32 of zlib and gzip), or the message digests md5, sha1, sha224, sha256, sha384, sha512 and blake2b. Digests are printed as BSD-style tagged lines ('SHA256 (FILE) = DIGEST'); `--untagged` prints them in the `md5sumx` style instead, and when both `--tag` and `--untagged` are given, `--tag` wins. --`base64` prints digests in `base64`, `--raw` writes the bare binary checksum of a single input, `-l` BITS shortens a blake2b digest, and `-z` ends lines with NUL. `-c` checks the files listed in tagged or untagged digest lines, detecting the algorithm from each tagged line when `-a` is not given, with `--ignore-missing`, `--quiet`, `--status`, `--strict` and `-w` as in `md5sumx`. The legacy algorithms cannot be checked. On Windows a backslash in a file name is the path separator, so it is not escaped as GNU escapes it on Unix; a name with a newline is still escaped.
+`cksumx` prints a checksum and the byte count of each FILE. With no FILE, or when FILE is -, it reads standard input (and, with no FILE at all, prints no name). By default it computes the POSIX CRC (the 'crc' algorithm), as plain `cksum` always has. `-a` ALGORITHM picks another: sysv and bsd (the legacy sum checksums, with a block count rather than a byte count), crc32b (the CRC-32 of zlib and gzip), or the message digests md5, sha1, sha224, sha256, sha384, sha512 and blake2b. Digests are printed as BSD-style tagged lines ('SHA256 (FILE) = DIGEST'); `--untagged` prints them in the `md5sumx` style instead, and when both `--tag` and `--untagged` are given, `--tag` wins. --`base64` prints digests in `base64`, `--raw` writes the bare binary checksum of a single input, `-l` BITS shortens a blake2b digest, and `-z` ends lines with NUL. `-c` checks the files listed in tagged or untagged digest lines, detecting the algorithm from each tagged line when `-a` is not given, with `--ignore-missing`, `--quiet`, `--status`, `--strict` and `-w` as in `md5sumx`. The legacy algorithms cannot be checked. On Windows a backslash in a file name is the path separator, so it is not escaped as GNU escapes it on Unix; a name with a newline is still escaped.
 
 ### Permissions
 
@@ -123,7 +123,7 @@ cksumx -a crc32b data.bin
 cksumx -a crc32b data.bin
 ```
 
-Print the legacy BSD `sum` checksum:
+Print the legacy BSD sum checksum:
 
 ```bash
 cksumx -a bsd file.txt

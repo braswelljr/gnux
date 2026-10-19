@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -695,7 +697,7 @@ func (f *Find) xtype(e *entry) byte {
 	if t&fs.ModeSymlink == 0 || f.follow == followAll {
 		return typeLetter(t)
 	}
-	info, err := os.Stat(e.path)
+	info, err := fsys.Stat(e.path)
 	if err != nil {
 		return 'l'
 	}
@@ -708,7 +710,7 @@ func (f *Find) linkTarget(e *entry) (string, bool) {
 	if e.follow || f.typeOf(e)&fs.ModeSymlink == 0 {
 		return "", false
 	}
-	target, err := os.Readlink(e.path)
+	target, err := fsys.Readlink(e.path)
 	if err != nil {
 		return "", false
 	}
@@ -736,7 +738,7 @@ func (f *Find) empty(e *entry) bool {
 
 // dirEmpty reports whether the directory at path has no entries.
 func dirEmpty(path string) (bool, error) {
-	d, err := os.Open(path)
+	d, err := fsys.Open(path)
 	if err != nil {
 		return false, err
 	}
@@ -893,7 +895,7 @@ func (f *Find) delete(e *entry) bool {
 	if baseName(e.path) == "." {
 		return true
 	}
-	err := os.Remove(e.path)
+	err := fsys.Remove(e.path)
 	if err == nil || (f.ignoreRace && os.IsNotExist(err)) {
 		return true
 	}

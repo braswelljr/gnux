@@ -67,6 +67,7 @@ SEE ALSO
 * `gnux ddx <ddx/index.rst>`_ 	 - Convert and copy a file, block by block.
 * `gnux dfx <dfx/index.rst>`_ 	 - Report file system space usage.
 * `gnux dirnamex <dirnamex/index.rst>`_ 	 - Strip the last component from file names.
+* `gnux dirx <dirx/index.rst>`_ 	 - List directory contents in columns, whether or not the output is a terminal.
 * `gnux dux <dux/index.rst>`_ 	 - Estimate file space usage.
 * `gnux echox <echox/index.rst>`_ 	 - Display a line of text.
 * `gnux envx <envx/index.rst>`_ 	 - Run a program in a modified environment, or print the environment.
@@ -78,6 +79,7 @@ SEE ALSO
 * `gnux fmtx <fmtx/index.rst>`_ 	 - Reformat each paragraph of text.
 * `gnux foldx <foldx/index.rst>`_ 	 - Wrap each input line to fit in a specified width.
 * `gnux grepx <grepx/index.rst>`_ 	 - Print the lines that match patterns.
+* `gnux groupsx <groupsx/index.rst>`_ 	 - Print the groups a user is in.
 * `gnux headx <headx/index.rst>`_ 	 - Print the first part of each file.
 * `gnux hostnamex <hostnamex/index.rst>`_ 	 - Print the name of the current host system.
 * `gnux idx <idx/index.rst>`_ 	 - Print real and effective user and group IDs.
@@ -86,7 +88,9 @@ SEE ALSO
 * `gnux killx <killx/index.rst>`_ 	 - Send a signal to processes, or list signals.
 * `gnux linkx <linkx/index.rst>`_ 	 - Call the link function to create a hard link to a file.
 * `gnux lnx <lnx/index.rst>`_ 	 - Make hard or symbolic links between files.
+* `gnux lognamex <lognamex/index.rst>`_ 	 - Print the user's login name.
 * `gnux lsx <lsx/index.rst>`_ 	 - List information about files and directory contents.
+* `gnux mcp <mcp/index.rst>`_ 	 - Serve the gnux tools to an AI agent over MCP, sandboxed to DIR.
 * `gnux md5sumx <md5sumx/index.rst>`_ 	 - Print or check MD5 (128-bit) checksums.
 * `gnux mkdirx <mkdirx/index.rst>`_ 	 - Create the DIRECTORY(ies), if they do not already exist.
 * `gnux mktempx <mktempx/index.rst>`_ 	 - Create a temporary file or directory, safely, and print its name.
@@ -134,6 +138,8 @@ SEE ALSO
 * `gnux uniqx <uniqx/index.rst>`_ 	 - Report or omit repeated lines.
 * `gnux unlinkx <unlinkx/index.rst>`_ 	 - Call the unlink function to remove the specified file.
 * `gnux uptimex <uptimex/index.rst>`_ 	 - Tell how long the system has been running.
+* `gnux usersx <usersx/index.rst>`_ 	 - Print the user names of users currently logged in to the current host.
+* `gnux vdirx <vdirx/index.rst>`_ 	 - List directory contents in the long format.
 * `gnux wcx <wcx/index.rst>`_ 	 - Print newline, word, and byte counts for each file.
 * `gnux whoamix <whoamix/index.rst>`_ 	 - Print the user name associated with the current effective user ID.
 * `gnux whox <whox/index.rst>`_ 	 - Show who is logged on.

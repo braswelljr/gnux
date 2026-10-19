@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -60,7 +62,7 @@ type Options struct {
 type Readlink struct {
 	Options
 
-	// Getwd anchors relative names; it defaults to os.Getwd.
+	// Getwd anchors relative names; it defaults to fsys.Getwd.
 	Getwd func() (string, error)
 
 	streams core.Streams
@@ -71,7 +73,7 @@ type Readlink struct {
 func New(opts Options, s core.Streams) *Readlink {
 	return &Readlink{
 		Options: opts,
-		Getwd:   os.Getwd,
+		Getwd:   fsys.Getwd,
 		streams: s,
 		diag:    core.NewDiag(Name, s),
 	}
@@ -103,7 +105,7 @@ func (r *Readlink) Run(args []string) error {
 			err   error
 		)
 		if r.Mode == ModeLink {
-			value, err = os.Readlink(name)
+			value, err = fsys.Readlink(name)
 		} else {
 			value, err = r.canonicalize(name)
 		}
@@ -133,8 +135,8 @@ func (r *Readlink) canonicalize(name string) (string, error) {
 	case filepath.IsAbs(abs):
 	case filepath.VolumeName(abs) != "" || os.IsPathSeparator(abs[0]):
 		// Windows names that are neither absolute nor relative to the working
-		// directory ("C:dir", "\dir"); filepath.Abs knows how to anchor them.
-		a, err := filepath.Abs(abs)
+		// directory ("C:dir", "\dir"); fsys.Abs knows how to anchor them.
+		a, err := fsys.Abs(abs)
 		if err != nil {
 			return "", err
 		}
@@ -164,7 +166,7 @@ func (r *Readlink) canonicalize(name string) (string, error) {
 			continue
 		}
 		next := filepath.Join(result, comp)
-		info, err := os.Lstat(next)
+		info, err := fsys.Lstat(next)
 		if err != nil {
 			if r.Mode == ModeMissing || (r.Mode == ModeFollow && len(pending) == 0 && errors.Is(err, fs.ErrNotExist)) {
 				result = next
@@ -177,7 +179,7 @@ func (r *Readlink) canonicalize(name string) (string, error) {
 			if links > maxLinks {
 				return "", errLoop
 			}
-			target, err := os.Readlink(next)
+			target, err := fsys.Readlink(next)
 			if err != nil {
 				return "", err
 			}

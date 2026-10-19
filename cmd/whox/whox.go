@@ -136,6 +136,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("writable", "w", false, "same as -T")
 	fs.Bool("message", false, "same as -T")
 	fs.BoolP("users", "u", false, "list users logged in")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "my-line")
 }
 
 // buildOptions folds the parsed flags into who.Options.

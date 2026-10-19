@@ -228,6 +228,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.Bool("show-limits", false, "show limits on command-line length")
 	fs.BoolP("verbose", "t", false, "print commands before executing them")
 	fs.BoolP("exit", "x", false, "exit if the size (see -s) is exceeded")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "eof-string", "max-input-lines", "replace-string")
 }
 
 // buildOptions folds the parsed flags into xargs.Options. GNU lets the last of
@@ -344,7 +347,7 @@ func parseArgs(args []string) (*pflag.FlagSet, error) {
 	fs.Bool("help", false, "")
 	fs.Bool("version", false, "")
 	Register(fs)
-	if err := fs.Parse(attachOptional(fs, args)); err != nil {
+	if err := tool.ParseFlagSet(fs, attachOptional(fs, args), true); err != nil {
 		return nil, core.Usagef("%v", err)
 	}
 	return fs, nil

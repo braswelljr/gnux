@@ -44,7 +44,7 @@ func Meta() docmeta.Meta {
 			"never reused. -u only prints a name that did not exist at the time, which is " +
 			"unsafe. -q suppresses the diagnostic when creation fails. -t is the deprecated " +
 			"form: TEMPLATE is a single name component under $TMPDIR, else -p DIR, else the " +
-			"temporary directory. -p and -t also answer to the gnux long names --dir and --in-tmpdir.",
+			"temporary directory. -p and -t also answer to the gnux long names --base-dir and --in-tmpdir.",
 		Permissions: "Needs write and search permission on the directory the name is " +
 			"created in. The new file is readable and writable by its owner only (600), and " +
 			"a new directory is accessible by its owner only (700), whatever the umask. On " +
@@ -86,8 +86,11 @@ func Register(fs *pflag.FlagSet) {
 	fs.String("suffix", "", "append `SUFF` to TEMPLATE; SUFF must not contain a slash")
 	fs.String("tmpdir", "", "interpret TEMPLATE relative to `DIR`; if DIR is not given, use $TMPDIR if set, else the temporary directory")
 	fs.Lookup("tmpdir").NoOptDefVal = defaultDir
-	fs.StringP("dir", "p", "", "use `DIR` as the directory, like --tmpdir=DIR")
+	fs.StringP("base-dir", "p", "", "use `DIR` as the directory, like --tmpdir=DIR")
 	fs.BoolP("in-tmpdir", "t", false, "interpret TEMPLATE as a single file name component, relative to $TMPDIR, else DIR (-p), else the temporary directory (deprecated)")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "base-dir", "in-tmpdir")
 }
 
 // buildOptions folds the parsed flags into mktemp.Options. -p and --tmpdir
@@ -108,8 +111,8 @@ func buildOptions(fs *pflag.FlagSet) mktemp.Options {
 			o.TmpDir = dir
 		}
 	}
-	if fs.Changed("dir") {
-		dir, _ := fs.GetString("dir")
+	if fs.Changed("base-dir") {
+		dir, _ := fs.GetString("base-dir")
 		o.TmpDir = dir
 		// -t uses -p DIR as a fallback only, without --tmpdir's rules.
 		o.UseTmpDir = o.UseTmpDir || !o.Legacy

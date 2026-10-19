@@ -1,0 +1,42 @@
+---
+title: "-i, --inodes"
+description: "List inode information instead of block usage."
+---
+
+An option of [dfx](/docs/v1.0/tools/dfx).
+
+## Usage
+
+```bash
+dfx -i [FILE]...
+dfx --inodes [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-i` | `--inodes` | none |  | list inode information instead of block usage |
+
+## Examples
+
+### A server says 'No space left on device' but df shows free space: check the inodes
+
+```bash tab="bash" tab-group="shell"
+dfx -i /var
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dfx -i C:\
+```
+
+```text title="Output"
+Filesystem      Inodes   IUsed IFree IUse% Mounted on
+/dev/sda2      1310720 1310720     0  100% /
+```
+
+## Help in the terminal
+
+```bash
+gnux help dfx --inodes
+```

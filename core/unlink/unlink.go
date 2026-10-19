@@ -5,7 +5,8 @@ package unlink
 
 import (
 	"errors"
-	"os"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -26,7 +27,7 @@ type Unlink struct {
 	Options
 
 	// RemoveFn removes the file once it is known not to be a directory; it
-	// defaults to os.Remove.
+	// defaults to fsys.Remove.
 	RemoveFn func(name string) error
 
 	streams core.Streams
@@ -37,7 +38,7 @@ type Unlink struct {
 func New(opts Options, s core.Streams) *Unlink {
 	return &Unlink{
 		Options:  opts,
-		RemoveFn: os.Remove,
+		RemoveFn: fsys.Remove,
 		streams:  s,
 		diag:     core.NewDiag(Name, s),
 	}
@@ -54,7 +55,7 @@ func (u *Unlink) Run(args []string) error {
 		return core.Usagef("extra operand '%s'", args[1])
 	}
 	name := args[0]
-	info, err := os.Lstat(name)
+	info, err := fsys.Lstat(name)
 	switch {
 	case err != nil:
 	case info.IsDir():

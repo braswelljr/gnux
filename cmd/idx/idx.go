@@ -117,6 +117,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("real", "r", false, "print the real ID instead of the effective ID, with -u,-g,-G")
 	fs.BoolP("user", "u", false, "print only the effective user ID")
 	fs.BoolP("zero", "z", false, "delimit entries with NUL characters, not whitespace; not permitted in default format")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "all")
 }
 
 // buildOptions folds the parsed flags into id.Options.

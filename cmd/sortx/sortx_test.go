@@ -47,6 +47,9 @@ func TestBuildOptions(t *testing.T) {
 		{"sort=human-numeric", []string{"--sort=human-numeric"}, sort.Options{HumanNumeric: true}},
 		{"sort=month", []string{"--sort", "month"}, sort.Options{Month: true}},
 		{"sort=version", []string{"--sort=version"}, sort.Options{Version: true}},
+		{"random", []string{"-R"}, sort.Options{Random: true}},
+		{"sort=random", []string{"--sort=random"}, sort.Options{Random: true}},
+		{"random source", []string{"-R", "--random-source=seed"}, sort.Options{Random: true, RandomSource: "seed"}},
 		{"keys in order", []string{"-k2,2n", "--key", "1"}, sort.Options{Keys: []string{"2,2n", "1"}}},
 		{"separator", []string{"-t", ":"}, sort.Options{FieldSeparator: ":"}},
 		{"unique", []string{"--unique"}, sort.Options{Unique: true}},
@@ -85,7 +88,7 @@ func TestBuildOptionsInvalid(t *testing.T) {
 		args []string
 		want string
 	}{
-		{[]string{"--sort=random"}, "invalid argument 'random' for '--sort'"},
+		{[]string{"--sort=shuffle"}, "invalid argument 'shuffle' for '--sort'"},
 		{[]string{"--sort=sideways"}, "invalid argument 'sideways' for '--sort'"},
 		{[]string{"--check=loudly"}, "invalid argument 'loudly' for '--check'"},
 	}

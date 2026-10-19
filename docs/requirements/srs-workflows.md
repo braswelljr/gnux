@@ -101,7 +101,7 @@ and anything on standard error is a diagnostic prefixed with the tool's name.
 |-----------------------------------------------------------------|--------|----------------------------------------------------------------------|
 | `rmx: cannot remove 'x': No such file or directory`             | 1      | The operation failed. Other operands were still processed            |
 | `rmx: missing operand`, then `Try 'rmx --help' ...`             | 1      | A command-line mistake. Nothing was done                             |
-| `rmx: unknown flag: --no-such-flag`, then the same hint         | 1      | The option is not implemented. It is refused, never ignored          |
+| `rmx: unrecognized option '--no-such-flag'`, then the same hint         | 1      | The option is not implemented. It is refused, never ignored          |
 | `gnux: unknown tool 'frobx'`, then `Try 'gnux --help' ...`      | 1      | The first argument is not a tool                                     |
 | A prompt on standard error                                      | none   | `-i`, or a write-protected file on a terminal. Answer `y` to proceed |
 
@@ -167,7 +167,7 @@ and anything on standard error is a diagnostic prefixed with the tool's name.
 ## WF-4: embed an engine
 
 - **Actors.** A Go developer.
-- **Preconditions.** A Go module on Go 1.25 or newer.
+- **Preconditions.** A Go module on Go 1.26 or newer.
 - **Exercises.** FR-30 to FR-34, NFR-16, NFR-36, NFR-39.
 
 **Steps.**

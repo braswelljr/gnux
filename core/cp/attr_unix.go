@@ -7,6 +7,8 @@ import (
 	"io/fs"
 	"os"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 )
 
 // inode returns the inode number of info when the file has more than one hard
@@ -29,18 +31,18 @@ func chown(path string, info os.FileInfo) error {
 	if !ok {
 		return nil
 	}
-	err := os.Lchown(path, int(st.Uid), int(st.Gid))
+	err := fsys.Lchown(path, int(st.Uid), int(st.Gid))
 	if errors.Is(err, fs.ErrPermission) || errors.Is(err, syscall.EINVAL) {
 		return nil
 	}
 	return err
 }
 
-// createdDirMode is the mode a directory made by os.Mkdir(path, perm) ended up
+// createdDirMode is the mode a directory made by fsys.Mkdir(path, perm) ended up
 // with: perm as the umask left it, which is the mode cp gives a new directory
 // without -p.
 func createdDirMode(path string, perm os.FileMode) os.FileMode {
-	if info, err := os.Lstat(path); err == nil {
+	if info, err := fsys.Lstat(path); err == nil {
 		return info.Mode().Perm()
 	}
 	return perm

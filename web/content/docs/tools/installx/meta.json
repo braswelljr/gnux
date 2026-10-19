@@ -1,6 +1,8 @@
 {
   "title": "installx",
   "pages": [
+    "backup",
+    "backup-default",
     "compare",
     "copy",
     "create-leading",
@@ -11,6 +13,7 @@
     "owner",
     "preserve-timestamps",
     "strip",
+    "suffix",
     "target-directory",
     "verbose"
   ]

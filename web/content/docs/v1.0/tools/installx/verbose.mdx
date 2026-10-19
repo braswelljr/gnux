@@ -1,0 +1,37 @@
+---
+title: "-v, --verbose"
+description: "Print the name of each created file or directory."
+---
+
+An option of [installx](/docs/v1.0/tools/installx).
+
+## Usage
+
+```bash
+installx -v SOURCE... DEST
+installx --verbose SOURCE... DEST
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-v` | `--verbose` | none |  | print the name of each created file or directory |
+
+## Examples
+
+### Report what is installed
+
+```bash tab="bash" tab-group="shell"
+installx -v -t ~/bin tool1 tool2
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+installx -v -t $HOME\bin tool1 tool2
+```
+
+## Help in the terminal
+
+```bash
+gnux help installx --verbose
+```

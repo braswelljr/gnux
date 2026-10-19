@@ -5,10 +5,11 @@ package fsstat
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 )
 
 // Statfs reports the file system holding path.
@@ -38,7 +39,7 @@ func Statfs(path string) (FS, error) {
 
 // Mounts reads the mount table from /proc/self/mounts.
 func Mounts() ([]Mount, error) {
-	f, err := os.Open("/proc/self/mounts")
+	f, err := fsys.Open("/proc/self/mounts")
 	if err != nil {
 		return nil, err
 	}

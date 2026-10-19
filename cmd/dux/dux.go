@@ -204,6 +204,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.StringArrayP("exclude-from", "X", nil, "exclude files that match any pattern in `FILE`")
 	fs.StringArray("exclude", nil, "exclude files that match `PATTERN`")
 	fs.BoolP("one-file-system", "x", false, "skip directories on different file systems")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "kilobytes", "megabytes")
 }
 
 // buildOptions folds the parsed flags into du.Options.

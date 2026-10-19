@@ -155,10 +155,10 @@ func TestLayout(t *testing.T) {
 			wantErr: "wcx: " + missing + ": No such file or directory\n",
 		},
 		{
-			// GNU skips the width estimate when the first operand cannot
-			// be examined.
+			// An operand that cannot be examined adds nothing to the
+			// width estimate, wherever it is (GNU 9).
 			name: "missing first file", args: []string{missing, a},
-			want:    "2 3 14 " + a + "\n2 3 14 total\n",
+			want:    " 2  3 14 " + a + "\n 2  3 14 total\n",
 			wantErr: "wcx: " + missing + ": No such file or directory\n",
 		},
 		{

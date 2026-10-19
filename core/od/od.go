@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -652,7 +654,7 @@ func (c *concat) Read(p []byte) (int, error) {
 			if name == "-" {
 				c.cur = c.od.streams.In
 			} else {
-				f, err := os.Open(name)
+				f, err := fsys.Open(name)
 				if err != nil {
 					c.od.diag.Errorf("%s: %s", name, core.ErrText(err))
 					continue

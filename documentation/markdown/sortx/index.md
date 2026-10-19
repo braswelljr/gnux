@@ -17,7 +17,7 @@ sortx [OPTION]... [FILE]...
 
 ### Description
 
-`sortx` writes the sorted concatenation of all FILEs to standard output. With no FILE, or when FILE is -, it reads standard input. By default whole lines are compared byte by byte. `-n`, `-g`, `-h`, `-M` and `-V` compare as numbers, floating-point numbers, sizes with SI suffixes (2K, 1G), month names and version numbers; `-b`, `-d`, `-f` and `-i` ignore leading blanks, keep only blanks and alphanumerics, `fold` case and keep only printable characters; `-r` reverses the result. `-k` POS1[,POS2] sorts on a key, where each POS is F[.C][OPTS]: field F, character C, and any of the ordering letters bdfghiMnrV, which then apply to that key alone. A key with no letters inherits the global options. Fields are separated by `-t` SEP, or else by the change from a non-blank to a blank character, so a field keeps its leading blanks. When all keys compare equal, the whole lines are compared as a last resort, unless `-s` (stable) or `-u` (unique, which keeps the first of each run of equal lines) is given. `-c` and `-C` check whether the input is already sorted, `-m` merges inputs that already are, `-o` FILE writes the result to FILE (which may be one of the inputs), and `-z` makes NUL the line delimiter. Ordering options that contradict each other, such as `-n` with `-g`, are refused. Differences from GNU sort: comparison always follows the C locale (byte order, ASCII case folding and month names, '.' as the decimal point, no thousands separator) whatever LANG and LC_ALL say; `-R`, `--random-sort`, `--random-source` and `--debug` are not implemented; `-S`, `-T`, `--parallel`, `--batch-size` and `--compress-program` are accepted and ignored, because `sortx` sorts in memory; when `-c` and `-C` are both given, the diagnosing `-c` wins whatever their order, so disorder is never hidden.
+`sortx` writes the sorted concatenation of all FILEs to standard output. With no FILE, or when FILE is -, it reads standard input. By default whole lines are compared byte by byte. `-n`, `-g`, `-h`, `-M` and `-V` compare as numbers, floating-point numbers, sizes with SI suffixes (2K, 1G), month names and version numbers; `-b`, `-d`, `-f` and `-i` ignore leading blanks, keep only blanks and alphanumerics, `fold` case and keep only printable characters; `-r` reverses the result. `-k` POS1[,POS2] sorts on a key, where each POS is F[.C][OPTS]: field F, character C, and any of the ordering letters bdfghiMnRrV, which then apply to that key alone. A key with no letters inherits the global options. Fields are separated by `-t` SEP, or else by the change from a non-blank to a blank character, so a field keeps its leading blanks. When all keys compare equal, the whole lines are compared as a last resort, unless `-s` (stable) or `-u` (unique, which keeps the first of each run of equal lines) is given. `-c` and `-C` check whether the input is already sorted, `-m` merges inputs that already are, `-o` FILE writes the result to FILE (which may be one of the inputs), and `-z` makes NUL the line delimiter. Ordering options that contradict each other, such as `-n` with `-g`, are refused. `-R` shuffles the lines but keeps equal keys together, by ordering on a hash of each key chosen by 16 random bytes; `--random-source`=FILE takes those bytes from FILE instead, which makes the order repeatable and the same as GNU sort's for the same FILE. Differences from GNU sort: comparison always follows the C locale (byte order, ASCII case folding and month names, '.' as the decimal point, no thousands separator) whatever LANG and LC_ALL say; `--debug` is not implemented; `-S`, `-T`, `--parallel`, `--batch-size` and `--compress-program` are accepted and ignored, because `sortx` sorts in memory; when `-c` and `-C` are both given, the diagnosing `-c` wins whatever their order, so disorder is never hidden.
 
 ### Permissions
 
@@ -30,6 +30,7 @@ Needs read permission on each FILE and search permission on the directories lead
 - Sorting a CSV-like or colon-separated file on one column with `-t` and `-k`.
 - Removing duplicate lines in one step with `-u`.
 - Sorting release tags or file names that contain version numbers with `-V`.
+- Shuffling a playlist or a `test` order with `-R`, repeatably with `--random-source`.
 - Finding the largest entries of a listing with `-rn` and `headx`.
 - Merging several already sorted files cheaply with `-m`.
 - Verifying in a script that a file is sorted with `-c` or `-C`.
@@ -59,8 +60,10 @@ Needs read permission on each FILE and search permission on the directories lead
   -n, --numeric-sort                    compare according to string numerical value
   -o, --output FILE                     write result to FILE instead of standard output
       --parallel N                      accepted for compatibility and ignored (N concurrent sorts)
+  -R, --random-sort                     shuffle, but group identical keys
+      --random-source FILE              get random bytes from FILE
   -r, --reverse                         reverse the result of comparisons
-      --sort WORD                       sort according to WORD: general-numeric -g, human-numeric -h, month -M, numeric -n, version -V
+      --sort WORD                       sort according to WORD: general-numeric -g, human-numeric -h, month -M, numeric -n, random -R, version -V
   -s, --stable                          stabilize sort by disabling last-resort comparison
   -T, --temporary-directory DIR         accepted for compatibility and ignored (DIR for temporaries)
   -u, --unique                          output only the first of an equal run
@@ -229,6 +232,16 @@ gnux shell -c 'lsx -1 | sortx -r'
 
 ```powershell
 gnux shell -c 'lsx -1 | sortx -r'
+```
+
+Run the `test` files in a shuffled order that a seed file makes repeatable:
+
+```bash
+lsx tests/*.sh | sortx -R --random-source=ci-seed.bin
+```
+
+```powershell
+lsx tests | sortx -R --random-source=ci-seed.bin
 ```
 
 ### Exit status

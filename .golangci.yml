@@ -8,6 +8,7 @@ linters:
     - unconvert      # remove unnecessary type conversions
     - revive         # idiomatic Go style (golint successor)
     - gocritic       # opinionated but catches real issues
+    - forbidigo      # the engines reach files only through core/fsys
 
   disable:
     # funlen / cyclop / maintidx measure complexity but routinely flag
@@ -42,6 +43,18 @@ linters:
     misspell:
       locale: US
 
+    # Under core/ every file access goes through core/fsys, which a sandbox can
+    # replace (Capsicum on FreeBSD resolves every path through os.Root); a
+    # direct os.Open there would reach past it. The exclusions below exempt
+    # core/fsys itself, tests, and everything outside core/.
+    forbidigo:
+      analyze-types: true
+      forbid:
+        - pattern: '^os\.(Open|OpenFile|Create|Stat|Lstat|ReadDir|ReadFile|WriteFile|Mkdir|MkdirAll|MkdirTemp|CreateTemp|Remove|RemoveAll|Rename|Link|Symlink|Readlink|Chmod|Chown|Lchown|Chtimes|Truncate|Getwd|Chdir)$'
+          msg: "reach files through core/fsys (fsys.Open, ...), which a sandbox can replace"
+        - pattern: '^filepath\.(Abs|EvalSymlinks|Glob|Walk|WalkDir)$'
+          msg: "use the core/fsys version, which a sandbox can replace"
+
   # v2 schema: file/rule exclusions live under linters.exclusions
   # (the old top-level `issues.exclude-dirs` / `issues.exclude-rules` keys were
   # removed in golangci-lint v2 and fail `golangci-lint config verify` in CI).
@@ -57,6 +70,18 @@ linters:
           - gocritic
           - revive
 
+      # forbidigo guards core/ only: elsewhere (the commands, the tools, the
+      # sandbox itself) the process's own file system is the right one.
+      - path-except: "^core/"
+        linters:
+          - forbidigo
+      - path: "^core/fsys/"
+        linters:
+          - forbidigo
+      - path: "_test\\.go"
+        linters:
+          - forbidigo
+
       # Intentional best-effort closes (defer _ = f.Close()) are fine.
       - linters:
           - errcheck
@@ -65,7 +90,7 @@ linters:
       # os.Remove in cleanup paths is intentionally ignored via _ = os.Remove(...).
       - linters:
           - errcheck
-        text: "Error return value of `os\\.Remove`"
+        text: "Error return value of `(os|fsys)\\.Remove`"
 
       # Diagnostics and prompts are best-effort writes to the user's terminal;
       # a failed write to stderr/stdout is not actionable.

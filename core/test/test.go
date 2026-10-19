@@ -6,7 +6,10 @@ package test
 import (
 	"math/big"
 	"os"
+	"strconv"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -22,7 +25,15 @@ const (
 )
 
 // Options configures the engine. The zero value is plain test.
-type Options struct{}
+type Options struct {
+	// Bracket runs test as '[': the expression must be followed by a ']'
+	// argument, which is not part of it, and diagnostics are prefixed with
+	// '['.
+	Bracket bool
+}
+
+// BracketName is the name test answers to when it is written '[ EXPRESSION ]'.
+const BracketName = "["
 
 // Test is the engine. Construct it with New.
 type Test struct {
@@ -33,8 +44,8 @@ type Test struct {
 	// terminal.
 	IsTerminal func(fd int) bool
 
-	// Stat and Lstat read file metadata; they default to os.Stat and
-	// os.Lstat.
+	// Stat and Lstat read file metadata; they default to fsys.Stat and
+	// fsys.Lstat.
 	Stat  func(string) (os.FileInfo, error)
 	Lstat func(string) (os.FileInfo, error)
 
@@ -50,11 +61,14 @@ type Test struct {
 func New(opts Options, s core.Streams) *Test {
 	t := &Test{
 		Options: opts,
-		Stat:    os.Stat,
-		Lstat:   os.Lstat,
+		Stat:    fsys.Stat,
+		Lstat:   fsys.Lstat,
 		Access:  access,
 		streams: s,
 		diag:    core.NewDiag(Name, s),
+	}
+	if opts.Bracket {
+		t.diag = core.NewDiag(BracketName, s)
 	}
 	t.IsTerminal = func(fd int) bool {
 		switch fd {
@@ -78,8 +92,16 @@ func (e *syntaxError) Error() string { return e.msg }
 
 // Run evaluates the expression in args. It returns nil when the expression is
 // true, a *core.ExitError with status 1 when it is false, and one with status
-// 2, after a diagnostic, when it is malformed.
+// 2, after a diagnostic, when it is malformed. With Bracket, a missing
+// closing ']' is malformed.
 func (t *Test) Run(args []string) error {
+	if t.Bracket {
+		if len(args) == 0 || args[len(args)-1] != "]" {
+			t.diag.Errorf("missing ']'")
+			return &core.ExitError{Code: ExitError}
+		}
+		args = args[:len(args)-1]
+	}
 	ok, err := t.Eval(args)
 	if err != nil {
 		t.diag.Errorf("%s", err.Error())
@@ -244,9 +266,15 @@ func (p *parser) term() (bool, error) {
 		}
 		p.pos++
 		return v, nil
-	case rest >= 3 && isBinary(p.args[p.pos+1]):
+	case a == "-l" && rest >= 4 && isBinary(p.args[p.pos+2]):
+		// -l STRING stands for the length of STRING, as an integer.
+		op, str := p.args[p.pos+2], p.args[p.pos+1]
 		p.pos += 3
-		return p.binary(a, p.args[p.pos-2], p.args[p.pos-1])
+		return p.binaryRight("", str, true, op)
+	case rest >= 3 && isBinary(p.args[p.pos+1]):
+		op := p.args[p.pos+1]
+		p.pos += 2
+		return p.binaryRight(a, "", false, op)
 	case isUnary(a):
 		if rest < 2 {
 			return false, &syntaxError{"missing argument after " + quote(a)}
@@ -341,6 +369,47 @@ func (p *parser) unary(op, arg string) (bool, error) {
 func (p *parser) exists(path string) bool {
 	_, err := p.t.Stat(path)
 	return err == nil
+}
+
+// binaryRight reads the right operand of op and applies op. Either operand
+// may be -l STRING, the length of STRING, which GNU test means for the
+// integer comparisons; -nt, -ot and -ef refuse it. The string comparisons
+// accept it too, and then compare what GNU's parser has moved on to: STRING
+// itself for a -l on the left, and the operator with STRING for one on the
+// right (test 3 = -l abc compares "=" with "abc").
+func (p *parser) binaryRight(left, leftString string, leftIsLength bool, op string) (bool, error) {
+	right := p.args[p.pos]
+	rightIsLength := right == "-l" && p.pos+1 < len(p.args)
+	if rightIsLength {
+		right = p.args[p.pos+1]
+		p.pos++
+	}
+	p.pos++
+	switch {
+	case !leftIsLength && !rightIsLength:
+	case isInteger(op):
+		if leftIsLength {
+			left = strconv.Itoa(len(leftString))
+		}
+		if rightIsLength {
+			right = strconv.Itoa(len(right))
+		}
+	case op == "-nt" || op == "-ot" || op == "-ef":
+		return false, &syntaxError{op + " does not accept -l"}
+	case rightIsLength:
+		left = op
+	default:
+		left = leftString
+	}
+	return p.binary(left, op, right)
+}
+
+func isInteger(op string) bool {
+	switch op {
+	case "-eq", "-ne", "-lt", "-le", "-gt", "-ge":
+		return true
+	}
+	return false
 }
 
 func (p *parser) binary(left, op, right string) (bool, error) {

@@ -20,6 +20,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/date"
 	"github.com/braswelljr/gnux/core/internal/human"
@@ -225,7 +227,7 @@ func (d *Du) setup() error {
 
 	patterns := slices.Clone(d.Exclude)
 	for _, name := range d.ExcludeFrom {
-		data, err := os.ReadFile(name)
+		data, err := fsys.ReadFile(name)
 		if err != nil {
 			d.diag.Errorf("%s: %s", name, core.ErrText(err))
 			return core.ErrFailed
@@ -285,7 +287,7 @@ func timeFormat(style string, getenv func(string) string) (string, error) {
 func (d *Du) readFiles0() ([]string, error) {
 	r := d.streams.In
 	if d.Files0From != "-" {
-		f, err := os.Open(d.Files0From)
+		f, err := fsys.Open(d.Files0From)
 		if err != nil {
 			d.diag.Errorf("cannot open '%s' for reading: %s", d.Files0From, core.ErrText(err))
 			return nil, core.ErrFailed
@@ -334,9 +336,9 @@ type entry struct {
 
 // scanRoot examines an operand and, for a directory, its whole tree.
 func (d *Du) scanRoot(name string) *entry {
-	stat := os.Lstat
+	stat := fsys.Lstat
 	if d.Deref != DerefNone {
-		stat = os.Stat
+		stat = fsys.Stat
 	}
 	info, err := stat(name)
 	if err != nil {
@@ -410,14 +412,14 @@ func (d *Du) scanDir(e *entry, rootDev uint64, ancestors []devIno) {
 		}
 	}
 	defer done()
-	dirents, err := os.ReadDir(e.path)
+	dirents, err := fsys.ReadDir(e.path)
 	children := make([]*entry, 0, len(dirents))
 	for _, de := range dirents {
 		path := join(e.path, de.Name())
 		var info os.FileInfo
 		var serr error
 		if d.Deref == DerefAll && de.Type()&os.ModeSymlink != 0 {
-			info, serr = os.Stat(path)
+			info, serr = fsys.Stat(path)
 		} else {
 			info, serr = de.Info()
 		}
@@ -502,7 +504,7 @@ func (d *Du) walk(e *entry, level int, grand *sums) (sums, bool) {
 			// No file IDs (Windows): with several operands, a path already
 			// counted under another operand is still counted only once.
 			key := e.path
-			if abs, err := filepath.Abs(e.path); err == nil {
+			if abs, err := fsys.Abs(e.path); err == nil {
 				key = strings.ToLower(abs)
 			}
 			if d.seenPath[key] {

@@ -17,6 +17,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -134,7 +136,7 @@ func (sh *Shuf) Run(args []string) error {
 
 	out := sh.streams.Out
 	if sh.Output != "" {
-		f, err := os.OpenFile(sh.Output, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o666)
+		f, err := fsys.OpenFile(sh.Output, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o666)
 		if err != nil {
 			sh.diag.Errorf("%s: %s", sh.Output, core.ErrText(err))
 			return core.ErrFailed
@@ -262,7 +264,7 @@ func (sh *Shuf) read(name string) ([]byte, error) {
 	if name == "-" {
 		return io.ReadAll(sh.streams.In)
 	}
-	return os.ReadFile(name)
+	return fsys.ReadFile(name)
 }
 
 // split cuts data into lines; a final line without a delimiter still counts.
@@ -305,7 +307,7 @@ func (sh *Shuf) random() (draw func(uint64) (uint64, error), closeFn func(), err
 	if sh.RandomSource != "" {
 		// Read lazily, since the source may be endless (/dev/urandom), and
 		// closed by Run: an open file cannot be removed on Windows.
-		f, err := os.Open(sh.RandomSource)
+		f, err := fsys.Open(sh.RandomSource)
 		if err != nil {
 			sh.diag.Errorf("%s: %s", sh.RandomSource, core.ErrText(err))
 			return nil, noClose, core.ErrFailed

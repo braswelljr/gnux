@@ -6,9 +6,10 @@ package sum
 
 import (
 	"bufio"
-	"os"
 	"strconv"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/cksum"
@@ -58,7 +59,7 @@ func (m *Sum) Run(args []string) (err error) {
 func (m *Sum) file(out *bufio.Writer, name string, named bool) {
 	r := m.streams.In
 	if name != "-" {
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			m.diag.Errorf("%s: %s", name, core.ErrText(err))
 			return

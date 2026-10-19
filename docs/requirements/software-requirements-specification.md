@@ -24,7 +24,7 @@ belongs in the project and whether a release is ready.
 
 ### 1.2 Scope
 
-gnux is one multi-call binary carrying 89 tools, each named after its GNU counterpart with an
+gnux is one multi-call binary carrying 94 tools, each named after its GNU counterpart with an
 `x` appended. The same code is offered as commands, as a Go library and as a portable shell,
 and is documented and demonstrated on a website with a WebAssembly playground. What is in and
 out of scope is listed in [business-requirements](business-requirements.md).
@@ -119,8 +119,8 @@ to every platform, complements them rather than replacing them, and depends on n
 |----------------------------|------------------------------------------------------------------------------------------------|
 | Run gnux                   | Linux or macOS on amd64 or arm64, or Windows on amd64. Nothing else                            |
 | Use the per-tool commands  | Symbolic links and the install directory on `PATH`; on Windows, a copy of `gnux.exe` under the tool's name works instead |
-| Install or build           | Go at the version in `go.mod` (1.25 or newer) and `git`. `make`, `bash` and Docker are optional |
-| Use gnux as a library      | A Go module on Go 1.25 or newer                                                                |
+| Install or build           | Go at the version in `go.mod` (1.26 or newer) and `git`. `make`, `bash` and Docker are optional |
+| Use gnux as a library      | A Go module on Go 1.26 or newer                                                                |
 | Contribute                 | The above, plus golangci-lint v2, and lefthook for the Git hooks                               |
 | Work on the website        | The above, plus Node.js and pnpm at the versions stated in `web/package.json`                  |
 | Use the playground         | A browser with WebAssembly support                                                             |

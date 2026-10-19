@@ -1,0 +1,11 @@
+{
+  "title": "statx",
+  "pages": [
+    "cached",
+    "dereference",
+    "file-system",
+    "format",
+    "printf",
+    "terse"
+  ]
+}

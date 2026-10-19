@@ -20,6 +20,8 @@
     "numeric-sort",
     "output",
     "parallel",
+    "random-sort",
+    "random-source",
     "reverse",
     "sort",
     "stable",

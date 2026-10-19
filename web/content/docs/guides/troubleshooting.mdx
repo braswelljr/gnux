@@ -1,6 +1,6 @@
 ---
 title: "Troubleshooting"
-description: "What gnux's errors, prompts and exit statuses mean and what to do about them: usage errors and unknown flags, \"No such file or directory\" and \"Permission denied\", write-protected prompts you did not expect, the preserve-root failsafe, \"Is a directory\" and \"Directory not empty\", the quiet stop of a pipeline whose reader has gone, gnux shell statuses 2 and 127, installation problems such as a tool name that is not found, and a FAQ. Every message quoted here is real output from gnux."
+description: "What gnux's errors, prompts and exit statuses mean and what to do about them: usage errors and unrecognized options, \"No such file or directory\" and \"Permission denied\", write-protected prompts you did not expect, the preserve-root failsafe, \"Is a directory\" and \"Directory not empty\", the quiet stop of a pipeline whose reader has gone, gnux shell statuses 2 and 127, installation problems such as a tool name that is not found, and a FAQ. Every message quoted here is real output from gnux."
 ---
 
 ## Reading a diagnostic
@@ -60,8 +60,8 @@ Try 'rmx --help' for more information.
 |---------|-------|-----|
 | `invalid argument "bad" for '--interactive'` | `--interactive` takes `never`, `once` or `always` | Pick one of the three; the message lists them |
 | `missing operand` | No file given | Name the files. `rmx -f` with no operands is allowed and does nothing |
-| `unknown flag: --no-such-flag` | The option does not exist, or is a GNU option gnux does not implement | Check `TOOL --help` and [Adoption](/docs/guides/adoption) |
-| `unknown shorthand flag: 'f' in -f` | The same, for a short option | As above. For `lsx -f`, use `lsx -aU` |
+| `unrecognized option '--no-such-flag'` | The option does not exist, or is a GNU option gnux does not implement | Check `TOOL --help` and [Adoption](/docs/guides/adoption) |
+| `invalid option -- 'f'` | The same, for a short option | As above. For `lsx -f`, use `lsx -aU` |
 | `invalid date format 'yesterday'` | `touchx -d` accepts dates, times, RFC 3339, `@SECONDS` and `now` only | Write the date: `touchx -d 2026-10-10` |
 | `invalid time interval '1m-bad'` | `sleepx` could not parse an operand | Use NUMBER with an optional `s`, `m`, `h` or `d` |
 | `gnux: unknown tool 'frobx'` | The first argument to `gnux` is not a tool | `gnux --list` shows the names |
@@ -278,7 +278,7 @@ gnux: cd: -: No such file or directory
 | `ln` or `New-Item -ItemType SymbolicLink` fails on Windows | Symbolic links need Developer Mode or elevation | Use copies or hard links: [Windows and PowerShell](/docs/guides/windows-and-powershell#make-the-per-tool-commands) |
 | `rm -rf build` in PowerShell fails with "A parameter cannot be found" | `rm` is PowerShell's alias for `Remove-Item` | Use `rmx` |
 | `gnux --version` prints `gnux dev` | Built without the version link flag, as plain `go install` does | Harmless; use `make install` for a stamped version |
-| `install.sh` says `the Go toolchain is required` | Go is missing | Install Go 1.25 or newer |
+| `install.sh` says `the Go toolchain is required` | Go is missing | Install Go 1.26 or newer |
 | A link named `rm` still runs the system `rm` | An earlier `PATH` entry, or a shell alias, wins | Check `command -v rm`; put the link's directory first |
 
 ## FAQ

@@ -136,6 +136,9 @@ func Register(fs *pflag.FlagSet) {
 		fs.VarP(formatList{items: items, alias: t.typ}, t.long, t.short, t.usage)
 		fs.Lookup(t.long).NoOptDefVal = "true"
 	}
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "characters", "decimal-2-bytes", "decimal-ints", "decimal-longs", "floats", "hex-2-bytes", "named-characters", "octal-2-bytes", "octal-bytes", "unsigned-decimal-2-bytes")
 }
 
 // fatal is an option error GNU od reports without the --help hint.

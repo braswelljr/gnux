@@ -1,0 +1,36 @@
+---
+title: "--status"
+description: "Don't output anything, status code shows success."
+---
+
+An option of [sha384sumx](/docs/v1.0/tools/sha384sumx).
+
+## Usage
+
+```bash
+sha384sumx --status [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--status` | none |  | don't output anything, status code shows success |
+
+## Examples
+
+### In CI, fail the build when a vendored file was changed by hand
+
+```bash tab="bash" tab-group="shell"
+sha384sumx -c --status vendor.sha384sums || { echox 'vendored files changed' >&2; exit 1; }
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sha384sumx -c --status vendor.sha384sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
+```
+
+## Help in the terminal
+
+```bash
+gnux help sha384sumx --status
+```

@@ -45,6 +45,16 @@ echox from shebang
 chmod +x build.gnux && ./build.gnux
 ```
 
+The kernel runs it as `gnux shell -eu ./build.gnux` followed by the script's own arguments, which arrive as `$1`, `$2`, and so on. `env -S` splits the rest of the line into words; GNU coreutils 8.30 and later, macOS and the BSDs have it. Where `env` does not (BusyBox, older Linux distributions), name the binary directly: Linux passes everything after the interpreter as one argument, so the line can carry `shell` and nothing more, and the options move into the script with `set`:
+
+```bash
+#!/usr/local/bin/gnux shell
+set -eu
+echox from shebang
+```
+
+On Windows there is no shebang: run the script as `gnux shell build.gnux`, or associate the `.gnux` extension with that command.
+
 `help` inside the shell prints a summary of the language:
 
 ```text

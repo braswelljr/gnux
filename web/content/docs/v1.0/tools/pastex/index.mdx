@@ -1,0 +1,186 @@
+---
+title: "pastex"
+description: "Merge lines of files."
+---
+
+Mirrors GNU `paste`. Run it as `pastex`, or as `gnux pastex`.
+
+## Synopsis
+
+```bash
+pastex [OPTION]... [FILE]...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: paste invocation](https://www.gnu.org/software/coreutils/manual/html_node/paste-invocation.html)
+- [Source: src/paste.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/paste.c)
+
+## Description
+
+`pastex` writes lines made of the corresponding lines of each FILE, separated by TABs, to standard output. With no FILE, or when FILE is -, it reads standard input; every - reads the same standard input, so '`pastex` - -' joins pairs of lines. A file that runs out of lines contributes empty fields while the others continue. `-s` pastes one file at a time instead, turning each file into a single line. `-d` LIST uses the characters of LIST as delimiters instead of TAB, cycling through them and starting again from the first on every output line (and, with `-s`, for every file). LIST understands the escapes \n, \t, \\, \b, \f, \r, \v and \0, the empty delimiter. `-z` makes NUL the line delimiter. Delimiters are single bytes: a multibyte character in LIST is used one byte at a time.
+
+## Permissions
+
+Needs read permission on each FILE and search permission on the directories leading to it. Nothing is ever modified.
+
+## Use cases
+
+- Putting two lists side by side, one column each.
+- Joining every two or three lines of a file into one with '`pastex` - - \< file'.
+- Turning a list of lines into one comma-separated line with `-s -d` ','.
+- Building a CSV from columns kept in separate files.
+- Summing a column of numbers by joining it with '+' for another tool.
+- Merging a file of keys and a file of values line by line.
+
+## Flags
+
+```text
+  -d, --delimiters LIST   reuse characters from LIST instead of TABs
+      --help              display this help and exit
+  -s, --serial            paste one file at a time instead of in parallel
+      --version           output version information and exit
+  -z, --zero-terminated   line delimiter is NUL, not newline
+```
+
+## Examples
+
+### Put two files side by side, separated by a TAB
+
+```bash tab="bash" tab-group="shell"
+pastex names.txt ages.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pastex names.txt ages.txt
+```
+
+### Use a comma instead of a TAB
+
+```bash tab="bash" tab-group="shell"
+pastex -d , names.txt ages.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pastex -d , names.txt ages.txt
+```
+
+### Join all the lines of a file into one comma-separated line
+
+```bash tab="bash" tab-group="shell"
+pastex -s -d , hosts.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pastex -s -d , hosts.txt
+```
+
+### Join every two lines of standard input
+
+```bash tab="bash" tab-group="shell"
+printf 'a\nb\nc\nd\n' | pastex - -
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+'a','b','c','d' | pastex - -
+```
+
+### Lay a list out in three columns
+
+```bash tab="bash" tab-group="shell"
+seqx 9 | pastex - - -
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+seqx 9 | pastex - - -
+```
+
+### Cycle through several delimiters
+
+```bash tab="bash" tab-group="shell"
+pastex -d ',;' a.txt b.txt c.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pastex -d ',;' a.txt b.txt c.txt
+```
+
+### Join columns with no delimiter at all
+
+```bash tab="bash" tab-group="shell"
+pastex -d '\0' first.txt last.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pastex -d '\0' first.txt last.txt
+```
+
+### Show each file as one TAB-separated line
+
+```bash tab="bash" tab-group="shell"
+pastex -s a.txt b.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pastex -s a.txt b.txt
+```
+
+### Paste NUL-terminated records
+
+```bash tab="bash" tab-group="shell"
+pastex -z keys.bin values.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pastex -z keys.bin values.bin
+```
+
+### Turn a column of numbers into one sum expression (1+2+3+4+5)
+
+```bash tab="bash" tab-group="shell"
+seqx 5 | pastex -s -d +
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+seqx 5 | pastex -s -d +
+```
+
+### Paste in the portable gnux shell
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'seqx 6 | pastex - - | sortx -rn'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'seqx 6 | pastex - - | sortx -rn'
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-d, --delimiters](/docs/v1.0/tools/pastex/delimiters): Reuse characters from LIST instead of TABs.
+- [-s, --serial](/docs/v1.0/tools/pastex/serial): Paste one file at a time instead of in parallel.
+- [-z, --zero-terminated](/docs/v1.0/tools/pastex/zero-terminated): Line delimiter is NUL, not newline.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+pastex --help                # options, first examples, exit status
+gnux help pastex             # this page: the full manual
+gnux help pastex --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [cutx](/docs/v1.0/tools/cutx)
+- [joinx](/docs/v1.0/tools/joinx)
+- [commx](/docs/v1.0/tools/commx)
+- [catx](/docs/v1.0/tools/catx)

@@ -73,6 +73,28 @@ checksum:
   name_template: checksums.txt
   algorithm: sha256
 
+# A software bill of materials (SPDX, from syft) beside every archive: the Go
+# modules compiled into the binary, with their versions and licenses. The
+# Release workflow installs syft; the SBOMs are listed in checksums.txt.
+sboms:
+  - artifacts: archive
+
+# checksums.txt is signed with cosign, keyless: the signature is bound to this
+# repository's Release workflow through GitHub's OIDC token, so there is no
+# key to keep or leak. checksums.txt.sigstore.json carries the signature, the
+# certificate and the transparency-log entry together. Verifying it, then
+# the archive against checksums.txt, proves the archive came from this
+# workflow (docs/workflows/publishing-a-release.md shows the commands).
+signs:
+  - cmd: cosign
+    artifacts: checksum
+    signature: "${artifact}.sigstore.json"
+    args:
+      - sign-blob
+      - "--bundle=${signature}"
+      - "${artifact}"
+      - --yes
+
 # The notes come from CHANGELOG.md (passed with --release-notes); this is the
 # fallback for a prerelease that has no section there.
 changelog:

@@ -13,6 +13,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -146,7 +148,7 @@ func (e *Env) exec(vars, args []string) error {
 		e.debugf("chdir:    '%s'", e.Chdir)
 		// Checked up front so a bad directory is reported as envx's failure
 		// rather than as a failure to start the command.
-		info, err := os.Stat(e.Chdir)
+		info, err := fsys.Stat(e.Chdir)
 		switch {
 		case err != nil:
 			return e.fail(ExitCanceled, "cannot change directory to '%s': %s", e.Chdir, core.ErrText(err))
@@ -280,7 +282,7 @@ func resolve(dir, p string) string {
 	if !filepath.IsAbs(p) {
 		p = filepath.Join(dir, p)
 	}
-	if abs, err := filepath.Abs(p); err == nil {
+	if abs, err := fsys.Abs(p); err == nil {
 		return abs
 	}
 	return p

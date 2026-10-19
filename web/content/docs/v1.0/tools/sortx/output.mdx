@@ -1,0 +1,37 @@
+---
+title: "-o, --output"
+description: "Write result to FILE instead of standard output."
+---
+
+An option of [sortx](/docs/v1.0/tools/sortx).
+
+## Usage
+
+```bash
+sortx -o FILE [FILE]...
+sortx --output=FILE [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-o` | `--output` | `FILE` |  | write result to FILE instead of standard output |
+
+## Examples
+
+### Sort a file in place
+
+```bash tab="bash" tab-group="shell"
+sortx -o names.txt names.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sortx -o names.txt names.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help sortx --output
+```

@@ -1,0 +1,37 @@
+---
+title: "-t, --terse"
+description: "Print the information in terse form."
+---
+
+An option of [statx](/docs/v1.0/tools/statx).
+
+## Usage
+
+```bash
+statx -t FILE...
+statx --terse FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-t` | `--terse` | none |  | print the information in terse form |
+
+## Examples
+
+### Record a file's full status on one line, for a log or a diff
+
+```bash tab="bash" tab-group="shell"
+statx -t release.zip >> inventory.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+statx -t release.zip >> inventory.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help statx --terse
+```

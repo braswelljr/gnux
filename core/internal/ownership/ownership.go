@@ -14,6 +14,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -58,7 +60,7 @@ type Request struct {
 // Hooks are the engine's injection points.
 type Hooks struct {
 	// Chown changes the owner and group of path, following a symbolic link
-	// when follow is true. It defaults to os.Chown / os.Lchown.
+	// when follow is true. It defaults to fsys.Chown / fsys.Lchown.
 	Chown func(path string, uid, gid int, follow bool) error
 }
 
@@ -92,7 +94,9 @@ func (e *Engine) Diag() *core.Diag {
 // CheckOptions refuses the combinations GNU refuses.
 func (e *Engine) CheckOptions() error {
 	if e.Recursive && e.Traversal == TraversePhysical && e.Dereference && !e.NoDereference {
-		return core.Usagef("-R --dereference requires either -H or -L")
+		// GNU reports this without the --help hint of a usage error.
+		e.diag.Errorf("-R --dereference requires either -H or -L")
+		return core.ErrFailed
 	}
 	return nil
 }
@@ -127,7 +131,7 @@ func (e *Engine) followOperand() bool {
 }
 
 func (e *Engine) operand(path string) {
-	info, err := os.Lstat(path)
+	info, err := fsys.Lstat(path)
 	if err != nil {
 		e.errorf("cannot access '%s': %s", path, core.ErrText(err))
 		return
@@ -136,7 +140,7 @@ func (e *Engine) operand(path string) {
 	// without -H/-L) says otherwise; for any other file the two are the same.
 	follow := e.followOperand()
 	if info.Mode()&os.ModeSymlink != 0 && follow {
-		target, err := os.Stat(path)
+		target, err := fsys.Stat(path)
 		if err != nil {
 			e.errorf("cannot dereference '%s': %s", path, core.ErrText(err))
 			return
@@ -167,7 +171,7 @@ func (e *Engine) visit(path string, info os.FileInfo, follow bool, ancestors []o
 			return
 		}
 	}
-	entries, err := os.ReadDir(path)
+	entries, err := fsys.ReadDir(path)
 	if err != nil {
 		e.errorf("cannot read directory '%s': %s", path, core.ErrText(err))
 		return
@@ -175,14 +179,14 @@ func (e *Engine) visit(path string, info os.FileInfo, follow bool, ancestors []o
 	ancestors = append(ancestors, info)
 	for _, ent := range entries {
 		child := filepath.Join(path, ent.Name())
-		ci, err := os.Lstat(child)
+		ci, err := fsys.Lstat(child)
 		if err != nil {
 			e.errorf("cannot access '%s': %s", child, core.ErrText(err))
 			continue
 		}
 		childFollow := false
 		if ci.Mode()&os.ModeSymlink != 0 && e.Traversal == TraverseLogical && !e.NoDereference {
-			if target, err := os.Stat(child); err == nil {
+			if target, err := fsys.Stat(child); err == nil {
 				ci, childFollow = target, true
 			}
 		}
@@ -375,7 +379,7 @@ func ParseSpec(spec string) (uid, gid int, userNamed bool, err error) {
 // Owner returns the owner and group of the file at path (following a
 // symbolic link), for --reference.
 func Owner(path string) (uid, gid int, err error) {
-	info, err := os.Stat(path)
+	info, err := fsys.Stat(path)
 	if err != nil {
 		return 0, 0, err
 	}

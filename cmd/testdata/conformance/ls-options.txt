@@ -1,0 +1,164 @@
+# ls, dir and vdir: --format, --indicator-style, -N/--literal,
+# --quoting-style and QUOTING_STYLE, --show-control-chars, --zero,
+# -k/--kibibytes, --block-size, --author, --hyperlink and --dired.
+
+ls --format=long dir
+ls --format=verbose -d dir
+ls --format=commas dir
+ls --format=across -w 20 dir
+ls --format=horizontal -w 20 dir
+ls --format=vertical -w 20 dir
+ls --format=single-column dir
+ls --format=lo -d dir
+ls --format=co dir
+ls --format=bogus dir
+ls --format=c dir
+ls --format=v dir; echo $?
+ls --sort=x; echo $?
+ls --time=x; echo $?
+ls --color=x; echo $?
+ls --color=a; echo $?
+ls -l --format=commas dir
+ls --format=commas -l dir
+
+ls --indicator-style=classify
+ls --indicator-style=slash
+ls --indicator-style=file-type
+ls -F --indicator-style=none
+ls --indicator-style=none -F
+ls --indicator-style=x
+
+ls -N 'space name.txt'
+ls -Q -N 'space name.txt' a.txt
+ls -N -Q 'space name.txt' a.txt
+ls --literal 'space name.txt'
+ls --quoting-style=shell 'space name.txt' a.txt
+ls --quoting-style=shell-always 'space name.txt' a.txt
+ls --quoting-style=shell-escape 'space name.txt' a.txt
+ls --quoting-style=shell-escape-always a.txt
+ls --quoting-style=c a.txt
+ls --quoting-style=c-maybe 'space name.txt' a.txt
+ls --quoting-style=escape 'space name.txt'
+ls --quoting-style=locale a.txt
+ls --quoting-style=clocale a.txt
+ls --quoting-style=sh a.txt
+ls --quoting-style=shell-e a.txt
+ls --quoting-style=bogus a.txt
+touch "$(printf 'new\nline')" "it's" 'tab	here' 'q"uote' '$var'; ls --quoting-style=shell-escape
+touch "$(printf 'new\nline')" "it's" 'tab	here' 'q"uote' '$var'; ls --quoting-style=shell
+touch "$(printf 'new\nline')" "it's" 'tab	here' 'q"uote' '$var'; ls --quoting-style=c
+touch "$(printf 'new\nline')" "it's" 'tab	here' 'q"uote' '$var'; ls -b
+touch "$(printf 'new\nline')"; ls -q
+touch "$(printf 'new\nline')"; ls -q --show-control-chars
+touch "$(printf 'new\nline')"; ls --show-control-chars -q
+touch "$(printf 'new\nline')"; ls -q --quoting-style=shell-escape
+touch "$(printf 'new\nline')"; ls -q --quoting-style=shell
+touch "$(printf 'new\nline')"; ls -l --quoting-style=shell-escape | cut -c 32-
+ls -l --quoting-style=shell-escape | cut -c 32-
+ls -C -w 60 --quoting-style=shell-escape
+ls -x -w 60 --quoting-style=c-maybe
+ls -m --quoting-style=shell-escape
+ls --quoting-style=shell-escape -R dir
+mkdir 'a:b'; ls --quoting-style=escape -R 'a:b' dir
+ls -lF --quoting-style=shell
+touch 'eq=x' 'pipe|x'; ls -F --quoting-style=shell
+touch 'eq=x' 'pipe|x'; ls --file-type --quoting-style=escape
+touch 'eq=x' 'star*x'; ls --file-type --quoting-style=shell
+QUOTING_STYLE=shell ls 'space name.txt'
+QUOTING_STYLE=c ls a.txt
+QUOTING_STYLE=c ls -N a.txt
+QUOTING_STYLE=bogus ls a.txt
+QUOTING_STYLE=lit ls 'space name.txt'
+
+ls --zero dir | od -c
+ls --zero -l dir | tr '\0' '|'
+ls --zero -C dir | od -c
+ls -C --zero dir | od -c
+ls -m --zero -w 10 dir | od -c
+ls --zero -R dir | tr '\0' '|'
+ls --zero -l -s dir | tr '\0' '|'
+touch "$(printf 'new\nline')"; ls --zero | od -c
+ls -Q --zero 'space name.txt' | od -c
+ls --zero -Q 'space name.txt' | od -c
+ls --zero --color=always a.txt | od -c
+ls --color=always --zero a.txt | od -c
+
+ls --dired -l dir
+ls -l --dired a.txt 'space name.txt' dir
+ls -lR --dired dir
+ls -D -l link
+ls --dired dir
+ls --dired -l --zero dir; echo $?
+ls --dired --zero dir; echo $?
+ls -l --dired --quoting-style=c dir
+
+ls -s dir
+ls -sk dir
+ls -s --kibibytes dir
+ls -s --block-size=1 dir
+ls -s --block-size=512 dir
+ls -l --block-size=K dir
+ls -l --block-size=1K dir
+ls -l --block-size=KB dir
+ls -l --block-size=1 dir
+ls -sl --block-size=M dir
+ls -l --block-size=human-readable dir
+ls -l --block-size=si dir
+ls -l --block-size=x dir; echo $?
+ls -l --block-size=0 dir; echo $?
+ls -lh --block-size=1 dir
+ls -l --block-size=1 -h dir
+ls -sk -h dir
+ls -sh -k dir
+LS_BLOCK_SIZE=1 ls -s dir
+LS_BLOCK_SIZE=K ls -l dir
+BLOCK_SIZE=K ls -l dir
+BLOCK_SIZE=1 ls -s dir
+BLOCKSIZE=1 ls -sl dir
+LS_BLOCK_SIZE=x ls -s dir
+POSIXLY_CORRECT=1 ls -s dir
+POSIXLY_CORRECT=1 ls -sk dir
+
+ls -l --author dir
+ls -lg --author dir
+ls -lG --author dir
+ls -ln --author dir
+ls --author dir
+
+ls --hyperlink=always a.txt 'space name.txt'
+ls --hyperlink a.txt
+ls --hyperlink=never a.txt
+ls --hyperlink=auto a.txt
+ls -l --hyperlink=always link
+ls --hyperlink=always -R dir
+ls --hyperlink=always -C -w 80 --quoting-style=shell-escape
+ls --hyperlink=bogus a.txt
+ls --hyperlink=always --dired -l a.txt
+
+dir dir
+dir -N 'space name.txt'
+dir 'space name.txt'
+vdir -d dir
+touch "$(printf 'new\nline')"; dir
+touch "$(printf 'new\nline')"; dir -q
+touch "$(printf 'new\nline')"; dir --quoting-style=shell
+QUOTING_STYLE=shell dir 'space name.txt'
+vdir --format=commas dir
+dir --zero dir | od -c
+
+# The same quoting, in stat %N.
+touch "it's" "$(printf '\001')" "$(printf 'a\nb')"; stat -c %N "it's" "$(printf '\001')" "$(printf 'a\nb')" 'space name.txt' a.txt
+touch 'a b'; ln -s 'a b' 'my link'; stat -c %N 'my link' 'a b'
+touch 'a b'; stat 'a b' | head -1
+ln -s a.txt 'my link'; stat 'my link' | head -1
+QUOTING_STYLE=c stat -c %N a.txt
+QUOTING_STYLE=sh stat -c %N 'space name.txt'
+QUOTING_STYLE=bogus stat -c %N a.txt
+QUOTING_STYLE=c stat a.txt | head -1
+QUOTING_STYLE=sh ls a.txt; echo $?
+
+# The columns of the file operands are as wide as the directory operands'
+# too: GNU measures every operand before setting the directories aside.
+mkdir big && touch big/f0 big/f1 big/f2 big/f3 big/f4 big/f5 big/f6 big/f7 big/f8 big/f9 big/fa big/fb big/fc big/fd big/fe && ls -l a.txt big | head -1
+mkdir big && touch big/f0 big/f1 big/f2 big/f3 big/f4 big/f5 big/f6 big/f7 big/f8 big/f9 big/fa big/fb big/fc big/fd big/fe && ls -ls a.txt big | head -2
+mkdir big && touch big/f0 big/f1 big/f2 big/f3 big/f4 big/f5 big/f6 big/f7 big/f8 big/f9 big/fa big/fb big/fc big/fd big/fe && ls -l -d a.txt big

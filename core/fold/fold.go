@@ -7,9 +7,10 @@ import (
 	"bufio"
 	"errors"
 	"io"
-	"os"
 	"strings"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -79,7 +80,7 @@ func (f *Fold) file(name string) bool {
 			r = strings.NewReader("")
 		}
 	} else {
-		file, err := os.Open(name)
+		file, err := fsys.Open(name)
 		if err != nil {
 			f.diag.Errorf("%s: %s", name, core.ErrText(err))
 			return true

@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -139,7 +141,7 @@ func (sp *Split) Run(args []string) error {
 	in := sp.streams.In
 	var inFile *os.File
 	if infile != "-" {
-		f, err := os.Open(infile)
+		f, err := fsys.Open(infile)
 		if err != nil {
 			sp.diag.Errorf("cannot open '%s' for reading: %s", infile, core.ErrText(err))
 			return core.ErrFailed
@@ -288,11 +290,11 @@ func (sp *Split) create(name string) (*os.File, error) {
 		fmt.Fprintf(sp.streams.Out, "creating file '%s'\n", name)
 	}
 	if sp.input != nil {
-		if info, err := os.Stat(name); err == nil && os.SameFile(info, sp.input) {
+		if info, err := fsys.Stat(name); err == nil && os.SameFile(info, sp.input) {
 			return nil, sp.fail("'%s' would overwrite input; aborting", name)
 		}
 	}
-	f, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o666)
+	f, err := fsys.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o666)
 	if err != nil {
 		return nil, sp.fail("%s: %s", name, core.ErrText(err))
 	}
@@ -534,11 +536,11 @@ func (sp *Split) chunks(in io.Reader, inFile *os.File, infile string) (err error
 	if sp.input != nil && inFile != nil {
 		src, size = inFile, sp.input.Size()
 	} else {
-		tmp, err := os.CreateTemp("", "splitx-*")
+		tmp, err := fsys.CreateTemp("", "splitx-*")
 		if err != nil {
 			return sp.fail("%s: cannot determine file size: %s", infile, core.ErrText(err))
 		}
-		defer os.Remove(tmp.Name())
+		defer fsys.Remove(tmp.Name())
 		defer tmp.Close()
 		if size, err = io.Copy(tmp, in); err != nil {
 			return err

@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -67,7 +69,7 @@ type Realpath struct {
 	Options
 
 	// Getwd is the injection point tests use to control the directory
-	// relative names are resolved against; it defaults to os.Getwd.
+	// relative names are resolved against; it defaults to fsys.Getwd.
 	Getwd func() (string, error)
 
 	streams core.Streams
@@ -78,7 +80,7 @@ type Realpath struct {
 func New(opts Options, s core.Streams) *Realpath {
 	return &Realpath{
 		Options: opts,
-		Getwd:   os.Getwd,
+		Getwd:   fsys.Getwd,
 		streams: s,
 		diag:    core.NewDiag(Name, s),
 	}
@@ -196,10 +198,10 @@ func (r *Realpath) absolute(path string) (string, error) {
 		return path, nil
 	}
 	// Windows has names that are neither absolute nor relative to the working
-	// directory ("\dir", "C:dir"); filepath.Abs knows how to anchor those.
+	// directory ("\dir", "C:dir"); fsys.Abs knows how to anchor those.
 	// Neither condition can hold for a non-absolute name on Unix.
 	if filepath.VolumeName(path) != "" || os.IsPathSeparator(path[0]) {
-		return filepath.Abs(path)
+		return fsys.Abs(path)
 	}
 	wd, err := r.Getwd()
 	if err != nil {
@@ -216,7 +218,7 @@ func (r *Realpath) lexical(abs string) (string, error) {
 
 	switch r.Mode {
 	case ModeExisting:
-		info, err := os.Stat(clean)
+		info, err := fsys.Stat(clean)
 		if err != nil {
 			return "", err
 		}
@@ -224,7 +226,7 @@ func (r *Realpath) lexical(abs string) (string, error) {
 			return "", errNotDir
 		}
 	case ModeDefault:
-		info, err := os.Stat(filepath.Dir(clean))
+		info, err := fsys.Stat(filepath.Dir(clean))
 		if err != nil {
 			return "", err
 		}
@@ -270,7 +272,7 @@ func (r *Realpath) resolve(abs string) (string, error) {
 			continue
 		}
 
-		info, err := os.Lstat(next)
+		info, err := fsys.Lstat(next)
 		if err != nil {
 			if !r.tolerates(err, todo) {
 				return "", err
@@ -286,7 +288,7 @@ func (r *Realpath) resolve(abs string) (string, error) {
 		if links++; links > maxLinks {
 			return "", errLoop
 		}
-		target, err := os.Readlink(next)
+		target, err := fsys.Readlink(next)
 		if err != nil {
 			return "", err
 		}
@@ -355,7 +357,7 @@ func hasPrefix(dir, path string) bool {
 }
 
 func isDir(path string) bool {
-	info, err := os.Stat(path)
+	info, err := fsys.Stat(path)
 	return err == nil && info.IsDir()
 }
 

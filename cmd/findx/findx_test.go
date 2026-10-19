@@ -121,10 +121,9 @@ func TestCommand(t *testing.T) {
 func TestErrors(t *testing.T) {
 	root := tree(t)
 
-	_, _, err := execute(t, root, ".", "-nosuchtest")
-	var usage *core.UsageError
-	if !errors.As(err, &usage) || usage.Msg != "unknown predicate `-nosuchtest'" {
-		t.Fatalf("err = %v, want the engine's usage error", err)
+	_, errb, err := execute(t, root, ".", "-nosuchtest")
+	if !errors.Is(err, core.ErrFailed) || errb != "findx: unknown predicate `-nosuchtest'\n" {
+		t.Fatalf("err = %v, stderr = %q; want GNU's message and no --help hint", err, errb)
 	}
 
 	out, errb, err := execute(t, root, "missing", "a.txt")

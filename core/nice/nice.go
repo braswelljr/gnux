@@ -122,7 +122,8 @@ func (n *Nice) Run(args []string) error {
 		Args:   args,
 		Stdin:  n.streams.In,
 		Stdout: n.streams.Out,
-		Stderr: n.streams.Err,
+		// The warning below can be written while the command runs.
+		Stderr: n.diag.ChildErr(),
 	}
 	if err := cmd.Start(); err != nil {
 		return n.cannotRun(name, err)

@@ -16,6 +16,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -193,7 +195,7 @@ func (t *Tail) initial(name string) *target {
 			r = strings.NewReader("")
 		}
 	} else {
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			t.diag.Errorf("cannot open '%s' for reading: %s", name, core.ErrText(err))
 			if following && t.Retry {
@@ -513,7 +515,7 @@ func (t *Tail) poll(tg *target) {
 
 	if tg.f == nil {
 		// --retry: the initial open failed; keep trying.
-		f, err := os.Open(tg.name)
+		f, err := fsys.Open(tg.name)
 		if err != nil {
 			return
 		}
@@ -533,13 +535,16 @@ func (t *Tail) poll(tg *target) {
 // (an open handle blocks both on Windows) and a replacement is noticed by
 // comparing identities.
 func (t *Tail) pollName(tg *target) {
-	f, err := os.Open(tg.name)
+	f, err := fsys.Open(tg.name)
 	var info os.FileInfo
 	if err == nil {
 		defer f.Close()
 		info, err = f.Stat()
 	}
 	if err != nil {
+		if busy(err) && !tg.missing {
+			return // held by another process for now: look again next poll
+		}
 		if !tg.missing {
 			t.diag.Warnf("'%s' has become inaccessible: %s", tg.name, core.ErrText(err))
 			tg.missing = true

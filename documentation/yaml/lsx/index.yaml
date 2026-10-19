@@ -1,7 +1,7 @@
 name: lsx
 synopsis: List information about files and directory contents.
 description: |-
-    lsx lists each FILE, or the current directory when none is given. Operands that are not directories are listed first, then the contents of each directory under a 'dir:' header. Entries whose names start with '.' are hidden unless -a or -A is given. On a terminal the names are arranged in columns sized to the window; when the output is piped or redirected there is one name per line. -l selects the long format (mode, link count, owner, group, size, timestamp and name), where timestamps from the last six months show the time of day and older ones show the year. Entries are sorted by name using plain byte comparison - the C locale's collation, so uppercase sorts before lowercase regardless of the environment's locale - or by time (-t), size (-S), extension (-X) or version (-v), optionally reversed with -r. When several flags of one family are given (-l/-1/-C/-x/-m, the sort keys, -a/-A, -c/-u/--time, …) the last one on the command line wins, as in GNU ls. The exit status is 0 on success, 1 for minor problems such as an entry that cannot be examined, and 2 for serious trouble such as an operand that cannot be accessed.
+    lsx lists each FILE, or the current directory when none is given. Operands that are not directories are listed first, then the contents of each directory under a 'dir:' header. Entries whose names start with '.' are hidden unless -a or -A is given. On a terminal the names are arranged in columns sized to the window; when the output is piped or redirected there is one name per line. -l selects the long format (mode, link count, owner, group, size, timestamp and name), where timestamps from the last six months show the time of day and older ones show the year. Entries are sorted by name using plain byte comparison - the C locale's collation, so uppercase sorts before lowercase regardless of the environment's locale - or by time (-t), size (-S), extension (-X) or version (-v), optionally reversed with -r. When several flags of one family are given (-l/-1/-C/-x/-m, the sort keys, -a/-A, -c/-u/--time, …) the last one on the command line wins, as in GNU ls. Names are quoted in GNU's styles: on a terminal, for the shell where a shell would need it ('a b', 'new'$'\n''line'), with an unquoted name moved one column right to line up with quoted ones; otherwise as they are. --quoting-style=WORD picks literal (-N), shell, shell-always, shell-escape, shell-escape-always, c (-Q), c-maybe, escape (-b), locale or clocale, and the QUOTING_STYLE variable does when no option does. On a terminal -q, or a style that leaves control characters as they are, prints '?' for them, unless --show-control-chars. --format=WORD and --indicator-style=WORD are the long forms of the format and indicator options. --zero ends each line with NUL instead of a newline (and implies -1, -N, --show-control-chars and no color unless later options say otherwise). --block-size=SIZE scales sizes in the long format and the -s counts (K, 1M, KB, human-readable, si; LS_BLOCK_SIZE and BLOCK_SIZE when no option gives one), and -k counts -s blocks in KiB. --author adds the author column, which is the owner. --hyperlink[=WHEN] makes each name a terminal hyperlink to its file:// URL. -D (--dired) adds the marks Emacs' dired reads: each long-format line indented two spaces, then //DIRED// and //SUBDIRED// with the byte offsets of each name and directory header; it implies -l, turns --hyperlink off, and cannot be combined with --zero. The exit status is 0 on success, 1 for minor problems such as an entry that cannot be examined, and 2 for serious trouble such as an operand that cannot be accessed.
 
     EXIT STATUS.
       0  success
@@ -44,12 +44,17 @@ options:
       default_value: "false"
       usage: |
         with -lt: sort by, and show, access time; with -l: show access time and sort by name; otherwise: sort by access time, newest first
+    - name: author
+      default_value: "false"
+      usage: with -l, print the author of each file
+    - name: block-size
+      usage: |
+        with -l, scale sizes by `SIZE` when printing them; e.g., '--block-size=M'
     - name: classify
       shorthand: F
       default_value: "false"
       usage: append indicator (one of */=@|) to entries
     - name: color
-      default_value: never
       usage: |
         color the output `WHEN`: 'always' (the default when WHEN is omitted), 'auto', or 'never'
     - name: columns
@@ -78,6 +83,10 @@ options:
       shorthand: d
       default_value: "false"
       usage: list directories themselves, not their contents
+    - name: dired
+      shorthand: D
+      default_value: "false"
+      usage: generate output designed for Emacs' dired mode
     - name: escape
       shorthand: b
       default_value: "false"
@@ -85,6 +94,9 @@ options:
     - name: file-type
       default_value: "false"
       usage: likewise, except do not append '*'
+    - name: format
+      usage: |
+        across -x, commas -m, horizontal -x, long -l, single-column -1, verbose -l, vertical -C (`WORD`)
     - name: full-time
       default_value: "false"
       usage: like -l --time-style=full-iso
@@ -106,6 +118,9 @@ options:
       shorthand: h
       default_value: "false"
       usage: with -l and -s, print sizes like 1K 234M 2G etc.
+    - name: hyperlink
+      usage: |
+        hyperlink file names `WHEN`: 'always' (the default when WHEN is omitted), 'auto', or 'never'
     - name: ignore
       shorthand: I
       usage: do not list implied entries matching shell `PATTERN`
@@ -113,10 +128,22 @@ options:
       shorthand: B
       default_value: "false"
       usage: do not list implied entries ending with ~
+    - name: indicator-style
+      usage: |
+        append indicator with style `WORD` to entry names: none (default), slash (-p), file-type (--file-type), classify (-F)
     - name: inode
       shorthand: i
       default_value: "false"
       usage: print the index number of each file
+    - name: kibibytes
+      shorthand: k
+      default_value: "false"
+      usage: |
+        default to 1024-byte blocks for file system usage; used only with -s and per directory totals
+    - name: literal
+      shorthand: "N"
+      default_value: "false"
+      usage: print entry names without quoting
     - name: long
       shorthand: l
       default_value: "false"
@@ -145,6 +172,9 @@ options:
       shorthand: Q
       default_value: "false"
       usage: enclose entry names in double quotes
+    - name: quoting-style
+      usage: |
+        use quoting style `WORD` for entry names: literal, locale, shell, shell-always, shell-escape, shell-escape-always, c, escape (overrides QUOTING_STYLE environment variable)
     - name: recursive
       shorthand: R
       default_value: "false"
@@ -153,6 +183,10 @@ options:
       shorthand: r
       default_value: "false"
       usage: reverse order while sorting
+    - name: show-control-chars
+      default_value: "false"
+      usage: |
+        show nongraphic characters as-is (the default, unless program is 'ls' and output is a terminal)
     - name: si
       default_value: "false"
       usage: likewise, but use powers of 1000 not 1024
@@ -202,6 +236,9 @@ options:
     - name: width
       shorthand: w
       usage: set output width to `COLS`; 0 means no limit
+    - name: zero
+      default_value: "false"
+      usage: end each output line with NUL, not newline
 example: |4-
       # List the current directory
       lsx
@@ -274,3 +311,15 @@ example: |4-
 
       # Run the same listing through the portable gnux shell
       gnux shell -c 'lsx -1 *.log | wcx -l'
+
+      # Pass every name to another tool safely, even ones with spaces or newlines
+      lsx --zero downloads | xargsx -0 sha256sumx
+
+      # Print names you can paste straight back into a shell command
+      lsx --quoting-style=shell-escape uploads
+
+      # Show the size of each video in megabytes
+      lsx -l --block-size=M videos
+
+      # Make every name clickable in a terminal that supports hyperlinks
+      lsx --hyperlink=auto ~/projects

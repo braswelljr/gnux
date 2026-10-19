@@ -1,23 +1,41 @@
 package ls
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/braswelljr/gnux/core/internal/quotearg"
 )
 
-// quoteName renders a file name for output according to -b, -Q and -q.
-func (l *Ls) quoteName(name string) string {
-	switch l.Quoting {
-	case QuoteEscape:
-		return escapeName(name, false)
-	case QuoteC:
-		return `"` + escapeName(name, true) + `"`
+// quoteName renders a file name for output in the quoting style in effect,
+// and reports whether quoting changed it (which decides the alignment pad).
+// With -q, nonprintable characters left as they are then become "?", as GNU
+// does for the literal and shell styles.
+func (l *Ls) quoteName(name string) (string, bool) {
+	return l.quote(name, l.nameQuote)
+}
+
+// quoteDir renders a directory header, which also escapes a ':'.
+func (l *Ls) quoteDir(name string) string {
+	shown, _ := l.quote(name, l.dirQuote)
+	return shown
+}
+
+func (l *Ls) quote(name string, o quotearg.Options) (string, bool) {
+	shown := quotearg.Quote(name, o)
+	quoted := shown != name
+	if l.hideCtl {
+		switch o.Style {
+		case quotearg.Literal, quotearg.Shell, quotearg.ShellAlways:
+			shown = questionMarks(shown)
+		}
 	}
-	if !l.hideCtl {
-		return name
-	}
+	return shown, quoted
+}
+
+// questionMarks replaces each nonprintable character with "?".
+func questionMarks(s string) string {
 	return strings.Map(func(r rune) rune {
 		// strings.Map hands every invalid byte over as RuneError, which is
 		// exactly the one "?" per byte that ls prints.
@@ -25,49 +43,7 @@ func (l *Ls) quoteName(name string) string {
 			return '?'
 		}
 		return r
-	}, name)
-}
-
-// escapeName applies C-style backslash escapes to nongraphic characters. In
-// the quoted (-Q) form a double quote is escaped and a space is not; in the
-// bare (-b) form it is the other way around.
-func escapeName(name string, quoted bool) string {
-	var b strings.Builder
-	for i := 0; i < len(name); {
-		r, size := utf8.DecodeRuneInString(name[i:])
-		switch {
-		case r == utf8.RuneError && size <= 1:
-			fmt.Fprintf(&b, `\%03o`, name[i])
-		case r == '\\':
-			b.WriteString(`\\`)
-		case r == '"' && quoted:
-			b.WriteString(`\"`)
-		case r == ' ' && !quoted:
-			b.WriteString(`\ `)
-		case r == '\a':
-			b.WriteString(`\a`)
-		case r == '\b':
-			b.WriteString(`\b`)
-		case r == '\f':
-			b.WriteString(`\f`)
-		case r == '\n':
-			b.WriteString(`\n`)
-		case r == '\r':
-			b.WriteString(`\r`)
-		case r == '\t':
-			b.WriteString(`\t`)
-		case r == '\v':
-			b.WriteString(`\v`)
-		case unicode.IsPrint(r):
-			b.WriteRune(r)
-		default:
-			for _, c := range []byte(name[i : i+size]) {
-				fmt.Fprintf(&b, `\%03o`, c)
-			}
-		}
-		i += size
-	}
-	return b.String()
+	}, s)
 }
 
 // displayWidth estimates how many terminal columns s occupies: combining marks
@@ -77,6 +53,8 @@ func displayWidth(s string) int {
 	w := 0
 	for _, r := range s {
 		switch {
+		case r < 0x20 || r == 0x7f:
+			// A control character left in a name takes no column.
 		case r < 0x7f:
 			w++
 		case unicode.In(r, unicode.Mn, unicode.Me, unicode.Cf):

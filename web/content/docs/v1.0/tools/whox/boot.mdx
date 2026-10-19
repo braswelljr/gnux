@@ -1,0 +1,41 @@
+---
+title: "-b, --boot"
+description: "Time of last system boot."
+---
+
+An option of [whox](/docs/v1.0/tools/whox).
+
+## Usage
+
+```bash
+whox -b [ FILE | ARG1 ARG2 ]
+whox --boot [ FILE | ARG1 ARG2 ]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-b` | `--boot` | none |  | time of last system boot |
+
+## Examples
+
+### Check when the machine last booted
+
+```bash tab="bash" tab-group="shell"
+whox -b
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox -b
+```
+
+```text title="Output"
+         system boot  Oct  9 10:44
+```
+
+## Help in the terminal
+
+```bash
+gnux help whox --boot
+```

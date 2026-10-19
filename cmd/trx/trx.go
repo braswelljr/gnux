@@ -134,6 +134,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("squeeze-repeats", "s", false,
 		"replace each sequence of a repeated character that is listed in the last specified SET, with a single occurrence of that character")
 	fs.BoolP("truncate-set1", "t", false, "first truncate SET1 to length of SET2")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "complement-upper")
 }
 
 // buildOptions folds the parsed flags into tr.Options.

@@ -10,8 +10,48 @@ export const docs = loader({
 
 export type DocsPage = InferPageType<typeof docs>;
 
+/**
+ * A release's snapshot folder (`v1.1`): the docs of that version as it
+ * shipped, written by tools/docsnap beside the latest ones.
+ */
+const versionFolder = /^v(\d+)\.(\d+)$/;
+
+/** The release a page belongs to, or null for the latest docs. */
+export function pageVersion(slugs: string[]): string | null {
+  const first = slugs[0];
+  return first !== undefined && versionFolder.test(first) ? first : null;
+}
+
+/** The released versions with docs of their own, newest first. */
+export function docsVersions(): string[] {
+  const versions = new Set<string>();
+  for (const page of docs.getPages()) {
+    const version = pageVersion(page.slugs);
+    if (version) versions.add(version);
+  }
+  const key = (v: string) => {
+    const match = versionFolder.exec(v);
+    return match ? match.slice(1).map(Number) : [];
+  };
+  return [...versions].sort((a, b) => {
+    const [aMajor = 0, aMinor = 0] = key(a);
+    const [bMajor = 0, bMinor = 0] = key(b);
+    return bMajor - aMajor || bMinor - aMinor;
+  });
+}
+
+/**
+ * The docs with the latest pages only, for search and llms.txt: an older
+ * version's page would otherwise compete with the current one.
+ */
+export const latestDocs: typeof docs = {
+  ...docs,
+  getPages: (...args: Parameters<typeof docs.getPages>) =>
+    docs.getPages(...args).filter((page) => pageVersion(page.slugs) === null)
+};
+
 /** Builds llms.txt (an index) and llms-full.txt (every page) from the docs. */
-export const docsLlms = llms(docs, {
+export const docsLlms = llms(latestDocs, {
   renderPage: async (page) => `# ${page.data.title} (${page.url})
 
 ${page.data.description ?? ''}

@@ -1,0 +1,15 @@
+{
+  "title": "uniqx",
+  "pages": [
+    "all-repeated",
+    "check-chars",
+    "count",
+    "group",
+    "ignore-case",
+    "repeated",
+    "skip-chars",
+    "skip-fields",
+    "unique",
+    "zero-terminated"
+  ]
+}

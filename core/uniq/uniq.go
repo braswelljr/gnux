@@ -7,8 +7,9 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"os"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -128,7 +129,7 @@ func (u *Uniq) Run(args []string) error {
 
 	r := u.streams.In
 	if in != "-" {
-		f, err := os.Open(in)
+		f, err := fsys.Open(in)
 		if err != nil {
 			u.diag.Errorf("%s: %s", in, core.ErrText(err))
 			return u.diag.Result()
@@ -146,7 +147,7 @@ func (u *Uniq) Run(args []string) error {
 
 	w := u.streams.Out
 	if out != "-" {
-		f, err := os.Create(out)
+		f, err := fsys.Create(out)
 		if err != nil {
 			u.diag.Errorf("%s: %s", out, core.ErrText(err))
 			return u.diag.Result()

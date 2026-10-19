@@ -3,6 +3,7 @@ package chown_test
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
@@ -19,7 +20,6 @@ func TestUsageErrors(t *testing.T) {
 	}{
 		{"no operands", chown.Options{}, nil, "missing operand"},
 		{"spec only", chown.Options{}, []string{"0:0"}, "missing operand after '0:0'"},
-		{"recursive dereference without -H or -L", chown.Options{Recursive: true, Dereference: true}, []string{"0", "f"}, "-R --dereference requires either -H or -L"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -42,5 +42,13 @@ func TestInvalidSpec(t *testing.T) {
 		if !errors.Is(err, core.ErrFailed) || errb.String() != want {
 			t.Fatalf("%s: err = %v, stderr = %q, want %q", spec, err, errb.String(), want)
 		}
+	}
+}
+
+func TestRecursiveDereferenceNeedsTraversal(t *testing.T) {
+	var errb bytes.Buffer
+	err := chown.New(chown.Options{Recursive: true, Dereference: true}, core.Streams{In: strings.NewReader(""), Out: io.Discard, Err: &errb}).Run([]string{"0", "f"})
+	if !errors.Is(err, core.ErrFailed) || errb.String() != "chownx: -R --dereference requires either -H or -L\n" {
+		t.Fatalf("err = %v, stderr = %q", err, errb.String())
 	}
 }

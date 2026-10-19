@@ -43,3 +43,8 @@ updates:
     groups:
       web:
         patterns: ["*"]
+    # typescript-eslint supports TypeScript 5 only so far; a TypeScript 7
+    # bump breaks the Lint step of the Web workflow. Lift this once it does.
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]

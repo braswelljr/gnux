@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/fsys"
 )
 
 // defaultPathExt is used when PATHEXT is unset or empty.
@@ -70,7 +72,7 @@ func withExt(p string, exts []string) (string, error) {
 			return p + ext, nil
 		}
 	}
-	if _, err := os.Stat(p); err == nil {
+	if _, err := fsys.Stat(p); err == nil {
 		// It exists, but it is a directory or has no runnable extension.
 		return "", fs.ErrPermission
 	}
@@ -79,7 +81,7 @@ func withExt(p string, exts []string) (string, error) {
 
 // isFile reports whether p exists and is not a directory.
 func isFile(p string) bool {
-	info, err := os.Stat(p)
+	info, err := fsys.Stat(p)
 	return err == nil && !info.IsDir()
 }
 

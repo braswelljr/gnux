@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -19,7 +21,7 @@ func Lookup(stream any) (string, bool) {
 	if !ok || !core.IsTerminal(f) {
 		return "", false
 	}
-	if name, err := os.Readlink("/proc/self/fd/" + strconv.Itoa(int(f.Fd()))); err == nil && filepath.IsAbs(name) {
+	if name, err := fsys.Readlink("/proc/self/fd/" + strconv.Itoa(int(f.Fd()))); err == nil && filepath.IsAbs(name) {
 		return name, true
 	}
 	info, err := f.Stat()
@@ -32,7 +34,7 @@ func Lookup(stream any) (string, bool) {
 	}
 	rdev := uint64(st.Rdev) //nolint:unconvert // int32 on darwin
 	for _, dir := range []string{"/dev/pts", "/dev"} {
-		entries, err := os.ReadDir(dir)
+		entries, err := fsys.ReadDir(dir)
 		if err != nil {
 			continue
 		}

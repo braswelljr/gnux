@@ -6,8 +6,9 @@ import (
 	"bufio"
 	"errors"
 	"io"
-	"os"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -139,7 +140,7 @@ func (p *Paste) open(name string) (*source, error) {
 	if name == "-" {
 		return &source{name: name, r: p.stdin}, nil
 	}
-	f, err := os.Open(name)
+	f, err := fsys.Open(name)
 	if err != nil {
 		return nil, err
 	}

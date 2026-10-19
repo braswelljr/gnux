@@ -1,0 +1,37 @@
+---
+title: "-T, --show-tabs"
+description: "Display TAB characters as ^I."
+---
+
+An option of [catx](/docs/v1.0/tools/catx).
+
+## Usage
+
+```bash
+catx -T [FILE]...
+catx --show-tabs [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-T` | `--show-tabs` | none |  | display TAB characters as ^I |
+
+## Examples
+
+### Show only line ends, or only tabs
+
+```bash tab="bash" tab-group="shell"
+catx -E list.txt && catx -T Makefile
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+catx -E list.txt; catx -T Makefile
+```
+
+## Help in the terminal
+
+```bash
+gnux help catx --show-tabs
+```

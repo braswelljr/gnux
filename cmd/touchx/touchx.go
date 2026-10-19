@@ -144,6 +144,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.StringP("stamp", "t", "", "use [[CC]YY]MMDDhhmm[.ss] `STAMP` instead of current time")
 	fs.String("time", "", "change the specified time: `WORD` is access, atime, or use "+
 		"(like -a), or modify or mtime (like -m)")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "access-time", "modification-time", "stamp")
 }
 
 // buildOptions folds the parsed flags into touch.Options.

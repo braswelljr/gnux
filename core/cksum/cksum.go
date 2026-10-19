@@ -10,9 +10,10 @@ import (
 	"fmt"
 	"hash/crc32"
 	"io"
-	"os"
 	"strings"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/hashsum"
@@ -141,7 +142,7 @@ func valid(alg string) bool {
 func (c *Cksum) legacy(out *bufio.Writer, alg, name string, named bool) {
 	r := c.streams.In
 	if name != "-" {
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			c.diag.Errorf("%s: %s", name, core.ErrText(err))
 			return

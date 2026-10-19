@@ -147,7 +147,7 @@ Valid arguments are:
   - 'always'
 Try 'rmx --help' for more information.                    # 1: UsageError from the adapter
 $ gnux rmx --no-such-flag
-rmx: unknown flag: --no-such-flag
+rmx: unrecognized option '--no-such-flag'
 Try 'rmx --help' for more information.                    # 1: pflag error (FR-73)
 $ rmx missing
 rmx: cannot remove 'missing': No such file or directory   # 1: ErrFailed, no hint
@@ -156,7 +156,7 @@ lsx: cannot access 'missing': No such file or directory   # 2: ExitError (seriou
 $ gnux envx nosuchprog
 envx: 'nosuchprog': No such file or directory             # 127: ExitError
 $ gnux envx --bogus
-envx: unknown flag: --bogus
+envx: unrecognized option '--bogus'
 Try 'envx --help' for more information.                   # 125: envx UsageExit
 ```
 

@@ -180,3 +180,18 @@ func TestShellHelpAndGnux(t *testing.T) {
 		t.Errorf("help nosuchtool: status=%d stderr=%q", status, errb)
 	}
 }
+
+// TestShebangScript runs a script the way the kernel runs an executable one
+// with '#!/usr/bin/env -S gnux shell -eu': the options, then the script's
+// path, then its arguments. The #! line is an ordinary comment to the shell.
+func TestShebangScript(t *testing.T) {
+	script := filepath.Join(t.TempDir(), "greet.gnux")
+	body := "#!/usr/bin/env -S gnux shell -eu\necho \"hello, $1\"\nfalsex\necho unreachable\n"
+	if err := os.WriteFile(script, []byte(body), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	status, out, errb := run(t, "gnux", "shell", "-eu", script, "world")
+	if status != 1 || out != "hello, world\n" || errb != "" {
+		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, out, errb)
+	}
+}

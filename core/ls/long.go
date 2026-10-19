@@ -2,8 +2,11 @@ package ls
 
 import (
 	"os"
+	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/internal/human"
 )
 
 // longRow holds the formatted columns of one long-format line, so that widths
@@ -27,9 +30,12 @@ func (l *Ls) printLong(entries []*entry) {
 	now := l.Now()
 	unknownTime := padLeft("?", len(l.style.format(now, now, l.Location)))
 
-	rows := make([]longRow, len(entries))
+	// The columns are as wide as the widest of entries and of measureAlso,
+	// the directory operands GNU measures before it sets them aside.
+	measured := slices.Concat(entries, l.measureAlso)
+	rows := make([]longRow, len(measured))
 	var linksW, ownerW, groupW, sizeW, majorW, minorW int
-	for i, e := range entries {
+	for i, e := range measured {
 		r := longRow{frills: l.frillsOf(e, f), mode: modeString(e), links: "?", size: "?", time: unknownTime}
 		r.owner, r.ownerNumeric = l.ownerOf(e)
 		r.group, r.groupNumeric = l.groupOf(e)
@@ -76,6 +82,11 @@ func (l *Ls) printLong(entries []*entry) {
 			b.WriteString(alignID(r.group, groupW, r.groupNumeric))
 			b.WriteString(" ")
 		}
+		if l.Author {
+			// The author is the owner everywhere but the Hurd.
+			b.WriteString(alignID(r.owner, ownerW, r.ownerNumeric))
+			b.WriteString(" ")
+		}
 		if r.device {
 			device := padLeft(r.major, majorW) + ", " + padLeft(r.minor, minorW)
 			b.WriteString(padLeft(device, sizeW))
@@ -85,6 +96,7 @@ func (l *Ls) printLong(entries []*entry) {
 		b.WriteString(" ")
 		b.WriteString(r.time)
 		b.WriteString(" ")
+		l.diredIndent()
 		l.put(b.String())
 
 		l.putName(e)
@@ -95,17 +107,19 @@ func (l *Ls) printLong(entries []*entry) {
 			// The indicator of a link describes what it points to and follows
 			// the target; the link's own name gets none.
 			l.put(" -> ")
-			target := l.quoteName(e.link)
+			target, quoted := l.quoteName(e.link)
+			code := ""
 			if l.palette != nil {
-				l.putColored(target, l.palette.targetColor(e))
-			} else {
-				l.put(target)
+				code = l.palette.targetColor(e)
 			}
+			// A link target is never padded, and --dired does not mark it.
+			var unmarked []int64
+			l.putMarked(target, quoted, code, e.path, &unmarked)
 			if e.target != nil {
 				l.put(l.indicator(e.target.Mode()))
 			}
 		}
-		l.put("\n")
+		l.put(l.eol)
 	}
 }
 
@@ -223,55 +237,11 @@ func (l *Ls) indicator(mode os.FileMode) string {
 
 // sizeString formats a byte count for the size column.
 func (l *Ls) sizeString(size int64) string {
-	if l.HumanReadable || l.SI {
-		return humanSize(uint64(max(size, 0)), l.SI)
-	}
-	return strconv.FormatInt(size, 10)
+	return human.Readable(uint64(max(size, 0)), l.fileOpts, 1, l.fileBlock)
 }
 
-// blockString formats an allocation given in 512-byte units: as a count of 1K
-// blocks, or scaled with -h / --si.
+// blockString formats an allocation given in 512-byte units, in the -s and
+// total unit.
 func (l *Ls) blockString(blocks int64) string {
-	blocks = max(blocks, 0)
-	if l.HumanReadable || l.SI {
-		return humanSize(uint64(blocks)*512, l.SI)
-	}
-	return strconv.FormatInt((blocks+1)/2, 10)
-}
-
-// humanSize scales n to at most three significant characters plus a unit
-// suffix, rounding up as GNU ls does: 1.0K, 9.9K, 10K, 1023K, 1.0M. Powers of
-// 1024 are used unless si is set, which selects powers of 1000 and a lowercase
-// "k".
-func humanSize(n uint64, si bool) string {
-	base, suffixes := uint64(1024), "KMGTPE"
-	if si {
-		base, suffixes = 1000, "kMGTPE"
-	}
-	if n < base {
-		return strconv.FormatUint(n, 10)
-	}
-
-	unit, exp := base, 0
-	for exp < len(suffixes)-1 && n/unit >= base {
-		unit *= base
-		exp++
-	}
-
-	q, r := n/unit, n%unit
-	if q < 10 {
-		// One decimal place, rounded up to the next tenth.
-		if tenths := q*10 + (r*10+unit-1)/unit; tenths < 100 {
-			return strconv.FormatUint(tenths/10, 10) + "." + strconv.FormatUint(tenths%10, 10) + suffixes[exp:exp+1]
-		}
-		q, r = 10, 0
-	}
-	if r > 0 {
-		q++
-	}
-	// Rounding up can spill into the next unit: 1023.5K is 1.0M.
-	if q >= base && exp < len(suffixes)-1 {
-		return "1.0" + suffixes[exp+1:exp+2]
-	}
-	return strconv.FormatUint(q, 10) + suffixes[exp:exp+1]
+	return human.Readable(uint64(max(blocks, 0)), l.blockOpts, 512, l.blockSize)
 }

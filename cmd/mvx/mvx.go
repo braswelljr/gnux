@@ -2,6 +2,8 @@
 package mvx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -31,10 +33,19 @@ func Meta() docmeta.Meta {
 			"selectable with -t; -T forces the two-operand form). Within one filesystem a move " +
 			"is an atomic rename. Across filesystems mvx copies the source with all of its " +
 			"attributes, symbolic links and hard links intact and removes the original only " +
-			"after the copy has fully succeeded. An existing destination is replaced unless -n " +
+			"after the copy has fully succeeded; --no-copy refuses such a move instead ('Invalid " +
+			"cross-device link'), so a move is always a rename. An existing destination is replaced unless -n " +
 			"(never), -u (only when the source is newer) or -i (ask first) says otherwise; a " +
 			"directory is never moved into itself, and a directory only replaces an empty " +
-			"directory. GNU mv lets the last of -f, -i and -n win; mvx cannot see option order, " +
+			"directory. " +
+			"--backup[=CONTROL] (or -b) first renames each existing destination to a backup: " +
+			"CONTROL simple (or never) appends a suffix, numbered (t) appends .~N~ with N one " +
+			"past the highest already there, existing (nil, the default) numbers the backup " +
+			"only when numbered backups already exist, and none (off) makes none; without a " +
+			"CONTROL the VERSION_CONTROL variable chooses. The suffix is ~, or SUFFIX with -S " +
+			"(which asks for backups by itself), or the SIMPLE_BACKUP_SUFFIX variable. A destination " +
+			"directory is backed up too, so with a backup a directory may replace a file " +
+			"and a file a directory; --backup cannot be combined with -n. GNU mv lets the last of -f, -i and -n win; mvx cannot see option order, " +
 			"so it prefers the most cautious instead: -n over -i over -f.",
 		Permissions: "Renaming needs write and search permission on both the source and " +
 			"destination directories, not on the file itself; in a sticky directory you must " +
@@ -48,6 +59,7 @@ func Meta() docmeta.Meta {
 			"Relocating a tree to another disk without losing modes, times or links.",
 			"Protecting existing files in scripts with -n, or reviewing overwrites with -i.",
 			"Promoting a staged file over the live one only when it is newer (-u).",
+			"Publishing a file atomically, never by a slow copy, with --no-copy.",
 			"Atomically swapping a freshly written file into place after it is complete.",
 			"Replacing a directory's name with -T instead of moving into it.",
 			"Logging every move in a cleanup script with -v.",
@@ -123,16 +135,28 @@ func Meta() docmeta.Meta {
 				Bash:        "gnux shell -c 'mkdirx -p archive/2024 && mvx -v *.txt archive/2024/'",
 				PowerShell:  "gnux shell -c 'mkdirx -p archive/2024 && mvx -v *.txt archive/2024/'",
 			},
+			{
+				Description: "Publish a finished build atomically, or fail if it is on another disk:",
+				Bash:        "mvx --no-copy build/site.new www/site",
+				PowerShell:  "mvx --no-copy build\\site.new www\\site",
+			},
+			{
+				Description: "Replace a log with a new one, keeping the old one as server.log.old:",
+				Bash:        "mvx -S .old server.log.new server.log",
+				PowerShell:  "mvx -S .old server.log.new server.log",
+			},
 		},
 	}
 }
 
 // Register installs the mvx flags on fs.
 func Register(fs *pflag.FlagSet) {
+	tool.RegisterBackup(fs)
 	fs.BoolP("force", "f", false, "do not prompt before overwriting")
 	fs.BoolP("interactive", "i", false, "prompt before overwrite")
 	fs.BoolP("no-clobber", "n", false, "do not overwrite an existing file")
 	fs.Bool("strip-trailing-slashes", false, "remove any trailing slashes from each SOURCE argument")
+	fs.Bool("no-copy", false, "do not copy if renaming fails")
 	fs.StringP("target-directory", "t", "", "move all SOURCE arguments into DIRECTORY")
 	fs.BoolP("no-target-directory", "T", false, "treat DEST as a normal file")
 	fs.StringP("update", "u", "", "control which existing files are updated: all, none, or older (the default for -u)")
@@ -156,6 +180,7 @@ func buildOptions(fs *pflag.FlagSet) (mv.Options, error) {
 		Verbose:              flag("verbose"),
 		NoTargetDirectory:    flag("no-target-directory"),
 		StripTrailingSlashes: flag("strip-trailing-slashes"),
+		NoCopy:               flag("no-copy"),
 	}
 	o.TargetDirectory, _ = fs.GetString("target-directory")
 
@@ -175,9 +200,17 @@ func buildOptions(fs *pflag.FlagSet) (mv.Options, error) {
 	switch {
 	case o.NoClobber:
 		o.Interactive, o.Force = false, false
+		if tool.Backups(fs) {
+			return mv.Options{}, core.Usagef("cannot combine --backup with --exchange, -n, or --update=none-fail")
+		}
 	case o.Interactive:
 		o.Force = false
 	}
+	backup, err := tool.BackupOptions(fs, os.Getenv)
+	if err != nil {
+		return mv.Options{}, err
+	}
+	o.Backup = backup
 	return o, nil
 }
 

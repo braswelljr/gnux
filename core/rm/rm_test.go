@@ -225,6 +225,25 @@ func TestRefusesDotDirectory(t *testing.T) {
 	}
 }
 
+// TestDotWithoutRecursion: only -r refuses . and .. by name, as GNU rm does;
+// otherwise they are directories like any other.
+func TestDotWithoutRecursion(t *testing.T) {
+	r, _, errb := newEngine(rm.Options{})
+	if err := r.Run([]string{"."}); !errors.Is(err, core.ErrFailed) || errb.String() != "rmx: cannot remove '.': Is a directory\n" {
+		t.Fatalf("err = %v, stderr = %q", err, errb.String())
+	}
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "f"), nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	r, _, errb = newEngine(rm.Options{Dir: true})
+	dot := filepath.Join(dir, ".")
+	if err := r.Run([]string{dot}); !errors.Is(err, core.ErrFailed) || errb.String() != "rmx: cannot remove '"+dot+"': Directory not empty\n" {
+		t.Fatalf("-d: err = %v, stderr = %q", err, errb.String())
+	}
+	mustExist(t, filepath.Join(dir, "f"), true)
+}
+
 func TestInjectedRemoveFn(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "tree")
 	if err := os.MkdirAll(filepath.Join(root, "a"), 0o755); err != nil {

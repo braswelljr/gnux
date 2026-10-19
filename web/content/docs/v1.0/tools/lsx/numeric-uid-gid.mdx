@@ -1,0 +1,37 @@
+---
+title: "-n, --numeric-uid-gid"
+description: "Like -l, but list numeric user and group IDs."
+---
+
+An option of [lsx](/docs/v1.0/tools/lsx).
+
+## Usage
+
+```bash
+lsx -n [FILE]...
+lsx --numeric-uid-gid [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-n` | `--numeric-uid-gid` | none |  | like `-l`, but list numeric user and group IDs |
+
+## Examples
+
+### Long format with numeric user and group IDs, or without the owner or group columns
+
+```bash tab="bash" tab-group="shell"
+lsx -n data/ && lsx -g data/ && lsx -o data/ && lsx -lG data/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -n data; lsx -g data; lsx -o data; lsx -lG data
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --numeric-uid-gid
+```

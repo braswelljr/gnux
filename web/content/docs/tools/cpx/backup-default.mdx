@@ -1,0 +1,37 @@
+---
+title: "-b, --backup-default"
+description: "Like --backup but does not accept an argument."
+---
+
+An option of [cpx](/docs/tools/cpx).
+
+## Usage
+
+```bash
+cpx -b SOURCE... DIRECTORY
+cpx --backup-default SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-b` | `--backup-default` | none |  | like `--backup` but does not accept an argument |
+
+## Examples
+
+### Update a config file but keep the previous version as config.yml~
+
+```bash tab="bash" tab-group="shell"
+cpx -b new/config.yml config.yml
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cpx -b new\config.yml config.yml
+```
+
+## Help in the terminal
+
+```bash
+gnux help cpx --backup-default
+```

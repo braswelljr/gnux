@@ -421,16 +421,32 @@ func TestQuoting(t *testing.T) {
 		})
 	}
 
-	t.Run("a terminal hides control chars by default", func(t *testing.T) {
-		l, out, _ := newEngine(ls.Options{Format: ls.FormatSingle})
-		l.IsTerminal = true
-		if err := l.Run([]string{dir}); err != nil {
-			t.Fatal(err)
-		}
-		if !strings.Contains(out.String(), "new?line\n") {
-			t.Fatalf("got %q", out.String())
-		}
-	})
+	// On a terminal GNU quotes for the shell by default, and with -N prints
+	// "?" for a control character.
+	for _, tt := range []struct {
+		name string
+		opts ls.Options
+		want string
+	}{
+		{"a terminal quotes for the shell by default", ls.Options{Format: ls.FormatSingle},
+			"'a b'\n'back\\slash'\ncaf\u00e9\n'new'$'\\n''line'\nplain\n'q\"uote'\n'tab'$'\\t''here'\n"},
+		{"-N on a terminal hides control chars", ls.Options{Format: ls.FormatSingle, Quoting: ls.QuoteLiteral},
+			"a b\nback\\slash\ncaf\u00e9\nnew?line\nplain\nq\"uote\ntab?here\n"},
+		{"--show-control-chars on a terminal", ls.Options{Format: ls.FormatSingle, Quoting: ls.QuoteLiteral, ShowControlChars: true},
+			"a b\nback\\slash\ncaf\u00e9\nnew\nline\nplain\nq\"uote\ntab\there\n"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			l, out, _ := newEngine(tt.opts)
+			l.IsTerminal = true
+			l.Getenv = func(string) string { return "" }
+			if err := l.Run([]string{dir}); err != nil {
+				t.Fatal(err)
+			}
+			if out.String() != tt.want {
+				t.Fatalf("got %q, want %q", out.String(), tt.want)
+			}
+		})
+	}
 }
 
 func TestIndicators(t *testing.T) {
@@ -1081,7 +1097,7 @@ func TestParseWords(t *testing.T) {
 		if !errors.As(err, &usage) {
 			t.Fatalf("err = %v, want a usage error", err)
 		}
-		if !strings.HasPrefix(usage.Msg, "invalid argument 'sometimes' for '--color'\nValid arguments are:\n  - 'always'\n") {
+		if !strings.HasPrefix(usage.Msg, "invalid argument 'sometimes' for '--color'\nValid arguments are:\n  - 'always', 'yes', 'force'\n  - 'never', 'no', 'none'\n") {
 			t.Fatalf("message = %q", usage.Msg)
 		}
 		if _, err := ls.ParseWhen("--color", "a"); err == nil || !strings.HasPrefix(err.Error(), "ambiguous argument 'a' for '--color'") {

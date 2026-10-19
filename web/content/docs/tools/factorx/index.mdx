@@ -18,7 +18,7 @@ factorx [OPTION] [NUMBER]...
 
 ## Description
 
-`factorx` prints each NUMBER followed by a colon and its prime factors in ascending order, a repeated `factor` as many times as it divides the number. With no NUMBER, it reads numbers separated by spaces, tabs and newlines from standard input, and answers each line as soon as it is read. 0 and 1 have no prime factors and print just the colon. A NUMBER may have leading spaces and one '+', and must otherwise be decimal digits; anything else is reported as 'is not a valid positive integer', the remaining numbers are still factored, and the exit status is 1. `-h` (`--exponents`) prints a repeated `factor` once, as p^e. As in GNU `factor`, a NUMBER has no size limit. Numbers below 2^64 are factored with trial division, the Miller-Rabin `test` and Pollard's rho, and take microseconds; larger ones use arbitrary-precision arithmetic, which is fast when the number has at most one large prime `factor` and can take minutes when it is the product of two primes of more than 15 digits each.
+`factorx` prints each NUMBER followed by a colon and its prime factors in ascending order, a repeated factor as many times as it divides the number. With no NUMBER, it reads numbers separated by spaces, tabs and newlines from standard input, and answers each line as soon as it is read. 0 and 1 have no prime factors and print just the colon. A NUMBER may have leading spaces and one '+', and must otherwise be decimal digits; anything else is reported as 'is not a valid positive integer', the remaining numbers are still factored, and the exit status is 1. `-h` (`--exponents`) prints a repeated factor once, as p^e. As in GNU factor, a NUMBER has no size limit. Numbers below 2^64 are factored with trial division, the Miller-Rabin `test` and Pollard's rho, and take microseconds; larger ones use arbitrary-precision arithmetic, which is fast when the number has at most one large prime factor and can take minutes when it is the product of two primes of more than 15 digits each.
 
 ## Permissions
 
@@ -26,7 +26,7 @@ Needs no permissions. Reads only its operands or standard input.
 
 ## Use cases
 
-- Checking whether a number is prime: a prime's only `factor` is itself.
+- Checking whether a number is prime: a prime's only factor is itself.
 - Finding the divisors of a number in a script or a puzzle.
 - Simplifying a fraction or finding a common divisor by hand.
 - Teaching or checking arithmetic exercises.

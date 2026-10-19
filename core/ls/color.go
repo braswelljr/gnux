@@ -138,18 +138,3 @@ func (p *palette) modeColor(mode os.FileMode, name string) string {
 	}
 	return p.lookup("fi")
 }
-
-// putColored writes text wrapped in the given SGR code, or bare when code is
-// empty. Like GNU ls, the first colored name is preceded by a reset so that
-// whatever attributes the terminal was left in cannot bleed into the listing.
-func (l *Ls) putColored(text, code string) {
-	if code == "" {
-		l.put(text)
-		return
-	}
-	if !l.usedColor {
-		l.usedColor = true
-		l.put("\x1b[0m")
-	}
-	l.put("\x1b[" + code + "m" + text + "\x1b[0m")
-}

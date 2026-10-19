@@ -44,8 +44,10 @@ func Meta() docmeta.Meta {
 			"%Lr (device type of a special file), %m (mount point), %w %x %y %z (birth, " +
 			"access, modification and change times) and %W %X %Y %Z (the same as seconds " +
 			"since the epoch, which take a precision: %.3Y), with printf flags and widths " +
-			"(%-10s, %04a). With -f: %n %i %l %t %T %s %S %b %f %a %c %d. Names are quoted " +
-			"only when a shell would need it. The device is shown as major,minor, as GNU " +
+			"(%-10s, %04a). With -f: %n %i %l %t %T %s %S %b %f %a %c %d. %N quotes a name " +
+			"(and a link's target) in the style the QUOTING_STYLE variable names, as lsx " +
+			"--quoting-style takes it, or else for the shell, always ('a.txt', 'a b', " +
+			"\"it's\", 'a'$'\\n''b'); the default formats name files as they are. The device is shown as major,minor, as GNU " +
 			"stat 9 shows it. Missing data is reported honestly rather than invented: the " +
 			"birth time prints '-' where the system does not record it (Linux without statx), " +
 			"and on Windows, which has no numeric owners, %u and %g print '?'. SELinux " +

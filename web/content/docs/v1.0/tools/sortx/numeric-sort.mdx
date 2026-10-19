@@ -1,0 +1,47 @@
+---
+title: "-n, --numeric-sort"
+description: "Compare according to string numerical value."
+---
+
+An option of [sortx](/docs/v1.0/tools/sortx).
+
+## Usage
+
+```bash
+sortx -n [FILE]...
+sortx --numeric-sort [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-n` | `--numeric-sort` | none |  | compare according to string numerical value |
+
+## Examples
+
+### Sort numbers by value rather than as text
+
+```bash tab="bash" tab-group="shell"
+sortx -n numbers.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sortx -n numbers.txt
+```
+
+### Print the three largest numbers of a file
+
+```bash tab="bash" tab-group="shell"
+sortx -rn numbers.txt | headx -n 3
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sortx -rn numbers.txt | headx -n 3
+```
+
+## Help in the terminal
+
+```bash
+gnux help sortx --numeric-sort
+```

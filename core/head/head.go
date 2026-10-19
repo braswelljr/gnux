@@ -12,6 +12,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -99,7 +101,7 @@ func (h *Head) file(name string, headers bool) bool {
 			r = strings.NewReader("")
 		}
 	} else {
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			h.diag.Errorf("cannot open '%s' for reading: %s", name, core.ErrText(err))
 			return true

@@ -2,6 +2,8 @@
 package lnx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -35,7 +37,15 @@ func Meta() docmeta.Meta {
 			"error unless -f (replace it) or -i (ask first) is given, and the replacement is " +
 			"atomic, so the old entry survives a failure. -n treats a LINK_NAME that is a " +
 			"symbolic link to a directory as the entry to replace rather than a directory to " +
-			"link into, and -T always treats LINK_NAME as a plain file. For hard links, -L " +
+			"link into, and -T always treats LINK_NAME as a plain file. " +
+			"--backup[=CONTROL] (or -b) first renames each existing destination to a backup: " +
+			"CONTROL simple (or never) appends a suffix, numbered (t) appends .~N~ with N one " +
+			"past the highest already there, existing (nil, the default) numbers the backup " +
+			"only when numbered backups already exist, and none (off) makes none; without a " +
+			"CONTROL the VERSION_CONTROL variable chooses. The suffix is ~, or SUFFIX with -S " +
+			"(which asks for backups by itself), or the SIMPLE_BACKUP_SUFFIX variable. A backup " +
+			"replaces the destination as -f would, and -v reports it as 'BACKUP' ~ 'LINK' => " +
+			"'TARGET'. For hard links, -L " +
 			"links to what a symbolic link TARGET points at and -P (the default) to the link " +
 			"itself. GNU ln lets the last of conflicting options win; lnx cannot see option " +
 			"order, so it prefers the most cautious (-i over -f) and -L over -P.",
@@ -128,12 +138,18 @@ func Meta() docmeta.Meta {
 				Bash:        "gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'",
 				PowerShell:  "gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'",
 			},
+			{
+				Description: "Repoint a symbolic link, keeping the old one as current~ in case you need to roll back:",
+				Bash:        "lnx -sbv releases/v5 current",
+				PowerShell:  "lnx -sbv releases\\v5 current",
+			},
 		},
 	}
 }
 
 // Register installs the lnx flags on fs.
 func Register(fs *pflag.FlagSet) {
+	tool.RegisterBackup(fs)
 	fs.BoolP("force", "f", false, "remove existing destination files")
 	fs.BoolP("interactive", "i", false, "prompt whether to remove destinations")
 	fs.BoolP("logical", "L", false, "dereference TARGETs that are symbolic links")
@@ -149,7 +165,7 @@ func Register(fs *pflag.FlagSet) {
 // buildOptions folds the parsed flags into ln.Options. GNU ln lets the last
 // of conflicting options win, which pflag cannot reproduce because it does
 // not expose option order; -i (the cautious one) beats -f, and -L beats -P.
-func buildOptions(fs *pflag.FlagSet) ln.Options {
+func buildOptions(fs *pflag.FlagSet) (ln.Options, error) {
 	flag := func(name string) bool {
 		b, _ := fs.GetBool(name)
 		return b
@@ -171,9 +187,18 @@ func buildOptions(fs *pflag.FlagSet) ln.Options {
 	if o.Interactive {
 		o.Force = false
 	}
-	return o
+	backup, err := tool.BackupOptions(fs, os.Getenv)
+	if err != nil {
+		return ln.Options{}, err
+	}
+	o.Backup = backup
+	return o, nil
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
-	return ln.New(buildOptions(fs), s).Run(args)
+	opts, err := buildOptions(fs)
+	if err != nil {
+		return err
+	}
+	return ln.New(opts, s).Run(args)
 }

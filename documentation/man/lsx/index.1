@@ -10,7 +10,7 @@ lsx - List information about files and directory contents.
 
 
 .SH DESCRIPTION
-lsx lists each FILE, or the current directory when none is given. Operands that are not directories are listed first, then the contents of each directory under a 'dir:' header. Entries whose names start with '.' are hidden unless -a or -A is given. On a terminal the names are arranged in columns sized to the window; when the output is piped or redirected there is one name per line. -l selects the long format (mode, link count, owner, group, size, timestamp and name), where timestamps from the last six months show the time of day and older ones show the year. Entries are sorted by name using plain byte comparison - the C locale's collation, so uppercase sorts before lowercase regardless of the environment's locale - or by time (-t), size (-S), extension (-X) or version (-v), optionally reversed with -r. When several flags of one family are given (-l/-1/-C/-x/-m, the sort keys, -a/-A, -c/-u/--time, …) the last one on the command line wins, as in GNU ls. The exit status is 0 on success, 1 for minor problems such as an entry that cannot be examined, and 2 for serious trouble such as an operand that cannot be accessed.
+lsx lists each FILE, or the current directory when none is given. Operands that are not directories are listed first, then the contents of each directory under a 'dir:' header. Entries whose names start with '.' are hidden unless -a or -A is given. On a terminal the names are arranged in columns sized to the window; when the output is piped or redirected there is one name per line. -l selects the long format (mode, link count, owner, group, size, timestamp and name), where timestamps from the last six months show the time of day and older ones show the year. Entries are sorted by name using plain byte comparison - the C locale's collation, so uppercase sorts before lowercase regardless of the environment's locale - or by time (-t), size (-S), extension (-X) or version (-v), optionally reversed with -r. When several flags of one family are given (-l/-1/-C/-x/-m, the sort keys, -a/-A, -c/-u/--time, …) the last one on the command line wins, as in GNU ls. Names are quoted in GNU's styles: on a terminal, for the shell where a shell would need it ('a b', 'new'$'\\n''line'), with an unquoted name moved one column right to line up with quoted ones; otherwise as they are. --quoting-style=WORD picks literal (-N), shell, shell-always, shell-escape, shell-escape-always, c (-Q), c-maybe, escape (-b), locale or clocale, and the QUOTING_STYLE variable does when no option does. On a terminal -q, or a style that leaves control characters as they are, prints '?' for them, unless --show-control-chars. --format=WORD and --indicator-style=WORD are the long forms of the format and indicator options. --zero ends each line with NUL instead of a newline (and implies -1, -N, --show-control-chars and no color unless later options say otherwise). --block-size=SIZE scales sizes in the long format and the -s counts (K, 1M, KB, human-readable, si; LS_BLOCK_SIZE and BLOCK_SIZE when no option gives one), and -k counts -s blocks in KiB. --author adds the author column, which is the owner. --hyperlink[=WHEN] makes each name a terminal hyperlink to its file:// URL. -D (--dired) adds the marks Emacs' dired reads: each long-format line indented two spaces, then //DIRED// and //SUBDIRED// with the byte offsets of each name and directory header; it implies -l, turns --hyperlink off, and cannot be combined with --zero. The exit status is 0 on success, 1 for minor problems such as an entry that cannot be examined, and 2 for serious trouble such as an operand that cannot be accessed.
 
 .PP
 EXIT STATUS.
@@ -58,11 +58,19 @@ USE CASES.
 	with -lt: sort by, and show, access time; with -l: show access time and sort by name; otherwise: sort by access time, newest first
 
 .PP
+\fB--author\fP[=false]
+	with -l, print the author of each file
+
+.PP
+\fB--block-size\fP=""
+	with -l, scale sizes by \fBSIZE\fR when printing them; e.g., '--block-size=M'
+
+.PP
 \fB-F\fP, \fB--classify\fP[=false]
 	append indicator (one of */=@|) to entries
 
 .PP
-\fB--color\fP[="never"]
+\fB--color\fP[=""]
 	color the output \fBWHEN\fR: 'always' (the default when WHEN is omitted), 'auto', or 'never'
 
 .PP
@@ -90,12 +98,20 @@ USE CASES.
 	list directories themselves, not their contents
 
 .PP
+\fB-D\fP, \fB--dired\fP[=false]
+	generate output designed for Emacs' dired mode
+
+.PP
 \fB-b\fP, \fB--escape\fP[=false]
 	print C-style escapes for nongraphic characters
 
 .PP
 \fB--file-type\fP[=false]
 	likewise, except do not append '*'
+
+.PP
+\fB--format\fP=""
+	across -x, commas -m, horizontal -x, long -l, single-column -1, verbose -l, vertical -C (\fBWORD\fR)
 
 .PP
 \fB--full-time\fP[=false]
@@ -122,6 +138,10 @@ USE CASES.
 	with -l and -s, print sizes like 1K 234M 2G etc.
 
 .PP
+\fB--hyperlink\fP[=""]
+	hyperlink file names \fBWHEN\fR: 'always' (the default when WHEN is omitted), 'auto', or 'never'
+
+.PP
 \fB-I\fP, \fB--ignore\fP=""
 	do not list implied entries matching shell \fBPATTERN\fR
 
@@ -130,8 +150,20 @@ USE CASES.
 	do not list implied entries ending with ~
 
 .PP
+\fB--indicator-style\fP=""
+	append indicator with style \fBWORD\fR to entry names: none (default), slash (-p), file-type (--file-type), classify (-F)
+
+.PP
 \fB-i\fP, \fB--inode\fP[=false]
 	print the index number of each file
+
+.PP
+\fB-k\fP, \fB--kibibytes\fP[=false]
+	default to 1024-byte blocks for file system usage; used only with -s and per directory totals
+
+.PP
+\fB-N\fP, \fB--literal\fP[=false]
+	print entry names without quoting
 
 .PP
 \fB-l\fP, \fB--long\fP[=false]
@@ -162,12 +194,20 @@ USE CASES.
 	enclose entry names in double quotes
 
 .PP
+\fB--quoting-style\fP=""
+	use quoting style \fBWORD\fR for entry names: literal, locale, shell, shell-always, shell-escape, shell-escape-always, c, escape (overrides QUOTING_STYLE environment variable)
+
+.PP
 \fB-R\fP, \fB--recursive\fP[=false]
 	list subdirectories recursively
 
 .PP
 \fB-r\fP, \fB--reverse\fP[=false]
 	reverse order while sorting
+
+.PP
+\fB--show-control-chars\fP[=false]
+	show nongraphic characters as-is (the default, unless program is 'ls' and output is a terminal)
 
 .PP
 \fB--si\fP[=false]
@@ -224,6 +264,10 @@ USE CASES.
 .PP
 \fB-w\fP, \fB--width\fP=""
 	set output width to \fBCOLS\fR; 0 means no limit
+
+.PP
+\fB--zero\fP[=false]
+	end each output line with NUL, not newline
 
 
 .SH EXAMPLE
@@ -299,4 +343,16 @@ USE CASES.
 
   # Run the same listing through the portable gnux shell
   gnux shell -c 'lsx -1 *.log | wcx -l'
+
+  # Pass every name to another tool safely, even ones with spaces or newlines
+  lsx --zero downloads | xargsx -0 sha256sumx
+
+  # Print names you can paste straight back into a shell command
+  lsx --quoting-style=shell-escape uploads
+
+  # Show the size of each video in megabytes
+  lsx -l --block-size=M videos
+
+  # Make every name clickable in a terminal that supports hyperlinks
+  lsx --hyperlink=auto ~/projects
 .EE

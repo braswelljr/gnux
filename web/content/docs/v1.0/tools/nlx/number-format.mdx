@@ -1,0 +1,53 @@
+---
+title: "-n, --number-format"
+description: "Insert line numbers according to FORMAT (ln, rn or rz; default rn)."
+---
+
+An option of [nlx](/docs/v1.0/tools/nlx).
+
+## Usage
+
+```bash
+nlx -n FORMAT [FILE]...
+nlx --number-format=FORMAT [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-n` | `--number-format` | `FORMAT` |  | insert line numbers according to FORMAT (`ln`, rn or rz; default rn) |
+
+## Examples
+
+### Give records fixed-width, zero-padded IDs
+
+```bash tab="bash" tab-group="shell"
+nlx -n rz -w 5 -s , names.txt > names.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+nlx -n rz -w 5 -s , names.txt > names.csv
+```
+
+```text title="Output"
+00001,Ada
+00002,Grace
+00003,Linus
+```
+
+### Number lines left-aligned with no padding before the text
+
+```bash tab="bash" tab-group="shell"
+nlx -n ln -w 1 -s ' ' todo.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+nlx -n ln -w 1 -s ' ' todo.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help nlx --number-format
+```

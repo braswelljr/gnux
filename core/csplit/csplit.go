@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/bre"
 )
@@ -121,7 +123,7 @@ func (c *Csplit) Run(args []string) error {
 
 	r := c.streams.In
 	if args[0] != "-" {
-		f, err := os.Open(args[0])
+		f, err := fsys.Open(args[0])
 		if err != nil {
 			c.diag.Errorf("cannot open '%s' for reading: %s", args[0], core.ErrText(err))
 			return core.ErrFailed
@@ -143,7 +145,7 @@ func (c *Csplit) Run(args []string) error {
 		if !c.KeepFiles {
 			for i := c.created - 1; i >= 0; i-- {
 				name := c.filename(i)
-				if err := os.Remove(name); err != nil && !errors.Is(err, os.ErrNotExist) {
+				if err := fsys.Remove(name); err != nil && !errors.Is(err, os.ErrNotExist) {
 					c.diag.Errorf("%s: %s", name, core.ErrText(err))
 				}
 			}
@@ -374,7 +376,7 @@ func (c *Csplit) noMoreLines() bool { return c.find(c.current+1) == nil }
 
 func (c *Csplit) createOutput() error {
 	name := c.filename(c.created)
-	f, err := os.Create(name)
+	f, err := fsys.Create(name)
 	if err != nil {
 		c.diag.Errorf("%s: %s", name, core.ErrText(err))
 		return errFatal
@@ -406,7 +408,7 @@ func (c *Csplit) closeOutput(failing bool) error {
 		return errFatal
 	}
 	if c.written == 0 && c.ElideEmpty {
-		if err := os.Remove(name); err != nil && !errors.Is(err, os.ErrNotExist) {
+		if err := fsys.Remove(name); err != nil && !errors.Is(err, os.ErrNotExist) {
 			c.diag.Errorf("%s: %s", name, core.ErrText(err))
 		}
 		c.created--

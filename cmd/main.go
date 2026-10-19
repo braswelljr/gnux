@@ -38,8 +38,12 @@ func Main(argv []string, s core.Streams) int {
 		}
 		// The shell is not a tool (no program name selects it), but a
 		// script should not wait for every tool's command to be built.
-		if shell := ShellSpec(); args[0] == shell.Name() {
-			return runCommand(shell.Command(s), args[1:], s)
+		// Match the name before building a spec: building one writes out
+		// its documentation, which a script run should not pay for.
+		for name, spec := range map[string]func() tool.Spec{"shell": ShellSpec, "mcp": MCPSpec} {
+			if args[0] == name {
+				return runCommand(spec().Command(s), args[1:], s)
+			}
 		}
 	}
 	return execute(NewRoot(s), args, s)
@@ -79,7 +83,7 @@ func execute(root *cobra.Command, args []string, s core.Streams) int {
 // do when xargsx or findx hands one tens of thousands of names.
 func runCommand(command *cobra.Command, args []string, s core.Streams) int {
 	return contained(command, s, func() (*cobra.Command, error) {
-		err := command.ParseFlags(args)
+		err := tool.ParseFlags(command, args)
 		// pflag asks for help itself when it meets -h on a tool that
 		// defines no such option.
 		if help, _ := command.Flags().GetBool("help"); help || errors.Is(err, pflag.ErrHelp) {
@@ -145,6 +149,9 @@ func exitStatus(ran *cobra.Command, err error, s core.Streams) int {
 	}
 	fmt.Fprintf(s.Err, "%s: %v\n", name, err)
 	fmt.Fprintf(s.Err, "Try '%s --help' for more information.\n", name)
+	if usage := (*core.UsageError)(nil); errors.As(err, &usage) && usage.Code != 0 {
+		return usage.Code
+	}
 	return tool.UsageExit(ran)
 }
 

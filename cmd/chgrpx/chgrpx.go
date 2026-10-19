@@ -30,7 +30,9 @@ func Meta() docmeta.Meta {
 		Long: "chgrpx changes the group of each FILE to GROUP, a group name or numeric ID. An " +
 			"empty GROUP changes nothing but still checks that each FILE exists. " +
 			"--reference=RFILE takes the group from RFILE instead, and then every operand is " +
-			"a FILE. A symbolic link given as a FILE is followed, and its referent changed, " +
+			"a FILE. --from=CURRENT_OWNER:CURRENT_GROUP changes only the files whose " +
+			"current owner and group match; either part may be omitted, as in --from=alice " +
+			"or --from=:staff. A symbolic link given as a FILE is followed, and its referent changed, " +
 			"unless -h is given; when both -h and --dereference are given, -h wins. -R " +
 			"changes directory trees, following no symbolic link by default (-P); -H follows " +
 			"the ones given on the command line and -L every one, and when several are given " +
@@ -49,6 +51,7 @@ func Meta() docmeta.Meta {
 			"Giving a web server's group read access to a site with -R.",
 			"Fixing group ownership after extracting an archive.",
 			"Copying the group of one file onto others with --reference.",
+			"Moving only the files still in an old group to a new one with --from.",
 			"Checking which files would change with -c on a test run.",
 		},
 		Examples: []docmeta.Example{
@@ -81,6 +84,11 @@ func Meta() docmeta.Meta {
 				Description: "Copy the group of another file:",
 				Bash:        "chgrpx --reference=template.conf new.conf",
 				PowerShell:  "chgrpx --reference=template.conf new.conf",
+			},
+			{
+				Description: "Move only the files still in the old team's group:",
+				Bash:        "chgrpx -R --from=:oldteam newteam shared/",
+				PowerShell:  "chgrpx -R --from=:oldteam newteam shared\\",
 			},
 			{
 				Description: "Report only the files that changed:",
@@ -121,11 +129,15 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("no-dereference", "h", false, "affect symbolic links instead of any referenced file")
 	fs.Bool("no-preserve-root", false, "do not treat '/' specially")
 	fs.Bool("preserve-root", false, "fail to operate recursively on '/' (the default)")
+	fs.String("from", "", "change the group of each file only if its current owner and/or group match those specified here; either may be omitted (`CURRENT_OWNER:CURRENT_GROUP`)")
 	fs.String("reference", "", "use `RFILE`'s group rather than specifying a GROUP value")
 	fs.BoolP("recursive", "R", false, "operate on files and directories recursively")
 	fs.BoolP("dereference-args", "H", false, "with -R, follow symbolic links to directories given on the command line")
 	fs.BoolP("dereference-all", "L", false, "with -R, traverse every symbolic link to a directory encountered")
 	fs.BoolP("physical", "P", false, "with -R, do not traverse any symbolic links (default)")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "dereference-all", "dereference-args", "physical")
 }
 
 // buildOptions folds the parsed flags into chgrp.Options.
@@ -144,6 +156,7 @@ func buildOptions(fs *pflag.FlagSet) chgrp.Options {
 		NoPreserveRoot: on("no-preserve-root") && !on("preserve-root"),
 	}
 	o.Reference, _ = fs.GetString("reference")
+	o.From, _ = fs.GetString("from")
 	// The most cautious traversal wins, whatever the order.
 	switch {
 	case on("physical"):

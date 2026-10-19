@@ -11,6 +11,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/kill"
 )
@@ -81,7 +83,7 @@ func (n *Nohup) Run(args []string) error {
 	if ignoringInput {
 		// Write-only, as GNU opens it: a command that reads gets an error
 		// rather than waiting on a terminal that may be gone.
-		f, err := os.OpenFile(os.DevNull, os.O_WRONLY, 0)
+		f, err := fsys.OpenFile(os.DevNull, os.O_WRONLY, 0)
 		if err != nil {
 			return n.fail(ExitCanceled, "failed to render standard input unusable: %s", core.ErrText(err))
 		}
@@ -150,14 +152,14 @@ func (n *Nohup) Run(args []string) error {
 // name the file was opened under.
 func (n *Nohup) openOut() (io.WriteCloser, string, error) {
 	const flags = os.O_WRONLY | os.O_CREATE | os.O_APPEND
-	f, err := os.OpenFile(OutFile, flags, 0o600)
+	f, err := fsys.OpenFile(OutFile, flags, 0o600)
 	if err == nil {
 		return f, OutFile, nil
 	}
 	inHome := ""
 	if home := n.Getenv("HOME"); home != "" {
 		inHome = filepath.Join(home, OutFile)
-		f, err2 := os.OpenFile(inHome, flags, 0o600)
+		f, err2 := fsys.OpenFile(inHome, flags, 0o600)
 		if err2 == nil {
 			return f, inHome, nil
 		}

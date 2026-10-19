@@ -1,12 +1,16 @@
 # Requirement enforced: a pushed version tag (v*) becomes a GitHub release with
 # a statically linked (CGO_ENABLED=0) gnux archive for every supported platform
 # - linux on amd64/arm64/riscv64, darwin and freebsd on amd64/arm64, windows on
-# amd64/arm64 - each reporting the tag as its version, plus a checksums file
-# and a build provenance attestation. Its notes are the tag's section of
+# amd64/arm64 - each reporting the tag as its version, with an SBOM per
+# archive, a checksums file signed with cosign (keyless) and a build
+# provenance attestation, and the Docker images (Alpine and scratch, for
+# linux/amd64 and linux/arm64) are pushed to ghcr.io/<owner>/gnux. Its notes are the tag's section of
 # CHANGELOG.md, which a release must have; only a prerelease without one falls
 # back to notes generated from the commits. The archives, checksums, Linux
 # packages (.deb, .rpm, .apk) and package managers (Homebrew, Scoop, winget,
-# the Snap Store, the AUR) are described in .goreleaser.yaml, and
+# the Snap Store, the AUR) are described in .goreleaser.yaml, the npm packages
+# (gnux and one per platform, job npm) in tools/npm, the website's snapshot
+# of the release's docs (job docs) in tools/docsnap, and
 # docs/workflows/publishing-a-release.md says how to set each one up.
 name: Release
 
@@ -130,6 +134,14 @@ jobs:
           [ -s "$NOTES" ] && args="$args --release-notes=$NOTES"
           echo "args=$args" >> "$GITHUB_OUTPUT"
 
+      # GoReleaser writes an SBOM per archive with syft and signs
+      # checksums.txt with cosign, keyless, through this job's id-token.
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
       # GoReleaser packs and uploads the snap with the snapcraft command.
       - name: Install snapcraft
         if: steps.plan.outputs.snap == 'true'
@@ -162,3 +174,195 @@ jobs:
           major="${TAG%%.*}"
           git tag -f "$major" "$TAG^{commit}"
           git push -f origin "refs/tags/$major"
+
+  # The website keeps the docs of every stable release: tools/docsnap runs the
+  # tag's own generator into web/content/docs/vX.Y (a patch release replaces
+  # its minor version's) and the snapshot is committed to main, where the
+  # site's version select finds it. A prerelease keeps none.
+  docs:
+    needs: release
+    if: ${{ !contains(github.ref_name, '-') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          # The tag's commit, for the worktree the snapshot is generated in.
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Snapshot the docs
+        env:
+          TAG: ${{ github.ref_name }}
+        run: go run ./tools/docsnap -tag "$TAG"
+
+      - name: Commit the snapshot
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/content/docs
+          if git diff --cached --quiet; then
+            echo "the snapshot is unchanged"
+            exit 0
+          fi
+          git commit -m "docs: snapshot of $TAG"
+          # The release job commits to main too (the Homebrew cask, the Scoop
+          # manifest); rebase onto whatever landed meanwhile.
+          for attempt in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1
+
+  # The npm packages, from the archives the release job published: gnux, the
+  # launcher a project installs, and gnux-<platform>-<arch> for each release
+  # platform, all with the tag's version and npm's provenance statement. The
+  # platform packages go first, so gnux never points at one that is missing;
+  # a version already on npm is left alone, so the job can be re-run. A
+  # prerelease goes to the "next" dist-tag, not "latest". Skipped without the
+  # NPM_TOKEN secret.
+  npm:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # For npm's provenance statement.
+      id-token: write
+    steps:
+      - name: Check for the npm token
+        id: plan
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then echo "publish=true" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Check out code
+        if: steps.plan.outputs.publish == 'true'
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        if: steps.plan.outputs.publish == 'true'
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Node
+        if: steps.plan.outputs.publish == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Download the archives
+        if: steps.plan.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release download "$TAG" --pattern 'gnux-*.tar.gz' --pattern 'gnux-*.zip' --dir "$RUNNER_TEMP/archives"
+
+      - name: Build the packages
+        if: steps.plan.outputs.publish == 'true'
+        env:
+          TAG: ${{ github.ref_name }}
+        run: go run ./tools/npm -version "$TAG" -from "$RUNNER_TEMP/archives" -out "$RUNNER_TEMP/npm"
+
+      - name: Publish
+        if: steps.plan.outputs.publish == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          dist_tag=latest
+          case "$TAG" in *-*) dist_tag=next ;; esac
+          cd "$RUNNER_TEMP/npm"
+          for dir in gnux-* gnux; do
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is already published"
+              continue
+            fi
+            (cd "$dir" && npm publish --provenance --access public --tag "$dist_tag")
+          done
+
+  # The Docker images, from the Dockerfile at the tag: ghcr.io/<owner>/gnux is
+  # Alpine with gnux on the PATH, and the same name with -scratch appended is
+  # gnux and its links alone. A stable release also moves the major version
+  # tag (v1, v1-scratch) and latest (latest, scratch); a prerelease moves
+  # neither.
+  image:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Tags for the Alpine image
+        id: alpine
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/gnux
+          tags: |
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}
+
+      - name: Tags for the scratch image
+        id: scratch
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/gnux
+          flavor: |
+            latest=false
+            suffix=-scratch
+          tags: |
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}
+            type=raw,value=scratch,suffix=,enable=${{ !contains(github.ref_name, '-') }}
+
+      - name: Build and push the Alpine image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          build-args: VERSION=${{ github.ref_name }}
+          push: true
+          tags: ${{ steps.alpine.outputs.tags }}
+          labels: ${{ steps.alpine.outputs.labels }}
+
+      - name: Build and push the scratch image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: scratch
+          platforms: linux/amd64,linux/arm64
+          build-args: VERSION=${{ github.ref_name }}
+          push: true
+          tags: ${{ steps.scratch.outputs.tags }}
+          labels: ${{ steps.scratch.outputs.labels }}

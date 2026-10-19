@@ -5,14 +5,11 @@ package timeout
 
 import (
 	"errors"
-	"io"
 	"io/fs"
 	"math"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/braswelljr/gnux/core"
@@ -155,24 +152,17 @@ func (t *Timeout) Run(args []string) error {
 	if err != nil {
 		return t.cannotRun(name, err)
 	}
-	// The command's error stream and timeoutx's own diagnostics share one
-	// writer; unless it is a file, the command's output is copied into it
-	// from another goroutine, so the writes are serialized.
-	errw := t.streams.Err
-	if _, isFile := errw.(*os.File); !isFile {
-		errw = &lockedWriter{w: errw}
-		t.diag = core.NewDiag(Name, core.Streams{In: t.streams.In, Out: t.streams.Out, Err: errw})
-	}
 	// Without --foreground the command leads a process group of its own, so
 	// the signal reaches everything it started. A command reading from the
 	// terminal stays in the terminal's group, or it could not read.
 	group := !t.Foreground && !t.IsTerminal(t.streams.In)
 	cmd := &exec.Cmd{
-		Path:        path,
-		Args:        args[1:],
-		Stdin:       t.streams.In,
-		Stdout:      t.streams.Out,
-		Stderr:      errw,
+		Path:   path,
+		Args:   args[1:],
+		Stdin:  t.streams.In,
+		Stdout: t.streams.Out,
+		// --verbose can report while the command runs.
+		Stderr:      t.diag.ChildErr(),
 		SysProcAttr: procAttr(group),
 	}
 	if err := cmd.Start(); err != nil {
@@ -278,16 +268,4 @@ func signalName(sig int) string {
 		return name
 	}
 	return strconv.Itoa(sig)
-}
-
-// lockedWriter serializes writes to w.
-type lockedWriter struct {
-	mu sync.Mutex
-	w  io.Writer
-}
-
-func (l *lockedWriter) Write(p []byte) (int, error) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	return l.w.Write(p)
 }

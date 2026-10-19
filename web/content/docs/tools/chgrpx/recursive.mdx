@@ -40,6 +40,16 @@ chgrpx -R -L developers project/
 chgrpx -R -L developers project\
 ```
 
+### Move only the files still in the old team's group
+
+```bash tab="bash" tab-group="shell"
+chgrpx -R --from=:oldteam newteam shared/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chgrpx -R --from=:oldteam newteam shared\
+```
+
 ### Report only the files that changed
 
 ```bash tab="bash" tab-group="shell"

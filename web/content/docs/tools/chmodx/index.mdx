@@ -18,7 +18,7 @@ chmodx [OPTION]... MODE[,MODE]... FILE...
 
 ## Description
 
-`chmodx` changes the permission bits of each FILE to MODE, which is either an octal number (755, 0644, 4755) or a comma-separated list of symbolic changes. Each change names `who` (u, g, o or a for user, group, others or all), an operator (+ adds, - removes, = sets exactly) and permissions: r, w, x, X (execute only on directories and on files already executable by someone), s (setuid/setgid) and t (sticky), or u, g or o to copy another class's bits. A symbolic change without a `who` honors the umask. `--reference`=RFILE copies RFILE's mode instead, and then every operand is a FILE. `-R` changes directory trees; `-H` (the default) follows symbolic links given on the command line, `-L` follows every symbolic `link` and `-P` none, and when several are given the most cautious wins (`-P`, then `-H`, then `-L`). Symbolic links met while recursing are never changed. `-c` reports each change, `-v` every file, and `-f` suppresses most error messages. A mode may also be written as an option, as in '`chmodx -w` FILE'; several such options combine as if joined with commas, and then, as in GNU, a file left with bits the mode would have cleared but for the umask is reported ('new permissions are ..., not ...') and counts as a failure. Unlike GNU `chmod`, which leaves the safeguard off unless `--preserve-root` is given, `chmodx` refuses to work recursively on '/' unless `--no-preserve-root` is given; when both are given, `--preserve-root` wins. GNU `chmod` 9.6's `-h` and `--dereference` are not implemented. On Windows only the owner's write bit maps onto the file system (the read-only attribute), so the other bits are accepted but have no effect.
+`chmodx` changes the permission bits of each FILE to MODE, which is either an octal number (755, 0644, 4755) or a comma-separated list of symbolic changes. Each change names `who` (u, g, o or a for user, group, others or all), an operator (+ adds, - removes, = sets exactly) and permissions: r, w, x, X (execute only on directories and on files already executable by someone), s (setuid/setgid) and t (sticky), or u, g or o to copy another class's bits. A symbolic change without a `who` honors the umask. `--reference`=RFILE copies RFILE's mode instead, and then every operand is a FILE. `-R` changes directory trees; `-H` (the default) follows symbolic links given on the command line, `-L` follows every symbolic `link` and `-P` none, and when several are given the most cautious wins (`-P`, then `-H`, then `-L`). A symbolic `link` given as a FILE is followed unless `-h` is given, and one met while recursing is not, unless `--dereference` is given (which changes its referent without descending into it) or `-L`; when both `-h` and `--dereference` are given, `-h` wins. A `link` that is not followed has its own mode changed where the system gives links one (macOS, the BSDs); on Linux it is reported as unchanged. `-c` reports each change, `-v` every file, and `-f` suppresses most error messages. A mode may also be written as an option, as in '`chmodx -w` FILE'; several such options combine as if joined with commas, and then, as in GNU, a file left with bits the mode would have cleared but for the umask is reported ('new permissions are ..., not ...') and counts as a failure. Unlike GNU `chmod`, which leaves the safeguard off unless `--preserve-root` is given, `chmodx` refuses to work recursively on '/' unless `--no-preserve-root` is given; when both are given, `--preserve-root` wins. On Windows only the owner's write bit maps onto the file system (the read-only attribute), so the other bits are accepted but have no effect.
 
 ## Permissions
 
@@ -36,11 +36,13 @@ Changing a file's mode requires owning it, or running as root (or with CAP_FOWNE
 
 ```text
   -c, --changes            like verbose but report only when a change is made
+      --dereference        affect the referent of each symbolic link, rather than the symbolic link itself
   -L, --dereference-all    with -R, follow every symbolic link to a directory
   -H, --dereference-args   with -R, follow symbolic links given on the command line (the default)
       --help               display this help and exit
-  -P, --no-dereference     with -R, do not follow any symbolic links
+  -h, --no-dereference     affect each symbolic link, rather than the referent
       --no-preserve-root   do not treat '/' specially
+  -P, --physical           with -R, do not follow any symbolic links
       --preserve-root      fail to operate recursively on '/' (the default)
       --quiet              same as --silent
   -R, --recursive          change files and directories recursively
@@ -177,10 +179,12 @@ gnux shell -c 'chmodx +x bin/* && lsx -l bin'
 Each option has a page of its own, with its usage and examples.
 
 - [-c, --changes](/docs/tools/chmodx/changes): Like verbose but report only when a change is made.
+- [--dereference](/docs/tools/chmodx/dereference): Affect the referent of each symbolic `link`, rather than the symbolic `link` itself.
 - [-L, --dereference-all](/docs/tools/chmodx/dereference-all): With `-R`, follow every symbolic `link` to a directory.
 - [-H, --dereference-args](/docs/tools/chmodx/dereference-args): With `-R`, follow symbolic links given on the command line (the default).
-- [-P, --no-dereference](/docs/tools/chmodx/no-dereference): With `-R`, do not follow any symbolic links.
+- [-h, --no-dereference](/docs/tools/chmodx/no-dereference): Affect each symbolic `link`, rather than the referent.
 - [--no-preserve-root](/docs/tools/chmodx/no-preserve-root): Do not treat '/' specially.
+- [-P, --physical](/docs/tools/chmodx/physical): With `-R`, do not follow any symbolic links.
 - [--preserve-root](/docs/tools/chmodx/preserve-root): Fail to operate recursively on '/' (the default).
 - [--quiet](/docs/tools/chmodx/quiet): Same as `--silent`.
 - [-R, --recursive](/docs/tools/chmodx/recursive): Change files and directories recursively.

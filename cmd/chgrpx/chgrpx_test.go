@@ -33,6 +33,7 @@ func TestBuildOptions(t *testing.T) {
 		{"-h wins", []string{"--dereference", "-h"}, chgrp.Options{NoDereference: true}},
 		{"-h wins before", []string{"-h", "--dereference"}, chgrp.Options{NoDereference: true}},
 		{"--reference", []string{"--reference", "r"}, chgrp.Options{Reference: "r"}},
+		{"--from", []string{"--from=alice:staff"}, chgrp.Options{From: "alice:staff"}},
 
 		{"-H", []string{"-H"}, chgrp.Options{Traversal: chgrp.TraverseCommandLine}},
 		{"-L", []string{"-L"}, chgrp.Options{Traversal: chgrp.TraverseLogical}},

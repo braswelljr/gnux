@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/quotearg"
 )
 
 // recentWindow is half an average Gregorian year. A timestamp within this
@@ -172,24 +173,31 @@ func matchWord[T comparable](context, arg string, table []word[T]) (T, error) {
 	b.WriteString("' for '")
 	b.WriteString(context)
 	b.WriteString("'\nValid arguments are:")
-	for _, w := range table {
-		b.WriteString("\n  - '")
+	// Synonyms, which sit next to each other, share a line, as in GNU.
+	for i, w := range table {
+		if i == 0 || table[i-1].value != w.value {
+			b.WriteString("\n  - '")
+		} else {
+			b.WriteString(", '")
+		}
 		b.WriteString(w.name)
 		b.WriteString("'")
 	}
 	var zero T
-	return zero, core.Usagef("%s", b.String())
+	// GNU's argmatch exits 1, not ls's usual 2 for a usage error.
+	return zero, &core.UsageError{Msg: b.String(), Code: 1}
 }
 
 // ParseSort resolves a --sort argument.
 func ParseSort(arg string) (SortKey, error) {
 	return matchWord("--sort", arg, []word[SortKey]{
+		// GNU's order, which its error lists.
 		{"none", SortNone},
-		{"name", SortName},
-		{"time", SortTime},
 		{"size", SortSize},
-		{"extension", SortExtension},
+		{"time", SortTime},
 		{"version", SortVersion},
+		{"extension", SortExtension},
+		{"name", SortName},
 		{"width", SortWidth},
 	})
 }
@@ -223,4 +231,36 @@ func ParseWhen(context, arg string) (When, error) {
 		{"tty", WhenAuto},
 		{"if-tty", WhenAuto},
 	})
+}
+
+// ParseFormat resolves a --format argument.
+func ParseFormat(arg string) (Format, error) {
+	return matchWord("--format", arg, []word[Format]{
+		{"verbose", FormatLong},
+		{"long", FormatLong},
+		{"commas", FormatCommas},
+		{"horizontal", FormatAcross},
+		{"across", FormatAcross},
+		{"vertical", FormatColumns},
+		{"single-column", FormatSingle},
+	})
+}
+
+// ParseIndicator resolves an --indicator-style argument.
+func ParseIndicator(arg string) (Indicator, error) {
+	return matchWord("--indicator-style", arg, []word[Indicator]{
+		{"none", IndicatorNone},
+		{"slash", IndicatorSlash},
+		{"file-type", IndicatorFileType},
+		{"classify", IndicatorClassify},
+	})
+}
+
+// ParseQuoting resolves a --quoting-style argument (or QUOTING_STYLE).
+func ParseQuoting(arg string) (Quoting, error) {
+	table := make([]word[Quoting], len(quotearg.Names))
+	for i, name := range quotearg.Names {
+		table[i] = word[Quoting]{name, Quoting(i) + QuoteLiteral}
+	}
+	return matchWord("--quoting-style", arg, table)
 }

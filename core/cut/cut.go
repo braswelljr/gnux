@@ -8,10 +8,11 @@ import (
 	"errors"
 	"io"
 	"math"
-	"os"
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -259,7 +260,7 @@ func (c *Cut) file(name string) bool {
 			r = strings.NewReader("")
 		}
 	} else {
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			c.diag.Errorf("%s: %s", name, core.ErrText(err))
 			return true

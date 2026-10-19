@@ -2,15 +2,16 @@ package cmd
 
 import (
 	"io"
-	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/fsys"
 	"github.com/braswelljr/gnux/core/shell"
 	"github.com/braswelljr/gnux/internal/common"
 	"github.com/braswelljr/gnux/internal/docmeta"
+	"github.com/braswelljr/gnux/internal/sandbox"
 	"github.com/braswelljr/gnux/internal/tool"
 )
 
@@ -43,6 +44,7 @@ func ShellSpec() tool.Spec {
 				{Code: "N", Meaning: "the exit status of the last command run"},
 				{Code: "1", Meaning: "a redirection could not be opened (that command is not run), or with -u a variable was not set"},
 				{Code: "2", Meaning: "a syntax error, exit with a non-numeric argument, or a command-line mistake"},
+				{Code: "125", Meaning: "--sandbox was given but the sandbox could not be entered; nothing was run"},
 				{Code: "127", Meaning: "an unknown command, or a SCRIPT that cannot be opened"},
 			},
 			Use:   "shell [OPTION]... [SCRIPT [ARG]...]",
@@ -84,12 +86,24 @@ func ShellSpec() tool.Spec {
 				"except one whose status is tested: by &&, || or !, or as the condition of an if " +
 				"or a while. With -u, expanding a variable that is not set is an error that " +
 				"stops the script with status 1; ${NAME:-default} reads one that may be missing. " +
-				"An environment variable that is set but empty counts as unset.",
+				"An environment variable that is set but empty counts as unset.\n\n" +
+				"--sandbox DIR confines the shell, before it reads or runs anything, with the " +
+				"operating system's own sandbox: its commands, and any program they start through " +
+				"envx, may then read and write each --sandbox DIR, only read each --sandbox-read " +
+				"DIR and the system's own directories, and reach nothing else, the home directory " +
+				"included. The kernel enforces it, so neither a symbolic link nor .. gets around " +
+				"it, and it cannot be lifted. The sandbox is Landlock on Linux (5.13 or later, in a " +
+				"gnux built without cgo, as releases are), Seatbelt on macOS, an AppContainer on " +
+				"Windows and Capsicum on FreeBSD, where a command can run gnux's own tools only " +
+				"(capability mode starts no other program); where none can be used the shell " +
+				"refuses with status 125 and runs nothing. A SCRIPT must lie in an allowed directory, as it is read after the " +
+				"sandbox is entered.",
 			Permissions: "The shell itself needs only read access to SCRIPT. Each command it " +
 				"runs needs whatever its tool needs; redirection creates files with mode 0644 " +
 				"(before the umask).",
 			UseCases: []string{
 				"Build, clean and packaging scripts that must run unchanged on Windows, macOS and Linux.",
+				"Running a script you did not write, or one an AI agent wrote, where it can only touch one directory.",
 				"A consistent interactive shell on machines without the GNU tools installed.",
 				"Embedding small file-management scripts in a Go application without spawning processes.",
 			},
@@ -125,6 +139,16 @@ func ShellSpec() tool.Spec {
 					PowerShell:  "gnux shell -c 'mkdirx -p build/$(unamex -s)'",
 				},
 				{
+					Description: "Run a downloaded build script so that it can change nothing outside the project:",
+					Bash:        "gnux shell --sandbox . -e ./build.gnux",
+					PowerShell:  "gnux shell --sandbox . -e .\\build.gnux",
+				},
+				{
+					Description: "Let a cleanup script read the shared config but write only in dist:",
+					Bash:        "gnux shell --sandbox dist --sandbox-read config -c 'rmx -rf dist/* && cpx config/app.json dist/'",
+					PowerShell:  "gnux shell --sandbox dist --sandbox-read config -c 'rmx -rf dist/* && cpx config/app.json dist/'",
+				},
+				{
 					Description: "Pipe a script in:",
 					Bash:        "echo 'catx *.log | wcx -l' | gnux shell",
 					PowerShell:  "'catx *.log | wcx -l' | gnux shell",
@@ -135,6 +159,8 @@ func ShellSpec() tool.Spec {
 			fs.StringP("command", "c", "", "run the commands in `STRING` instead of reading a script")
 			fs.BoolP("errexit", "e", false, "exit at the first command that fails")
 			fs.BoolP("nounset", "u", false, "treat expanding an unset variable as an error")
+			fs.StringArray("sandbox", nil, "confine the shell, its commands and the programs they start to `DIR`, which they may read and write, and the system's own directories, which they may only read; may be repeated")
+			fs.StringArray("sandbox-read", nil, "with --sandbox, also let them read `DIR`; may be repeated")
 		},
 		Run: runShell,
 		// Options stop at SCRIPT: what follows it belongs to the script.
@@ -144,6 +170,9 @@ func ShellSpec() tool.Spec {
 }
 
 func runShell(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	if err := enterSandbox(fs, s); err != nil {
+		return err
+	}
 	opts := shell.Options{}
 	opts.ErrExit, _ = fs.GetBool("errexit")
 	opts.NoUnset, _ = fs.GetBool("nounset")
@@ -161,7 +190,7 @@ func runShell(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		}
 
 	case len(args) > 0:
-		f, err := os.Open(args[0])
+		f, err := fsys.Open(args[0])
 		if err != nil {
 			diag := core.NewDiag(shell.Name, s)
 			diag.Errorf("%s: %s", args[0], core.ErrText(err))
@@ -180,3 +209,25 @@ func runShell(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	sh.SetArgs(name, params)
 	return sh.Run(script)
 }
+
+// enterSandbox confines the process as --sandbox and --sandbox-read ask,
+// before anything is read or run. Refused, it runs nothing: status 125.
+func enterSandbox(fs *pflag.FlagSet, s core.Streams) error {
+	write, _ := fs.GetStringArray("sandbox")
+	read, _ := fs.GetStringArray("sandbox-read")
+	if len(write) == 0 {
+		if len(read) > 0 {
+			return core.Usagef("--sandbox-read needs --sandbox")
+		}
+		return nil
+	}
+	if err := sandbox.Enter(sandbox.Policy{Write: write, Read: read}); err != nil {
+		core.NewDiag(shell.Name, s).Errorf("%v", err)
+		return &core.ExitError{Code: sandboxRefused}
+	}
+	return nil
+}
+
+// sandboxRefused is the status when the sandbox cannot be entered and
+// nothing has run, as env uses 125 for its own failure.
+const sandboxRefused = 125

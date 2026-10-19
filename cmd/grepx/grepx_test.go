@@ -318,7 +318,8 @@ func TestCommand(t *testing.T) {
 		{"color with no argument does not take the pattern", []string{"--color", "one"}, "one\n", "", 0},
 		{"perl is refused", []string{"-P", "one"}, "", "grepx: Perl-compatible regular expressions (-P) are not supported\n", 2},
 		{"bad context", []string{"-A", "x", "one"}, "", "grepx: x: invalid context length argument\n", 2},
-		{"bad pattern", []string{"["}, "", "grepx: Unmatched [, [^, [:, [., or [=\n", 2},
+		{"bad pattern", []string{"["}, "", "grepx: Invalid regular expression\n", 2},
+		{"unmatched bracket", []string{"[a"}, "", "grepx: Unmatched [, [^, [:, [., or [=\n", 2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

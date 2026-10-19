@@ -56,6 +56,7 @@ against an in-memory filesystem.
 | `ddx`        | `dd`        | Convert and copy a file, block by block |
 | `dfx`        | `df`        | Report file system space usage |
 | `dirnamex`   | `dirname`   | Strip the last component from file names |
+| `dirx`       | `dir`       | List directory contents in columns |
 | `dux`        | `du`        | Estimate file space usage |
 | `echox`      | `echo`      | Display a line of text |
 | `envx`       | `env`       | Run a program in a modified environment, or print the environment |
@@ -67,6 +68,7 @@ against an in-memory filesystem.
 | `fmtx`       | `fmt`       | Reformat each paragraph of text |
 | `foldx`      | `fold`      | Wrap each input line to fit in a specified width |
 | `grepx`      | `grep`      | Print the lines that match patterns |
+| `groupsx`    | `groups`    | Print the groups a user is in |
 | `headx`      | `head`      | Print the first part of each file |
 | `hostnamex`  | `hostname`  | Print the name of the current host system |
 | `idx`        | `id`        | Print real and effective user and group IDs |
@@ -75,6 +77,7 @@ against an in-memory filesystem.
 | `killx`      | `kill`      | Send a signal to processes, or list signals |
 | `linkx`      | `link`      | Call the link function to create a hard link to a file |
 | `lnx`        | `ln`        | Make hard or symbolic links between files |
+| `lognamex`   | `logname`   | Print the user's login name |
 | `lsx`        | `ls`        | List information about files and directory contents |
 | `md5sumx`    | `md5sum`    | Print or check MD5 (128-bit) checksums |
 | `mkdirx`     | `mkdir`     | Create the DIRECTORY(ies), if they do not already exist |
@@ -122,6 +125,8 @@ against an in-memory filesystem.
 | `uniqx`      | `uniq`      | Report or omit repeated lines |
 | `unlinkx`    | `unlink`    | Call the unlink function to remove the specified file |
 | `uptimex`    | `uptime`    | Tell how long the system has been running |
+| `usersx`     | `users`     | Print the user names of users currently logged in |
+| `vdirx`      | `vdir`      | List directory contents in the long format |
 | `wcx`        | `wc`        | Print newline, word, and byte counts for each file |
 | `whoamix`    | `whoami`    | Print the user name associated with the current effective user ID |
 | `whox`       | `who`       | Show who is logged on |
@@ -150,7 +155,7 @@ it back to the system's own tools, which differ between Linux, macOS and Windows
 
 **To install or build from source**
 
-- [Go](https://go.dev/dl/) 1.25 or newer (the version is pinned in `go.mod`).
+- [Go](https://go.dev/dl/) 1.26 or newer (the version is pinned in `go.mod`).
 - `git`, for `go install` and for the version string stamped into source builds.
 - Optional: `make` for the Makefile targets, `bash` for `install.sh`, Docker for the image.
 
@@ -160,7 +165,7 @@ it back to the system's own tools, which differ between Linux, macOS and Windows
 
 **To use gnux as a library**
 
-- A Go module on Go 1.25 or newer. The engines depend only on the standard library,
+- A Go module on Go 1.26 or newer. The engines depend only on the standard library,
   `github.com/mattn/go-isatty`, `golang.org/x/sys` (system calls the standard library does not
   wrap, on Windows and the BSDs) and `golang.org/x/crypto` (BLAKE2b), all pure Go; cobra is
   compiled only into the command-line packages under `cmd/`.
@@ -216,6 +221,24 @@ sudo apk add --allow-untrusted "gnux-$v-linux-amd64.apk"      # Alpine
 These install the `gnux` binary; link the tool names to it as shown under `go install` below,
 or run each tool as `gnux rmx ...`. A package manager shows up a little after the release it
 belongs to, winget last, since each new version is reviewed there.
+
+### npm
+
+In a Node project, gnux is a development dependency. It installs the native binary for the
+machine, from a package of its own per platform, and puts every tool on the PATH of the package
+scripts, so one dependency replaces rimraf, mkdirp, cpy-cli, shx and cross-env:
+
+```bash
+npm install --save-dev gnux
+```
+
+```json
+{ "scripts": { "clean": "rmx -rf dist", "prebuild": "mkdirx -p dist", "build": "cpx -r public/. dist/" } }
+```
+
+The tools are installed under their gnux names only (`rmx`, never `rm`). The
+[Node and npm guide](documentation/guides/node-and-npm.md) has the rest: globs on Windows, the
+JavaScript API, CI.
 
 ### A particular version
 
@@ -294,8 +317,16 @@ gnux completion powershell | Out-String | Invoke-Expression
 
 ### Docker
 
+Every release is on GHCR: `ghcr.io/braswelljr/gnux` (Alpine, every tool on the PATH) and the same
+tags with `-scratch` appended (gnux alone, `FROM scratch`, a base image the size of one binary).
+
 ```bash
-docker build -t gnux .
+docker run --rm -v "$(pwd):/work" ghcr.io/braswelljr/gnux:v1 lsx -la
+docker run --rm -v "$(pwd):/work" ghcr.io/braswelljr/gnux:v1-scratch shell -c 'wcx -l *.go'
+
+# or build it yourself:
+docker build -t gnux .                     # Alpine
+docker build -t gnux:scratch --target scratch .
 docker run --rm -v "$(pwd):/work" gnux lsx -la
 docker run --rm -v "$(pwd):/work" --entrypoint rmx gnux -rv build/
 # or via compose:
@@ -376,6 +407,28 @@ redirection (`<`, `>`, `>>`), `NAME=value` variables with `$NAME`, `${NAME}`,
 comments, with the builtins `cd`, `exit`, `help`, `set`, `shift`, `break`, `continue` and `[`.
 `-e` stops at the first failure and `-u` refuses a variable that was never set. There are no
 functions or arithmetic, and external programs are reached through `envx PROGRAM …`.
+
+### Sandboxed, and for AI agents
+
+`--sandbox DIR` confines a script with the operating system's own sandbox (Landlock on Linux,
+Seatbelt on macOS, an AppContainer on Windows, Capsicum on FreeBSD): it can read and write DIR
+and nothing else,
+whatever it does, and so can every program it starts.
+
+```bash
+gnux shell --sandbox . -e ./build.gnux
+```
+
+`gnux mcp DIR` serves the tools to an AI agent over the Model Context Protocol, inside the same
+sandbox, so an agent can search, edit and remove files in one project and cannot reach anything
+outside it:
+
+```bash
+claude mcp add gnux -- gnux mcp "$PWD"
+```
+
+The [sandbox guide](documentation/guides/sandbox-and-ai-agents.md) covers the details, the
+configuration for other clients, and what the sandbox does not do.
 
 ### As a library
 
@@ -513,9 +566,8 @@ Not yet implemented, roughly in priority order. The full list of planned tools, 
 channels and integrations, ticked off as they land, is
 [`docs/requirements/checklist.md`](docs/requirements/checklist.md).
 
-- **Tools:** `[` (as another name for `testx`), `basenc`, `numfmt`, `pr`, `mkfifo`, `mknod`,
-  `pathchk`, `logname`, `groups`, `users`, `pinky`, `stdbuf`, `sync`, `shred`, `dircolors`, `dir`,
-  `vdir`, `hostid`, `ptx`, `stty`
+- **Tools:** `basenc`, `numfmt`, `pr`, `mkfifo`, `mknod`, `pathchk`, `pinky`, `stdbuf`, `sync`,
+  `shred`, `dircolors`, `hostid`, `ptx`, `stty`
 - **Out of scope by design:** `chroot`, `chcon` and `runcon`, which change system-wide state
   that gnux leaves to the system's own tools
 

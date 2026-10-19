@@ -1,0 +1,61 @@
+---
+title: "-s, --quiet"
+description: "Do not print counts of output file sizes."
+---
+
+An option of [csplitx](/docs/v1.0/tools/csplitx).
+
+## Usage
+
+```bash
+csplitx -s FILE PATTERN...
+csplitx --quiet FILE PATTERN...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-s` | `--quiet` | none |  | do not print counts of output file sizes |
+
+## Examples
+
+### Separate the 3-line header of a report from its body
+
+```bash tab="bash" tab-group="shell"
+csplitx -s -f report- report.txt 4
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+csplitx -s -f report- report.txt 4
+```
+
+```text title="Output"
+(creates report-00 with lines 1-3 and report-01 with the rest)
+```
+
+### Drop everything before the line 'BEGIN DATA' and keep the rest
+
+```bash tab="bash" tab-group="shell"
+csplitx -s export.txt '%^BEGIN DATA%1'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+csplitx -s export.txt '%^BEGIN DATA%1'
+```
+
+### Split standard input from another command
+
+```bash tab="bash" tab-group="shell"
+git log --format='commit %H%n%B' | csplitx -s -z -f commit- - '/^commit /' '{*}'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+git log --format='commit %H%n%B' | csplitx -s -z -f commit- - '/^commit /' '{*}'
+```
+
+## Help in the terminal
+
+```bash
+gnux help csplitx --quiet
+```

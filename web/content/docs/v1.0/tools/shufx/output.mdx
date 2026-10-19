@@ -1,0 +1,37 @@
+---
+title: "-o, --output"
+description: "Write result to FILE instead of standard output."
+---
+
+An option of [shufx](/docs/v1.0/tools/shufx).
+
+## Usage
+
+```bash
+shufx -o FILE [FILE]
+shufx --output=FILE [FILE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-o` | `--output` | `FILE` |  | write result to FILE instead of standard output |
+
+## Examples
+
+### Shuffle a file in place
+
+```bash tab="bash" tab-group="shell"
+shufx -o deck.txt deck.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+shufx -o deck.txt deck.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help shufx --output
+```

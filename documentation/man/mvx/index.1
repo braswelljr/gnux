@@ -10,7 +10,8 @@ mvx - Move (rename) files and directories.
 
 
 .SH DESCRIPTION
-mvx renames SOURCE to DEST, or moves several SOURCEs into DIRECTORY (also selectable with -t; -T forces the two-operand form). Within one filesystem a move is an atomic rename. Across filesystems mvx copies the source with all of its attributes, symbolic links and hard links intact and removes the original only after the copy has fully succeeded. An existing destination is replaced unless -n (never), -u (only when the source is newer) or -i (ask first) says otherwise; a directory is never moved into itself, and a directory only replaces an empty directory. GNU mv lets the last of -f, -i and -n win; mvx cannot see option order, so it prefers the most cautious instead: -n over -i over -f.
+mvx renames SOURCE to DEST, or moves several SOURCEs into DIRECTORY (also selectable with -t; -T forces the two-operand form). Within one filesystem a move is an atomic rename. Across filesystems mvx copies the source with all of its attributes, symbolic links and hard links intact and removes the original only after the copy has fully succeeded; --no-copy refuses such a move instead ('Invalid cross-device link'), so a move is always a rename. An existing destination is replaced unless -n (never), -u (only when the source is newer) or -i (ask first) says otherwise; a directory is never moved into itself, and a directory only replaces an empty directory. --backup=CONTROL
+\[la]or \-b\[ra] first renames each existing destination to a backup: CONTROL simple (or never) appends a suffix, numbered (t) appends .~N~ with N one past the highest already there, existing (nil, the default) numbers the backup only when numbered backups already exist, and none (off) makes none; without a CONTROL the VERSION_CONTROL variable chooses. The suffix is ~, or SUFFIX with -S (which asks for backups by itself), or the SIMPLE_BACKUP_SUFFIX variable. A destination directory is backed up too, so with a backup a directory may replace a file and a file a directory; --backup cannot be combined with -n. GNU mv lets the last of -f, -i and -n win; mvx cannot see option order, so it prefers the most cautious instead: -n over -i over -f.
 
 .PP
 EXIT STATUS.
@@ -33,12 +34,21 @@ USE CASES.
   - Relocating a tree to another disk without losing modes, times or links.
   - Protecting existing files in scripts with -n, or reviewing overwrites with -i.
   - Promoting a staged file over the live one only when it is newer (-u).
+  - Publishing a file atomically, never by a slow copy, with --no-copy.
   - Atomically swapping a freshly written file into place after it is complete.
   - Replacing a directory's name with -T instead of moving into it.
   - Logging every move in a cleanup script with -v.
 
 
 .SH OPTIONS
+\fB--backup\fP[=""]
+	make a backup of each existing destination file; \fBCONTROL\fR is none (off), simple (never), existing (nil) or numbered (t)
+
+.PP
+\fB-b\fP, \fB--backup-default\fP[=false]
+	like --backup but does not accept an argument
+
+.PP
 \fB-f\fP, \fB--force\fP[=false]
 	do not prompt before overwriting
 
@@ -55,12 +65,20 @@ USE CASES.
 	do not overwrite an existing file
 
 .PP
+\fB--no-copy\fP[=false]
+	do not copy if renaming fails
+
+.PP
 \fB-T\fP, \fB--no-target-directory\fP[=false]
 	treat DEST as a normal file
 
 .PP
 \fB--strip-trailing-slashes\fP[=false]
 	remove any trailing slashes from each SOURCE argument
+
+.PP
+\fB-S\fP, \fB--suffix\fP=""
+	override the usual backup suffix, '~', with \fBSUFFIX\fR
 
 .PP
 \fB-t\fP, \fB--target-directory\fP=""
@@ -122,4 +140,10 @@ USE CASES.
 
   # Archive text files into a dated directory with the gnux shell
   gnux shell -c 'mkdirx -p archive/2024 && mvx -v *.txt archive/2024/'
+
+  # Publish a finished build atomically, or fail if it is on another disk
+  mvx --no-copy build/site.new www/site
+
+  # Replace a log with a new one, keeping the old one as server.log.old
+  mvx -S .old server.log.new server.log
 .EE

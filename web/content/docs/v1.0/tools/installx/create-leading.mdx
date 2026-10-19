@@ -1,0 +1,47 @@
+---
+title: "-D, --create-leading"
+description: "Create all leading components of DEST except the last, or all components of --target-directory, then copy SOURCE to DEST."
+---
+
+An option of [installx](/docs/v1.0/tools/installx).
+
+## Usage
+
+```bash
+installx -D SOURCE... DEST
+installx --create-leading SOURCE... DEST
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-D` | `--create-leading` | none |  | create all leading components of DEST except the last, or all components of `--target-directory`, then copy SOURCE to DEST |
+
+## Examples
+
+### Create the leading directories of the destination
+
+```bash tab="bash" tab-group="shell"
+installx -D app.conf out/etc/app/app.conf
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+installx -D app.conf out\etc\app\app.conf
+```
+
+### Install into a target directory, creating it first
+
+```bash tab="bash" tab-group="shell"
+installx -D -t out/bin build/*
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+installx -D -t out\bin (Get-ChildItem build -Name)
+```
+
+## Help in the terminal
+
+```bash
+gnux help installx --create-leading
+```

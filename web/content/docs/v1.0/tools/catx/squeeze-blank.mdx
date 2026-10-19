@@ -1,0 +1,37 @@
+---
+title: "-s, --squeeze-blank"
+description: "Suppress repeated empty output lines."
+---
+
+An option of [catx](/docs/v1.0/tools/catx).
+
+## Usage
+
+```bash
+catx -s [FILE]...
+catx --squeeze-blank [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-s` | `--squeeze-blank` | none |  | suppress repeated empty output lines |
+
+## Examples
+
+### Squeeze runs of blank lines into one, then number the result
+
+```bash tab="bash" tab-group="shell"
+catx -sn draft.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+catx -sn draft.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help catx --squeeze-blank
+```

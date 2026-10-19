@@ -1,7 +1,7 @@
 {
   "title": "mktempx",
   "pages": [
-    "dir",
+    "base-dir",
     "directory",
     "dry-run",
     "in-tmpdir",

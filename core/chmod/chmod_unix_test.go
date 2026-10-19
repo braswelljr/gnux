@@ -208,7 +208,7 @@ func TestOperandSymlinkIsFollowed(t *testing.T) {
 	}
 
 	// -R -P does not follow even an operand.
-	out, _, err := run(t, chmod.Options{Recursive: true, Traversal: chmod.TraversePhysical, Verbose: true}, 0, "644", link)
+	out, _, err := runNoLinkModes(t, chmod.Options{Recursive: true, Traversal: chmod.TraversePhysical, Verbose: true}, "644", link)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -271,5 +271,117 @@ func TestChmodFailure(t *testing.T) {
 	}
 	if want := "failed to change mode of '" + f + "' from 0644 (rw-r--r--) to 0600 (rw-------)\n"; out.String() != want {
 		t.Fatalf("stdout = %q, want %q", out.String(), want)
+	}
+}
+
+// runNoLinkModes runs chmod as on Linux, where a symbolic link has no mode of
+// its own and changing one fails with EOPNOTSUPP.
+func runNoLinkModes(t *testing.T, opts chmod.Options, args ...string) (stdout, stderr string, err error) {
+	t.Helper()
+	var out, errb bytes.Buffer
+	c := chmod.New(opts, core.Streams{In: strings.NewReader(""), Out: &out, Err: &errb})
+	c.Umask = func() uint32 { return 0 }
+	c.LchmodFn = func(path string, _ os.FileMode) error {
+		return &os.PathError{Op: "lchmod", Path: path, Err: syscall.EOPNOTSUPP}
+	}
+	err = c.Run(args)
+	return out.String(), errb.String(), err
+}
+
+func TestNoDereference(t *testing.T) {
+	dir := t.TempDir()
+	target := file(t, dir, "target")
+	link := filepath.Join(dir, "link")
+	dangling := filepath.Join(dir, "dangling")
+	for old, l := range map[string]string{target: link, filepath.Join(dir, "missing"): dangling} {
+		if err := os.Symlink(old, l); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Linux: the link has no mode, so nothing changes and nothing fails.
+	out, errs, err := runNoLinkModes(t, chmod.Options{NoDereference: true, Verbose: true}, "600", link, dangling)
+	if err != nil || errs != "" {
+		t.Fatalf("err = %v, stderr = %q", err, errs)
+	}
+	want := "neither symbolic link '" + link + "' nor referent has been changed\n" +
+		"neither symbolic link '" + dangling + "' nor referent has been changed\n"
+	if out != want {
+		t.Fatalf("stdout = %q, want %q", out, want)
+	}
+	if got := perm(t, target); got != 0o644 {
+		t.Fatalf("-h changed the referent: %o", got)
+	}
+
+	// Where links have modes, the link's own mode is the one changed.
+	var changed []string
+	var buf bytes.Buffer
+	c := chmod.New(chmod.Options{NoDereference: true, Changes: true}, core.Streams{In: strings.NewReader(""), Out: &buf, Err: &buf})
+	c.Umask = func() uint32 { return 0 }
+	c.LchmodFn = func(path string, mode os.FileMode) error {
+		changed = append(changed, path+" "+mode.String())
+		return nil
+	}
+	if err := c.Run([]string{"600", link}); err != nil {
+		t.Fatal(err)
+	}
+	if len(changed) != 1 || changed[0] != link+" -rw-------" {
+		t.Fatalf("lchmod calls = %q", changed)
+	}
+	if perm(t, target) != 0o644 {
+		t.Fatal("-h changed the referent")
+	}
+}
+
+func TestDereferenceWhileRecursing(t *testing.T) {
+	root := t.TempDir()
+	d := filepath.Join(root, "d")
+	if err := os.Mkdir(d, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	outside := file(t, root, "outside")
+	other := filepath.Join(root, "other")
+	if err := os.Mkdir(other, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	inner := file(t, other, "inner")
+	for old, l := range map[string]string{outside: "lf", other: "ld"} {
+		if err := os.Symlink(old, filepath.Join(d, l)); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// The default leaves the links (and so their referents) alone.
+	out, _, err := runNoLinkModes(t, chmod.Options{Recursive: true, Verbose: true}, "700", d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "neither symbolic link '"+filepath.Join(d, "lf")+"'") || perm(t, outside) != 0o644 {
+		t.Fatalf("default -R: stdout %q, outside %o", out, perm(t, outside))
+	}
+
+	// --dereference changes each referent but does not descend into one.
+	if _, _, err := runNoLinkModes(t, chmod.Options{Recursive: true, Dereference: true}, "700", d); err != nil {
+		t.Fatal(err)
+	}
+	if perm(t, outside) != 0o700 || perm(t, other) != 0o700 {
+		t.Fatalf("referents: %o %o, want 700", perm(t, outside), perm(t, other))
+	}
+	if perm(t, inner) != 0o644 {
+		t.Fatalf("--dereference descended into a linked directory: %o", perm(t, inner))
+	}
+
+	// -h wins over --dereference.
+	if _, _, err := runNoLinkModes(t, chmod.Options{Recursive: true, Dereference: true, NoDereference: true}, "755", d); err != nil {
+		t.Fatal(err)
+	}
+	if perm(t, outside) != 0o700 {
+		t.Fatalf("-h did not win: %o", perm(t, outside))
+	}
+
+	// With -P, --dereference is refused.
+	_, errs, err := runNoLinkModes(t, chmod.Options{Recursive: true, Dereference: true, Traversal: chmod.TraversePhysical}, "700", d)
+	if !errors.Is(err, core.ErrFailed) || errs != "chmodx: -R --dereference requires either -H or -L\n" {
+		t.Fatalf("err = %v, stderr = %q", err, errs)
 	}
 }

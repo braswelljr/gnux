@@ -17,7 +17,7 @@ datex [OPTION]... [+FORMAT]
 
 ### Description
 
-`datex` prints the current `date` and time, or the one `-d` STRING describes, in the C locale's default format ('Mon Jan  2 15:04:05 UTC 2006') or in +FORMAT. FORMAT takes GNU's conversions: %Y %m %d %H %M %S and friends, %a %A %b %B %p (in English), %s (seconds since the epoch), %N (nanoseconds), %z %:z %::z %:::z and %Z (zones), %j %U %W %V %G %u %w (day and week numbers), %F %T %D %R %r %c %x %X %h %e %k %l %C %y %g %n %t %%, and the flags -, _, 0, ^ and # with a field width (%`-d`, %_H, %10s). `-I`[FMT] prints ISO 8601 (`date`, hours, minutes, seconds or ns; `date` by default), `--rfc-3339`=FMT RFC 3339 (`date`, seconds or ns) and `-R` RFC 5322; only one output format may be given. `-u` uses UTC, and otherwise the TZ environment variable or the local zone applies. `-d` STRING accepts the forms GNU `date` accepts most often: 'now', 'today', 'yesterday', 'tomorrow', '@SECONDS', ISO 8601 and RFC 3339 dates and times, MM/DD/YYYY, 'Jan 2 2006', '2 Jan 2006', times of day (14:30, 2:30pm, noon, midnight) with UTC, Z or a numeric offset, weekdays ('next friday', 'last monday') and relative items ('3 days ago', '+2 hours', 'next month', 'fortnight'), combined as in '2026-01-31 +1 month' or 'tomorrow 09:00'. Anything else is reported as an invalid `date`, where GNU's grammar is larger still. `-f` FILE prints one `date` per line of FILE (- for standard input) and `-r` FILE the last modification time of FILE. `gnux` never changes system settings, so `-s` and a MMDDhhmm[[CC]YY][.ss] operand fail with 'cannot set `date`: Operation not supported'. `--debug` and `--resolution` are not implemented.
+`datex` prints the current `date` and time, or the one `-d` STRING describes, in the C locale's default format ('Mon Jan  2 15:04:05 UTC 2006') or in +FORMAT. FORMAT takes GNU's conversions: %Y %m %d %H %M %S and friends, %a %A %b %B %p (in English), %s (seconds since the epoch), %N (nanoseconds), %z %:z %::z %:::z and %Z (zones), %j %U %W %V %G %u %w (day and week numbers), %F %T %D %R %r %c %x %X %h %e %k %l %C %y %g %n %t %%, and the flags -, _, 0, ^ and # with a field width (%`-d`, %_H, %10s). `-I`[FMT] prints ISO 8601 (`date`, hours, minutes, seconds or ns; `date` by default), `--rfc-3339`=FMT RFC 3339 (`date`, seconds or ns) and `-R` RFC 5322; only one output format may be given. `-u` uses UTC, and otherwise the TZ environment variable or the local zone applies. `-d` STRING accepts the forms GNU `date` accepts most often: 'now', 'today', 'yesterday', 'tomorrow', '@SECONDS', ISO 8601 and RFC 3339 dates and times, MM/DD/YYYY, 'Jan 2 2006', '2 Jan 2006', times of day (14:30, 2:30pm, noon, midnight) with UTC, Z or a numeric offset, weekdays ('next friday', 'last monday') and relative items ('3 days ago', '+2 hours', 'next month', 'fortnight'), combined as in '2026-01-31 +1 month' or 'tomorrow 09:00'. Anything else is reported as an invalid `date`, where GNU's grammar is larger still. `-f` FILE prints one `date` per line of FILE (- for standard input) and `-r` FILE the last modification time of FILE. `gnux` never changes system settings, so `-s` and a MMDDhhmm[[CC]YY][.ss] operand fail with 'cannot set `date`: Operation not supported'. `--resolution` prints the resolution of the system clock, measured as GNU measures it, as a time that many seconds after the epoch (0.000000001 for a nanosecond clock), and in any format '%`-N`' prints as many digits of nanoseconds as that resolution needs. `--debug` is not implemented.
 
 ### Permissions
 
@@ -39,6 +39,7 @@ Printing needs no permissions; `-f` needs read permission on FILE and `-r` searc
       --help                    display this help and exit
   -I, --iso-8601 FMT[="date"]   output date/time in ISO 8601 format. FMT='date' for date only (the default), 'hours', 'minutes', 'seconds', or 'ns'
   -r, --reference FILE          display the last modification time of FILE
+      --resolution              output the available resolution of timestamps
       --rfc-3339 FMT            output date/time in RFC 3339 format. FMT='date', 'seconds', or 'ns'
   -R, --rfc-email               output date and time in RFC 5322 format
   -s, --set STRING              set time described by STRING (not supported)
@@ -197,6 +198,26 @@ gnux shell -c 'datex -Iseconds >> run.log'
 
 ```powershell
 gnux shell -c 'datex -Iseconds >> run.log'
+```
+
+Check how finely this system's clock measures time:
+
+```bash
+datex --resolution
+```
+
+```powershell
+datex --resolution
+```
+
+Timestamp a log line to the clock's own precision:
+
+```bash
+datex '+%H:%M:%S.%-N build started'
+```
+
+```powershell
+datex '+%H:%M:%S.%-N build started'
 ```
 
 ### Exit status

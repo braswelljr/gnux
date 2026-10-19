@@ -1,0 +1,49 @@
+---
+title: "--version"
+description: "Print version information and exit (--version)."
+---
+
+An option of [rmx](/docs/v1.0/tools/rmx).
+
+## Usage
+
+```bash
+rmx --version [FILE]...
+```
+
+## Description
+
+`--version` prints the `rmx` version string (injected at build time) and exits without doing anything else.
+
+## Permissions
+
+Performs no filesystem access and needs no permissions; nothing is touched, even when operands are also supplied.
+
+## Use cases
+
+- Confirming which `rmx` build is installed.
+- Capturing the version in CI logs or bug reports.
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--version` | none |  | output version information and exit |
+
+## Examples
+
+### Print the rmx version
+
+```bash tab="bash" tab-group="shell"
+rmx --version
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+rmx --version
+```
+
+## Help in the terminal
+
+```bash
+gnux help rmx --version
+```

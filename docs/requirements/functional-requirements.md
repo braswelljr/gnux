@@ -1,7 +1,7 @@
 # Functional Requirements
 
 Functional requirements define what gnux must do: the behavior every tool shares, the options
-each of the 89 tools must support, the safeguards on destructive operations, how a tool is
+each of the 94 tools must support, the safeguards on destructive operations, how a tool is
 invoked, the portable shell, the Go library, installation, the generated documentation, the
 website, the playground and its discoverability. Each requirement has a stable identifier
 (`FR-n`), a rationale, acceptance criteria and the check that verifies it.
@@ -19,8 +19,9 @@ reason not to, **may** is optional.
 - **Identifiers are stable, not sequential.** `FR-1` to `FR-50` come from the first draft of
   this register and keep their numbers. `FR-51` to `FR-72` are the first 22 tools, in alphabetical
   order, `FR-88` to `FR-94` the text tools added after them, and `FR-96` to `FR-147` the
-  remaining coreutils tools, in alphabetical order, and `FR-156` to `FR-159` the tools added
-  after the first release (`archx`, `factorx`, `sumx`, `tsortx`). `FR-73` onward are the other
+  remaining coreutils tools, in alphabetical order, and `FR-156` to `FR-164` the tools added
+  after the first release (`archx`, `factorx`, `sumx`, `tsortx`, `dirx`, `groupsx`, `lognamex`,
+  `usersx`, `vdirx`). `FR-73` onward are the other
   requirements added since. The document is ordered by area, so the
   numbers do not run in order down the page.
 - **"Verified by" names something that exists.** A test file, a CI workflow, or the word
@@ -181,6 +182,70 @@ honor `--help` and `--version` when either is the sole argument.
 - **Verified by.** `TestLoneVersion` and `TestCommand` in `cmd/echox`, `cmd/truex`,
   `cmd/falsex` and `cmd/yesx`.
 
+### FR-165: options are parsed as GNU getopt parses them
+
+Every tool must read its options as glibc's `getopt_long` does, wherever the command-line
+framework (pflag) differs.
+
+- **Behavior.** A long option may be abbreviated to any prefix that names one option only
+  (`rmx --rec` is `--recursive`); a prefix of several is refused as `option '--co' is ambiguous;
+  possibilities: '--color' '--context'`. Only GNU's own long names take part: a long name gnux
+  gives an option GNU spells with a letter only (`lsx --long`), or a hidden second spelling,
+  answers only when written in full and only when no GNU option starts with it, so an
+  abbreviation means what it means to GNU (`mktempx --dir` is `--directory`). An option that
+  takes no argument refuses one (`option '--force' doesn't allow an argument`). Mistakes are
+  worded as glibc words them: `unrecognized option '--foo'`, `invalid option -- 'z'`, `option
+  requires an argument -- 'n'`, `option '--lines' requires an argument`, followed by the usual
+  `Try '<tool> --help'` line. Tools whose arguments are not options (`echox`, `testx`) parse
+  nothing.
+- **Verified by.** `internal/tool/getopt_test.go`, the conformance harness
+  (`cmd/conformance_test.go`).
+
+### FR-166: the GNU tools are the oracle
+
+Each tool's output, diagnostics and exit status must be checked against the GNU tool it mirrors,
+running both on the same command line.
+
+- **Behavior.** `cmd/conformance_test.go` runs every line of `cmd/testdata/conformance/*.txt` with
+  `sh -c` in two identical fresh directories: once with the GNU tools, once with gnux linked
+  under the GNU names ahead of them on `PATH`. Standard output, standard error and the exit
+  status must be equal, once gnux's own tool names (`rmx:`) are read as GNU's and each run's
+  directory as `$DIR`. A documented deviation is not written as a case.
+- **Verified by.** The `conformance` job of the Test workflow, against Debian's current GNU
+  releases; `make conformance` on Linux and `make conformance/docker` anywhere with Docker.
+
+### FR-167: backups of replaced destinations
+
+`cpx`, `mvx`, `lnx` and `installx` must back up a destination they replace when asked, as GNU's
+`--backup` does in `cp`, `mv`, `ln` and `install`.
+
+| Option                | Meaning |
+|-----------------------|---------|
+| `--backup[=CONTROL]`  | Make a backup of each existing destination file |
+| `-b`                  | Like `--backup` but does not accept an argument |
+| `-S`, `--suffix=SUFFIX` | Override the usual backup suffix; also asks for backups |
+
+- **Behavior.** The existing destination is renamed to its backup name before it is replaced.
+  CONTROL is `none` or `off` (no backups), `simple` or `never` (FILE plus the suffix, replacing
+  an earlier simple backup), `numbered` or `t` (FILE`.~N~`, N one past the highest number in
+  use, never replacing a file) or `existing` or `nil` (numbered when numbered backups already
+  exist, simple otherwise); an unambiguous abbreviation is accepted, and anything else is a
+  usage error that lists the valid words. Without CONTROL, `VERSION_CONTROL` chooses, and is
+  `existing` when unset or empty; it is read only when backups are asked for. The suffix is
+  `-S SUFFIX`, else `SIMPLE_BACKUP_SUFFIX`, else `~`; an empty suffix or one containing a `/`
+  means `~`. A name too long for the file system ends in a single `~` instead. Nothing that does
+  not exist is backed up. `-v` names the backup: `'SRC' -> 'DEST' (backup: 'BACKUP')` (`cpx`,
+  `installx`), `renamed 'SRC' -> 'DEST' (backup: 'BACKUP')` (`mvx`) and `'BACKUP' ~ 'DEST' =>
+  'TARGET'` (`lnx`). When the destination cannot then be created, the backup is renamed back.
+  A source that is the destination's simple backup is refused (`backing up 'DEST' might
+  destroy source;  'SRC' not copied`, or `not moved`). `cpx` merges into a destination
+  directory without backing it up, and `-f -b FILE FILE` copies FILE to its backup name;
+  `mvx` backs up directories too; with a backup, a directory may replace a non-directory and,
+  in `mvx`, the other way round. `--backup`, even `--backup=none`, cannot be combined with `-n`
+  or `--update=none` in `cpx` and `mvx`.
+- **Verified by.** `core/backup_test.go`, `internal/tool/backup_test.go`, the engines' tests,
+  and `cmd/testdata/conformance/backups.txt`.
+
 ## 2. The tools
 
 One requirement per tool. Each states the synopsis, the options that must be supported, the
@@ -189,7 +254,8 @@ behavior that must hold, and the documented deviations from the GNU tool. `--hel
 
 Several GNU options exist only as a single letter. The command-line framework requires a long
 name for every option, so those letters also answer to a long name of gnux's own, which is
-shown in the tables and noted as a deviation.
+shown in the tables and noted as a deviation. Such a name is accepted only when written in full
+and never completes an abbreviation (FR-165), so every GNU command line keeps its meaning.
 
 ### FR-156: archx
 
@@ -352,6 +418,7 @@ chgrpx [OPTION]... GROUP FILE...
 | `--dereference`            | Affect the referent of each symbolic link (this is the default), rather than the symbolic link itself |
 | `-L`, `--dereference-all`  | With -R, traverse every symbolic link to a directory encountered |
 | `-H`, `--dereference-args` | With -R, follow symbolic links to directories given on the command line |
+| `--from`                   | Change the group of each file only if its current owner and/or group match those specified here; either may be omitted (CURRENT_OWNER:CURRENT_GROUP) |
 | `-h`, `--no-dereference`   | Affect symbolic links instead of any referenced file |
 | `--no-preserve-root`       | Do not treat '/' specially |
 | `-P`, `--physical`         | With -R, do not traverse any symbolic links (default) |
@@ -364,15 +431,16 @@ chgrpx [OPTION]... GROUP FILE...
 
 - **Behavior.** chgrpx changes the group of each FILE to GROUP, a group name or numeric ID. An
   empty GROUP changes nothing but still checks that each FILE exists. --reference=RFILE takes the
-  group from RFILE instead, and then every operand is a FILE. A symbolic link given as a FILE is
-  followed, and its referent changed, unless -h is given; when both -h and --dereference are
-  given, -h wins. -R changes directory trees, following no symbolic link by default (-P); -H
-  follows the ones given on the command line and -L every one, and when several are given the most
-  cautious wins (-P, then -H, then -L). -c reports each change, -v every file, and -f suppresses
-  most error messages. Unlike GNU chgrp, which leaves the safeguard off unless --preserve-root is
-  given, chgrpx refuses to work recursively on '/' unless --no-preserve-root is given; when both
-  are given, --preserve-root wins. On Windows, which has no Unix groups, every change fails with
-  'Operation not supported'.
+  group from RFILE instead, and then every operand is a FILE. --from=CURRENT_OWNER:CURRENT_GROUP
+  changes only the files whose current owner and group match; either part may be omitted, as in
+  --from=alice or --from=:staff. A symbolic link given as a FILE is followed, and its referent
+  changed, unless -h is given; when both -h and --dereference are given, -h wins. -R changes
+  directory trees, following no symbolic link by default (-P); -H follows the ones given on the
+  command line and -L every one, and when several are given the most cautious wins (-P, then -H,
+  then -L). -c reports each change, -v every file, and -f suppresses most error messages. Unlike
+  GNU chgrp, which leaves the safeguard off unless --preserve-root is given, chgrpx refuses to work
+  recursively on '/' unless --no-preserve-root is given; when both are given, --preserve-root wins.
+  On Windows, which has no Unix groups, every change fails with 'Operation not supported'.
 - **Verified by.** `core/chgrp/chgrp_test.go`, `cmd/chgrpx/chgrpx_test.go`.
 
 ### FR-100: chmodx
@@ -386,10 +454,12 @@ chmodx [OPTION]... MODE[,MODE]... FILE...
 | Option                     | Meaning |
 |----------------------------|---------|
 | `-c`, `--changes`          | Like verbose but report only when a change is made |
+| `--dereference`            | Affect the referent of each symbolic link, rather than the symbolic link itself |
 | `-L`, `--dereference-all`  | With -R, follow every symbolic link to a directory |
 | `-H`, `--dereference-args` | With -R, follow symbolic links given on the command line (the default) |
-| `-P`, `--no-dereference`   | With -R, do not follow any symbolic links |
+| `-h`, `--no-dereference`   | Affect each symbolic link, rather than the referent |
 | `--no-preserve-root`       | Do not treat '/' specially |
+| `-P`, `--physical`         | With -R, do not follow any symbolic links |
 | `--preserve-root`          | Fail to operate recursively on '/' (the default) |
 | `--quiet`                  | Same as --silent |
 | `-R`, `--recursive`        | Change files and directories recursively |
@@ -398,23 +468,25 @@ chmodx [OPTION]... MODE[,MODE]... FILE...
 | `-v`, `--verbose`          | Output a diagnostic for every file processed |
 
 - **Behavior.** chmodx changes the permission bits of each FILE to MODE, which is either an octal
-  number (755, 0644, 4755) or a comma-separated list of symbolic changes. Each change names who
-  (u, g, o or a for user, group, others or all), an operator (+ adds, - removes, = sets exactly)
-  and permissions: r, w, x, X (execute only on directories and on files already executable by
-  someone), s (setuid/setgid) and t (sticky), or u, g or o to copy another class's bits. A
-  symbolic change without a who honors the umask. --reference=RFILE copies RFILE's mode instead,
-  and then every operand is a FILE. -R changes directory trees; -H (the default) follows symbolic
-  links given on the command line, -L follows every symbolic link and -P none, and when several
-  are given the most cautious wins (-P, then -H, then -L). Symbolic links met while recursing are
-  never changed. -c reports each change, -v every file, and -f suppresses most error messages. A
-  mode may also be written as an option, as in 'chmodx -w FILE'; several such options combine as
-  if joined with commas, and then, as in GNU, a file left with bits the mode would have cleared
-  but for the umask is reported ('new permissions are ..., not ...') and counts as a failure.
-  Unlike GNU chmod, which leaves the safeguard off unless --preserve-root is given, chmodx refuses
-  to work recursively on '/' unless --no-preserve-root is given; when both are given,
-  --preserve-root wins. GNU chmod 9.6's -h and --dereference are not implemented. On Windows only
-  the owner's write bit maps onto the file system (the read-only attribute), so the other bits are
-  accepted but have no effect.
+  number (755, 0644, 4755) or a comma-separated list of symbolic changes. Each change names who (u,
+  g, o or a for user, group, others or all), an operator (+ adds, - removes, = sets exactly) and
+  permissions: r, w, x, X (execute only on directories and on files already executable by someone),
+  s (setuid/setgid) and t (sticky), or u, g or o to copy another class's bits. A symbolic change
+  without a who honors the umask. --reference=RFILE copies RFILE's mode instead, and then every
+  operand is a FILE. -R changes directory trees; -H (the default) follows symbolic links given on
+  the command line, -L follows every symbolic link and -P none, and when several are given the most
+  cautious wins (-P, then -H, then -L). A symbolic link given as a FILE is followed unless -h is
+  given, and one met while recursing is not, unless --dereference is given (which changes its
+  referent without descending into it) or -L; when both -h and --dereference are given, -h wins. A
+  link that is not followed has its own mode changed where the system gives links one (macOS, the
+  BSDs); on Linux it is reported as unchanged. -c reports each change, -v every file, and -f
+  suppresses most error messages. A mode may also be written as an option, as in 'chmodx -w FILE';
+  several such options combine as if joined with commas, and then, as in GNU, a file left with bits
+  the mode would have cleared but for the umask is reported ('new permissions are ..., not ...')
+  and counts as a failure. Unlike GNU chmod, which leaves the safeguard off unless --preserve-root
+  is given, chmodx refuses to work recursively on '/' unless --no-preserve-root is given; when both
+  are given, --preserve-root wins. On Windows only the owner's write bit maps onto the file system
+  (the read-only attribute), so the other bits are accepted but have no effect.
 - **Verified by.** `core/chmod/chmod_test.go`, `cmd/chmodx/chmodx_test.go`.
 
 ### FR-101: chownx
@@ -541,6 +613,7 @@ cpx [OPTION]... SOURCE... DIRECTORY
 | Option                          | Meaning                                                                  |
 |---------------------------------|--------------------------------------------------------------------------|
 | `-a`, `--archive`               | Same as `-dR --preserve=all`                                             |
+| `--backup[=CONTROL]`, `-b`, `-S` | Back up each existing destination (FR-167)                              |
 | `-d`                            | Same as `--no-dereference --preserve=links`                              |
 | `-f`, `--force`                 | If an existing destination cannot be opened, remove it and try again     |
 | `-i`, `--interactive`           | Prompt before overwrite                                                  |
@@ -554,6 +627,7 @@ cpx [OPTION]... SOURCE... DIRECTORY
 | `--no-preserve=LIST`            | Do not preserve the listed attributes                                    |
 | `--parents`                     | Use the full source file name under DIRECTORY                            |
 | `-r`, `-R`, `--recursive`       | Copy directories recursively                                             |
+| `--remove-destination`        | Remove each existing destination before opening it (contrast with `--force`) |
 | `-s`, `--symbolic-link`         | Make symbolic links instead of copying                                   |
 | `--strip-trailing-slashes`      | Remove any trailing slashes from each SOURCE                             |
 | `-t`, `--target-directory=DIRECTORY` | Copy all SOURCE arguments into DIRECTORY                            |
@@ -567,13 +641,16 @@ cpx [OPTION]... SOURCE... DIRECTORY
   source's permission bits filtered by the umask. Symbolic links are followed unless copying
   recursively. Hard links between copied sources are kept when links are preserved. A
   destination written for an earlier operand is not silently replaced by a later one with the
-  same base name. `-l` with `-s`, and `-t` with `-T`, are usage errors.
+  same base name. `--remove-destination` removes an existing destination before writing it, so
+  a destination symbolic link is replaced rather than written through and a file shared by hard
+  links is not changed under its other names; with `-v` it reports `removed 'DEST'`. `-l` with
+  `-s`, and `-t` with `-T`, are usage errors. Backups follow FR-167.
 - **Deviations.** Option order is not visible, so `-n` overrides `-i`, and an explicit `-P` or
   `-d` overrides `-H`, which overrides `-L`. `-d`, `-H` and `-p` also answer to the long names
   `--no-dereference-links`, `--dereference-args` and `--preserve-default`. On Windows only the
-  read-only attribute and the modification time are carried over. Not implemented: `--backup`
-  and `-b`, `--suffix` and `-S`, `--reflink`, `--sparse`, `--attributes-only`,
-  `--remove-destination`, `--copy-contents`, `--keep-directory-symlink`, `-Z` and `--context`,
+  read-only attribute and the modification time are carried over. `-b` also answers to the
+  long name `--backup-default`. Not implemented: `--reflink`, `--sparse`, `--attributes-only`,
+  `--copy-contents`, `--keep-directory-symlink`, `-Z` and `--context`,
   `--debug`.
 - **Verified by.** `core/cp/cp_test.go`, `cmd/cpx/cpx_test.go`.
 
@@ -658,6 +735,7 @@ datex [OPTION]... [+FORMAT]
 | `-f`, `--file`      | Like --date; once for each line of DATEFILE |
 | `-I`, `--iso-8601`  | Output date/time in ISO 8601 format. FMT='date' for date only (the default), 'hours', 'minutes', 'seconds', or 'ns' |
 | `-r`, `--reference` | Display the last modification time of FILE |
+| `--resolution`      | Output the available resolution of timestamps |
 | `--rfc-3339`        | Output date/time in RFC 3339 format. FMT='date', 'seconds', or 'ns' |
 | `-R`, `--rfc-email` | Output date and time in RFC 5322 format |
 | `-s`, `--set`       | Set time described by STRING (not supported) |
@@ -677,10 +755,13 @@ datex [OPTION]... [+FORMAT]
   2006', '2 Jan 2006', times of day (14:30, 2:30pm, noon, midnight) with UTC, Z or a numeric
   offset, weekdays ('next friday', 'last monday') and relative items ('3 days ago', '+2 hours',
   'next month', 'fortnight'), combined as in '2026-01-31 +1 month' or 'tomorrow 09:00'. Anything
-  else is reported as an invalid date, where GNU's grammar is larger still. -f FILE prints one
-  date per line of FILE (- for standard input) and -r FILE the last modification time of FILE.
-  gnux never changes system settings, so -s and a MMDDhhmm[[CC]YY][.ss] operand fail with 'cannot
-  set date: Operation not supported'. --debug and --resolution are not implemented.
+  else is reported as an invalid date, where GNU's grammar is larger still. -f FILE prints one date
+  per line of FILE (- for standard input) and -r FILE the last modification time of FILE. gnux
+  never changes system settings, so -s and a MMDDhhmm[[CC]YY][.ss] operand fail with 'cannot set
+  date: Operation not supported'. --resolution prints the resolution of the system clock, measured
+  as GNU measures it, as a time that many seconds after the epoch (0.000000001 for a nanosecond
+  clock), and in any format '%-N' prints as many digits of nanoseconds as that resolution needs.
+  --debug is not implemented.
 - **Verified by.** `core/date/date_test.go`, `cmd/datex/datex_test.go`.
 
 ### FR-106: ddx
@@ -779,6 +860,23 @@ dirnamex [OPTION] NAME...
   collapsed. The filesystem is never touched. No operand is a usage error.
 - **Deviations.** None known.
 - **Verified by.** `core/dirname/dirname_test.go`, `cmd/dirnamex/dirnamex_test.go`.
+
+### FR-160: dirx
+
+`dirx` must list directory contents in columns, as GNU `dir` does.
+
+```text
+dirx [OPTION]... [FILE]...
+```
+
+dirx takes every option of lsx (FR-60).
+
+- **Behavior.** dirx is lsx with GNU dir's defaults: it takes every lsx option (FR-60) and
+  lists exactly as lsx does, but arranges the names in columns whether or not the output is a terminal, and writes unprintable characters in names as backslash
+  escapes, as -b does, and never prints `?` for one without `-q`. An option that picks a format
+  or a quoting style, or the `QUOTING_STYLE` variable, replaces those defaults. Diagnostics and
+  exit statuses are lsx's, prefixed with dirx.
+- **Verified by.** `cmd/dirx/dirx_test.go`, `core/ls/ls_test.go`.
 
 ### FR-108: dux
 
@@ -1120,9 +1218,26 @@ grepx [OPTION]... PATTERNS [FILE]...
   `\>` behave as `\b`, and a repetition count above 1000 is too big. Input is treated as
   UTF-8. Directory entries are searched in name order. A missing pattern is a usage error in
   gnux's form, not GNU's usage line. `GREP_COLOR` is not read, and an input file that is also
-  the output is not detected. Not implemented: `-P`, `-u`, abbreviated long options.
+  the output is not detected. Not implemented: `-P`, `-u`.
 - **Verified by.** `core/grep/grep_test.go`, `core/grep/grep_unix_test.go`,
   `cmd/grepx/grepx_test.go`.
+
+### FR-161: groupsx
+
+`groupsx` must print the groups a user is in, as GNU `groups` does.
+
+```text
+groupsx [OPTION]... [USERNAME]...
+```
+
+groupsx has no options of its own.
+
+- **Behavior.** With no USERNAME, groupsx prints the names of the process's groups: the real
+  group, the effective group when it differs, then the supplementary groups, each once, as
+  idx -Gn does. For each USERNAME it prints 'USERNAME : ' and that user's groups from the account
+  database. An unknown user is reported as 'no such user' and the rest are still printed; a group
+  with no name is reported and printed as its number; either makes the exit status 1.
+- **Verified by.** `core/groups/groups_test.go`, `cmd/groupsx/groupsx_test.go`.
 
 ### FR-58: headx
 
@@ -1207,6 +1322,7 @@ installx [OPTION]... SOURCE... DEST
 
 | Option                        | Meaning |
 |-------------------------------|---------|
+| `--backup[=CONTROL]`, `-b`, `-S` | Back up each existing destination (FR-167) |
 | `-C`, `--compare`             | Compare content of source and destination files, and if no change to content, ownership, and permissions, do not modify the destination at all |
 | `-c`, `--copy`                | Ignored; for compatibility with old Unix versions of install |
 | `-D`, `--create-leading`      | Create all leading components of DEST except the last, or all components of --target-directory, then copy SOURCE to DEST |
@@ -1232,7 +1348,8 @@ installx [OPTION]... SOURCE... DEST
   directory. -s is accepted, but stripping symbol tables needs a strip program, so it only warns
   that files are installed unstripped. -c is accepted and ignored, as in GNU. -D also answers to
   the gnux long name --create-leading. A symbolic -m starts from no permissions (u=rwx,go=rx is
-  755), as GNU install does.
+  755), as GNU install does. With a backup (FR-167) an existing DEST is renamed to its backup
+  name instead of being removed.
 - **Verified by.** `core/install/install_test.go`, `cmd/installx/installx_test.go`.
 
 ### FR-116: joinx
@@ -1334,6 +1451,7 @@ lnx [OPTION]... TARGET... [LINK_NAME|DIRECTORY]
 
 | Option                             | Meaning                                                                  |
 |------------------------------------|--------------------------------------------------------------------------|
+| `--backup[=CONTROL]`, `-b`, `-S`   | Back up each existing destination (FR-167)                               |
 | `-f`, `--force`                    | Remove existing destination files                                        |
 | `-i`, `--interactive`              | Prompt whether to remove destinations                                    |
 | `-L`, `--logical`                  | Dereference TARGETs that are symbolic links                              |
@@ -1349,11 +1467,31 @@ lnx [OPTION]... TARGET... [LINK_NAME|DIRECTORY]
   `-f` or `-i` is given. A replacement is atomic: the new link is created under a temporary
   name beside the destination and renamed into place, so the old entry survives a failure. A
   hard link to the same file as its destination is refused. `-r` without `-s`, and `-t` with
-  `-T`, are usage errors.
+  `-T`, are usage errors. Backups follow FR-167: a backup replaces the destination as `-f`
+  would, and only a hard link is then checked against its own name.
 - **Deviations.** Option order is not visible, so `-i` overrides `-f` and `-L` overrides `-P`.
-  On Windows, creating symbolic links needs Developer Mode or an elevated prompt. Not
-  implemented: `--backup` and `-b`, `--suffix` and `-S`, `-d`, `-F` and `--directory`.
+  On Windows, creating symbolic links needs Developer Mode or an elevated prompt. `-b` also
+  answers to the long name `--backup-default`. Not implemented: `-d`, `-F` and `--directory`.
 - **Verified by.** `core/ln/ln_test.go`, `cmd/lnx/lnx_test.go`.
+
+### FR-162: lognamex
+
+`lognamex` must print the user's login name, as GNU `logname` does.
+
+```text
+lognamex [OPTION]...
+```
+
+lognamex has no options of its own.
+
+- **Behavior.** lognamex prints the name the user logged in as, unchanged by su or sudo, and
+  takes no operands. With no login name it reports 'no login name' and exits 1. Without cgo it
+  cannot call getlogin, so it does what glibc does: on Linux the login user the kernel records
+  (/proc/self/loginuid), then on every Unix the login record of the terminal on standard input.
+  On macOS and the BSDs a process with no terminal therefore has no login name, where GNU
+  logname would read the kernel session. On Windows it prints the session's user without the
+  domain.
+- **Verified by.** `core/logname/logname_test.go`, `cmd/lognamex/lognamex_test.go`.
 
 ### FR-60: lsx
 
@@ -1367,14 +1505,18 @@ lsx [OPTION]... [FILE]...
 |---------------------------------|-------------------------------------------------------------------------|
 | `-a`, `--all`                   | Do not ignore entries starting with `.`                                 |
 | `-A`, `--almost-all`            | Do not list implied `.` and `..`                                        |
+| `--author`                      | With `-l`, print the author of each file                                |
 | `-b`, `--escape`                | Print C-style escapes for nongraphic characters                         |
 | `-B`, `--ignore-backups`        | Do not list implied entries ending with `~`                             |
+| `--block-size=SIZE`             | With `-l` and `-s`, scale sizes by SIZE (`K`, `1M`, `KB`, `human-readable`, `si`) |
 | `-c`                            | Use the status change time, for sorting and for display                 |
 | `-C`                            | List entries by columns                                                 |
 | `--color[=WHEN]`                | Color the output: `always` (when WHEN is omitted), `auto` or `never`    |
 | `-d`, `--directory`             | List directories themselves, not their contents                         |
+| `-D`, `--dired`                 | Generate output for Emacs' dired mode (implies `-l`)                    |
 | `-F`, `--classify`              | Append an indicator (one of `*/=@` or a vertical bar) to entries        |
 | `--file-type`                   | Likewise, except do not append `*`                                      |
+| `--format=WORD`                 | across, commas, horizontal, long, single-column, verbose, vertical      |
 | `--full-time`                   | Like `-l --time-style=full-iso`                                         |
 | `-g`                            | Like `-l`, but do not list owner                                        |
 | `--group-directories-first`     | Group directories before files                                          |
@@ -1383,19 +1525,25 @@ lsx [OPTION]... [FILE]...
 | `--si`                          | Likewise, but use powers of 1000, not 1024                              |
 | `-H`, `--dereference-command-line` | Follow symbolic links listed on the command line                     |
 | `--hide=PATTERN`                | Do not list implied entries matching PATTERN (overridden by `-a`, `-A`) |
+| `--hyperlink[=WHEN]`            | Hyperlink file names: `always` (when WHEN is omitted), `auto` or `never` |
 | `-i`, `--inode`                 | Print the index number of each file                                     |
 | `-I`, `--ignore=PATTERN`        | Do not list implied entries matching PATTERN                            |
+| `--indicator-style=WORD`        | none, slash (`-p`), file-type (`--file-type`), classify (`-F`)          |
+| `-k`, `--kibibytes`             | Count `-s` blocks and totals in 1024-byte units                         |
 | `-l`                            | Use a long listing format                                               |
 | `-L`, `--dereference`           | Show information for the file a symbolic link references                |
 | `-m`                            | Fill width with a comma-separated list of entries                       |
 | `-n`, `--numeric-uid-gid`       | Like `-l`, but list numeric user and group IDs                          |
+| `-N`, `--literal`               | Print entry names without quoting                                       |
 | `-o`                            | Like `-l`, but do not list group information                            |
 | `-p`                            | Append `/` to directories                                               |
 | `-q`, `--hide-control-chars`    | Print `?` instead of nongraphic characters                              |
 | `-Q`, `--quote-name`            | Enclose entry names in double quotes                                    |
+| `--quoting-style=WORD`          | literal, shell, shell-always, shell-escape, shell-escape-always, c, c-maybe, escape, locale, clocale |
 | `-r`, `--reverse`               | Reverse order while sorting                                             |
 | `-R`, `--recursive`             | List subdirectories recursively                                         |
 | `-s`, `--size`                  | Print the allocated size of each file, in blocks                        |
+| `--show-control-chars`          | Print nongraphic characters as they are                                 |
 | `-S`                            | Sort by file size, largest first                                        |
 | `--sort=WORD`                   | Sort by WORD: none, size, time, version, extension, name, width         |
 | `--time=WORD`                   | Which timestamp: atime, access, use; ctime, status; mtime, modification; birth, creation |
@@ -1409,6 +1557,7 @@ lsx [OPTION]... [FILE]...
 | `-x`                            | List entries by lines instead of by columns                             |
 | `-X`                            | Sort alphabetically by entry extension                                  |
 | `-1`                            | List one file per line                                                  |
+| `--zero`                        | End each output line with NUL, not newline                              |
 
 - **Behavior.** Operands that are not directories are listed first, then each directory under a
   header. On a terminal names are arranged in columns sized to the window; when output is piped
@@ -1417,17 +1566,42 @@ lsx [OPTION]... [FILE]...
   still listed, with `?` in place of the unknown fields. When several options of one family are
   given (the formats, the sort keys, `-a` and `-A`, the time selectors) the last one on the
   command line wins, as in GNU. The exit status is 0 on success, 1 for minor problems, and 2
-  for serious trouble such as an operand that cannot be accessed or a bad command line.
+  for serious trouble such as an operand that cannot be accessed or a bad command line; an
+  invalid word for an option (`--sort=x`, `--format=x`) exits 1, as GNU's argmatch does.
+- **Quoting.** Names are quoted as gnulib's quotearg quotes them, in the style `--quoting-style`
+  names (or `-N`, `-b`, `-Q`), else the one the `QUOTING_STYLE` variable names (an invalid one
+  is warned about and ignored), else shell-escape on a terminal and literal otherwise (dir and
+  vdir: escape). The escape style also escapes a space, and with `-F` or `--file-type` the
+  indicator characters; a directory header also escapes `:`. In the long format and in columns,
+  with the shell, shell-escape and c-maybe styles, an unquoted name gets a leading space when
+  some name in the listing is quoted, so that the names line up. `?` replaces a nonprintable
+  character with `-q`, or on a terminal unless `--show-control-chars`, in the literal and shell
+  styles; dir and vdir never do so without `-q`. A control character left in a name takes no
+  column.
+- **Other options.** `--zero` ends each line (and each name in `-m`) with NUL, leaves headers'
+  `:` lines and the blank line between directories as they are, and implies `-1` (unless `-l`),
+  `-N`, `--show-control-chars` and no color, each undone by a later option. `--block-size` sets
+  both the long format's size unit and the `-s` unit; without it (or `-h`, `--si`),
+  `LS_BLOCK_SIZE` and then `BLOCK_SIZE` set both, and otherwise sizes are in bytes and blocks in
+  1024 bytes (512 under `POSIXLY_CORRECT`; `-k` makes it 1024 again); an invalid value exits 2
+  with `invalid --block-size argument`. `--author` adds a column after the group holding the
+  owner. `--hyperlink` wraps each name, and each directory header, in an OSC 8 link to
+  `file://HOST/PATH`, PATH absolute with symbolic links resolved and percent-encoded; a quoted
+  name lined up with unquoted ones keeps its quotes outside the link. `-D` implies `-l` and
+  turns `--hyperlink` off, both undone by a later option; with the long format it indents each
+  line by two spaces and ends the output with `//DIRED//` and `//SUBDIRED//` (the byte offsets
+  of every name and directory header) and `//DIRED-OPTIONS// --quoting-style=STYLE`; without
+  the long format it does nothing, and with `--zero` it is refused (`--dired and --zero are
+  incompatible`, status 2).
 - **Deviations.** Names are sorted by plain byte comparison (the C locale), whatever the
   environment's locale. On Windows, which has no POSIX owner, group, inode or block count, those
   columns hold placeholders. The single-letter options `-c`, `-C`, `-g`, `-l`, `-m`, `-o`,
   `-p`, `-S`, `-t`, `-u`, `-U`, `-v`, `-x`, `-X` and `-1` also answer to long names of gnux's
   own (`--ctime`, `--columns`, `--long-no-owner`, `--long`, `--commas`, `--long-no-group`,
   `--slash`, `--sort-size`, `--sort-time`, `--atime`, `--unsorted`, `--sort-version`,
-  `--across`, `--sort-extension`, `--one-per-line`). Not implemented: `--author`,
-  `--block-size`, `-D` and `--dired`, `-f`, `--format`, `--hyperlink`, `--indicator-style`,
-  `-k` and `--kibibytes`, `-N` and `--literal`, `--quoting-style`, `--show-control-chars`,
-  `-Z` and `--context`, `--zero`.
+  `--across`, `--sort-extension`, `--one-per-line`). A multibyte name is read as UTF-8 in
+  every locale, so in the C locale a printable non-ASCII character is shown where GNU escapes
+  its bytes. Not implemented: `-f`, `-Z` and `--context`.
 - **Verified by.** `core/ls/ls_test.go`, `cmd/lsx/lsx_test.go`.
 
 ### FR-119: md5sumx
@@ -1500,7 +1674,7 @@ mktempx [OPTION]... [TEMPLATE]
 
 | Option              | Meaning |
 |---------------------|---------|
-| `-p`, `--dir`       | Use DIR as the directory, like --tmpdir=DIR |
+| `-p`, `--base-dir`  | Use DIR as the directory, like --tmpdir=DIR |
 | `-d`, `--directory` | Create a directory, not a file |
 | `-u`, `--dry-run`   | Do not create anything; merely print a name (unsafe) |
 | `-t`, `--in-tmpdir` | Interpret TEMPLATE as a single file name component, relative to $TMPDIR, else DIR (-p), else the temporary directory (deprecated) |
@@ -1519,7 +1693,7 @@ mktempx [OPTION]... [TEMPLATE]
   mode 700, and creation is atomic: an existing name is never reused. -u only prints a name that
   did not exist at the time, which is unsafe. -q suppresses the diagnostic when creation fails. -t
   is the deprecated form: TEMPLATE is a single name component under $TMPDIR, else -p DIR, else the
-  temporary directory. -p and -t also answer to the gnux long names --dir and --in-tmpdir.
+  temporary directory. -p and -t also answer to the gnux long names --base-dir and --in-tmpdir.
 - **Verified by.** `core/mktemp/mktemp_test.go`, `cmd/mktempx/mktempx_test.go`.
 
 ### FR-62: mvx
@@ -1532,9 +1706,11 @@ mvx [OPTION]... SOURCE... DIRECTORY
 
 | Option                             | Meaning                                                                 |
 |------------------------------------|-------------------------------------------------------------------------|
+| `--backup[=CONTROL]`, `-b`, `-S`   | Back up each existing destination (FR-167)                              |
 | `-f`, `--force`                    | Do not prompt before overwriting                                        |
 | `-i`, `--interactive`              | Prompt before overwrite                                                 |
 | `-n`, `--no-clobber`               | Do not overwrite an existing file                                       |
+| `--no-copy`                        | Do not copy if renaming fails                                           |
 | `--strip-trailing-slashes`         | Remove any trailing slashes from each SOURCE                            |
 | `-t`, `--target-directory=DIRECTORY` | Move all SOURCE arguments into DIRECTORY                              |
 | `-T`, `--no-target-directory`      | Treat DEST as a normal file                                             |
@@ -1546,10 +1722,12 @@ mvx [OPTION]... SOURCE... DIRECTORY
   original only after the copy has fully succeeded (FR-16). A directory is never moved into
   itself, and a directory only replaces an empty directory. A symbolic link is replaced, never
   its target. On a terminal, replacing a write-protected destination asks for confirmation
-  unless `-f` is given.
+  unless `-f` is given. `--no-copy` refuses a move across filesystems with `cannot move 'SOURCE'
+  to 'DEST': Invalid cross-device link` instead of copying, and leaves the source in place.
+  Backups follow FR-167.
 - **Deviations.** Option order is not visible, so `-n` overrides `-i`, which overrides `-f`.
-  Not implemented: `--backup` and `-b`, `--suffix` and `-S`, `-Z` and `--context`, `--no-copy`,
-  `--exchange`, `--debug`.
+  `-b` also answers to the long name `--backup-default`. Not implemented: `-Z` and
+  `--context`, `--exchange`, `--debug`.
 - **Verified by.** `core/mv/mv_test.go`, `cmd/mvx/mvx_test.go`.
 
 ### FR-121: nicex
@@ -1953,8 +2131,7 @@ sedx [OPTION]... {script-only-if-no-other-script} [input-file]...
   refused at parse time, `\<` and `\>` behave as `\b`, `\w`, `\s` and `\b` are ASCII, and a
   repetition count above 1000 is too big. Patterns must be valid UTF-8. `--posix` changes only
   `n` and `N` at end of input. `-u` flushes per line but still reads in blocks. In-place
-  editing does not keep the owner, group or extended attributes. Not implemented: `--debug`,
-  abbreviated long options.
+  editing does not keep the owner, group or extended attributes. Not implemented: `--debug`.
 - **Verified by.** `core/sed/sed_test.go`, `cmd/sedx/sedx_test.go`.
 
 ### FR-93: seqx
@@ -2229,8 +2406,10 @@ sortx [OPTION]... [FILE]...
 | `-M`, `--month-sort`            | Compare (unknown) < JAN < ... < DEC                                            |
 | `-h`, `--human-numeric-sort`    | Compare human readable numbers (2K, 1G)                                        |
 | `-n`, `--numeric-sort`          | Compare according to string numerical value                                    |
+| `-R`, `--random-sort`           | Shuffle, but group identical keys                                              |
+| `--random-source=FILE`          | Get random bytes from FILE                                                     |
 | `-r`, `--reverse`               | Reverse the result of comparisons                                              |
-| `--sort=WORD`                   | general-numeric, human-numeric, month, numeric or version                      |
+| `--sort=WORD`                   | general-numeric, human-numeric, month, numeric, random or version              |
 | `-V`, `--version-sort`          | Natural sort of (version) numbers within text                                  |
 | `-c`, `--check[=WHEN]`          | Check for sorted input and report the first disorder; WHEN: diagnose-first, quiet, silent |
 | `-C`                            | Check for sorted input without reporting                                       |
@@ -2254,12 +2433,14 @@ sortx [OPTION]... [FILE]...
   is silent. Every input is checked to be readable before `-o` opens its file, and the file is
   emptied only after all input is read, so `-o` may name an input. Unlike most tools, trouble
   with any input or the output stops the run with status 2, as in GNU `sort`; a command-line
-  mistake is also status 2.
+  mistake is also status 2. `-R` orders by the MD5 of 16 random bytes followed by the key, as GNU
+  `sort` does, so equal keys stay together; `--random-source=FILE` takes those bytes from FILE,
+  and the same FILE gives the same order as GNU `sort`. A FILE shorter than 16 bytes is reported
+  as `'FILE': end of file`. Without `-R` the source is never read.
 - **Deviations.** Comparison always uses the C locale (byte order, ASCII case folding and month
   names, `.` as the decimal point). `-S`, `-T`, `--parallel`, `--batch-size` and
   `--compress-program` are accepted and ignored; sorting is done in memory. When `-c` and `-C`
-  are both given, `-c` wins in either order. Not implemented: `-R`, `--random-sort`,
-  `--random-source`, `--debug`.
+  are both given, `-c` wins in either order. Not implemented: `--debug`.
 - **Verified by.** `core/sort/sort_test.go`, `cmd/sortx/sortx_test.go`.
 
 ### FR-135: splitx
@@ -2335,7 +2516,9 @@ statx [OPTION]... FILE...
   (device type of a special file), %m (mount point), %w %x %y %z (birth, access, modification and
   change times) and %W %X %Y %Z (the same as seconds since the epoch, which take a precision:
   %.3Y), with printf flags and widths (%-10s, %04a). With -f: %n %i %l %t %T %s %S %b %f %a %c %d.
-  Names are quoted only when a shell would need it. The device is shown as major,minor, as GNU
+  %N quotes the name, and a link's target, in the style `QUOTING_STYLE` names (as `lsx
+  --quoting-style` takes it; an invalid one is warned about and ignored), else shell-escape-always;
+  the default formats name files as they are. The device is shown as major,minor, as GNU
   stat 9 shows it. Missing data is reported honestly rather than invented: the birth time prints
   '-' where the system does not record it (Linux without statx), and on Windows, which has no
   numeric owners, %u and %g print '?'. SELinux contexts (%C) are not supported. --cached is
@@ -2403,6 +2586,7 @@ tailx [OPTION]... [FILE]...
 | `-f`, `--follow[=HOW]`      | Output appended data as the file grows; HOW is `name` or `descriptor` (default) |
 | `-F`                        | Same as `--follow=name --retry`                                                |
 | `-n`, `--lines=NUM`         | Output the last NUM lines instead of 10; `+NUM` starts output at line NUM      |
+| `--max-unchanged-stats=N`   | With `--follow=name`, reopen a FILE unchanged for N polls (default 5)          |
 | `--pid=PID`                 | With `-f`, terminate after process PID dies                                    |
 | `-q`, `--quiet`, `--silent` | Never output headers giving file names                                         |
 | `--retry`                   | Keep trying to open a file if it is inaccessible                               |
@@ -2417,7 +2601,9 @@ tailx [OPTION]... [FILE]...
   file `tailx` seeks to the end and reads backward, so its cost does not depend on the file's
   size. A negative sleep interval or PID, or an unknown `--follow` value, is a usage error.
 - **Deviations.** Following is done by polling at the sleep interval. `-F` also answers to the
-  long name `--follow-retry`. Not implemented: `--max-unchanged-stats`.
+  long name `--follow-retry`. `--follow=name` checks the name on every poll, where GNU waits for
+  `--max-unchanged-stats` polls without growth, so a rotation is noticed at once; N is validated
+  (`invalid maximum number of unchanged stats between opens`) but changes nothing.
 - **Verified by.** `core/tail/tail_test.go`, `cmd/tailx/tailx_test.go`.
 
 ### FR-92: teex
@@ -2472,12 +2658,14 @@ testx EXPRESSION
   from the shell). As POSIX requires, one to four arguments are read by their count first, so
   testx -n = -n compares two strings. A malformed expression is diagnosed with GNU's wording ('a':
   unary operator expected, invalid integer 'x', missing argument after '-f', extra argument 'c')
-  and exits with status 2. Differences from GNU test: the [ form is not provided (a gnux tool's
-  name is its GNU name with an x appended), a lone --help or --version prints help or the version
-  where GNU test would treat it as a non-empty string, the -l STRING length operand is not
-  implemented, and off Unix -O and -G are always false while -r, -w and -x are read from the
-  permission bits.
-- **Verified by.** `core/test/test_test.go`.
+  and exits with status 2. -l STRING may stand for either integer of a comparison and means the
+  length of STRING. The same tool answers to `[ EXPRESSION ]` with the closing `]` required: as
+  `gnux [ ... ]`, as a program named `[`, and in the gnux shell; without the `]` it reports
+  missing ']' and exits 2. `[` is not a tool of its own: it has no x-name, no reference page and
+  no `--list` entry. Differences from GNU test: a lone --help or --version prints help or the
+  version where GNU test would treat it as a non-empty string, and off Unix -O and -G are always
+  false while -r, -w and -x are read from the permission bits.
+- **Verified by.** `core/test/test_test.go`, `cmd/main_test.go` (`TestBracket`).
 
 ### FR-139: timeoutx
 
@@ -2775,6 +2963,40 @@ uptimex [OPTION]... [FILE]
   is left out there, as GNU uptime leaves it out wherever the system cannot report it. If the boot
   time cannot be found the time up is shown as '????' and the exit status is 1.
 - **Verified by.** `core/uptime/uptime_test.go`, `cmd/uptimex/uptimex_test.go`.
+
+### FR-163: usersx
+
+`usersx` must print the user names of the users logged in, as GNU `users` does.
+
+```text
+usersx [OPTION]... [FILE]
+```
+
+usersx has no options of its own.
+
+- **Behavior.** usersx prints the login name of each session, sorted and separated by spaces on
+  one line, a user once per session, and nothing when nobody is logged in. It reads whox's
+  records (FR-147): the utmp file without the sessions whose process has ended, or utmpx on
+  macOS, or the signed-in sessions on Windows. FILE reads another file in utmp format, leaving
+  nothing out; it is not supported on Windows. More than one FILE is a usage error.
+- **Verified by.** `core/users/users_test.go`, `cmd/usersx/usersx_test.go`.
+
+### FR-164: vdirx
+
+`vdirx` must list directory contents in the long format, as GNU `vdir` does.
+
+```text
+vdirx [OPTION]... [FILE]...
+```
+
+vdirx takes every option of lsx (FR-60).
+
+- **Behavior.** vdirx is lsx with GNU vdir's defaults: it takes every lsx option (FR-60) and
+  lists exactly as lsx does, but uses the long format, and writes unprintable characters in names as backslash
+  escapes, as -b does, and never prints `?` for one without `-q`. An option that picks a format
+  or a quoting style, or the `QUOTING_STYLE` variable, replaces those defaults. Diagnostics and
+  exit statuses are lsx's, prefixed with vdirx.
+- **Verified by.** `cmd/vdirx/vdirx_test.go`, `core/ls/ls_test.go`.
 
 ### FR-71: wcx
 
@@ -3269,6 +3491,63 @@ With `-u`, expanding a variable that is not set must be an error that stops the 
   and a `cd` they make, end with the substitution. A command made only of assignments has the
   status of its last substitution.
 - **Verified by.** `TestSubstitution` in `core/shell/control_test.go`.
+
+### FR-168: the sandbox
+
+`gnux shell --sandbox DIR` (and `gnux mcp`, FR-169) must confine the process with the operating
+system's own sandbox before it reads or runs anything.
+
+| Option                  | Meaning |
+|-------------------------|---------|
+| `--sandbox DIR`         | Let the shell, its commands and the programs they start read and write DIR; may be repeated |
+| `--sandbox-read DIR`    | With `--sandbox`, also let them read DIR; may be repeated |
+
+- **Acceptance.** Once entered, the process (every tool, in-process, and every program a command
+  starts) can read and write the `--sandbox` directories, read the `--sandbox-read` ones and the
+  system's own directories (programs, libraries, configuration, time zones), write `/dev/null`,
+  and reach nothing else, the home directory included; neither a symbolic link nor `..` gets
+  around it, and it cannot be lifted. The sandbox is Landlock on Linux 5.13 or later (in a build
+  without cgo, which can restrict every thread), Seatbelt (`sandbox-exec`, the process run again
+  under a deny-by-default profile) on macOS, and an AppContainer on Windows 8 or later (the
+  process run again inside a container granted the directories by an inherited access entry, its
+  streams and exit status passed through, ended with its parent by a job), and Capsicum on
+  FreeBSD (the directories opened as `os.Root` handles, every engine's file access sent through
+  them by `core/fsys`, then capability mode entered, in which nothing can be opened by path and
+  no program started, so a command runs gnux's tools only). After entering, the
+  process checks that it is confined (creating a file in a directory outside the policy must be
+  refused) and refuses to go on otherwise. A directory that does not exist, `--sandbox-read`
+  without `--sandbox`, or a system with no usable sandbox (js, wasip1, a Linux kernel without
+  Landlock, a cgo build on Linux) runs nothing: the reason is written and the status is 125.
+- **Deviations.** On macOS `stat` can see the names and sizes of files outside the policy, never
+  their contents. On Windows the container has no network access; on Linux and macOS the network
+  is not restricted. On Windows the access entries stay on the directories, so that a later run
+  with the same policy starts at once; a container of another policy is granted none of them. On
+  FreeBSD the read-only directories are kept read-only by `core/fsys`, not by the kernel.
+- **Verified by.** `internal/sandbox/sandbox_test.go`, which confines a copy of the test binary
+  and checks what it can still read and write (run without cgo in the Test workflow on Linux,
+  macOS and Windows, and in a FreeBSD virtual machine); `core/fsys/rooted_test.go`; and the whole
+  suite with `-tags gnux_rooted`, which sends every file access through `os.Root`.
+
+### FR-169: gnux mcp
+
+`gnux mcp [--read DIR]... [--timeout DURATION] [--max-output BYTES] [DIR]...` must serve the
+tools to an AI agent over the Model Context Protocol, sandboxed to DIR.
+
+- **Acceptance.** The server speaks JSON-RPC 2.0 over standard input and output, one message
+  per line, and answers `initialize` (protocol revisions 2025-06-18, 2025-03-26 and
+  2024-11-05), `ping`, `tools/list` and `tools/call`; anything else gets "method not found",
+  malformed input "parse error", and notifications no answer. Before answering it enters the
+  sandbox (FR-168) with each DIR (the current directory when none is given) writable and each
+  `--read` DIR readable; where it cannot, it serves nothing and exits 125. It offers one tool,
+  `run`, taking a `command` (a gnux shell command line) and an optional `directory` (relative to
+  the first DIR, or absolute, and inside a DIR; another is refused). Each call runs as a process
+  of its own, which inherits the sandbox, with no standard input; it is stopped, with every
+  program it started, after `--timeout` (2 minutes), and each output stream is cut off after
+  `--max-output` bytes (1 MiB). The result carries the text for the model and the same as
+  structured content (`stdout`, `stderr`, `status`, `timedOut`, `truncated`), and is an error
+  when the status is not 0. Requests are handled concurrently.
+- **Verified by.** `internal/mcp/mcp_test.go` (the protocol), `cmd/mcp_test.go` (the output
+  limit, the directory check, the result text).
 
 ## 6. The Go library
 

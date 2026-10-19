@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"syscall"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -43,6 +45,14 @@ type Options struct {
 	Recursive bool
 	// Traversal selects the symbolic links a recursive run follows.
 	Traversal Traversal
+	// NoDereference (-h) changes a symbolic link itself rather than its
+	// referent. Where links have no mode of their own (Linux), the link is
+	// reported as unchanged, as GNU does.
+	NoDereference bool
+	// Dereference (--dereference) changes the referent of every symbolic
+	// link, the ones met while recursing included, without descending
+	// into them. With -R it needs -H or -L; NoDereference wins over it.
+	Dereference bool
 	// Reference (--reference=RFILE) takes the mode from RFILE instead of a
 	// MODE operand.
 	Reference string
@@ -59,9 +69,12 @@ type Options struct {
 type Chmod struct {
 	Options
 
-	// ChmodFn changes a file's mode; it defaults to os.Chmod and is the
+	// ChmodFn changes a file's mode; it defaults to fsys.Chmod and is the
 	// injection point for tests.
 	ChmodFn func(path string, mode os.FileMode) error
+	// LchmodFn changes the mode of a symbolic link itself; it fails with
+	// EOPNOTSUPP where links have no mode. It is the injection point for -h.
+	LchmodFn func(path string, mode os.FileMode) error
 	// Umask returns the file-creation mask a symbolic mode without a user
 	// class honors; it defaults to the process umask.
 	Umask func() uint32
@@ -75,10 +88,11 @@ type Chmod struct {
 // New builds a chmod engine writing to s.
 func New(opts Options, s core.Streams) *Chmod {
 	return &Chmod{
-		Options: opts,
-		ChmodFn: os.Chmod,
-		Umask:   processUmask,
-		diag:    core.NewDiag(Name, s),
+		Options:  opts,
+		ChmodFn:  fsys.Chmod,
+		LchmodFn: lchmod,
+		Umask:    processUmask,
+		diag:     core.NewDiag(Name, s),
 	}
 }
 
@@ -87,8 +101,12 @@ func New(opts Options, s core.Streams) *Chmod {
 // returned error is core.ErrFailed if anything failed, or a *core.UsageError
 // for a command-line mistake.
 func (c *Chmod) Run(args []string) error {
+	if c.Recursive && c.Traversal == TraversePhysical && c.Dereference && !c.NoDereference {
+		c.diag.Errorf("-R --dereference requires either -H or -L")
+		return core.ErrFailed
+	}
 	if c.Reference != "" {
-		info, err := os.Stat(c.Reference)
+		info, err := fsys.Stat(c.Reference)
 		if err != nil {
 			c.diag.Errorf("failed to get attributes of '%s': %s", c.Reference, core.ErrText(err))
 			return core.ErrFailed
@@ -133,18 +151,21 @@ func (c *Chmod) errorf(format string, a ...any) {
 }
 
 func (c *Chmod) operand(path string) {
-	info, err := os.Lstat(path)
+	info, err := fsys.Lstat(path)
 	if err != nil {
 		c.errorf("cannot access '%s': %s", path, core.ErrText(err))
+		c.inaccessible(path)
 		return
 	}
 	if info.Mode()&os.ModeSymlink != 0 {
-		if c.Recursive && c.Traversal == TraversePhysical {
-			c.skipLink(path)
+		// An operand is followed unless -h, or -R -P, says otherwise.
+		if c.NoDereference || c.Recursive && c.Traversal == TraversePhysical {
+			c.link(path, info)
 			return
 		}
-		if info, err = os.Stat(path); err != nil {
+		if info, err = fsys.Stat(path); err != nil {
 			c.errorf("cannot operate on dangling symlink '%s'", path)
+			c.inaccessible(path)
 			return
 		}
 	}
@@ -161,11 +182,26 @@ func (c *Chmod) operand(path string) {
 	c.visit(path, info, nil)
 }
 
-// skipLink notes a symbolic link that was not followed: chmod never changes a
-// link's own mode.
-func (c *Chmod) skipLink(path string) {
+// link changes the mode of a symbolic link that is not followed. Where links
+// have no mode of their own, nothing changes, which is no failure.
+func (c *Chmod) link(path string, info os.FileInfo) {
+	c.applyWith(path, info, true, func(path string, mode os.FileMode) error {
+		err := c.LchmodFn(path, mode)
+		if err != nil && linkModeUnsupported(err) {
+			return errNotApplied
+		}
+		return err
+	})
+}
+
+// errNotApplied says a symbolic link was left alone because links have no
+// mode of their own here.
+var errNotApplied = errors.New("not applied")
+
+// inaccessible notes, for -v, a file whose mode could not be read.
+func (c *Chmod) inaccessible(path string) {
 	if c.Verbose {
-		c.diag.Printf("neither symbolic link '%s' nor referent has been changed", path)
+		c.diag.Printf("'%s' could not be accessed", path)
 	}
 }
 
@@ -183,7 +219,7 @@ func (c *Chmod) visit(path string, info os.FileInfo, ancestors []os.FileInfo) {
 		}
 	}
 
-	entries, err := os.ReadDir(path)
+	entries, err := fsys.ReadDir(path)
 	if err != nil {
 		c.errorf("cannot read directory '%s': %s", path, core.ErrText(err))
 		return
@@ -191,18 +227,27 @@ func (c *Chmod) visit(path string, info os.FileInfo, ancestors []os.FileInfo) {
 	ancestors = append(ancestors, info)
 	for _, e := range entries {
 		child := filepath.Join(path, e.Name())
-		ci, err := os.Lstat(child)
+		ci, err := fsys.Lstat(child)
 		if err != nil {
 			c.errorf("cannot access '%s': %s", child, core.ErrText(err))
+			c.inaccessible(child)
 			continue
 		}
 		if ci.Mode()&os.ModeSymlink != 0 {
-			if c.Traversal != TraverseLogical {
-				c.skipLink(child)
+			// -L descends through every link; --dereference changes the
+			// referent without descending; otherwise the link itself.
+			follow := c.Traversal == TraverseLogical
+			if !follow && (!c.Dereference || c.NoDereference) {
+				c.link(child, ci)
 				continue
 			}
-			if ci, err = os.Stat(child); err != nil {
+			if ci, err = fsys.Stat(child); err != nil {
 				c.errorf("cannot operate on dangling symlink '%s'", child)
+				c.inaccessible(child)
+				continue
+			}
+			if !follow {
+				c.apply(child, ci)
 				continue
 			}
 		}
@@ -212,6 +257,12 @@ func (c *Chmod) visit(path string, info os.FileInfo, ancestors []os.FileInfo) {
 
 // apply changes one file's mode and reports it as -c and -v ask.
 func (c *Chmod) apply(path string, info os.FileInfo) {
+	c.applyWith(path, info, false, c.ChmodFn)
+}
+
+// applyWith is apply with the function that changes the mode, called even
+// for an unchanged mode when always is set (a link may have no mode at all).
+func (c *Chmod) applyWith(path string, info os.FileInfo, always bool, chmod func(string, os.FileMode) error) {
 	old := unixBits(info.Mode())
 	dir := info.IsDir()
 	mode, err := c.change.apply(old, dir, c.umask)
@@ -220,14 +271,22 @@ func (c *Chmod) apply(path string, info os.FileInfo) {
 		return
 	}
 
-	if mode != old {
-		if err := c.ChmodFn(path, fileMode(mode)); err != nil {
+	if mode != old || always {
+		if err := chmod(path, fileMode(mode)); err != nil {
+			if errors.Is(err, errNotApplied) {
+				if c.Verbose {
+					c.diag.Printf("neither symbolic link '%s' nor referent has been changed", path)
+				}
+				return
+			}
 			if c.Verbose {
 				c.diag.Printf("failed to change mode of '%s' from %s to %s", path, describe(old), describe(mode))
 			}
 			c.errorf("changing permissions of '%s': %s", path, errText(err))
 			return
 		}
+	}
+	if mode != old {
 		if c.Verbose || c.Changes {
 			c.diag.Printf("mode of '%s' changed from %s to %s", path, describe(old), describe(mode))
 		}

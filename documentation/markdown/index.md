@@ -59,6 +59,7 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux ddx](ddx/index.md)	 - Convert and copy a file, block by block.
 * [gnux dfx](dfx/index.md)	 - Report file system space usage.
 * [gnux dirnamex](dirnamex/index.md)	 - Strip the last component from file names.
+* [gnux dirx](dirx/index.md)	 - List directory contents in columns, whether or not the output is a terminal.
 * [gnux dux](dux/index.md)	 - Estimate file space usage.
 * [gnux echox](echox/index.md)	 - Display a line of text.
 * [gnux envx](envx/index.md)	 - Run a program in a modified environment, or print the environment.
@@ -70,6 +71,7 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux fmtx](fmtx/index.md)	 - Reformat each paragraph of text.
 * [gnux foldx](foldx/index.md)	 - Wrap each input line to fit in a specified width.
 * [gnux grepx](grepx/index.md)	 - Print the lines that match patterns.
+* [gnux groupsx](groupsx/index.md)	 - Print the groups a user is in.
 * [gnux headx](headx/index.md)	 - Print the first part of each file.
 * [gnux hostnamex](hostnamex/index.md)	 - Print the name of the current host system.
 * [gnux idx](idx/index.md)	 - Print real and effective user and group IDs.
@@ -78,7 +80,9 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux killx](killx/index.md)	 - Send a signal to processes, or list signals.
 * [gnux linkx](linkx/index.md)	 - Call the `link` function to create a hard `link` to a file.
 * [gnux lnx](lnx/index.md)	 - Make hard or symbolic links between files.
+* [gnux lognamex](lognamex/index.md)	 - Print the user's login name.
 * [gnux lsx](lsx/index.md)	 - List information about files and directory contents.
+* [gnux mcp](mcp/index.md)	 - Serve the `gnux` tools to an AI agent over MCP, sandboxed to DIR.
 * [gnux md5sumx](md5sumx/index.md)	 - Print or check MD5 (128-bit) checksums.
 * [gnux mkdirx](mkdirx/index.md)	 - Create the DIRECTORY(ies), if they do not already exist.
 * [gnux mktempx](mktempx/index.md)	 - Create a temporary file or directory, safely, and print its name.
@@ -126,6 +130,8 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux uniqx](uniqx/index.md)	 - Report or omit repeated lines.
 * [gnux unlinkx](unlinkx/index.md)	 - Call the `unlink` function to remove the specified file.
 * [gnux uptimex](uptimex/index.md)	 - Tell how long the system has been running.
+* [gnux usersx](usersx/index.md)	 - Print the user names of users currently logged in to the current host.
+* [gnux vdirx](vdirx/index.md)	 - List directory contents in the long format.
 * [gnux wcx](wcx/index.md)	 - Print newline, word, and byte counts for each file.
 * [gnux whoamix](whoamix/index.md)	 - Print the user name associated with the current effective user ID.
 * [gnux whox](whox/index.md)	 - Show `who` is logged on.

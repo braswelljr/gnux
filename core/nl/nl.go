@@ -9,9 +9,10 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"os"
 	"regexp"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/bre"
@@ -207,7 +208,7 @@ func (n *Nl) Run(args []string) error {
 func (n *Nl) file(name string) bool {
 	r := n.streams.In
 	if name != "-" {
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			n.diag.Errorf("%s: %s", name, core.ErrText(err))
 			return true

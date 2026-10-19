@@ -1,0 +1,117 @@
+---
+title: "-n, --lines"
+description: "Output the last NUM lines, instead of the last 10; or use -n +NUM to output starting with line NUM."
+---
+
+An option of [tailx](/docs/v1.0/tools/tailx).
+
+## Usage
+
+```bash
+tailx -n [+]NUM [FILE]...
+tailx --lines=[+]NUM [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-n` | `--lines` | `[+]NUM` |  | output the last NUM lines, instead of the last 10; or use `-n` +NUM to output starting with line NUM |
+
+## Examples
+
+### Print the last 50 lines
+
+```bash tab="bash" tab-group="shell"
+tailx -n 50 app.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tailx -n 50 app.log
+```
+
+### Print everything from the second line on (skip a header)
+
+```bash tab="bash" tab-group="shell"
+tailx -n +2 data.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tailx -n +2 data.csv
+```
+
+### Print the last line of each log, with and without file name headers
+
+```bash tab="bash" tab-group="shell"
+tailx -n 1 a.log b.log && tailx -q -n 1 a.log b.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tailx -n 1 a.log b.log; tailx -q -n 1 a.log b.log
+```
+
+### Force the header for a single file (--silent is the long spelling of -q)
+
+```bash tab="bash" tab-group="shell"
+tailx -v -n 5 app.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tailx -v -n 5 app.log
+```
+
+### Print lines 11 to 20 of a file
+
+```bash tab="bash" tab-group="shell"
+headx -n 20 app.log | tailx -n 10
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+headx -n 20 app.log | tailx -n 10
+```
+
+### Print the oldest entry of a directory
+
+```bash tab="bash" tab-group="shell"
+lsx -t | tailx -n 1
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -t | tailx -n 1
+```
+
+### Print the last entry of a NUL-separated list
+
+```bash tab="bash" tab-group="shell"
+tailx -z -n 1 names.lst | xargs -0 echox
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tailx -z -n 1 names.lst
+```
+
+### Follow a log, printing only lines appended from now on
+
+```bash tab="bash" tab-group="shell"
+tailx -n 0 -f app.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tailx -n 0 -f app.log
+```
+
+### Show the end of every log in the portable gnux shell
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'catx *.log | tailx -n 5'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'catx *.log | tailx -n 5'
+```
+
+## Help in the terminal
+
+```bash
+gnux help tailx --lines
+```

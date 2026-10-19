@@ -21,6 +21,7 @@ import (
 	"github.com/braswelljr/gnux/cmd/ddx"
 	"github.com/braswelljr/gnux/cmd/dfx"
 	"github.com/braswelljr/gnux/cmd/dirnamex"
+	"github.com/braswelljr/gnux/cmd/dirx"
 	"github.com/braswelljr/gnux/cmd/dux"
 	"github.com/braswelljr/gnux/cmd/echox"
 	"github.com/braswelljr/gnux/cmd/envx"
@@ -32,6 +33,7 @@ import (
 	"github.com/braswelljr/gnux/cmd/fmtx"
 	"github.com/braswelljr/gnux/cmd/foldx"
 	"github.com/braswelljr/gnux/cmd/grepx"
+	"github.com/braswelljr/gnux/cmd/groupsx"
 	"github.com/braswelljr/gnux/cmd/headx"
 	"github.com/braswelljr/gnux/cmd/hostnamex"
 	"github.com/braswelljr/gnux/cmd/idx"
@@ -40,6 +42,7 @@ import (
 	"github.com/braswelljr/gnux/cmd/killx"
 	"github.com/braswelljr/gnux/cmd/linkx"
 	"github.com/braswelljr/gnux/cmd/lnx"
+	"github.com/braswelljr/gnux/cmd/lognamex"
 	"github.com/braswelljr/gnux/cmd/lsx"
 	"github.com/braswelljr/gnux/cmd/md5sumx"
 	"github.com/braswelljr/gnux/cmd/mkdirx"
@@ -87,6 +90,8 @@ import (
 	"github.com/braswelljr/gnux/cmd/uniqx"
 	"github.com/braswelljr/gnux/cmd/unlinkx"
 	"github.com/braswelljr/gnux/cmd/uptimex"
+	"github.com/braswelljr/gnux/cmd/usersx"
+	"github.com/braswelljr/gnux/cmd/vdirx"
 	"github.com/braswelljr/gnux/cmd/wcx"
 	"github.com/braswelljr/gnux/cmd/whoamix"
 	"github.com/braswelljr/gnux/cmd/whox"
@@ -122,6 +127,7 @@ func Tools() []tool.Spec {
 		ddx.Spec(),
 		dfx.Spec(),
 		dirnamex.Spec(),
+		dirx.Spec(),
 		dux.Spec(),
 		echox.Spec(),
 		envx.Spec(),
@@ -133,6 +139,7 @@ func Tools() []tool.Spec {
 		fmtx.Spec(),
 		foldx.Spec(),
 		grepx.Spec(),
+		groupsx.Spec(),
 		headx.Spec(),
 		hostnamex.Spec(),
 		idx.Spec(),
@@ -141,6 +148,7 @@ func Tools() []tool.Spec {
 		killx.Spec(),
 		linkx.Spec(),
 		lnx.Spec(),
+		lognamex.Spec(),
 		lsx.Spec(),
 		md5sumx.Spec(),
 		mkdirx.Spec(),
@@ -188,6 +196,8 @@ func Tools() []tool.Spec {
 		uniqx.Spec(),
 		unlinkx.Spec(),
 		uptimex.Spec(),
+		usersx.Spec(),
+		vdirx.Spec(),
 		wcx.Spec(),
 		whoamix.Spec(),
 		whox.Spec(),
@@ -199,7 +209,7 @@ func Tools() []tool.Spec {
 // Commands is everything the root command carries: the tools, then the gnux
 // commands that have no GNU counterpart.
 func Commands() []tool.Spec {
-	return append(Tools(), ShellSpec())
+	return append(Tools(), ShellSpec(), MCPSpec())
 }
 
 // Lookup finds a tool by its command name ("rmx") or the name of its GNU counterpart
@@ -222,5 +232,8 @@ var byName = sync.OnceValue(func() map[string]tool.Spec {
 			}
 		}
 	}
+	// [ is test with a closing ], reached by that name only.
+	bracket := testx.BracketSpec()
+	index[bracket.Name()] = bracket
 	return index
 })

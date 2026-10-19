@@ -18,7 +18,7 @@ sumx [OPTION]... [FILE]...
 
 ## Description
 
-`sumx` prints a 16-bit checksum of each FILE and the number of blocks it takes up, followed by its name when FILE operands are given, as GNU `sum` 9 does. With no FILE, or when FILE is -, it reads standard input. By default (and with `-r`) it computes the BSD checksum, printed with five digits, and counts 1024-byte blocks; `-s` (`--sysv`) computes the System V checksum and counts 512-byte blocks. Both are the checksums `cksumx` prints with `-a` bsd and `-a` sysv. They exist to compare with old systems' output and catch accidental corruption only: use `sha256sumx` to verify a download. GNU lets the last of `-r` and `-s` win; `gnux` cannot see their order, so `-s` wins whenever it is given. A FILE that cannot be read is reported and the rest are still summed.
+`sumx` prints a 16-bit checksum of each FILE and the number of blocks it takes up, followed by its name when FILE operands are given, as GNU sum 9 does. With no FILE, or when FILE is -, it reads standard input. By default (and with `-r`) it computes the BSD checksum, printed with five digits, and counts 1024-byte blocks; `-s` (`--sysv`) computes the System V checksum and counts 512-byte blocks. Both are the checksums `cksumx` prints with `-a` bsd and `-a` sysv. They exist to compare with old systems' output and catch accidental corruption only: use `sha256sumx` to verify a download. GNU lets the last of `-r` and `-s` win; `gnux` cannot see their order, so `-s` wins whenever it is given. A FILE that cannot be read is reported and the rest are still summed.
 
 ## Permissions
 
@@ -28,7 +28,7 @@ Needs read permission on each FILE. Writes nothing.
 
 - Comparing a file with a checksum published by an old Unix system or a legacy manual.
 - Quickly spotting that two copies of a file differ.
-- Reproducing the output of `sum` in a script that expects it.
+- Reproducing the output of sum in a script that expects it.
 - Checking System V checksums with `-s`.
 - Getting a file's size in kilobyte blocks along with its checksum.
 
@@ -154,7 +154,7 @@ gnux shell -c 'findx . -type f | xargsx sumx'
 
 Each option has a page of its own, with its usage and examples.
 
-- [-s, --sysv](/docs/tools/sumx/sysv): Use the System V `sum` algorithm, use 512-byte blocks.
+- [-s, --sysv](/docs/tools/sumx/sysv): Use the System V sum algorithm, use 512-byte blocks.
 
 ## Exit status
 

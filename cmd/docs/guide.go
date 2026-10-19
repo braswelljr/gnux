@@ -32,7 +32,7 @@ var guideSections = []section{
 			`dependencies, and supports Linux on amd64, arm64 and riscv64, macOS and FreeBSD on amd64 ` +
 			`and arm64, and Windows on amd64 and arm64.`,
 		`Installing with go install, building from source, or importing the engines as a library ` +
-			`needs Go 1.25 or newer, plus git.`,
+			`needs Go 1.26 or newer, plus git.`,
 		`The per-tool commands are links to the one binary, so they need a filesystem with symbolic ` +
 			`links and the install directory on PATH; on Windows, where creating a symlink needs ` +
 			`Developer Mode or an elevated shell, copy gnux.exe to the tool's name instead.`,

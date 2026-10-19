@@ -130,6 +130,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("dereference-args", "H", false, "with -R, follow symbolic links to directories given on the command line")
 	fs.BoolP("dereference-all", "L", false, "with -R, traverse every symbolic link to a directory encountered")
 	fs.BoolP("physical", "P", false, "with -R, do not traverse any symbolic links (default)")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "dereference-all", "dereference-args", "physical")
 }
 
 // buildOptions folds the parsed flags into chown.Options.

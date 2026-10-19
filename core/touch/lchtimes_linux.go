@@ -16,7 +16,7 @@ const (
 )
 
 // lchtimes sets the times of path without following a final symbolic link. A
-// zero time leaves the corresponding timestamp unchanged, as os.Chtimes does.
+// zero time leaves the corresponding timestamp unchanged, as fsys.Chtimes does.
 // The syscall package exports no wrapper for utimensat(2), hence the raw call.
 func lchtimes(path string, atime, mtime time.Time) error {
 	p, err := syscall.BytePtrFromString(path)

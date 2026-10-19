@@ -1,0 +1,226 @@
+---
+title: "Windows and PowerShell"
+description: "How to use gnux on Windows, where the GNU core utilities are otherwise missing: installing gnux.exe, making the per-tool commands with copies, hard links or symbolic links, why PowerShell's built-in aliases (rm, cp, ls, cat and more) are one of the reasons every tool carries an x suffix, how PowerShell's quoting, wildcard and redirection rules interact with native programs, how to write Windows paths such as C:\\tools in gnux shell scripts, and exactly which features degrade on NTFS: symbolic links, owners and groups, permission modes and device numbers."
+---
+
+## Install
+
+With Go 1.25 or newer installed:
+
+```powershell
+go install github.com/braswelljr/gnux@latest
+gnux --version
+```
+
+The binary lands in `%USERPROFILE%\go\bin\gnux.exe` (or `$env:GOBIN`). If PowerShell cannot find it, add that directory to your user `PATH`:
+
+```powershell
+$bin = "$env:USERPROFILE\go\bin"
+[Environment]::SetEnvironmentVariable("Path", "$([Environment]::GetEnvironmentVariable('Path','User'));$bin", "User")
+$env:Path += ";$bin"     # the current session too
+```
+
+From a checkout, `go build -o bin\gnux.exe .` builds it in place. The Build workflow also produces a Windows amd64 binary for every push to `main`.
+
+You do not need WSL, Git Bash, Cygwin or MSYS2: `gnux.exe` is a native, statically linked Windows program.
+
+## Make the per-tool commands
+
+gnux picks the tool from the name it was started under, ignoring case and a `.exe` suffix, so `rmx.exe` that is a copy of, or link to, `gnux.exe` behaves as `rmx`. There are three ways to create those names.
+
+### Copies (always works)
+
+```powershell
+$bin = Split-Path (Get-Command gnux).Source
+foreach ($t in gnux --list) { Copy-Item "$bin\gnux.exe" "$bin\$t.exe" -Force }
+rmx --version
+```
+
+Costs 85 times the binary's size on disk. Rerun the loop after every upgrade.
+
+### Hard links (no privilege needed, no extra space)
+
+NTFS hard links need neither Developer Mode nor elevation, and all the names share one copy of the data:
+
+```powershell
+$bin = Split-Path (Get-Command gnux).Source
+foreach ($t in gnux --list) {
+    Remove-Item "$bin\$t.exe" -ErrorAction SilentlyContinue
+    New-Item -ItemType HardLink -Path "$bin\$t.exe" -Target "$bin\gnux.exe" | Out-Null
+}
+```
+
+`go install` replaces `gnux.exe` with a new file, which breaks the hard links' connection to it: rerun the loop after upgrading.
+
+### Symbolic links (Developer Mode or an elevated prompt)
+
+```powershell
+$bin = Split-Path (Get-Command gnux).Source
+foreach ($t in gnux --list) {
+    New-Item -ItemType SymbolicLink -Path "$bin\$t.exe" -Target "$bin\gnux.exe" -Force | Out-Null
+}
+```
+
+Symbolic links follow upgrades automatically. Turn on Developer Mode in Settings, or run the loop from an elevated PowerShell.
+
+### Or skip the names
+
+Everything works through the subcommand form, which needs only `gnux.exe`:
+
+```powershell
+gnux rmx -rf build
+gnux lsx -la
+```
+
+## PowerShell aliases collide with the GNU names
+
+PowerShell defines aliases that look like the GNU tools but are its own cmdlets with different parameters:
+
+| Typed in PowerShell | Actually runs | The gnux command |
+|---------------------|---------------|------------------|
+| `rm`, `del`, `rmdir` | `Remove-Item` | `rmx`, `rmdirx` |
+| `cp`, `copy` | `Copy-Item` | `cpx` |
+| `mv`, `move` | `Move-Item` | `mvx` |
+| `ls`, `dir` | `Get-ChildItem` | `lsx` |
+| `cat`, `type` | `Get-Content` | `catx` |
+| `echo` | `Write-Output` | `echox` |
+| `pwd` | `Get-Location` | `pwdx` |
+| `sleep` | `Start-Sleep` | `sleepx` |
+| `mkdir` | a function wrapping `New-Item` | `mkdirx` |
+
+So `rm -rf build` in PowerShell fails with `A parameter cannot be found that matches parameter name 'rf'`, and `ls -la` is not a long listing. The `x` names never collide with anything, which is one of the reasons they exist: `rmx -rf build` means the same thing in PowerShell, `cmd.exe`, bash and zsh.
+
+Even a `rm.exe` link to gnux would lose to the alias, because PowerShell resolves aliases before programs on `PATH`. If you really want the short names, remove the aliases in your profile, and accept that scripts written for PowerShell's `rm` will then break:
+
+```powershell
+# In $PROFILE - only if you know what depends on the aliases.
+Remove-Item Alias:rm, Alias:cp, Alias:mv, Alias:ls, Alias:cat -Force -ErrorAction SilentlyContinue
+```
+
+Inside `gnux shell` there is no such problem: `rm` and `rmx` are the same command there, on every platform.
+
+## Wildcards
+
+PowerShell does not expand wildcards for native programs, and neither does gnux. `wcx -l *.go` hands the literal text `*.go` to `wcx`, which reports that no file has that name. Three ways around it:
+
+```powershell
+# 1. Let PowerShell list the files.
+wcx -l (Get-ChildItem *.go).Name
+
+# 2. Let gnux shell glob, exactly as on Linux.
+gnux shell -c 'wcx -l *.go'
+
+# 3. Put the work in a gnux script.
+gnux shell -e build.gnux
+```
+
+Option 2 and 3 give identical behavior on every platform, which is what you want in anything shared with Linux or macOS users.
+
+## Quoting
+
+PowerShell parses the command line before gnux sees it.
+
+- **Single quotes are literal** in PowerShell. Use them around `gnux shell -c` scripts so `$NAME` reaches gnux instead of being expanded by PowerShell:
+
+  ```powershell
+  gnux shell -c 'OUT=dist; mkdirx -p $OUT && lsx $OUT'
+  ```
+
+- **Double quotes expand PowerShell variables**: `"$env:USERPROFILE\notes.txt"` is expanded by PowerShell before gnux runs.
+- **The escape character is the backtick** (`` ` ``), not the backslash. A backslash is an ordinary character to PowerShell, so `C:\tools` needs no escaping.
+- **Embedded double quotes** inside an argument are passed unreliably to native programs by Windows PowerShell 5.1. Prefer single quotes inside `-c` scripts, or put the script in a file. PowerShell 7.3 and later pass them correctly.
+- **`--%`** stops PowerShell from parsing the rest of the line, when you need an argument passed exactly as typed:
+
+  ```powershell
+  envx --% A=1 cmd /c echo %A%
+  ```
+
+## Redirection and encodings
+
+Windows PowerShell 5.1 writes UTF-16 with a byte order mark for `>` and `>>`, so `echox 1.4.0 > VERSION` does not produce the five bytes you expect. PowerShell 7 writes UTF-8 without a BOM. To get exactly the bytes the tool printed, on any version, redirect inside `gnux shell`:
+
+```powershell
+gnux shell -c 'echox 1.4.0 > VERSION'
+gnux shell -c 'lsx -l > listing.txt 2> errors.txt'
+gnux shell -c 'rmx -rv build > /dev/null'      # /dev/null works on Windows inside gnux shell
+```
+
+Pipes between native programs in PowerShell go through PowerShell's text handling (line by line, re-encoded). Inside `gnux shell` they are raw byte streams, which matters for binary data:
+
+```powershell
+gnux shell -c 'yesx 0123456789 | headx -c 1M > test.bin'
+```
+
+## Windows paths
+
+Every tool accepts both `\` and `/` as separators, drive letters, and UNC paths:
+
+```powershell
+lsx -l C:\Windows\System32\drivers\etc
+cpx -v C:\tools\config.yaml D:/backup/
+realpathx ..\project
+```
+
+In `gnux shell`, a backslash before an ordinary letter is kept, so most Windows paths can be written unquoted:
+
+```bash
+echox C:\tools\bin "C:\Program Files\App" 'C:\a\b'
+```
+
+```text
+C:\tools\bin C:\Program Files\App C:\a\b
+```
+
+One catch: a backslash before a special character escapes it. In `C:\Users\me\*.txt` the `\*` becomes a literal `*` and the backslash disappears, so the glob does not work. In scripts, **write paths with forward slashes**, which Windows accepts everywhere and which also work on Linux and macOS:
+
+```bash
+lsx C:/Users/me/*.txt
+cpx -r C:/src/assets D:/site/
+```
+
+## What degrades on Windows
+
+gnux mirrors GNU semantics wherever Windows can express them, and documents where it cannot.
+
+| Feature | On Windows |
+|---------|-----------|
+| `lsx -l` owner and group, `-i` inode, link count, `-s` blocks | Placeholders: the owner and group print as `-`, the link count as 1, and blocks are computed from the size, because NTFS exposes no POSIX owner, group, inode or block count |
+| `lsx -l` mode column | Derived from the read-only attribute and the file type |
+| `mkdirx -m MODE` | Only the read-only attribute is representable; most of a mode has no effect |
+| `cpx -p`, `cpx -a`, `--preserve` | Only the read-only attribute and the modification time carry over; ownership is a no-op |
+| `mvx` across volumes | Copies, then removes the original after the copy succeeds, as on Unix; attributes as for `cpx` |
+| `lnx -s`, `cpx -s` | Need Developer Mode or an elevated prompt |
+| `lnx` hard links | Work on NTFS, within one volume, without privilege |
+| `touchx -h` | Not possible off Linux; `touchx` reports the link rather than silently touching its target |
+| `rmx --one-file-system` | No effect: there is no device number to compare |
+| Write-protected prompt in `rmx` | A file with the read-only attribute counts as write-protected (the owner write bit) |
+| `envx` | Runs the command as a child process with the same streams and returns its status, exactly as on Unix; programs are found through `PATH` and `PATHEXT` |
+| `tailx --pid` | Supported |
+
+Nothing listed here changes a tool's flags: an option that has no effect is still accepted, so one script works everywhere.
+
+## A Windows cheat sheet
+
+```powershell
+lsx -la                                 # instead of: Get-ChildItem -Force
+lsx -lhS                                # largest files first
+catx -A web.config                      # show CRLF line endings as ^M$
+headx -n 20 C:\logs\app.log
+tailx -f C:\logs\app.log
+wcx -l (Get-ChildItem *.cs -Recurse).FullName
+cpx -ruv src\ D:\mirror\
+gnux shell -c 'mvx -n incoming/* archive/'  # wildcards via gnux shell
+rmx -rf node_modules bin obj            # no prompts, no errors for missing ones
+mkdirx -p a\b\c
+touchx -d 2025-01-01 release\VERSION
+envx GOOS=linux go build -o app .
+realpathx --relative-to=C:\src C:\src\pkg\file.go
+```
+
+## See also
+
+- [Getting started](/docs/v1.0/guides/getting-started) for the other installation routes.
+- [Portable scripting](/docs/v1.0/guides/portable-scripting) for scripts that run identically on Windows and Unix.
+- [Troubleshooting](/docs/v1.0/guides/troubleshooting), including "command not found" and symbolic link failures.
+- The tool references for [lsx](/docs/v1.0/tools/lsx), [lnx](/docs/v1.0/tools/lnx), [cpx](/docs/v1.0/tools/cpx), [mkdirx](/docs/v1.0/tools/mkdirx) and [touchx](/docs/v1.0/tools/touchx), which note the Windows behavior of each.
+- [Non-functional requirements](https://github.com/braswelljr/gnux/blob/main/docs/requirements/non-functional-requirements.md) for the platform commitments.

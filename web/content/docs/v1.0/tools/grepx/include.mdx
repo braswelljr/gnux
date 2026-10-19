@@ -1,0 +1,36 @@
+---
+title: "--include"
+description: "Search only files that match GLOB (a file pattern)."
+---
+
+An option of [grepx](/docs/v1.0/tools/grepx).
+
+## Usage
+
+```bash
+grepx --include=GLOB PATTERNS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--include` | `GLOB` |  | search only files that match GLOB (a file pattern) |
+
+## Examples
+
+### List the Go files that lack a license header
+
+```bash tab="bash" tab-group="shell"
+grepx -rL --include='*.go' 'SPDX-License-Identifier' .
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -rL --include='*.go' 'SPDX-License-Identifier' .
+```
+
+## Help in the terminal
+
+```bash
+gnux help grepx --include
+```

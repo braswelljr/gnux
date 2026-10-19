@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -328,5 +329,67 @@ func TestFiles0From(t *testing.T) {
 	var usage *core.UsageError
 	if !errors.As(err, &usage) {
 		t.Fatalf("operand with --files0-from: err = %v", err)
+	}
+}
+
+func TestRandom(t *testing.T) {
+	dir := t.TempDir()
+	seed := write(t, dir, "seed", "0123456789abcdefXYZ")
+	const in = "a\nb\nc\nd\ne\nf\nb\nA\n"
+	tests := []struct {
+		name string
+		opts sort.Options
+		in   string
+		want string
+	}{
+		// The orders GNU sort 9.7 gives for the same seed file.
+		{"whole lines", sort.Options{Random: true, RandomSource: seed}, in, "f\nd\nA\nb\nb\na\nc\ne\n"},
+		{"folded", sort.Options{Random: true, IgnoreCase: true, RandomSource: seed}, in, "e\nA\na\nf\nb\nb\nd\nc\n"},
+		{"a key", sort.Options{Keys: []string{"2,2R"}, RandomSource: seed}, "1 x\n2 y\n3 x\n4 z\n", "1 x\n3 x\n4 z\n2 y\n"},
+	}
+	for _, tt := range tests {
+		out, errs, err := run(tt.opts, tt.in)
+		if err != nil || out != tt.want {
+			t.Errorf("%s: out = %q, want %q (err %v, stderr %q)", tt.name, out, tt.want, err, errs)
+		}
+	}
+
+	// Without a source the order changes from run to run, but equal lines
+	// stay together.
+	out, _, err := run(sort.Options{Random: true}, "x\ny\nx\nz\nx\n")
+	if err != nil || !strings.Contains(out, "x\nx\nx\n") {
+		t.Fatalf("out = %q, err = %v", out, err)
+	}
+}
+
+func TestRandomSourceErrors(t *testing.T) {
+	dir := t.TempDir()
+	short := write(t, dir, "short", "short")
+	missing := filepath.Join(dir, "missing")
+	tests := []struct {
+		name string
+		opts sort.Options
+		want string
+	}{
+		{"short", sort.Options{Random: true, RandomSource: short}, "sortx: '" + short + "': end of file\n"},
+		{"missing", sort.Options{Random: true, RandomSource: missing}, "sortx: open failed: " + missing + ": No such file or directory\n"},
+		{"incompatible", sort.Options{Random: true, Numeric: true}, "sortx: options '-nR' are incompatible\n"},
+	}
+	if runtime.GOOS != "windows" {
+		tests = append(tests, struct {
+			name string
+			opts sort.Options
+			want string
+		}{"directory", sort.Options{Random: true, RandomSource: dir}, "sortx: '" + dir + "': read error: Is a directory\n"})
+	}
+	for _, tt := range tests {
+		_, errs, err := run(tt.opts, "a\n")
+		if exitCode(err) != 2 || errs != tt.want {
+			t.Errorf("%s: stderr = %q, want %q (err %v)", tt.name, errs, tt.want, err)
+		}
+	}
+	// The source is not read at all without -R.
+	if out, _, err := run(sort.Options{RandomSource: missing}, "b\na\n"); err != nil || out != "a\nb\n" {
+		t.Fatalf("out = %q, err = %v", out, err)
 	}
 }

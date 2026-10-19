@@ -1,6 +1,6 @@
 ---
-title: "-P, --no-dereference"
-description: "With -R, do not follow any symbolic links."
+title: "-h, --no-dereference"
+description: "Affect each symbolic link, rather than the referent."
 ---
 
 An option of [chmodx](/docs/tools/chmodx).
@@ -8,7 +8,7 @@ An option of [chmodx](/docs/tools/chmodx).
 ## Usage
 
 ```bash
-chmodx -P MODE[,MODE]... FILE...
+chmodx -h MODE[,MODE]... FILE...
 chmodx --no-dereference MODE[,MODE]... FILE...
 ```
 
@@ -16,7 +16,7 @@ chmodx --no-dereference MODE[,MODE]... FILE...
 
 | Short | Long | Value | Default | Meaning |
 | --- | --- | --- | --- | --- |
-| `-P` | `--no-dereference` | none |  | with `-R`, do not follow any symbolic links |
+| `-h` | `--no-dereference` | none |  | affect each symbolic `link`, rather than the referent |
 
 ## Help in the terminal
 

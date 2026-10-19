@@ -10,7 +10,7 @@ go get github.com/braswelljr/gnux
 
 The engines under `core/` depend only on the standard library, `github.com/mattn/go-isatty`, `golang.org/x/sys` (system calls Go's standard library does not wrap, on Windows and the BSDs) and `golang.org/x/crypto` (BLAKE2b for `b2sum`); all are pure Go. Cobra and pflag are linked in only if you import `github.com/braswelljr/gnux/cmd` (for `RunTool`, `NewShell` and `Main`).
 
-Go 1.25 or newer is required.
+Go 1.26 or newer is required.
 
 ## The shape of every engine
 
@@ -498,7 +498,7 @@ func main() {
 
 ```text
 status=0 stdout="1 go.mod\n" stderr=""
-status=1 stderr="rmx: unknown flag: --bogus\nTry 'rmx --help' for more information.\n"
+status=1 stderr="rmx: unrecognized option '--bogus'\nTry 'rmx --help' for more information.\n"
 frobx found: false
 ```
 

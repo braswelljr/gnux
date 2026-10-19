@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -77,7 +79,7 @@ func (t *Touch) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	// os.Chtimes and lchtimes leave a zero time untouched, which is how the
+	// fsys.Chtimes and lchtimes leave a zero time untouched, which is how the
 	// timestamp that was not asked for is preserved.
 	if !changeAccess {
 		atime = time.Time{}
@@ -144,7 +146,7 @@ func (t *Touch) touch(path string, atime, mtime time.Time) {
 		if t.NoCreate || t.NoDereference {
 			return
 		}
-		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o666)
+		f, err := fsys.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o666)
 		if err != nil {
 			t.diag.Errorf("cannot touch '%s': %s", path, core.ErrText(err))
 			return
@@ -152,7 +154,7 @@ func (t *Touch) touch(path string, atime, mtime time.Time) {
 		_ = f.Close()
 	}
 
-	set := os.Chtimes
+	set := fsys.Chtimes
 	if t.NoDereference {
 		set = lchtimes
 	}
@@ -164,9 +166,9 @@ func (t *Touch) touch(path string, atime, mtime time.Time) {
 // stat looks up path, following symbolic links unless -h was given.
 func (t *Touch) stat(path string) (os.FileInfo, error) {
 	if t.NoDereference {
-		return os.Lstat(path)
+		return fsys.Lstat(path)
 	}
-	return os.Stat(path)
+	return fsys.Stat(path)
 }
 
 func isNow(date string) bool {

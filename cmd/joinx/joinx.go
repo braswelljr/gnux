@@ -145,6 +145,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.Bool("nocheck-order", false, "do not check that the input is correctly sorted")
 	fs.Bool("header", false, "treat the first line in each file as field headers, print them without trying to pair them")
 	fs.BoolP("zero-terminated", "z", false, "line delimiter is NUL, not newline")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "empty", "field1", "field2", "join-field", "only-unpaired", "output-format", "separator", "unpaired")
 }
 
 // fatalError is a mistake GNU join reports without the --help hint.

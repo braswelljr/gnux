@@ -1,0 +1,37 @@
+---
+title: "-m, --canonicalize-missing"
+description: "No path components need exist or be a directory."
+---
+
+An option of [realpathx](/docs/v1.0/tools/realpathx).
+
+## Usage
+
+```bash
+realpathx -m FILE...
+realpathx --canonicalize-missing FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-m` | `--canonicalize-missing` | none |  | no path components need exist or be a directory |
+
+## Examples
+
+### Normalize a path that does not exist yet
+
+```bash tab="bash" tab-group="shell"
+realpathx -m build/out/../report.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+realpathx -m build\out\..\report.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help realpathx --canonicalize-missing
+```

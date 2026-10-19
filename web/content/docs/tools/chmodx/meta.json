@@ -2,10 +2,12 @@
   "title": "chmodx",
   "pages": [
     "changes",
+    "dereference",
     "dereference-all",
     "dereference-args",
     "no-dereference",
     "no-preserve-root",
+    "physical",
     "preserve-root",
     "quiet",
     "recursive",

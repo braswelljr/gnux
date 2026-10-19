@@ -55,6 +55,7 @@ func TestParseArgs(t *testing.T) {
 		{"-f", []string{"-f", "dates"}, date.Options{File: "dates"}, nil},
 		{"-r", []string{"-r", "file"}, date.Options{Reference: "file"}, nil},
 		{"-s", []string{"-s", "x"}, date.Options{Set: "x", HasSet: true}, nil},
+		{"--resolution", []string{"--resolution"}, date.Options{Resolution: true}, nil},
 		{"-u", []string{"-u"}, date.Options{UTC: true}, nil},
 		{"--universal", []string{"--universal"}, date.Options{UTC: true}, nil},
 		{"-I", []string{"-I"}, date.Options{ISO8601: "date"}, nil},

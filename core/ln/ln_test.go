@@ -10,6 +10,7 @@ import (
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/ln"
+	"github.com/braswelljr/gnux/core/printf"
 )
 
 func newEngine(opts ln.Options) (*ln.Ln, *bytes.Buffer, *bytes.Buffer) {
@@ -197,7 +198,7 @@ func TestHardLink(t *testing.T) {
 	t.Run("directory target", func(t *testing.T) {
 		sub := mkdir(t, filepath.Join(dir, "sub"))
 		got := fail(t, ln.Options{NoTargetDirectory: true}, sub, filepath.Join(dir, "out"))
-		if want := "lnx: '" + sub + "': hard link not allowed for directory\n"; got != want {
+		if want := "lnx: " + printf.ShellQuote(sub) + ": hard link not allowed for directory\n"; got != want {
 			t.Fatalf("stderr = %q, want %q", got, want)
 		}
 	})
@@ -379,7 +380,7 @@ func TestForceReplaces(t *testing.T) {
 	t.Run("refuses to replace a directory", func(t *testing.T) {
 		sub := mkdir(t, filepath.Join(dir, "sub"))
 		got := fail(t, ln.Options{Symbolic: true, Force: true, NoTargetDirectory: true}, newTarget, sub)
-		if want := "lnx: '" + sub + "': cannot overwrite directory\n"; got != want {
+		if want := "lnx: " + printf.ShellQuote(sub) + ": cannot overwrite directory\n"; got != want {
 			t.Fatalf("stderr = %q, want %q", got, want)
 		}
 	})
@@ -514,4 +515,62 @@ func TestRelative(t *testing.T) {
 		run(t, ln.Options{Symbolic: true, Relative: true}, filepath.Join("data", "file"), link)
 		wantLink(t, link, filepath.Join("..", "..", "data", "file"))
 	})
+}
+
+func TestBackup(t *testing.T) {
+	requireSymlinks(t)
+	requireHardLinks(t)
+	dir := t.TempDir()
+	a, b := filepath.Join(dir, "a"), filepath.Join(dir, "b")
+	write(t, a, "A")
+	write(t, b, "B")
+	simple := core.Backup{Control: core.SimpleBackup}
+
+	// A backup replaces like -f does, and -v names it.
+	out := run(t, ln.Options{Backup: simple, Verbose: true}, a, b)
+	if want := "'" + b + "~' ~ '" + b + "' => '" + a + "'\n"; out != want {
+		t.Fatalf("stdout = %q, want %q", out, want)
+	}
+	if data, _ := os.ReadFile(b + "~"); string(data) != "B" {
+		t.Fatalf("backup holds %q", data)
+	}
+	ai, _ := os.Stat(a)
+	bi, _ := os.Stat(b)
+	if !os.SameFile(ai, bi) {
+		t.Fatal("b is not a hard link to a")
+	}
+
+	// b is now a hard link to a: with a backup it is replaced again, not
+	// skipped as -f would.
+	run(t, ln.Options{Backup: core.Backup{Control: core.NumberedBackup}}, a, b)
+	if _, err := os.Lstat(b + ".~1~"); err != nil {
+		t.Fatalf("numbered backup: %v", err)
+	}
+
+	// A symbolic link, even to the very same name, backs up what was there.
+	if err := os.Remove(b); err != nil {
+		t.Fatal(err)
+	}
+	out = run(t, ln.Options{Backup: simple, Symbolic: true, Verbose: true}, "a", a)
+	if want := "'" + a + "~' ~ '" + a + "' -> 'a'\n"; out != want {
+		t.Fatalf("stdout = %q, want %q", out, want)
+	}
+	if data, _ := os.ReadFile(a + "~"); string(data) != "A" {
+		t.Fatalf("backup holds %q", data)
+	}
+
+	// A hard link onto its own name is still refused; a new name needs no
+	// backup.
+	if err := os.Remove(a); err != nil {
+		t.Fatal(err)
+	}
+	write(t, a, "A")
+	c, _, errb := newEngine(ln.Options{Backup: simple})
+	if err := c.Run([]string{a, a}); !errors.Is(err, core.ErrFailed) || !strings.Contains(errb.String(), "are the same file") {
+		t.Fatalf("err = %v, stderr = %q", err, errb.String())
+	}
+	run(t, ln.Options{Backup: simple}, a, filepath.Join(dir, "new"))
+	if _, err := os.Lstat(filepath.Join(dir, "new~")); !os.IsNotExist(err) {
+		t.Fatal("a backup was made of nothing")
+	}
 }

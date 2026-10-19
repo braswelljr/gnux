@@ -13,6 +13,7 @@ export { Logo, LOGO_CUTS, LogoLockup, logoSvg } from './logo';
 export { Marquee } from './marquee';
 export { Monitor } from './monitor';
 export { Reveal } from './reveal';
+export { Select } from './select';
 export { Container, Frame, GridCell, pad2, Section } from './section';
 export { TerminalWindow } from './terminal-window';
 export { TypingCode } from './typing-code';

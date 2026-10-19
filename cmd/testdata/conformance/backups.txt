@@ -1,0 +1,65 @@
+# --backup, -b and -S, --suffix in cp, mv, ln and install: backup names,
+# the CONTROL words and VERSION_CONTROL, SIMPLE_BACKUP_SUFFIX, -v output,
+# and the refusals.
+
+cp -v -b b.txt a.txt; ls; cat a.txt~
+cp --backup=numbered b.txt a.txt; cp --backup=t -v b.txt a.txt; ls
+cp -S .bak -v b.txt a.txt; ls
+cp --suf=.k -v b.txt a.txt
+cp --backup=existing b.txt a.txt; cp --backup=t b.txt a.txt; cp --backup=nil -v b.txt a.txt; ls
+cp --backup=none -v b.txt a.txt; cp --backup=off b.txt a.txt; ls
+cp --backup=nu -v b.txt a.txt
+cp --backup=bogus b.txt a.txt
+cp --backup=n b.txt a.txt
+VERSION_CONTROL=numbered cp -bv b.txt a.txt
+VERSION_CONTROL=bogus cp -b b.txt a.txt
+VERSION_CONTROL=bogus cp -v b.txt a.txt
+VERSION_CONTROL=bogus cp --backup=simple -v b.txt a.txt
+SIMPLE_BACKUP_SUFFIX=.orig cp -bv b.txt a.txt
+SIMPLE_BACKUP_SUFFIX=x/y cp -bv b.txt a.txt
+SIMPLE_BACKUP_SUFFIX=.orig cp -b -S .k -v b.txt a.txt
+cp -b -S '' -v b.txt a.txt; cp -b -S x/y -v b.txt a.txt; cp -b -S /x -v b.txt a.txt; ls
+cp -b -n b.txt a.txt
+cp --backup=none --update=none b.txt a.txt
+cp -bf -v a.txt a.txt; ls; cat a.txt~
+cp -b a.txt a.txt
+cp -b b.txt a.txt; cp -b a.txt~ a.txt; echo $?; ls
+cp --backup=t b.txt a.txt; cp --backup=t a.txt.~1~ a.txt; ls
+cp -b -v b.txt link; ls -l link link~ | cut -c1
+touch a.txt.~9~ a.txt.~09~ a.txt.~x~; cp --backup=t -v b.txt a.txt; ls
+cp -rb -v dir a.txt | sort; ls; ls a.txt
+mkdir d2; cp -r dir d2; cp -rbv dir/one dir/two d2/dir; ls d2/dir
+cp -b -v b.txt nonexist
+cp -b -v a.txt b.txt dir; ls dir
+cp -bl b.txt a.txt; ls; cat a.txt
+cp -bs "$PWD/b.txt" a.txt; ls -l a.txt | cut -c1
+
+mv -bv a.txt b.txt; ls; cat b.txt~
+mkdir e; mv -bTv dir e; ls; ls e~
+mkdir e; mv -bTv a.txt e; ls
+mv -b -n a.txt b.txt
+mv -bv a.txt a.txt
+cp -b b.txt a.txt; mv -b a.txt~ a.txt; echo $?; ls
+mv --backup=t -v a.txt b.txt; ls
+mv -S .old -v a.txt b.txt; ls
+mv --backup=bogus a.txt b.txt
+
+ln -bv a.txt b.txt; ls
+ln -sbv a.txt b.txt; ls -l b.txt | cut -c1
+ln -bv a.txt newname
+ln -bv a.txt dir; ls dir
+ln -b a.txt dir/one; ls dir
+mkdir e; ln -bT a.txt e
+ln -b a.txt a.txt
+ln -sbv a.txt a.txt; ls -l a.txt a.txt~ | cut -c1
+ln -S .old -v a.txt b.txt; ls
+ln -bv a.txt link; ls -l link link~ | cut -c1
+ln --backup=t a.txt b.txt; ln --backup=t -v a.txt b.txt; ls
+ln --backup=bogus a.txt b.txt
+
+install -bv b.txt a.txt; ls
+install -S .old -v b.txt a.txt; ls
+install -b b.txt dir; install -bv b.txt dir; ls dir
+install -b -d dir2; ls
+install --backup=t -v b.txt a.txt
+install --backup=x b.txt a.txt

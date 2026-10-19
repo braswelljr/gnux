@@ -169,6 +169,8 @@ func TestCommand(t *testing.T) {
 		{"from line, long", []string{"--lines=+5"}, "5\n"},
 		{"bytes", []string{"-c", "3"}, "\n5\n"},
 		{"verbose", []string{"-v", "-n1"}, "==> standard input <==\n5\n"},
+		{"max unchanged stats", []string{"--max-unchanged-stats=3", "-n1"}, "5\n"},
+		{"max unchanged stats saturates", []string{"--max-unchanged-stats", "+99999999999999999999", "-n1"}, "5\n"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -195,6 +197,21 @@ func TestCommand(t *testing.T) {
 			t.Fatalf("unexpected help:\n%s", help)
 		}
 	})
+}
+
+func TestMaxUnchangedStatsInvalid(t *testing.T) {
+	for _, n := range []string{"x", "-1", "", "3k"} {
+		var out, errb bytes.Buffer
+		c := Spec().Command(core.Streams{In: strings.NewReader("a\n"), Out: &out, Err: &errb})
+		c.SetArgs([]string{"--max-unchanged-stats=" + n})
+		c.SilenceErrors = true
+		if err := c.Execute(); !errors.Is(err, core.ErrFailed) {
+			t.Fatalf("%q: err = %v, want ErrFailed", n, err)
+		}
+		if want := "tailx: invalid maximum number of unchanged stats between opens: '" + n + "'\n"; errb.String() != want || out.Len() != 0 {
+			t.Fatalf("%q: stderr = %q, stdout = %q", n, errb.String(), out.String())
+		}
+	}
 }
 
 func TestMeta(t *testing.T) {

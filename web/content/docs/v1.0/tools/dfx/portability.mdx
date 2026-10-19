@@ -1,0 +1,37 @@
+---
+title: "-P, --portability"
+description: "Use the POSIX output format."
+---
+
+An option of [dfx](/docs/v1.0/tools/dfx).
+
+## Usage
+
+```bash
+dfx -P [FILE]...
+dfx --portability [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-P` | `--portability` | none |  | use the POSIX output format |
+
+## Examples
+
+### Produce stable, parseable output with the POSIX format
+
+```bash tab="bash" tab-group="shell"
+dfx -P | tailx -n +2
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dfx -P | tailx -n +2
+```
+
+## Help in the terminal
+
+```bash
+gnux help dfx --portability
+```

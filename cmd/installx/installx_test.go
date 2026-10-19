@@ -36,7 +36,12 @@ func TestBuildOptions(t *testing.T) {
 		{"no target", []string{"-T"}, install.Options{NoTargetDirectory: true}},
 		{"verbose", []string{"-v"}, install.Options{Verbose: true}},
 		{"combined", []string{"-Dvm", "600"}, install.Options{CreateLeading: true, Verbose: true, Mode: "600"}},
+		{"-b", []string{"-b"}, install.Options{Backup: core.Backup{Control: core.ExistingBackup}}},
+		{"--backup=simple", []string{"--backup=simple"}, install.Options{Backup: core.Backup{Control: core.SimpleBackup}}},
+		{"-S", []string{"-S", ".old"}, install.Options{Backup: core.Backup{Control: core.ExistingBackup, Suffix: ".old"}}},
 	}
+	t.Setenv("VERSION_CONTROL", "")
+	t.Setenv("SIMPLE_BACKUP_SUFFIX", "")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fs := pflag.NewFlagSet(install.Name, pflag.ContinueOnError)
@@ -44,7 +49,7 @@ func TestBuildOptions(t *testing.T) {
 			if err := fs.Parse(tt.args); err != nil {
 				t.Fatalf("parse %v: %v", tt.args, err)
 			}
-			if got := buildOptions(fs); got != tt.want {
+			if got, err := buildOptions(fs); err != nil || got != tt.want {
 				t.Fatalf("buildOptions(%v) = %+v, want %+v", tt.args, got, tt.want)
 			}
 		})

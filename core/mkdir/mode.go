@@ -117,7 +117,7 @@ func applyClause(mode uint32, clause string, umask func() uint32) (uint32, error
 	return mode, nil
 }
 
-// fileMode converts Unix permission bits to the os.FileMode os.Chmod expects.
+// fileMode converts Unix permission bits to the os.FileMode fsys.Chmod expects.
 func fileMode(bits uint32) os.FileMode {
 	mode := os.FileMode(bits & 0o777)
 	if bits&bitSetuid != 0 {

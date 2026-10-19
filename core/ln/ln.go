@@ -10,7 +10,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/printf"
 )
 
 // Name is the command name, used as the prefix of every diagnostic and prompt.
@@ -28,6 +31,9 @@ type Options struct {
 	NoTargetDirectory bool   // -T: always treat LINK_NAME as a normal file
 	Logical           bool   // -L: hard link to the referent of a symlink TARGET
 	Physical          bool   // -P: hard link to a symlink TARGET itself (the default)
+	// Backup (--backup, -b, -S) renames an existing LINK_NAME to a backup
+	// name before the link takes its place, as if -f were given.
+	Backup core.Backup
 }
 
 // Ln is the link engine. Construct it with New.
@@ -73,7 +79,7 @@ func (l *Ln) Run(args []string) error {
 	switch {
 	case l.TargetDirectory != "":
 		targets, dir = args, l.TargetDirectory
-		info, err := os.Stat(dir)
+		info, err := fsys.Stat(dir)
 		if err == nil && !info.IsDir() {
 			l.diag.Errorf("target directory '%s': Not a directory", dir)
 			return l.diag.Result()
@@ -116,9 +122,9 @@ func (l *Ln) Run(args []string) error {
 // in. Under -n a symbolic link to a directory counts as a plain file, so it
 // can be replaced rather than descended into.
 func (l *Ln) isDir(path string) bool {
-	stat := os.Stat
+	stat := fsys.Stat
 	if l.NoDereference {
-		stat = os.Lstat
+		stat = fsys.Lstat
 	}
 	info, err := stat(path)
 	return err == nil && info.IsDir()
@@ -131,37 +137,40 @@ func (l *Ln) link(target, dst string) {
 	if !l.Symbolic {
 		var err error
 		if l.Logical {
-			ti, err = os.Stat(target)
+			ti, err = fsys.Stat(target)
 		} else {
-			ti, err = os.Lstat(target)
+			ti, err = fsys.Lstat(target)
 		}
 		if err != nil {
 			l.diag.Errorf("failed to access '%s': %s", target, core.ErrText(err))
 			return
 		}
 		if ti.IsDir() {
-			l.diag.Errorf("'%s': hard link not allowed for directory", target)
+			l.diag.Errorf("%s: hard link not allowed for directory", printf.ShellQuote(target))
 			return
 		}
 		if l.Logical {
 			// link(2) does not follow a symlink everywhere; resolve it so -L
 			// links to the referent on every platform.
-			if resolved, err := filepath.EvalSymlinks(target); err == nil {
+			if resolved, err := fsys.EvalSymlinks(target); err == nil {
 				source = resolved
 			}
 		}
 	}
 
 	replace := false
-	if di, err := os.Lstat(dst); err == nil && (l.Force || l.Interactive) {
+	backingUp := l.Backup.Control != core.NoBackup
+	if di, err := fsys.Lstat(dst); err == nil && (l.Force || l.Interactive || backingUp) {
 		if di.IsDir() {
-			l.diag.Errorf("'%s': cannot overwrite directory", dst)
+			l.diag.Errorf("%s: cannot overwrite directory", printf.ShellQuote(dst))
 			return
 		}
 		if ti == nil {
-			ti, _ = os.Stat(target)
+			ti, _ = fsys.Stat(target)
 		}
-		if ti != nil && os.SameFile(ti, di) {
+		// A backup keeps a symbolic link's old destination, so only a hard
+		// link is checked then, as in GNU.
+		if ti != nil && os.SameFile(ti, di) && (!backingUp || !l.Symbolic) {
 			// Replacing an entry with a link to itself would destroy the
 			// only name the data has.
 			if sameEntry(target, dst) {
@@ -170,7 +179,7 @@ func (l *Ln) link(target, dst string) {
 			}
 			// A different name for the same file is the hard link that was
 			// asked for; re-running "ln -f a b" must stay a no-op.
-			if !l.Symbolic {
+			if !l.Symbolic && !backingUp {
 				if l.Verbose {
 					l.diag.Printf("'%s' => '%s'", dst, target)
 				}
@@ -189,9 +198,19 @@ func (l *Ln) link(target, dst string) {
 	}
 	create := func(name string) error {
 		if l.Symbolic {
-			return os.Symlink(value, name)
+			return fsys.Symlink(value, name)
 		}
-		return os.Link(source, name)
+		return fsys.Link(source, name)
+	}
+
+	backup := ""
+	if replace && backingUp {
+		name, err := l.Backup.MakeBackup(dst)
+		if err != nil {
+			l.diag.Errorf("cannot backup '%s': %s", dst, core.ErrText(err))
+			return
+		}
+		backup, replace = name, false
 	}
 
 	var err error
@@ -202,6 +221,11 @@ func (l *Ln) link(target, dst string) {
 	}
 	if err != nil {
 		l.reportFailure(target, dst, err)
+		if backup != "" {
+			if err := fsys.Rename(backup, dst); err != nil {
+				l.diag.Errorf("cannot un-backup '%s': %s", dst, core.ErrText(err))
+			}
+		}
 		return
 	}
 
@@ -210,7 +234,11 @@ func (l *Ln) link(target, dst string) {
 		if l.Symbolic {
 			arrow = "->"
 		}
-		l.diag.Printf("'%s' %s '%s'", dst, arrow, value)
+		if backup != "" {
+			l.diag.Printf("'%s' ~ '%s' %s '%s'", backup, dst, arrow, value)
+		} else {
+			l.diag.Printf("'%s' %s '%s'", dst, arrow, value)
+		}
 	}
 }
 
@@ -255,7 +283,7 @@ func replaceWith(dst string, create func(name string) error) error {
 		return err
 	}
 	if err := renameOver(tmp, dst); err != nil {
-		_ = os.Remove(tmp)
+		_ = fsys.Remove(tmp)
 		return fmt.Errorf("replace %s: %w", dst, err)
 	}
 	return nil
@@ -277,11 +305,11 @@ func relativeTarget(dst, target string) string {
 // realPath returns the absolute, symlink-free form of path, resolving as much
 // of it as exists.
 func realPath(path string) string {
-	abs, err := filepath.Abs(path)
+	abs, err := fsys.Abs(path)
 	if err != nil {
 		return filepath.Clean(path)
 	}
-	if resolved, err := filepath.EvalSymlinks(abs); err == nil {
+	if resolved, err := fsys.EvalSymlinks(abs); err == nil {
 		return resolved
 	}
 	parent := filepath.Dir(abs)
@@ -297,11 +325,11 @@ func sameEntry(a, b string) bool {
 	if baseName(a) != baseName(b) {
 		return false
 	}
-	da, err := os.Stat(filepath.Dir(filepath.Clean(a)))
+	da, err := fsys.Stat(filepath.Dir(filepath.Clean(a)))
 	if err != nil {
 		return false
 	}
-	db, err := os.Stat(filepath.Dir(filepath.Clean(b)))
+	db, err := fsys.Stat(filepath.Dir(filepath.Clean(b)))
 	if err != nil {
 		return false
 	}

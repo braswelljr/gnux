@@ -157,6 +157,9 @@ func Register(fs *pflag.FlagSet) {
 	verbose.Register(fs)
 	onefilesystem.Register(fs)
 	preserveroot.Register(fs)
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "prompt-each", "prompt-once")
 }
 
 // run builds the removal options from the parsed flags and runs the engine

@@ -397,6 +397,10 @@ var classes = map[string]string{
 // bracket translates the bracket expression starting at p[i] and returns
 // the index after its closing bracket.
 func bracket(p string, i int) (class string, next int, err error) {
+	if i+1 == len(p) {
+		// GNU grep's word for a '[' that ends the pattern.
+		return "", 0, errInvalid
+	}
 	j := i + 1
 	var b strings.Builder
 	b.WriteByte('[')

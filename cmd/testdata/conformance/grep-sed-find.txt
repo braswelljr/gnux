@@ -1,0 +1,61 @@
+# GNU grep, GNU sed and findutils.
+
+grep beta a.txt b.txt
+grep -n -i BETA a.txt
+grep -c a a.txt b.txt
+grep -v a a.txt
+grep -w the words
+grep -o 'o[a-z]' words
+grep -E 'qu|la' words
+grep -F 'a.t' a.txt
+grep -r one dir
+grep -l beta a.txt b.txt empty
+grep -L beta a.txt b.txt empty
+grep -q gamma a.txt; echo $?
+grep nothing a.txt; echo $?
+grep beta missing; echo $?
+grep -s beta missing; echo $?
+grep '[' a.txt; echo $?
+grep -A1 alpha a.txt
+grep -B1 -n gamma a.txt
+grep -C1 beta a.txt
+grep -m1 a a.txt
+grep -h beta a.txt b.txt
+grep -e alpha -e gamma a.txt
+grep -x beta a.txt
+grep text bin
+grep -a text bin
+sed s/a/A/ a.txt
+sed 's/a/A/g' a.txt
+sed -n 2p a.txt
+sed 2d a.txt
+sed '$!N;s/\n/ /' a.txt
+sed -n '/beta/,$p' a.txt b.txt
+sed 'y/abc/xyz/' a.txt
+sed -E 's/(a)(l)/\2\1/' a.txt
+sed '1i\
+first' a.txt
+sed '2a appended' a.txt
+sed = a.txt
+sed -n l tabs
+sed 's/x' a.txt
+sed q5 a.txt; echo $?
+sed -s 1d a.txt b.txt
+cp a.txt e.txt && sed -i 's/beta/BETA/' e.txt && cat e.txt
+find dir | sort
+find dir -type f | sort
+find dir -name 't*' | sort
+find . -maxdepth 1 -type d | sort
+find dir -empty
+find dir -newer a.txt
+find dir -name one -print -quit
+find dir -path '*/sub/*' | sort
+find dir -type f -exec echo found {} \; | sort
+find dir -type f -exec echo {} + | tr ' ' '\n' | sort
+find missing; echo $?
+find dir -bogus; echo $?
+find dir -size -1k -type f | sort
+find dir -mindepth 2 | sort
+find dir \( -name one -o -name two \) -print | sort
+find dir ! -name '*o*' | sort
+find dir -printf '%f %d %y\n' | sort

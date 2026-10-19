@@ -1,0 +1,61 @@
+# Options GNU coreutils added or that gnux lacked until 0.x: chgrp --from,
+# chmod -h/--dereference, date --resolution, cp --remove-destination,
+# mv --no-copy, tail --max-unchanged-stats and sort -R/--random-source.
+
+chgrp -v --from=:$(id -g) $(id -g) a.txt
+chgrp -c --from=:0 $(id -g) a.txt; echo $?
+chgrp --from=no-such-user $(id -g) a.txt; echo $?
+chgrp --from=:no-such-group $(id -g) a.txt; echo $?
+chgrp --from=x:y:z $(id -g) a.txt; echo $?
+
+chmod -h 600 link; echo $?; ls -l a.txt | cut -c1-10
+chmod -v -h 600 link
+chmod -v --dereference 600 link; ls -l a.txt | cut -c1-10
+chmod -v --no-dereference 600 link
+ln -s missing dangling; chmod -v 600 dangling; echo $?
+ln -s missing dangling; chmod -v -h 600 dangling; echo $?
+chmod -v 600 missing; echo $?
+mkdir d && ln -s ../a.txt d/la; chmod -R -v 700 d; ls -l a.txt | cut -c1-10
+mkdir d && ln -s ../a.txt d/la; chmod -R --dereference -v 700 d; ls -l a.txt | cut -c1-10
+mkdir d && ln -s ../a.txt d/la; chmod -R -h -v 700 d; ls -l a.txt | cut -c1-10
+mkdir d && ln -s ../a.txt d/la; chmod -R -L -c 700 d; ls -l a.txt | cut -c1-10
+chmod -R -P --dereference 700 dir; echo $?
+chmod -R -L --dereference -c 700 dir | sort; ls -ld dir | cut -c1-10
+chown -R --dereference 0 dir; echo $?
+chgrp -R --dereference 0 dir; echo $?
+
+date --resolution
+date --resolution -u +%s
+date --resol
+date --resolution -d @0; echo $?
+date --resolution -r a.txt; echo $?
+date --resolution -s @0; echo $?
+date -d @1.5 -u '+%s.%-N %%-N'
+
+cp --remove-destination b.txt link && ls -l link | cut -c1 && cat a.txt link
+chmod 444 a.txt; cp --remove-destination b.txt a.txt && cat a.txt
+cp --remove-destination -v b.txt a.txt
+cp --remove-destination b.txt dir && cat dir/b.txt
+cp --remove-destination a.txt a.txt; echo $?
+
+mv --no-copy a.txt c.txt && ls c.txt
+mv -v --no-copy a.txt dir
+mv --no-copy a.txt /dev/shm/gnux-no-copy; echo $?; ls a.txt
+
+tail --max-unchanged-stats=3 a.txt
+tail --max-unchanged-stats=99999999999999999999 -n1 a.txt
+tail --max-unchanged-stats=x a.txt; echo $?
+tail --max-unchanged-stats=-1 a.txt; echo $?
+
+printf '0123456789abcdefXYZ' > seed; sort -R --random-source=seed dup
+printf '0123456789abcdefXYZ' > seed; sort -R -u --random-source=seed dup
+printf '0123456789abcdefXYZ' > seed; sort -fR --random-source=seed dup
+printf '0123456789abcdefXYZ' > seed; sort -t, -k2,2R --random-source=seed csv
+printf '0123456789abcdefXYZ' > seed; sort --sort=random --random-source=seed words
+sort -R dup | sort | uniq -c
+printf short > seed; sort -R --random-source=seed dup; echo $?
+sort -R --random-source=missing dup; echo $?
+sort -R --random-source=dir dup; echo $?
+sort -nR dup; echo $?
+sort -k1,1Rn dup; echo $?
+sort --random-source=missing dup

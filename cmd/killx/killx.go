@@ -127,6 +127,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.StringP("number", "n", "", "same as -s, with a `NUMBER`")
 	fs.BoolP("list", "l", false, "list signal names, or convert signal names to/from numbers")
 	fs.BoolP("table", "L", false, "print a table of signal information (also -t)")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "number")
 }
 
 // parsed is a command line split into its parts.

@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/human"
+	"github.com/braswelljr/gnux/core/internal/quotearg"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -92,17 +94,49 @@ const (
 	WhenAlways
 )
 
-// Quoting selects how names are rendered.
+// Quoting selects how names are rendered: GNU's quoting styles.
 type Quoting int
 
 const (
-	// QuoteLiteral prints names as they are.
-	QuoteLiteral Quoting = iota
-	// QuoteEscape is -b: C-style backslash escapes for nongraphic characters.
-	QuoteEscape
-	// QuoteC is -Q: escapes as with -b, wrapped in double quotes.
+	// QuoteAuto is GNU's default: the QUOTING_STYLE variable when it names a
+	// style, else QuotingDefault, else shell-escape on a terminal and literal
+	// otherwise.
+	QuoteAuto Quoting = iota
+	// QuoteLiteral (-N) prints names as they are.
+	QuoteLiteral
+	// QuoteShell quotes a name for the shell when it needs it.
+	QuoteShell
+	// QuoteShellAlways always quotes for the shell.
+	QuoteShellAlways
+	// QuoteShellEscape is QuoteShell with $'\n' escapes for nonprintable
+	// characters: GNU's default on a terminal.
+	QuoteShellEscape
+	// QuoteShellEscapeAlways always quotes, with $'\n' escapes.
+	QuoteShellEscapeAlways
+	// QuoteC (-Q) quotes as a C string, in double quotes.
 	QuoteC
+	// QuoteCMaybe quotes as a C string only when needed.
+	QuoteCMaybe
+	// QuoteEscape (-b) writes C escapes without the quotes.
+	QuoteEscape
+	// QuoteLocale quotes with the locale's quotation marks.
+	QuoteLocale
+	// QuoteCLocale is QuoteLocale with "" in the C locale.
+	QuoteCLocale
 )
+
+// style is the quotearg style q stands for; q must not be QuoteAuto.
+func (q Quoting) style() quotearg.Style {
+	return quotearg.Style(q - QuoteLiteral)
+}
+
+// String is the style's name, as --quoting-style takes it.
+func (q Quoting) String() string {
+	if q < QuoteLiteral || int(q-QuoteLiteral) >= len(quotearg.Names) {
+		return "auto"
+	}
+	return quotearg.Names[q-QuoteLiteral]
+}
 
 // Options mirrors the GNU ls flag surface.
 type Options struct {
@@ -129,13 +163,26 @@ type Options struct {
 	Dereference      bool // -L: show what symbolic links point to
 	DereferenceArgs  bool // -H: follow symbolic links named on the command line
 	Color            When
-	Quoting          Quoting
+	Quoting          Quoting  // --quoting-style, -N, -b, -Q; QuoteAuto is GNU's default
+	QuotingDefault   Quoting  // the style when neither Quoting nor QUOTING_STYLE gives one (dir and vdir: QuoteEscape)
 	HideControlChars bool     // -q: print ? instead of nongraphic characters
+	ShowControlChars bool     // --show-control-chars: print them as they are, even on a terminal
 	IgnoreBackups    bool     // -B: skip entries ending in "~"
 	Ignore           []string // -I: skip entries matching these shell patterns
 	Hide             []string // --hide: likewise, unless -a or -A is given
 	Width            int      // -w: line width; 0 detects it, negative means no limit
 	TabSize          int      // -T: tab stops for column padding; 0 pads with spaces only
+
+	// BlockSize (--block-size) scales sizes in the long format and the -s
+	// counts, as GNU spells it ("K", "1M", "human-readable"); it is used when
+	// neither HumanReadable nor SI is set. Kibibytes (-k) counts -s blocks
+	// in KiB when no size option is given.
+	BlockSize string
+	Kibibytes bool
+	Author    bool // --author: the author column in the long format (the owner, off the Hurd)
+	Hyperlink When // --hyperlink: link each name to its file:// URL
+	Dired     bool // -D, --dired: Emacs dired output, with -l
+	Zero      bool // --zero: end each output line with NUL, not newline
 }
 
 // Ls is the engine. Construct it with New.
@@ -163,6 +210,10 @@ type Ls struct {
 	// time.Local.
 	Location *time.Location
 
+	// Hostname names this host in --hyperlink URLs. It defaults to
+	// os.Hostname.
+	Hostname func() (string, error)
+
 	streams core.Streams
 	diag    *core.Diag
 	out     *bufio.Writer
@@ -179,18 +230,47 @@ type Ls struct {
 	palette *palette // nil when color is off
 	style   timeStyle
 	width   int // line width; 0 means no limit
+
+	quoting    Quoting          // the style in effect
+	nameQuote  quotearg.Options // for names
+	dirQuote   quotearg.Options // for directory headers
+	align      bool             // pad unquoted names when some are quoted
+	someQuoted bool             // the listing being printed has a quoted name
+	eol        string           // what ends a line: "\n", or NUL with --zero
+	fileBlock  uint64           // the long format's size unit
+	fileOpts   human.Opts
+	blockSize  uint64 // the -s and total unit
+	blockOpts  human.Opts
+	hyperlink  bool
+	host       string
+	dired      bool
+	// measureAlso are entries the columns of a listing are as wide as,
+	// without being listed in it: the directory operands, for the listing of
+	// the other operands, as GNU measures every operand before setting the
+	// directories aside.
+	measureAlso []*entry
+	pos         int64   // bytes written, for --dired
+	diredPos    []int64 // start and end of each name
+	subdired    []int64 // start and end of each directory header
 }
 
 // New builds a listing engine writing to s.
 func New(opts Options, s core.Streams) *Ls {
+	return NewAs(Name, opts, s)
+}
+
+// NewAs builds a listing engine whose diagnostics are prefixed with name
+// rather than lsx: the engine behind ls's variants, dirx and vdirx.
+func NewAs(name string, opts Options, s core.Streams) *Ls {
 	l := &Ls{
 		Options:    opts,
 		IsTerminal: core.IsTerminal(s.Out),
 		Getenv:     os.Getenv,
 		Now:        time.Now,
 		Location:   time.Local,
+		Hostname:   os.Hostname,
 		streams:    s,
-		diag:       core.NewDiag(Name, s),
+		diag:       core.NewDiag(name, s),
 	}
 	l.TermWidth = func() int {
 		if f, ok := s.Out.(*os.File); ok {

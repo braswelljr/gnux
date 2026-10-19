@@ -8,9 +8,10 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"os"
 	"strconv"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -115,7 +116,7 @@ func (c *Comm) Run(args []string) error {
 				r = strings.NewReader("")
 			}
 		} else {
-			f, err := os.Open(name)
+			f, err := fsys.Open(name)
 			if err != nil {
 				c.diag.Errorf("%s: %s", name, core.ErrText(err))
 				if in[0] != nil && in[0].closer != nil {

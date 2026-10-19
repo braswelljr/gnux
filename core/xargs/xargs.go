@@ -11,6 +11,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -199,7 +201,7 @@ func (x *Xargs) Run(args []string) error {
 
 	src := x.streams.In
 	if x.ArgFile != "" && x.ArgFile != "-" {
-		f, err := os.Open(x.ArgFile)
+		f, err := fsys.Open(x.ArgFile)
 		if err != nil {
 			r.diag.Errorf("Cannot open input file '%s': %s", x.ArgFile, core.ErrText(err))
 			return core.ErrFailed

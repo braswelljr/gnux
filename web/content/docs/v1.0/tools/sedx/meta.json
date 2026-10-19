@@ -1,0 +1,19 @@
+{
+  "title": "sedx",
+  "pages": [
+    "binary",
+    "expression",
+    "file",
+    "follow-symlinks",
+    "in-place",
+    "line-length",
+    "null-data",
+    "posix",
+    "quiet",
+    "regexp-extended",
+    "sandbox",
+    "separate",
+    "silent",
+    "unbuffered"
+  ]
+}

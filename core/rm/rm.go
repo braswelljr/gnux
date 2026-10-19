@@ -10,6 +10,8 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -100,12 +102,15 @@ func (r *Rm) runConcurrent(paths []string) {
 
 // removeArg handles a single top-level operand.
 func (r *Rm) removeArg(path string) {
-	if base := filepath.Base(filepath.Clean(path)); base == "." || base == ".." {
+	// As in GNU rm, only a recursive removal refuses . and .. outright.
+	// Without -r they meet the ordinary rules: a directory is refused, and
+	// -d fails, since neither can be removed while it is in use.
+	if base := filepath.Base(filepath.Clean(path)); r.Recursive && (base == "." || base == "..") {
 		r.diag.Errorf("refusing to remove '.' or '..' directory: skipping '%s'", path)
 		return
 	}
 
-	info, err := os.Lstat(path)
+	info, err := fsys.Lstat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			if r.Force {
@@ -136,7 +141,7 @@ func (r *Rm) removeDirArg(path string, info os.FileInfo) {
 	switch {
 	case r.Recursive:
 		if r.fastPathOK() {
-			if err := os.RemoveAll(path); err != nil {
+			if err := fsys.RemoveAll(path); err != nil {
 				r.diag.Errorf("cannot remove '%s': %s", path, core.ErrText(err))
 			}
 			return
@@ -150,7 +155,7 @@ func (r *Rm) removeDirArg(path string, info os.FileInfo) {
 	case r.Dir:
 		// Report a non-empty directory with rm's canonical message rather than
 		// the OS-native errno text (which differs across platforms).
-		entries, err := os.ReadDir(path)
+		entries, err := fsys.ReadDir(path)
 		if err != nil {
 			r.diag.Errorf("cannot remove '%s': %s", path, core.ErrText(err))
 			return
@@ -179,7 +184,7 @@ func (r *Rm) removeDirArg(path string, info os.FileInfo) {
 // prompting, --one-file-system and --verbose. It returns true only if the whole
 // subtree (including the directory itself) was removed.
 func (r *Rm) removeTree(path string, rootDev uint64, haveDev bool) bool {
-	entries, err := os.ReadDir(path)
+	entries, err := fsys.ReadDir(path)
 	if err != nil {
 		r.diag.Errorf("cannot remove '%s': %s", path, core.ErrText(err))
 		return false
@@ -194,7 +199,7 @@ func (r *Rm) removeTree(path string, rootDev uint64, haveDev bool) bool {
 	childSkipped := false
 	for _, e := range entries {
 		child := filepath.Join(path, e.Name())
-		ci, err := os.Lstat(child)
+		ci, err := fsys.Lstat(child)
 		if err != nil {
 			r.diag.Errorf("cannot remove '%s': %s", child, core.ErrText(err))
 			childSkipped = true
@@ -280,7 +285,7 @@ func (r *Rm) mayPrompt() bool {
 }
 
 // fastPathOK reports whether a directory can be removed via a single
-// os.RemoveAll rather than a manual, decision-making walk.
+// fsys.RemoveAll rather than a manual, decision-making walk.
 func (r *Rm) fastPathOK() bool {
 	return r.RemoveFn == nil && !r.mayPrompt() && !r.Verbose && !r.OneFileSystem
 }
@@ -290,7 +295,7 @@ func (r *Rm) del(path string) error {
 	if r.RemoveFn != nil {
 		return r.RemoveFn(path)
 	}
-	return os.Remove(path)
+	return fsys.Remove(path)
 }
 
 // ask poses a yes/no question, returning true on an affirmative answer.

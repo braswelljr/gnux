@@ -3,10 +3,11 @@
 package utmp
 
 import (
-	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/braswelljr/gnux/core/fsys"
 )
 
 // DefaultFile is where the system records who is logged in.
@@ -16,7 +17,7 @@ var decode = DecodeLinux
 
 // Boot returns the time the system started, from /proc/uptime.
 func Boot() (time.Time, error) {
-	data, err := os.ReadFile("/proc/uptime")
+	data, err := fsys.ReadFile("/proc/uptime")
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -33,7 +34,7 @@ func Boot() (time.Time, error) {
 
 // LoadAvg returns the 1, 5 and 15 minute load averages from /proc/loadavg.
 func LoadAvg() ([]float64, error) {
-	data, err := os.ReadFile("/proc/loadavg")
+	data, err := fsys.ReadFile("/proc/loadavg")
 	if err != nil {
 		return nil, err
 	}

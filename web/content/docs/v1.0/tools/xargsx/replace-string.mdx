@@ -1,0 +1,37 @@
+---
+title: "-I, --replace-string"
+description: "Same as --replace=R."
+---
+
+An option of [xargsx](/docs/v1.0/tools/xargsx).
+
+## Usage
+
+```bash
+xargsx -I R [COMMAND [INITIAL-ARGUMENT]...]
+xargsx --replace-string=R [COMMAND [INITIAL-ARGUMENT]...]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-I` | `--replace-string` | `R` |  | same as `--replace`=R |
+
+## Examples
+
+### Run one command per line, with the line placed inside an argument
+
+```bash tab="bash" tab-group="shell"
+printfx 'a.txt\nb.txt\n' | xargsx -I {} cpx {} {}.bak
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+printfx 'a.txt\nb.txt\n' | xargsx -I '{}' cpx '{}' '{}.bak'
+```
+
+## Help in the terminal
+
+```bash
+gnux help xargsx --replace-string
+```

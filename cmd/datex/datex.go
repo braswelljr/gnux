@@ -51,7 +51,10 @@ func Meta() docmeta.Meta {
 			"grammar is larger still. -f FILE prints one date per line of FILE (- for " +
 			"standard input) and -r FILE the last modification time of FILE. gnux never " +
 			"changes system settings, so -s and a MMDDhhmm[[CC]YY][.ss] operand fail with " +
-			"'cannot set date: Operation not supported'. --debug and --resolution are not " +
+			"'cannot set date: Operation not supported'. --resolution prints the resolution " +
+			"of the system clock, measured as GNU measures it, as a time that many seconds " +
+			"after the epoch (0.000000001 for a nanosecond clock), and in any format '%-N' " +
+			"prints as many digits of nanoseconds as that resolution needs. --debug is not " +
 			"implemented.",
 		Permissions: "Printing needs no permissions; -f needs read permission on FILE and -r " +
 			"search permission on the directories leading to it.",
@@ -138,6 +141,16 @@ func Meta() docmeta.Meta {
 				Bash:        "gnux shell -c 'datex -Iseconds >> run.log'",
 				PowerShell:  "gnux shell -c 'datex -Iseconds >> run.log'",
 			},
+			{
+				Description: "Check how finely this system's clock measures time:",
+				Bash:        "datex --resolution",
+				PowerShell:  "datex --resolution",
+			},
+			{
+				Description: "Timestamp a log line to the clock's own precision:",
+				Bash:        "datex '+%H:%M:%S.%-N build started'",
+				PowerShell:  "datex '+%H:%M:%S.%-N build started'",
+			},
 		},
 	}
 }
@@ -151,6 +164,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("rfc-email", "R", false, "output date and time in RFC 5322 format")
 	fs.String("rfc-3339", "", "output date/time in RFC 3339 format. `FMT`='date', 'seconds', or 'ns'")
 	fs.StringP("reference", "r", "", "display the last modification time of `FILE`")
+	fs.Bool("resolution", false, "output the available resolution of timestamps")
 	fs.StringP("set", "s", "", "set time described by `STRING` (not supported)")
 	fs.BoolP("utc", "u", false, "print or set Coordinated Universal Time (UTC)")
 	fs.Bool("universal", false, "same as --utc")
@@ -228,7 +242,7 @@ func rewrite(args []string) []string {
 // parseArgs parses the flags on fs and folds them into date.Options.
 func parseArgs(fs *pflag.FlagSet, args []string) (parsed, error) {
 	var p parsed
-	if err := fs.Parse(rewrite(args)); err != nil {
+	if err := tool.ParseFlagSet(fs, rewrite(args), false); err != nil {
 		return p, core.Usagef("%s", err)
 	}
 	on := func(name string) bool {
@@ -241,15 +255,16 @@ func parseArgs(fs *pflag.FlagSet, args []string) (parsed, error) {
 	}
 	p.help, p.version = on("help"), on("version")
 	p.opts = date.Options{
-		Date:      str("date"),
-		HasDate:   fs.Changed("date"),
-		File:      str("file"),
-		Reference: str("reference"),
-		Set:       str("set"),
-		HasSet:    fs.Changed("set"),
-		UTC:       on("utc") || on("universal"),
-		RFC3339:   str("rfc-3339"),
-		RFC5322:   on("rfc-email"),
+		Date:       str("date"),
+		HasDate:    fs.Changed("date"),
+		File:       str("file"),
+		Reference:  str("reference"),
+		Set:        str("set"),
+		HasSet:     fs.Changed("set"),
+		UTC:        on("utc") || on("universal"),
+		RFC3339:    str("rfc-3339"),
+		RFC5322:    on("rfc-email"),
+		Resolution: on("resolution"),
 	}
 	if fs.Changed("iso-8601") {
 		p.opts.ISO8601 = str("iso-8601")

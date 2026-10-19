@@ -2,6 +2,7 @@
 package cpx
 
 import (
+	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -41,7 +42,19 @@ func Meta() docmeta.Meta {
 			"-L follows them everywhere and -H only on the command line. -l and -s create hard " +
 			"or symbolic links instead of copying data. Existing destinations are overwritten " +
 			"unless -n (never), -u (only when the source is newer) or -i (ask first) says " +
-			"otherwise; -f removes a destination that cannot be opened and tries again. GNU cp " +
+			"otherwise; -f removes a destination that cannot be opened and tries again, and " +
+			"--remove-destination removes every existing destination before writing it, so a " +
+			"destination symbolic link is replaced rather than written through and a file " +
+			"that other names share is not changed under them. " +
+			"--backup[=CONTROL] (or -b) first renames each existing destination to a backup: " +
+			"CONTROL simple (or never) appends a suffix, numbered (t) appends .~N~ with N one " +
+			"past the highest already there, existing (nil, the default) numbers the backup " +
+			"only when numbered backups already exist, and none (off) makes none; without a " +
+			"CONTROL the VERSION_CONTROL variable chooses. The suffix is ~, or SUFFIX with -S " +
+			"(which asks for backups by itself), or the SIMPLE_BACKUP_SUFFIX variable. A destination " +
+			"directory is merged into, never backed up; a file whose backup is the source is " +
+			"refused ('backing up ... might destroy source'); -f -b FILE FILE copies FILE to " +
+			"its backup name, as in GNU; and --backup cannot be combined with -n. GNU cp " +
 			"lets the last of conflicting options win; cpx cannot see option order, so it " +
 			"prefers the most cautious instead: -n overrides -i, and an explicit -P/-d overrides " +
 			"-H, which overrides -L.",
@@ -60,6 +73,7 @@ func Meta() docmeta.Meta {
 			"Building a tree of hard links (-al) or symlinks (-s) instead of duplicating data.",
 			"Recreating selected files under a backup directory with their paths intact (--parents).",
 			"Replacing a read-only destination in a deployment step with -f.",
+			"Deploying over a file a running program has open, or one hard-linked elsewhere, with --remove-destination.",
 			"Collecting build artifacts into a directory named up front with -t.",
 		},
 		Examples: []docmeta.Example{
@@ -163,6 +177,21 @@ func Meta() docmeta.Meta {
 				Bash:        "gnux shell -c 'mkdirx -p confbak && cpx -v *.conf confbak/'",
 				PowerShell:  "gnux shell -c 'mkdirx -p confbak && cpx -v *.conf confbak/'",
 			},
+			{
+				Description: "Replace a symbolic link with a real copy instead of writing through it:",
+				Bash:        "cpx --remove-destination config/base.conf current.conf",
+				PowerShell:  "cpx --remove-destination config\\base.conf current.conf",
+			},
+			{
+				Description: "Update a config file but keep the previous version as config.yml~:",
+				Bash:        "cpx -b new/config.yml config.yml",
+				PowerShell:  "cpx -b new\\config.yml config.yml",
+			},
+			{
+				Description: "Keep every earlier version of a deployed file as app.conf.~1~, app.conf.~2~, ...:",
+				Bash:        "cpx --backup=numbered build/app.conf /etc/app/app.conf",
+				PowerShell:  "cpx --backup=numbered build\\app.conf C:\\app\\app.conf",
+			},
 		},
 	}
 }
@@ -170,6 +199,7 @@ func Meta() docmeta.Meta {
 // Register installs the cpx flags on fs.
 func Register(fs *pflag.FlagSet) {
 	fs.BoolP("archive", "a", false, "same as -dR --preserve=all")
+	tool.RegisterBackup(fs)
 	fs.BoolP("no-dereference-links", "d", false, "same as --no-dereference --preserve=links")
 	fs.BoolP("force", "f", false, "if an existing destination file cannot be opened, remove it and try again")
 	fs.BoolP("interactive", "i", false, "prompt before overwrite")
@@ -184,6 +214,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.String("no-preserve", "", "don't preserve the listed attributes")
 	fs.Bool("parents", false, "use the full source file name under DIRECTORY")
 	fs.BoolP("recursive", "r", false, "copy directories recursively")
+	fs.Bool("remove-destination", false, "remove each existing destination file before attempting to open it (contrast with --force)")
 	// -R is the spelling GNU documents first; it is hidden so --help lists
 	// the option once.
 	fs.BoolP("recursive-upper", "R", false, "equivalent to -r")
@@ -196,6 +227,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.Lookup("update").NoOptDefVal = "older"
 	fs.BoolP("verbose", "v", false, "explain what is being done")
 	fs.BoolP("one-file-system", "x", false, "stay on this file system")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "dereference-args", "no-dereference-links", "preserve-default")
 }
 
 // buildOptions folds the parsed flags into cp.Options. GNU cp resolves
@@ -222,6 +256,7 @@ func buildOptions(fs *pflag.FlagSet) (cp.Options, error) {
 		OneFileSystem:        flag("one-file-system"),
 		Parents:              flag("parents"),
 		StripTrailingSlashes: flag("strip-trailing-slashes"),
+		RemoveDestination:    flag("remove-destination"),
 	}
 	o.TargetDirectory, _ = fs.GetString("target-directory")
 
@@ -268,7 +303,15 @@ func buildOptions(fs *pflag.FlagSet) (cp.Options, error) {
 	}
 	if o.NoClobber {
 		o.Interactive = false
+		if tool.Backups(fs) {
+			return cp.Options{}, core.Usagef("--backup is mutually exclusive with -n or --update=none-fail")
+		}
 	}
+	backup, err := tool.BackupOptions(fs, os.Getenv)
+	if err != nil {
+		return cp.Options{}, err
+	}
+	o.Backup = backup
 	return o, nil
 }
 

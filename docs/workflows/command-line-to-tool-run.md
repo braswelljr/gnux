@@ -304,9 +304,12 @@ return tool.UsageExit(ran)
 ```
 
 Anything that is neither `ErrFailed` nor `*ExitError` is treated as a command-line mistake:
-a `*core.UsageError` from the engine or adapter, or a flag-parsing error from cobra/pflag
-(`unknown flag: --no-such-flag`). That is why an unknown option is a usage error with the hint,
-and is never ignored (FR-73). `ran` is the command cobra actually executed, so for
+a `*core.UsageError` from the engine or adapter, or an option error from `tool.ParseFlags`
+(`unrecognized option '--no-such-flag'`). `runCommand` parses through `tool.ParseFlags`
+(`internal/tool/getopt.go`) rather than pflag directly: it completes abbreviated long options as
+getopt_long does (only GNU's own names take part, see `tool.OwnNames`), refuses an argument to an
+option that takes none, and rewords pflag's errors in glibc's words (FR-165). That is why an
+unknown option is a usage error with the hint, and is never ignored (FR-73). `ran` is the command cobra actually executed, so for
 `gnux rmx --bogus` the prefix is `rmx`, not `gnux`.
 
 Real output:
@@ -316,15 +319,15 @@ $ ./bin/rmx
 rmx: missing operand
 Try 'rmx --help' for more information.          # status 1
 $ ./bin/gnux rmx --no-such-flag
-rmx: unknown flag: --no-such-flag
+rmx: unrecognized option '--no-such-flag'
 Try 'rmx --help' for more information.          # status 1
 $ ./bin/rmx missing
 rmx: cannot remove 'missing': No such file or directory   # status 1, no hint
 $ ./bin/gnux lsx --bogus
-lsx: unknown flag: --bogus
+lsx: unrecognized option '--bogus'
 Try 'lsx --help' for more information.          # status 2 (lsx UsageExit)
 $ ./bin/gnux envx --bogus
-envx: unknown flag: --bogus
+envx: unrecognized option '--bogus'
 Try 'envx --help' for more information.         # status 125 (envx UsageExit)
 ```
 

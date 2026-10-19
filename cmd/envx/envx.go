@@ -215,7 +215,7 @@ func expandSplit(
 		sub.SetOutput(io.Discard)
 		sub.SetInterspersed(false)
 		Register(sub)
-		if err := sub.Parse(append(words, args...)); err != nil {
+		if err := tool.ParseFlagSet(sub, append(words, args...), true); err != nil {
 			return env.Options{}, nil, core.Usagef("%v", err)
 		}
 		merge(&opts, buildOptions(sub))

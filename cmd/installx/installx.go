@@ -2,6 +2,8 @@
 package installx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -31,7 +33,13 @@ func Meta() docmeta.Meta {
 			"directory DEST (or into -t DIRECTORY), and then sets each copy's permission " +
 			"mode (755 unless -m gives another, octal or symbolic) and, with -o and -g, its " +
 			"owner and group. An existing DEST is removed and replaced, not rewritten, so a " +
-			"running program keeps its copy. With -d every operand is a directory to create, " +
+			"running program keeps its copy. " +
+			"--backup[=CONTROL] (or -b) first renames each existing destination to a backup: " +
+			"CONTROL simple (or never) appends a suffix, numbered (t) appends .~N~ with N one " +
+			"past the highest already there, existing (nil, the default) numbers the backup " +
+			"only when numbered backups already exist, and none (off) makes none; without a " +
+			"CONTROL the VERSION_CONTROL variable chooses. The suffix is ~, or SUFFIX with -S " +
+			"(which asks for backups by itself), or the SIMPLE_BACKUP_SUFFIX variable. With -d every operand is a directory to create, " +
 			"with its missing parents; the mode applies to the named directories, and parents " +
 			"get 755 minus the umask. -D creates the leading directories of DEST (or the -t " +
 			"directory) first. -T treats DEST as a file even if it is a directory. -C leaves a " +
@@ -72,12 +80,14 @@ func Meta() docmeta.Meta {
 			{Description: "Set the owner and group (as root):", Bash: "sudo installx -o root -g wheel -m 755 gnux /usr/local/bin/", PowerShell: "installx -m 755 gnux.exe C:\\tools\\"},
 			{Description: "Install to a file name even if a directory of that name exists (an error then):", Bash: "installx -T build/app dist/app", PowerShell: "installx -T build\\app.exe dist\\app.exe"},
 			{Description: "An install step in the portable gnux shell:", Bash: "gnux shell -e -c 'installx -D -m 644 site/index.html public/index.html'", PowerShell: "gnux shell -e -c 'installx -D -m 644 site/index.html public/index.html'"},
+			{Description: "Install a new binary but keep numbered copies of the ones it replaces:", Bash: "installx --backup=numbered -m 755 build/tool /usr/local/bin/tool", PowerShell: "installx --backup=numbered build\\tool.exe C:\\tools\\tool.exe"},
 		},
 	}
 }
 
 // Register installs the installx flags on fs.
 func Register(fs *pflag.FlagSet) {
+	tool.RegisterBackup(fs)
 	fs.BoolP("copy", "c", false, "ignored; for compatibility with old Unix versions of install")
 	fs.BoolP("compare", "C", false, "compare content of source and destination files, and if no change to content, ownership, and permissions, do not modify the destination at all")
 	fs.BoolP("directory", "d", false, "treat all arguments as directory names; create all components of the specified directories")
@@ -90,10 +100,13 @@ func Register(fs *pflag.FlagSet) {
 	fs.StringP("target-directory", "t", "", "copy all SOURCE arguments into `DIRECTORY`")
 	fs.BoolP("no-target-directory", "T", false, "treat DEST as a normal file")
 	fs.BoolP("verbose", "v", false, "print the name of each created file or directory")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "copy", "create-leading")
 }
 
 // buildOptions folds the parsed flags into install.Options.
-func buildOptions(fs *pflag.FlagSet) install.Options {
+func buildOptions(fs *pflag.FlagSet) (install.Options, error) {
 	on := func(name string) bool {
 		b, _ := fs.GetBool(name)
 		return b
@@ -102,7 +115,12 @@ func buildOptions(fs *pflag.FlagSet) install.Options {
 		v, _ := fs.GetString(name)
 		return v
 	}
+	backup, err := tool.BackupOptions(fs, os.Getenv)
+	if err != nil {
+		return install.Options{}, err
+	}
 	return install.Options{
+		Backup:             backup,
 		Directory:          on("directory"),
 		CreateLeading:      on("create-leading"),
 		Mode:               str("mode"),
@@ -114,9 +132,13 @@ func buildOptions(fs *pflag.FlagSet) install.Options {
 		NoTargetDirectory:  on("no-target-directory"),
 		Verbose:            on("verbose"),
 		Compare:            on("compare"),
-	}
+	}, nil
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
-	return install.New(buildOptions(fs), s).Run(args)
+	opts, err := buildOptions(fs)
+	if err != nil {
+		return err
+	}
+	return install.New(opts, s).Run(args)
 }

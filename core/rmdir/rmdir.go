@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"syscall"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -66,8 +68,8 @@ func (r *Rmdir) remove(path, what string) bool {
 		r.diag.Printf("%s: removing directory, '%s'", Name, path)
 	}
 
-	// os.Remove would happily unlink a file, so the type is checked first.
-	info, err := os.Lstat(path)
+	// fsys.Remove would happily unlink a file, so the type is checked first.
+	info, err := fsys.Lstat(path)
 	if err != nil {
 		r.diag.Errorf("%s '%s': %s", what, path, core.ErrText(err))
 		return false
@@ -77,7 +79,7 @@ func (r *Rmdir) remove(path, what string) bool {
 		return false
 	}
 
-	err = os.Remove(path)
+	err = fsys.Remove(path)
 	switch {
 	case err == nil:
 		return true
@@ -98,7 +100,7 @@ func nonEmpty(path string, err error) bool {
 	if errors.Is(err, syscall.ENOTEMPTY) {
 		return true
 	}
-	f, openErr := os.Open(path)
+	f, openErr := fsys.Open(path)
 	if openErr != nil {
 		return false
 	}

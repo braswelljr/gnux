@@ -2,6 +2,8 @@
   "title": "cpx",
   "pages": [
     "archive",
+    "backup",
+    "backup-default",
     "dereference",
     "dereference-args",
     "force",
@@ -17,7 +19,9 @@
     "preserve",
     "preserve-default",
     "recursive",
+    "remove-destination",
     "strip-trailing-slashes",
+    "suffix",
     "symbolic-link",
     "target-directory",
     "update",

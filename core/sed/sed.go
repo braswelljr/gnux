@@ -13,6 +13,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -135,7 +137,7 @@ func (e *Sed) Run(args []string) error {
 		if s.Text == "-" {
 			text, err = io.ReadAll(stdin)
 		} else {
-			text, err = os.ReadFile(s.Text)
+			text, err = fsys.ReadFile(s.Text)
 		}
 		if err != nil {
 			e.diag.Errorf("couldn't open file %s: %s", s.Text, core.ErrText(err))

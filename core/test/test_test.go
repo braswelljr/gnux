@@ -260,3 +260,62 @@ func TestInjection(t *testing.T) {
 		t.Fatalf("-t 0 on a buffer = %d, want 1", got)
 	}
 }
+
+func TestLength(t *testing.T) {
+	tests := []struct {
+		args []string
+		want int
+	}{
+		{[]string{"-l", "abc", "-eq", "3"}, 0},
+		{[]string{"-l", "", "-eq", "0"}, 0},
+		{[]string{"-l", "abc", "-gt", "5"}, 1},
+		{[]string{"5", "-gt", "-l", "abc"}, 0},
+		{[]string{"-l", "ab", "-lt", "-l", "abc"}, 0},
+		{[]string{"!", "-l", "abc", "-eq", "3"}, 1},
+		{[]string{"-l", "abc", "-eq", "3", "-a", "x"}, 0},
+		{[]string{"-l", "abc"}, 2},
+		{[]string{"-l", "-eq", "3"}, 2},
+		// The string comparisons, as GNU's parser reads them.
+		{[]string{"-l", "abc", "=", "3"}, 1},
+		{[]string{"-l", "abc", "=", "abc"}, 0},
+		{[]string{"3", "=", "-l", "abc"}, 1},
+		{[]string{"3", "=", "-l", "="}, 0},
+		{[]string{"-l", "x", "!=", "-l", "y"}, 0},
+	}
+	for _, tt := range tests {
+		if got, errOut := run(tt.args...); got != tt.want {
+			t.Errorf("test %q = %d (stderr %q); want %d", tt.args, got, errOut, tt.want)
+		}
+	}
+	if got, errOut := run("-l", "abc", "-nt", "x"); got != 2 || errOut != "testx: -nt does not accept -l\n" {
+		t.Errorf("-l with -nt = %d, %q", got, errOut)
+	}
+}
+
+func TestBracket(t *testing.T) {
+	bracket := func(args ...string) (int, string) {
+		var errb bytes.Buffer
+		err := test.New(test.Options{Bracket: true}, core.Streams{In: strings.NewReader(""), Out: &bytes.Buffer{}, Err: &errb}).Run(args)
+		return status(err), errb.String()
+	}
+	tests := []struct {
+		args    []string
+		want    int
+		wantErr string
+	}{
+		{[]string{"1", "-eq", "1", "]"}, 0, ""},
+		{[]string{"a", "=", "b", "]"}, 1, ""},
+		{[]string{"]"}, 1, ""},
+		{[]string{"]", "]"}, 0, ""},
+		{[]string{"-n", "x", "]"}, 0, ""},
+		{[]string{"1", "-eq", "1"}, 2, "[: missing ']'\n"},
+		{nil, 2, "[: missing ']'\n"},
+		{[]string{"1", "-eq", "x", "]"}, 2, "[: invalid integer 'x'\n"},
+	}
+	for _, tt := range tests {
+		got, errOut := bracket(tt.args...)
+		if got != tt.want || errOut != tt.wantErr {
+			t.Errorf("[ %q = %d, %q; want %d, %q", tt.args, got, errOut, tt.want, tt.wantErr)
+		}
+	}
+}

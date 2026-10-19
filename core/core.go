@@ -16,6 +16,8 @@ import (
 	"syscall"
 	"unicode"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/mattn/go-isatty"
 )
 
@@ -40,6 +42,10 @@ func (e *ExitError) Error() string {
 // "Try '<tool> --help' for more information." hint.
 type UsageError struct {
 	Msg string
+	// Code is the exit status, when it is not the tool's usual one for a
+	// usage error (zero). GNU exits 1 for an invalid option argument read
+	// with argmatch even in a tool, such as ls, whose usage errors exit 2.
+	Code int
 }
 
 func (e *UsageError) Error() string {
@@ -123,6 +129,28 @@ func (d *Diag) Printf(format string, a ...any) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	fmt.Fprintf(d.out, format+"\n", a...)
+}
+
+// ChildErr returns the error stream for a child process that runs while
+// these diagnostics may still be written (nicex's warnings, timeoutx
+// --verbose). A file is returned as it is: the child writes to it directly,
+// and keeps seeing a terminal there. Any other writer is wrapped so that the
+// child's output, which os/exec copies in from a goroutine of its own, takes
+// turns with the diagnostics instead of racing them.
+func (d *Diag) ChildErr() io.Writer {
+	if f, ok := d.err.(*os.File); ok {
+		return f
+	}
+	return diagWriter{d}
+}
+
+// diagWriter writes to a Diag's error stream under its lock.
+type diagWriter struct{ d *Diag }
+
+func (w diagWriter) Write(p []byte) (int, error) {
+	w.d.mu.Lock()
+	defer w.d.mu.Unlock()
+	return w.d.err.Write(p)
 }
 
 // Failed reports whether any error has been recorded.
@@ -243,7 +271,7 @@ func Describe(info os.FileInfo) string {
 
 // IsRoot reports whether path resolves to a filesystem root (e.g. "/" or "C:\").
 func IsRoot(path string) bool {
-	abs, err := filepath.Abs(path)
+	abs, err := fsys.Abs(path)
 	if err != nil {
 		return false
 	}

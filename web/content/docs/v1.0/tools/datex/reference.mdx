@@ -1,0 +1,37 @@
+---
+title: "-r, --reference"
+description: "Display the last modification time of FILE."
+---
+
+An option of [datex](/docs/v1.0/tools/datex).
+
+## Usage
+
+```bash
+datex -r FILE [+FORMAT]
+datex --reference=FILE [+FORMAT]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-r` | `--reference` | `FILE` |  | display the last modification time of FILE |
+
+## Examples
+
+### See when a report was last saved
+
+```bash tab="bash" tab-group="shell"
+datex -r report.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+datex -r report.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help datex --reference
+```
