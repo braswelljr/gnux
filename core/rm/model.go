@@ -1,6 +1,8 @@
 package rm
 
-import "github.com/braswelljr/gnux/core"
+import (
+	"github.com/braswelljr/gnux/core"
+)
 
 // Name is the command name, used as the prefix of every diagnostic and prompt.
 const Name = "rmx"
@@ -44,9 +46,9 @@ type Rm struct {
 	// prompts.
 	PromptFn func(question string) bool
 
-	// RemoveFn, when non-nil, replaces os.Remove for the actual unlink. Tests
+	// RemoveFn, when non-nil, replaces fsys.Remove for the actual unlink. Tests
 	// use it to record removals without touching the filesystem; setting it
-	// also disables the os.RemoveAll fast path so every entry flows through it.
+	// also disables the fsys.RemoveAll fast path so every entry flows through it.
 	RemoveFn func(path string) error
 
 	diag   *core.Diag

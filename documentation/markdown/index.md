@@ -82,6 +82,7 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux lnx](lnx/index.md)	 - Make hard or symbolic links between files.
 * [gnux lognamex](lognamex/index.md)	 - Print the user's login name.
 * [gnux lsx](lsx/index.md)	 - List information about files and directory contents.
+* [gnux mcp](mcp/index.md)	 - Serve the `gnux` tools to an AI agent over MCP, sandboxed to DIR.
 * [gnux md5sumx](md5sumx/index.md)	 - Print or check MD5 (128-bit) checksums.
 * [gnux mkdirx](mkdirx/index.md)	 - Create the DIRECTORY(ies), if they do not already exist.
 * [gnux mktempx](mktempx/index.md)	 - Create a temporary file or directory, safely, and print its name.

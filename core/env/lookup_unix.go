@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 )
 
 // defaultPath is searched when PATH is not set at all, as execvp does. It is
@@ -64,7 +66,7 @@ func lookPath(file, dir string, getenv func(string) (string, bool)) (string, err
 
 // executable reports whether p is a file with an execute bit set.
 func executable(p string) error {
-	info, err := os.Stat(p)
+	info, err := fsys.Stat(p)
 	if err != nil {
 		return err
 	}

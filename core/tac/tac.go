@@ -8,9 +8,10 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"os"
 	"regexp"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -98,7 +99,7 @@ func (t *Tac) read(name string) ([]byte, bool) {
 			return nil, true
 		}
 	} else {
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			t.diag.Errorf("failed to open '%s' for reading: %s", name, core.ErrText(err))
 			return nil, false

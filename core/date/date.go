@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -124,7 +126,7 @@ func (d *Date) Run(args []string) (err error) {
 	case d.File != "":
 		d.batch(out, format, now)
 	case d.Reference != "":
-		info, err := os.Stat(d.Reference)
+		info, err := fsys.Stat(d.Reference)
 		if err != nil {
 			d.diag.Errorf("%s: %s", d.Reference, core.ErrText(err))
 			break
@@ -308,7 +310,7 @@ func (d *Date) batch(out *bufio.Writer, format string, now time.Time) {
 	if d.File == "-" {
 		in = d.streams.In
 	} else {
-		f, err := os.Open(d.File)
+		f, err := fsys.Open(d.File)
 		if err != nil {
 			d.diag.Errorf("%s: %s", d.File, core.ErrText(err))
 			return

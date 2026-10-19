@@ -20,10 +20,11 @@ import (
 	"hash"
 	"io"
 	"io/fs"
-	"os"
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"golang.org/x/crypto/blake2b"
 
@@ -249,7 +250,7 @@ func (h *Sum) validate() error {
 func (h *Sum) digest(alg Algorithm, bits int, name string) ([]byte, error) {
 	r := h.streams.In
 	if name != "-" {
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			return nil, err
 		}
@@ -359,7 +360,7 @@ func (h *Sum) checkList(list string) bool {
 	if list == "-" {
 		display = "standard input"
 	} else {
-		f, err := os.Open(list)
+		f, err := fsys.Open(list)
 		if err != nil {
 			h.diag.Errorf("%s: %s", list, core.ErrText(err))
 			return false

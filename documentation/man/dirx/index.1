@@ -10,7 +10,7 @@ dirx - List directory contents in columns, whether or not the output is a termin
 
 
 .SH DESCRIPTION
-dirx is lsx -C -b: it lists each FILE, or the current directory, exactly as lsx does and takes every lsx option, but arranges the names in columns even when the output is piped or redirected (80 columns wide then, or -w COLS), and writes unprintable characters in names as backslash escapes (\\n, \\t, \\ooo) so that every name fits on one line. An option that picks a format (-l, -1, -x, -m) or a quoting style (-Q) replaces those defaults. Diagnostics and exit statuses are lsx's, prefixed with dirx.
+dirx is lsx -C -b: it lists each FILE, or the current directory, exactly as lsx does and takes every lsx option, but arranges the names in columns even when the output is piped or redirected (80 columns wide then, or -w COLS), and writes unprintable characters in names as backslash escapes (\\n, \\t, \\ooo) so that every name fits on one line, and never prints '?' for one unless -q is given. An option that picks a format (-l, -1, -x, -m, --format) or a quoting style (-N, -Q, --quoting-style, or the QUOTING_STYLE variable) replaces those defaults. Diagnostics and exit statuses are lsx's, prefixed with dirx.
 
 .PP
 EXIT STATUS.
@@ -53,11 +53,19 @@ USE CASES.
 	with -lt: sort by, and show, access time; with -l: show access time and sort by name; otherwise: sort by access time, newest first
 
 .PP
+\fB--author\fP[=false]
+	with -l, print the author of each file
+
+.PP
+\fB--block-size\fP=""
+	with -l, scale sizes by \fBSIZE\fR when printing them; e.g., '--block-size=M'
+
+.PP
 \fB-F\fP, \fB--classify\fP[=false]
 	append indicator (one of */=@|) to entries
 
 .PP
-\fB--color\fP[="never"]
+\fB--color\fP[=""]
 	color the output \fBWHEN\fR: 'always' (the default when WHEN is omitted), 'auto', or 'never'
 
 .PP
@@ -85,12 +93,20 @@ USE CASES.
 	list directories themselves, not their contents
 
 .PP
+\fB-D\fP, \fB--dired\fP[=false]
+	generate output designed for Emacs' dired mode
+
+.PP
 \fB-b\fP, \fB--escape\fP[=false]
 	print C-style escapes for nongraphic characters
 
 .PP
 \fB--file-type\fP[=false]
 	likewise, except do not append '*'
+
+.PP
+\fB--format\fP=""
+	across -x, commas -m, horizontal -x, long -l, single-column -1, verbose -l, vertical -C (\fBWORD\fR)
 
 .PP
 \fB--full-time\fP[=false]
@@ -117,6 +133,10 @@ USE CASES.
 	with -l and -s, print sizes like 1K 234M 2G etc.
 
 .PP
+\fB--hyperlink\fP[=""]
+	hyperlink file names \fBWHEN\fR: 'always' (the default when WHEN is omitted), 'auto', or 'never'
+
+.PP
 \fB-I\fP, \fB--ignore\fP=""
 	do not list implied entries matching shell \fBPATTERN\fR
 
@@ -125,8 +145,20 @@ USE CASES.
 	do not list implied entries ending with ~
 
 .PP
+\fB--indicator-style\fP=""
+	append indicator with style \fBWORD\fR to entry names: none (default), slash (-p), file-type (--file-type), classify (-F)
+
+.PP
 \fB-i\fP, \fB--inode\fP[=false]
 	print the index number of each file
+
+.PP
+\fB-k\fP, \fB--kibibytes\fP[=false]
+	default to 1024-byte blocks for file system usage; used only with -s and per directory totals
+
+.PP
+\fB-N\fP, \fB--literal\fP[=false]
+	print entry names without quoting
 
 .PP
 \fB-l\fP, \fB--long\fP[=false]
@@ -157,12 +189,20 @@ USE CASES.
 	enclose entry names in double quotes
 
 .PP
+\fB--quoting-style\fP=""
+	use quoting style \fBWORD\fR for entry names: literal, locale, shell, shell-always, shell-escape, shell-escape-always, c, escape (overrides QUOTING_STYLE environment variable)
+
+.PP
 \fB-R\fP, \fB--recursive\fP[=false]
 	list subdirectories recursively
 
 .PP
 \fB-r\fP, \fB--reverse\fP[=false]
 	reverse order while sorting
+
+.PP
+\fB--show-control-chars\fP[=false]
+	show nongraphic characters as-is (the default, unless program is 'ls' and output is a terminal)
 
 .PP
 \fB--si\fP[=false]
@@ -219,6 +259,10 @@ USE CASES.
 .PP
 \fB-w\fP, \fB--width\fP=""
 	set output width to \fBCOLS\fR; 0 means no limit
+
+.PP
+\fB--zero\fP[=false]
+	end each output line with NUL, not newline
 
 
 .SH EXAMPLE

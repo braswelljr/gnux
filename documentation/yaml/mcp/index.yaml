@@ -1,0 +1,51 @@
+name: mcp
+synopsis: |
+    Serve the gnux tools to an AI agent over MCP, sandboxed to DIR.
+description: |-
+    gnux mcp is a Model Context Protocol server on standard input and output, for an AI agent (Claude Code, Claude Desktop, Cursor, VS Code, ...) to manage files with. It offers one tool, run, which runs a gnux shell command line (pipelines, globs, if, for, every gnux tool under either name) and returns its output, errors and exit status.
+
+    Before it answers anything the server confines itself with the operating system's sandbox, as gnux shell --sandbox does: the commands may read and write each DIR (the current directory when none is given) and the --read directories may only be read; the system's own directories stay readable, and everything else, the home directory included, can be neither read nor written. The kernel enforces it, on the tools and on any program a command starts, so no command line can get around it: not a symbolic link, not .., not envx. The sandbox is Landlock on Linux (5.13 or later), Seatbelt on macOS, an AppContainer on Windows and Capsicum on FreeBSD (where each call enters it, and runs gnux's own tools only); where there is none gnux mcp refuses to start rather than serve unconfined.
+
+    Each call runs in a process of its own, in the first DIR or in the directory the call names beneath one, with no standard input. It is stopped after --timeout (two minutes by default), and its output is cut off after --max-output bytes of each stream, so that neither a loop nor yesx can hold the server up.
+
+    EXIT STATUS.
+      0  the client closed the connection
+      2  a command-line mistake
+      125  the sandbox could not be entered (a Linux kernel without Landlock, a build with cgo); nothing was served
+
+    HELP. gnux mcp --help shows the options and the first examples; gnux help mcp prints the full manual, and gnux help mcp OPTION explains one option.
+
+    SEE ALSO. shell.
+
+    PERMISSIONS. The commands can do in each DIR whatever the user running the server may do there, removing files included; give it the project it is meant to work on, not a directory above it.
+
+    USE CASES.
+      - Letting an AI agent list, search, copy, move and remove files in one project, and nowhere else.
+      - The same file tools for an agent on Linux and macOS, with GNU's flags and messages.
+      - Giving an agent read-only access to reference material next to a writable project.
+usage: mcp [OPTION]... [DIR]...
+options:
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: max-output
+      default_value: "1048576"
+      usage: keep at most `BYTES` of each stream of a call
+    - name: read
+      default_value: '[]'
+      usage: also let the commands read `DIR`; may be repeated
+    - name: timeout
+      default_value: 2m0s
+      usage: stop a call after `DURATION` (as 30s, 5m)
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # Serve the current project to Claude Code
+      claude mcp add gnux -- gnux mcp "$PWD"
+
+      # Let the agent write in the project but only read the shared docs
+      gnux mcp --read ~/docs/style-guide ~/src/app
+
+      # Allow long builds and more output
+      gnux mcp --timeout 10m --max-output 4194304 .

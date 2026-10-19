@@ -1,4 +1,5 @@
 import { createFromSource } from 'fumadocs-core/search/server';
-import { docs } from 'lib/source';
+import { latestDocs } from 'lib/source';
 
-export const { GET } = createFromSource(docs);
+// The latest docs only: an older version's page would compete with the current one.
+export const { GET } = createFromSource(latestDocs);

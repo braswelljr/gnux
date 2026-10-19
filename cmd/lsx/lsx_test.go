@@ -163,6 +163,53 @@ func TestBuildOptions(t *testing.T) {
 		{"hide control chars", []string{"-q"}, want(func(o *ls.Options) { o.HideControlChars = true })},
 		{"hide control chars long", []string{"--hide-control-chars"}, want(func(o *ls.Options) { o.HideControlChars = true })},
 
+		{"show control chars", []string{"--show-control-chars"}, want(func(o *ls.Options) { o.ShowControlChars = true })},
+		{"-q then --show-control-chars: last wins", []string{"-q", "--show-control-chars"}, want(func(o *ls.Options) { o.ShowControlChars = true })},
+		{"--show-control-chars then -q: last wins", []string{"--show-control-chars", "-q"}, want(func(o *ls.Options) { o.HideControlChars = true })},
+		{"literal", []string{"-N"}, want(func(o *ls.Options) { o.Quoting = ls.QuoteLiteral })},
+		{"-Q then -N: last wins", []string{"-QN"}, want(func(o *ls.Options) { o.Quoting = ls.QuoteLiteral })},
+		{"quoting style", []string{"--quoting-style=shell-escape"}, want(func(o *ls.Options) { o.Quoting = ls.QuoteShellEscape })},
+		{"quoting style abbreviated", []string{"--quoting-style=c-"}, want(func(o *ls.Options) { o.Quoting = ls.QuoteCMaybe })},
+		{"-N then --quoting-style: last wins", []string{"-N", "--quoting-style=c"}, want(func(o *ls.Options) { o.Quoting = ls.QuoteC })},
+		{"format", []string{"--format=commas"}, want(func(o *ls.Options) { o.Format = ls.FormatCommas })},
+		{"format synonym", []string{"--format=verbose"}, want(func(o *ls.Options) { o.Format = ls.FormatLong })},
+		{"-l then --format: last wins", []string{"-l", "--format=vertical"}, want(func(o *ls.Options) { o.Format = ls.FormatColumns })},
+		{"--format then -1", []string{"--format=across", "-1"}, want(func(o *ls.Options) { o.Format = ls.FormatSingle })},
+		{"indicator style", []string{"--indicator-style=file-type"}, want(func(o *ls.Options) { o.Indicator = ls.IndicatorFileType })},
+		{"-F then --indicator-style=none", []string{"-F", "--indicator-style=none"}, want(nil)},
+		{"--indicator-style then -p", []string{"--indicator-style=classify", "-p"}, want(func(o *ls.Options) { o.Indicator = ls.IndicatorSlash })},
+		{"zero", []string{"--zero"}, want(func(o *ls.Options) {
+			o.Zero, o.Format, o.Quoting, o.ShowControlChars = true, ls.FormatSingle, ls.QuoteLiteral, true
+		})},
+		{"-l --zero stays long", []string{"-l", "--zero"}, want(func(o *ls.Options) {
+			o.Zero, o.Format, o.Quoting, o.ShowControlChars = true, ls.FormatLong, ls.QuoteLiteral, true
+		})},
+		{"--zero -C", []string{"--zero", "-C"}, want(func(o *ls.Options) {
+			o.Zero, o.Format, o.Quoting, o.ShowControlChars = true, ls.FormatColumns, ls.QuoteLiteral, true
+		})},
+		{"--zero -Q", []string{"--zero", "-Q"}, want(func(o *ls.Options) {
+			o.Zero, o.Format, o.Quoting, o.ShowControlChars = true, ls.FormatSingle, ls.QuoteC, true
+		})},
+		{"--color --zero: no color", []string{"--color=always", "--zero"}, want(func(o *ls.Options) {
+			o.Zero, o.Format, o.Quoting, o.ShowControlChars = true, ls.FormatSingle, ls.QuoteLiteral, true
+		})},
+		{"--zero --color: color", []string{"--zero", "--color=always"}, want(func(o *ls.Options) {
+			o.Zero, o.Format, o.Quoting, o.ShowControlChars, o.Color = true, ls.FormatSingle, ls.QuoteLiteral, true, ls.WhenAlways
+		})},
+		{"kibibytes", []string{"-k"}, want(func(o *ls.Options) { o.Kibibytes = true })},
+		{"block size", []string{"--block-size=M"}, want(func(o *ls.Options) { o.BlockSize = "M" })},
+		{"-h then --block-size: last wins", []string{"-h", "--block-size=1"}, want(func(o *ls.Options) { o.BlockSize = "1" })},
+		{"--block-size then --si: last wins", []string{"--block-size=1", "--si"}, want(func(o *ls.Options) { o.SI = true })},
+		{"author", []string{"--author"}, want(func(o *ls.Options) { o.Author = true })},
+		{"hyperlink", []string{"--hyperlink"}, want(func(o *ls.Options) { o.Hyperlink = ls.WhenAlways })},
+		{"hyperlink auto", []string{"--hyperlink=auto"}, want(func(o *ls.Options) { o.Hyperlink = ls.WhenAuto })},
+		{"dired", []string{"-D"}, want(func(o *ls.Options) { o.Dired, o.Format = true, ls.FormatLong })},
+		{"--hyperlink then -D", []string{"--hyperlink", "--dired"}, want(func(o *ls.Options) { o.Dired, o.Format = true, ls.FormatLong })},
+		{"-D then --hyperlink", []string{"-D", "--hyperlink"}, want(func(o *ls.Options) {
+			o.Dired, o.Format, o.Hyperlink = true, ls.FormatLong, ls.WhenAlways
+		})},
+		{"-D then -C", []string{"-D", "-C"}, want(func(o *ls.Options) { o.Dired, o.Format = true, ls.FormatColumns })},
+
 		{"ignore backups", []string{"-B"}, want(func(o *ls.Options) { o.IgnoreBackups = true })},
 		{"ignore backups long", []string{"--ignore-backups"}, want(func(o *ls.Options) { o.IgnoreBackups = true })},
 		{"ignore", []string{"-I", "*.o"}, want(func(o *ls.Options) { o.Ignore = []string{"*.o"} })},
@@ -201,6 +248,11 @@ func TestBuildOptionsErrors(t *testing.T) {
 		{"bad width", []string{"-w", "wide"}, "invalid line width: 'wide'"},
 		{"negative width", []string{"--width=-1"}, "invalid line width: '-1'"},
 		{"bad tab size", []string{"-T", "x"}, "invalid tab size: 'x'"},
+		{"bad format word", []string{"--format=bogus"}, "invalid argument 'bogus' for '--format'\nValid arguments are:\n  - 'verbose', 'long'\n"},
+		{"ambiguous format word", []string{"--format=v"}, "ambiguous argument 'v' for '--format'"},
+		{"bad indicator style", []string{"--indicator-style=x"}, "invalid argument 'x' for '--indicator-style'"},
+		{"bad quoting style", []string{"--quoting-style=bogus"}, "invalid argument 'bogus' for '--quoting-style'"},
+		{"bad hyperlink word", []string{"--hyperlink=bogus"}, "invalid argument 'bogus' for '--hyperlink'"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -261,5 +313,17 @@ func TestCommand(t *testing.T) {
 	}
 	if want := "lsx: cannot access 'missing': No such file or directory\n"; stderr != want {
 		t.Fatalf("stderr = %q, want %q", stderr, want)
+	}
+}
+
+// TestWordErrorsExitOne checks GNU's status for a word GNU reads with
+// argmatch: 1, where ls's other command-line mistakes exit 2.
+func TestWordErrorsExitOne(t *testing.T) {
+	for _, args := range [][]string{{"--format=x"}, {"--sort=x"}, {"--quoting-style=x"}, {"--color=x"}} {
+		_, err := options(t, args...)
+		var usage *core.UsageError
+		if !errors.As(err, &usage) || usage.Code != 1 {
+			t.Errorf("%v: err = %#v, want a usage error with status 1", args, err)
+		}
 	}
 }

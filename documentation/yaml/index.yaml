@@ -73,6 +73,7 @@ see_also:
     - gnux lnx - Make hard or symbolic links between files.
     - gnux lognamex - Print the user's login name.
     - gnux lsx - List information about files and directory contents.
+    - gnux mcp - Serve the gnux tools to an AI agent over MCP, sandboxed to DIR.
     - gnux md5sumx - Print or check MD5 (128-bit) checksums.
     - gnux mkdirx - Create the DIRECTORY(ies), if they do not already exist.
     - gnux mktempx - Create a temporary file or directory, safely, and print its name.

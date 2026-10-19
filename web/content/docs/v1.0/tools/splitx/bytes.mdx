@@ -1,0 +1,41 @@
+---
+title: "-b, --bytes"
+description: "Put SIZE bytes per output file."
+---
+
+An option of [splitx](/docs/v1.0/tools/splitx).
+
+## Usage
+
+```bash
+splitx -b SIZE [FILE [PREFIX]]
+splitx --bytes=SIZE [FILE [PREFIX]]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-b` | `--bytes` | `SIZE` |  | put SIZE bytes per output file |
+
+## Examples
+
+### Cut a 10 GB backup into 2 GB pieces that fit on a FAT32 USB drive
+
+```bash tab="bash" tab-group="shell"
+splitx -b 2G backup.tar.gz backup.tar.gz.part-
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+splitx -b 2G backup.tar.gz backup.tar.gz.part-
+```
+
+```text title="Output"
+(creates backup.tar.gz.part-aa ... backup.tar.gz.part-ae)
+```
+
+## Help in the terminal
+
+```bash
+gnux help splitx --bytes
+```

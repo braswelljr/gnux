@@ -63,7 +63,7 @@ func (l *Ls) frillsOf(e *entry, f frills) string {
 
 // cellWidth is the number of columns writeCell will occupy for e.
 func (l *Ls) cellWidth(e *entry, f frills) int {
-	return len(l.frillsOf(e, f)) + e.width + len(l.indicator(e.mode))
+	return len(l.frillsOf(e, f)) + l.pad(e) + e.width + len(l.indicator(e.mode))
 }
 
 // writeCell writes an entry as it appears in every format but the long one:
@@ -74,13 +74,67 @@ func (l *Ls) writeCell(e *entry, f frills) {
 	l.put(l.indicator(e.mode))
 }
 
-// putName writes the quoted name of e, colored when color is on.
-func (l *Ls) putName(e *entry) {
-	if l.palette == nil {
-		l.put(e.shown)
-		return
+// pad is 1 when e takes a leading space to line up with quoted names.
+func (l *Ls) pad(e *entry) int {
+	if l.someQuoted && !e.quoted {
+		return 1
 	}
-	l.putColored(e.shown, l.palette.entryColor(e))
+	return 0
+}
+
+// putName writes the quoted name of e, padded to line up with quoted names,
+// colored when color is on and linked with --hyperlink.
+func (l *Ls) putName(e *entry) {
+	if l.pad(e) == 1 {
+		l.put(" ")
+	}
+	code := ""
+	if l.palette != nil {
+		code = l.palette.entryColor(e)
+	}
+	l.putMarked(e.shown, e.quoted, code, e.path, &l.diredPos)
+}
+
+// putHeader writes the name of a directory before its listing.
+func (l *Ls) putHeader(dir string) {
+	shown := l.quoteDir(dir)
+	l.putMarked(shown, false, "", dir, &l.subdired)
+}
+
+// putMarked writes shown, the quoted form of the file at path: in color
+// code, linked to the file with --hyperlink, and with its start and end
+// recorded in positions for --dired. A quoted name lined up with unquoted
+// ones keeps its quotes outside the link, as in GNU.
+func (l *Ls) putMarked(shown string, quoted bool, code, path string, positions *[]int64) {
+	if code != "" {
+		if !l.usedColor {
+			l.usedColor = true
+			l.putRaw("\x1b[0m")
+		}
+		l.putRaw("\x1b[" + code + "m")
+	}
+	inner, open, shut := shown, "", ""
+	if l.hyperlink && l.someQuoted && quoted && len(shown) >= 2 {
+		open, inner, shut = shown[:1], shown[1:len(shown)-1], shown[len(shown)-1:]
+	}
+	if l.dired {
+		*positions = append(*positions, l.pos)
+	}
+	if l.hyperlink {
+		l.put(open)
+		l.putRaw("\x1b]8;;" + fileURL(l.host, path) + "\a")
+		l.put(inner)
+		l.putRaw("\x1b]8;;\a")
+		l.put(shut)
+	} else {
+		l.put(shown)
+	}
+	if l.dired {
+		*positions = append(*positions, l.pos)
+	}
+	if code != "" {
+		l.putRaw("\x1b[0m")
+	}
 }
 
 // columnLayout is the result of fitting entries into a line.
@@ -166,7 +220,7 @@ func (l *Ls) printColumns(entries []*entry, byColumns bool) {
 			switch {
 			case i == 0:
 			case col == 0:
-				l.put("\n")
+				l.put(l.eol)
 				pos = 0
 			default:
 				l.indent(pos+lengths[i-1], pos+layout.widths[col-1])
@@ -174,7 +228,7 @@ func (l *Ls) printColumns(entries []*entry, byColumns bool) {
 			}
 			l.writeCell(e, f)
 		}
-		l.put("\n")
+		l.put(l.eol)
 		return
 	}
 
@@ -189,7 +243,7 @@ func (l *Ls) printColumns(entries []*entry, byColumns bool) {
 			l.indent(pos+lengths[i], pos+layout.widths[col])
 			pos += layout.widths[col]
 		}
-		l.put("\n")
+		l.put(l.eol)
 	}
 }
 
@@ -219,14 +273,14 @@ func (l *Ls) printCommas(entries []*entry) {
 				l.put(", ")
 				pos += 2
 			} else {
-				l.put(",\n")
+				l.put("," + l.eol)
 				pos = 0
 			}
 		}
 		l.writeCell(e, f)
 		pos += length
 	}
-	l.put("\n")
+	l.put(l.eol)
 }
 
 func padLeft(s string, width int) string {

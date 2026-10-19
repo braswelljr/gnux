@@ -222,6 +222,24 @@ These install the `gnux` binary; link the tool names to it as shown under `go in
 or run each tool as `gnux rmx ...`. A package manager shows up a little after the release it
 belongs to, winget last, since each new version is reviewed there.
 
+### npm
+
+In a Node project, gnux is a development dependency. It installs the native binary for the
+machine, from a package of its own per platform, and puts every tool on the PATH of the package
+scripts, so one dependency replaces rimraf, mkdirp, cpy-cli, shx and cross-env:
+
+```bash
+npm install --save-dev gnux
+```
+
+```json
+{ "scripts": { "clean": "rmx -rf dist", "prebuild": "mkdirx -p dist", "build": "cpx -r public/. dist/" } }
+```
+
+The tools are installed under their gnux names only (`rmx`, never `rm`). The
+[Node and npm guide](documentation/guides/node-and-npm.md) has the rest: globs on Windows, the
+JavaScript API, CI.
+
 ### A particular version
 
 `gnux --version` reports what is installed. To install one version rather than the newest:
@@ -389,6 +407,28 @@ redirection (`<`, `>`, `>>`), `NAME=value` variables with `$NAME`, `${NAME}`,
 comments, with the builtins `cd`, `exit`, `help`, `set`, `shift`, `break`, `continue` and `[`.
 `-e` stops at the first failure and `-u` refuses a variable that was never set. There are no
 functions or arithmetic, and external programs are reached through `envx PROGRAM …`.
+
+### Sandboxed, and for AI agents
+
+`--sandbox DIR` confines a script with the operating system's own sandbox (Landlock on Linux,
+Seatbelt on macOS, an AppContainer on Windows, Capsicum on FreeBSD): it can read and write DIR
+and nothing else,
+whatever it does, and so can every program it starts.
+
+```bash
+gnux shell --sandbox . -e ./build.gnux
+```
+
+`gnux mcp DIR` serves the tools to an AI agent over the Model Context Protocol, inside the same
+sandbox, so an agent can search, edit and remove files in one project and cannot reach anything
+outside it:
+
+```bash
+claude mcp add gnux -- gnux mcp "$PWD"
+```
+
+The [sandbox guide](documentation/guides/sandbox-and-ai-agents.md) covers the details, the
+configuration for other clients, and what the sandbox does not do.
 
 ### As a library
 

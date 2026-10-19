@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -134,7 +136,7 @@ func (c *Cp) Run(args []string) error {
 	switch {
 	case c.TargetDirectory != "":
 		sources, dest, into = args, c.TargetDirectory, true
-		info, err := os.Stat(dest)
+		info, err := fsys.Stat(dest)
 		if err == nil && !info.IsDir() {
 			c.diag.Errorf("target directory '%s': Not a directory", dest)
 			return c.diag.Result()
@@ -152,7 +154,7 @@ func (c *Cp) Run(args []string) error {
 		sources, dest = args[:1], args[1]
 	default:
 		sources, dest = args[:len(args)-1], args[len(args)-1]
-		if info, err := os.Stat(dest); err == nil && info.IsDir() {
+		if info, err := fsys.Stat(dest); err == nil && info.IsDir() {
 			into = true
 		} else if len(sources) > 1 {
 			return core.Usagef("target '%s' is not a directory", dest)
@@ -169,7 +171,7 @@ func (c *Cp) Run(args []string) error {
 		dst := dest
 		if !into && c.Force && c.backingUp() && src == dest {
 			// GNU's special case: "cp -fb f f" copies f to its backup name.
-			if info, err := os.Stat(dest); err == nil && info.Mode().IsRegular() {
+			if info, err := fsys.Stat(dest); err == nil && info.Mode().IsRegular() {
 				backup := c.Backup
 				c.Backup = core.Backup{}
 				c.copyOperand(src, backup.BackupName(dest))
@@ -206,7 +208,7 @@ func (c *Cp) copyOperand(src, dst string) {
 	// A numbered backup keeps the earlier copy, so nothing is lost.
 	if _, dup := c.created[key]; dup && c.Backup.Control != core.NumberedBackup {
 		// Directories are exempt: same-named source directories merge.
-		if info, err := os.Lstat(dst); err == nil && !info.IsDir() {
+		if info, err := fsys.Lstat(dst); err == nil && !info.IsDir() {
 			c.diag.Errorf("will not overwrite just-created '%s' with '%s'", dst, src)
 			return
 		}
@@ -295,7 +297,7 @@ func (c *Cp) write(src, dst string, si os.FileInfo, exists, top, follow bool, pa
 	}
 
 	if exists && c.RemoveDestination {
-		if err := os.Remove(dst); err != nil && !os.IsNotExist(err) {
+		if err := fsys.Remove(dst); err != nil && !os.IsNotExist(err) {
 			c.diag.Errorf("cannot remove '%s': %s", dst, core.ErrText(err))
 			return false
 		}
@@ -358,10 +360,10 @@ func (c *Cp) backingUp() bool {
 // unBackup puts a backup back in place of a destination that could not be
 // created, as GNU does.
 func (c *Cp) unBackup(backup, dst string) {
-	if _, err := os.Lstat(dst); err == nil {
+	if _, err := fsys.Lstat(dst); err == nil {
 		return
 	}
-	if err := os.Rename(backup, dst); err != nil {
+	if err := fsys.Rename(backup, dst); err != nil {
 		c.diag.Errorf("cannot un-backup '%s': %s", dst, core.ErrText(err))
 		return
 	}
@@ -383,11 +385,11 @@ func sameEntry(a, b string) bool {
 	if filepath.Base(a) != filepath.Base(b) {
 		return false
 	}
-	da, err := os.Stat(filepath.Dir(a))
+	da, err := fsys.Stat(filepath.Dir(a))
 	if err != nil {
 		return false
 	}
-	db, err := os.Stat(filepath.Dir(b))
+	db, err := fsys.Stat(filepath.Dir(b))
 	return err == nil && os.SameFile(da, db)
 }
 
@@ -423,7 +425,7 @@ func (c *Cp) statDest(dst string, si os.FileInfo) (di os.FileInfo, exists, ok bo
 		return nil, false, false
 	}
 	if through {
-		if _, lerr := os.Lstat(dst); lerr == nil {
+		if _, lerr := fsys.Lstat(dst); lerr == nil {
 			c.diag.Errorf("not writing through dangling symlink '%s'", dst)
 			return nil, false, false
 		}
@@ -452,7 +454,7 @@ func (c *Cp) copyDir(src, dst string, si os.FileInfo, exists, top bool, parent o
 	var restore os.FileMode
 	needRestore := false
 	if !exists {
-		if err := os.Mkdir(dst, si.Mode().Perm()); err != nil {
+		if err := fsys.Mkdir(dst, si.Mode().Perm()); err != nil {
 			c.diag.Errorf("cannot create directory '%s': %s", dst, core.ErrText(err))
 			return false
 		}
@@ -464,7 +466,7 @@ func (c *Cp) copyDir(src, dst string, si os.FileInfo, exists, top bool, parent o
 		// (as masked by the umask at creation) afterwards.
 		if mode := createdDirMode(dst, si.Mode().Perm()); mode&0o700 != 0o700 {
 			restore, needRestore = mode, true
-			if err := os.Chmod(dst, restore|0o700); err != nil {
+			if err := fsys.Chmod(dst, restore|0o700); err != nil {
 				needRestore = false
 			}
 		}
@@ -473,7 +475,7 @@ func (c *Cp) copyDir(src, dst string, si os.FileInfo, exists, top bool, parent o
 	// -x: a mount point is itself created, but its contents are skipped.
 	ok := true
 	if !c.crossesDevice(si, parent) {
-		entries, err := os.ReadDir(src)
+		entries, err := fsys.ReadDir(src)
 		if err != nil {
 			c.diag.Errorf("cannot access '%s': %s", src, core.ErrText(err))
 			ok = false
@@ -489,7 +491,7 @@ func (c *Cp) copyDir(src, dst string, si os.FileInfo, exists, top bool, parent o
 	}
 
 	if needRestore && !c.Preserve.Mode {
-		if err := os.Chmod(dst, restore); err != nil {
+		if err := fsys.Chmod(dst, restore); err != nil {
 			c.diag.Errorf("setting permissions for '%s': %s", dst, core.ErrText(err))
 			ok = false
 		}
@@ -515,7 +517,7 @@ func (c *Cp) crossesDevice(si, parent os.FileInfo) bool {
 
 // copyFile copies the contents of src to dst.
 func (c *Cp) copyFile(src, dst string, si os.FileInfo, exists bool) bool {
-	in, err := os.Open(src)
+	in, err := fsys.Open(src)
 	if err != nil {
 		c.diag.Errorf("cannot open '%s' for reading: %s", src, core.ErrText(err))
 		return false
@@ -524,14 +526,14 @@ func (c *Cp) copyFile(src, dst string, si os.FileInfo, exists bool) bool {
 
 	var out *os.File
 	if exists {
-		out, err = os.OpenFile(dst, os.O_WRONLY|os.O_TRUNC, 0)
+		out, err = fsys.OpenFile(dst, os.O_WRONLY|os.O_TRUNC, 0)
 		if err != nil {
 			if !c.Force {
 				c.diag.Errorf("cannot create regular file '%s': %s", dst, core.ErrText(err))
 				return false
 			}
 			// -f: the destination cannot be opened, so replace it outright.
-			if rerr := os.Remove(dst); rerr != nil {
+			if rerr := fsys.Remove(dst); rerr != nil {
 				c.diag.Errorf("cannot remove '%s': %s", dst, core.ErrText(rerr))
 				return false
 			}
@@ -541,7 +543,7 @@ func (c *Cp) copyFile(src, dst string, si os.FileInfo, exists bool) bool {
 	if !exists {
 		// A new file takes the source's permission bits; the kernel applies
 		// the umask, which is exactly cp's behavior without -p.
-		out, err = os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_EXCL, si.Mode().Perm())
+		out, err = fsys.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_EXCL, si.Mode().Perm())
 		if err != nil {
 			c.diag.Errorf("cannot create regular file '%s': %s", dst, core.ErrText(err))
 			return false
@@ -562,18 +564,18 @@ func (c *Cp) copyFile(src, dst string, si os.FileInfo, exists bool) bool {
 
 // copySymlink recreates the symbolic link src at dst.
 func (c *Cp) copySymlink(src, dst string, si os.FileInfo, exists bool) bool {
-	target, err := os.Readlink(src)
+	target, err := fsys.Readlink(src)
 	if err != nil {
 		c.diag.Errorf("cannot read symbolic link '%s': %s", src, core.ErrText(err))
 		return false
 	}
 	if exists {
-		if err := os.Remove(dst); err != nil {
+		if err := fsys.Remove(dst); err != nil {
 			c.diag.Errorf("cannot remove '%s': %s", dst, core.ErrText(err))
 			return false
 		}
 	}
-	if err := os.Symlink(target, dst); err != nil {
+	if err := fsys.Symlink(target, dst); err != nil {
 		c.diag.Errorf("cannot create symbolic link '%s' to '%s': %s", dst, target, core.ErrText(err))
 		return false
 	}
@@ -591,7 +593,7 @@ func (c *Cp) makeSymlink(src, dst string, exists bool) bool {
 	if exists && !c.replaceForLink(dst, "symbolic", src) {
 		return false
 	}
-	if err := os.Symlink(src, dst); err != nil {
+	if err := fsys.Symlink(src, dst); err != nil {
 		c.diag.Errorf("cannot create symbolic link '%s' to '%s': %s", dst, src, core.ErrText(err))
 		return false
 	}
@@ -604,14 +606,14 @@ func (c *Cp) makeHardLink(src, dst string, exists, follow bool) bool {
 	if follow {
 		// link(2) does not follow a symlink everywhere; resolve it so -L
 		// links to the referent on every platform.
-		if resolved, err := filepath.EvalSymlinks(src); err == nil {
+		if resolved, err := fsys.EvalSymlinks(src); err == nil {
 			from = resolved
 		}
 	}
 	if exists && !c.replaceForLink(dst, "hard", src) {
 		return false
 	}
-	if err := os.Link(from, dst); err != nil {
+	if err := fsys.Link(from, dst); err != nil {
 		c.diag.Errorf("cannot create hard link '%s' to '%s': %s", dst, src, core.ErrText(err))
 		return false
 	}
@@ -625,7 +627,7 @@ func (c *Cp) replaceForLink(dst, kind, src string) bool {
 		c.diag.Errorf("cannot create %s link '%s' to '%s': File exists", kind, dst, src)
 		return false
 	}
-	if err := os.Remove(dst); err != nil {
+	if err := fsys.Remove(dst); err != nil {
 		c.diag.Errorf("cannot remove '%s': %s", dst, core.ErrText(err))
 		return false
 	}
@@ -636,12 +638,12 @@ func (c *Cp) replaceForLink(dst, kind, src string) bool {
 // file (--preserve=links).
 func (c *Cp) linkTo(first, dst string, exists bool) bool {
 	if exists {
-		if err := os.Remove(dst); err != nil {
+		if err := fsys.Remove(dst); err != nil {
 			c.diag.Errorf("cannot remove '%s': %s", dst, core.ErrText(err))
 			return false
 		}
 	}
-	if err := os.Link(first, dst); err != nil {
+	if err := fsys.Link(first, dst); err != nil {
 		c.diag.Errorf("cannot create hard link '%s' to '%s': %s", dst, first, core.ErrText(err))
 		return false
 	}
@@ -666,14 +668,14 @@ func (c *Cp) preserveAttrs(dst string, si os.FileInfo) bool {
 	if c.Preserve.Timestamps {
 		// The zero access time leaves atime as it is: reading it back
 		// portably is not possible through os.FileInfo.
-		if err := os.Chtimes(dst, time.Time{}, si.ModTime()); err != nil {
+		if err := fsys.Chtimes(dst, time.Time{}, si.ModTime()); err != nil {
 			c.diag.Errorf("preserving times for '%s': %s", dst, core.ErrText(err))
 			ok = false
 		}
 	}
 	if c.Preserve.Mode {
 		const bits = os.ModePerm | os.ModeSetuid | os.ModeSetgid | os.ModeSticky
-		if err := os.Chmod(dst, si.Mode()&bits); err != nil {
+		if err := fsys.Chmod(dst, si.Mode()&bits); err != nil {
 			c.diag.Errorf("preserving permissions for '%s': %s", dst, core.ErrText(err))
 			ok = false
 		}
@@ -701,20 +703,20 @@ func (c *Cp) makeParents(src, dir string) (string, bool) {
 		sub := filepath.Join(parts[:i+1]...)
 		srcDir, dstDir := src[:prefix]+sub, filepath.Join(dir, sub)
 
-		if info, err := os.Stat(dstDir); err == nil {
+		if info, err := fsys.Stat(dstDir); err == nil {
 			if !info.IsDir() {
 				c.diag.Errorf("'%s' exists but is not a directory", dstDir)
 				return "", false
 			}
 			continue
 		}
-		info, err := os.Stat(srcDir)
+		info, err := fsys.Stat(srcDir)
 		if err != nil {
 			c.diag.Errorf("failed to get attributes of '%s': %s", srcDir, core.ErrText(err))
 			return "", false
 		}
 		// Owner access is forced so the copy below can populate it.
-		if err := os.Mkdir(dstDir, info.Mode().Perm()|0o700); err != nil {
+		if err := fsys.Mkdir(dstDir, info.Mode().Perm()|0o700); err != nil {
 			c.diag.Errorf("cannot make directory '%s': %s", dstDir, core.ErrText(err))
 			return "", false
 		}
@@ -736,9 +738,9 @@ func (c *Cp) ask(question string) bool {
 // stat returns Stat or Lstat information for path, depending on follow.
 func stat(path string, follow bool) (os.FileInfo, error) {
 	if follow {
-		return os.Stat(path)
+		return fsys.Stat(path)
 	}
-	return os.Lstat(path)
+	return fsys.Lstat(path)
 }
 
 // JoinInto returns the path a source operand takes inside the directory dir:
@@ -783,11 +785,11 @@ func IsWithin(dir, path string) bool {
 // realPath returns the absolute, symlink-free form of path, resolving as much
 // of it as exists.
 func realPath(path string) string {
-	abs, err := filepath.Abs(path)
+	abs, err := fsys.Abs(path)
 	if err != nil {
 		return filepath.Clean(path)
 	}
-	if resolved, err := filepath.EvalSymlinks(abs); err == nil {
+	if resolved, err := fsys.EvalSymlinks(abs); err == nil {
 		return resolved
 	}
 	parent := filepath.Dir(abs)

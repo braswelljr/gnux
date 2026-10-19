@@ -117,7 +117,12 @@ function docsRoute(file) {
 }
 
 const pageFiles = docsFiles();
-const expectedDocs = pageFiles.map(docsRoute);
+// A release's snapshot (content/docs/v1.1/...) is served but neither listed in
+// the sitemap nor in llms.txt, and is marked noindex, so that searches lead to
+// the latest docs.
+const isVersioned = (file) => /^v\d+\.\d+\//.test(file);
+const expectedDocs = pageFiles.filter((file) => !isVersioned(file)).map(docsRoute);
+const versionedDocs = pageFiles.filter(isVersioned).map(docsRoute);
 
 let site = '';
 
@@ -158,13 +163,34 @@ check('llms.txt indexes the docs and llms-full.txt carries them', async () => {
   const full = await get('/llms-full.txt');
   assert.equal(full.response.status, 200);
   const fullBody = await full.response.text();
-  for (const file of pageFiles) {
+  for (const file of pageFiles.filter((f) => !isVersioned(f))) {
     assert.ok(
       fullBody.includes(`# ${frontmatter(file).title} (`),
       `llms-full.txt is missing ${file}`
     );
   }
   assert.ok(fullBody.length > indexBody.length * 3, 'llms-full.txt holds the page bodies');
+});
+
+check('a release snapshot is served, not indexed, and points at the latest page', async () => {
+  const sample = versionedDocs.find((path) => path.endsWith('/tools/rmx'));
+  if (!sample) return; // no snapshot yet
+  const version = sample.split('/')[2];
+  const { response } = await get(sample);
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(head(html, 'name', 'robots'), /noindex/);
+  assert.equal(head(html, 'rel', 'canonical', 'href'), `${site}/docs/tools/rmx`);
+  // React separates the text and the version with an empty comment.
+  assert.ok(
+    html.replace(/<!-- -->/g, '').includes(`These are the docs of gnux ${version}.`),
+    'no version notice'
+  );
+  assert.ok(html.includes('Documentation version'), 'no version select');
+
+  const missing = await fetch(`${origin}/docs/${version}/no-such-page`, { redirect: 'manual' });
+  assert.ok([307, 308].includes(missing.status), `a missing page answers ${missing.status}`);
+  assert.equal(new URL(missing.headers.get('location'), 'http://x').pathname, `/docs/${version}`);
 });
 
 check('the manifest and the icon are served', async () => {

@@ -90,6 +90,7 @@ SEE ALSO
 * `gnux lnx <lnx/index.rst>`_ 	 - Make hard or symbolic links between files.
 * `gnux lognamex <lognamex/index.rst>`_ 	 - Print the user's login name.
 * `gnux lsx <lsx/index.rst>`_ 	 - List information about files and directory contents.
+* `gnux mcp <mcp/index.rst>`_ 	 - Serve the gnux tools to an AI agent over MCP, sandboxed to DIR.
 * `gnux md5sumx <md5sumx/index.rst>`_ 	 - Print or check MD5 (128-bit) checksums.
 * `gnux mkdirx <mkdirx/index.rst>`_ 	 - Create the DIRECTORY(ies), if they do not already exist.
 * `gnux mktempx <mktempx/index.rst>`_ 	 - Create a temporary file or directory, safely, and print its name.

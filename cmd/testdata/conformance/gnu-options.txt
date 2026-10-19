@@ -20,7 +20,7 @@ mkdir d && ln -s ../a.txt d/la; chmod -R --dereference -v 700 d; ls -l a.txt | c
 mkdir d && ln -s ../a.txt d/la; chmod -R -h -v 700 d; ls -l a.txt | cut -c1-10
 mkdir d && ln -s ../a.txt d/la; chmod -R -L -c 700 d; ls -l a.txt | cut -c1-10
 chmod -R -P --dereference 700 dir; echo $?
-chmod -R -L --dereference -c 700 dir; echo $?
+chmod -R -L --dereference -c 700 dir | sort; ls -ld dir | cut -c1-10
 chown -R --dereference 0 dir; echo $?
 chgrp -R --dereference 0 dir; echo $?
 

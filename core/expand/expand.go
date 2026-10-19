@@ -12,6 +12,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -202,7 +204,7 @@ func (in *Input) next() bool {
 			in.cur, in.name = core.NewReader(r), name
 			return true
 		}
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			in.diag.Errorf("%s: %s", name, core.ErrText(err))
 			continue

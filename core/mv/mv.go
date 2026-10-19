@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/cp"
 )
@@ -41,7 +43,7 @@ type Mv struct {
 	// input. It is the injection point tests use to answer overwrite prompts.
 	PromptFn func(question string) bool
 
-	// RenameFn performs the rename and defaults to os.Rename. Tests replace
+	// RenameFn performs the rename and defaults to fsys.Rename. Tests replace
 	// it to simulate a cross-device move without a second filesystem.
 	RenameFn func(oldpath, newpath string) error
 
@@ -65,7 +67,7 @@ type Mv struct {
 func New(opts Options, s core.Streams) *Mv {
 	return &Mv{
 		Options:  opts,
-		RenameFn: os.Rename,
+		RenameFn: fsys.Rename,
 		streams:  s,
 		diag:     core.NewDiag(Name, s),
 		prompt:   core.NewPrompter(Name, s),
@@ -96,7 +98,7 @@ func (m *Mv) Run(args []string) error {
 	switch {
 	case m.TargetDirectory != "":
 		sources, dest, into = args, m.TargetDirectory, true
-		info, err := os.Stat(dest)
+		info, err := fsys.Stat(dest)
 		if err == nil && !info.IsDir() {
 			m.diag.Errorf("target directory '%s': Not a directory", dest)
 			return m.diag.Result()
@@ -114,7 +116,7 @@ func (m *Mv) Run(args []string) error {
 		sources, dest = args[:1], args[1]
 	default:
 		sources, dest = args[:len(args)-1], args[len(args)-1]
-		if info, err := os.Stat(dest); err == nil && info.IsDir() {
+		if info, err := fsys.Stat(dest); err == nil && info.IsDir() {
 			into = true
 		} else if len(sources) > 1 {
 			return core.Usagef("target '%s' is not a directory", dest)
@@ -155,13 +157,13 @@ func (m *Mv) moveOperand(src, dst string) {
 // A skipped move (-n, -u, a declined prompt) is not a failure but returns
 // false, since nothing was written at dst.
 func (m *Mv) move(src, dst string) bool {
-	si, err := os.Lstat(src)
+	si, err := fsys.Lstat(src)
 	if err != nil {
 		m.diag.Errorf("cannot stat '%s': %s", src, core.ErrText(err))
 		return false
 	}
 
-	di, err := os.Lstat(dst)
+	di, err := fsys.Lstat(dst)
 	exists := err == nil
 	if err != nil && !os.IsNotExist(err) {
 		m.diag.Errorf("cannot stat '%s': %s", dst, core.ErrText(err))
@@ -225,9 +227,9 @@ func (m *Mv) move(src, dst string) bool {
 func (m *Mv) rename(src, dst string, di os.FileInfo, exists, caseRename bool, backup string) bool {
 	if exists && !caseRename && di.IsDir() {
 		// rename(2) lets a directory replace an empty directory, but
-		// os.Rename refuses every existing directory, so the empty one is
+		// fsys.Rename refuses every existing directory, so the empty one is
 		// removed first. A non-empty directory makes this fail, as it should.
-		if err := os.Remove(dst); err != nil {
+		if err := fsys.Remove(dst); err != nil {
 			m.diag.Errorf("cannot move '%s' to '%s': %s", src, dst, errText(err))
 			return false
 		}
@@ -274,7 +276,7 @@ func (m *Mv) moveAcross(src, dst string, exists bool, backup string) bool {
 	if exists {
 		// rename(2) would have replaced the destination atomically; removing
 		// it first keeps the same "replace, never merge" outcome.
-		if err := os.Remove(dst); err != nil {
+		if err := fsys.Remove(dst); err != nil {
 			m.diag.Errorf("inter-device move failed: '%s' to '%s'; unable to remove target: %s", src, dst, errText(err))
 			return false
 		}
@@ -297,7 +299,7 @@ func (m *Mv) moveAcross(src, dst string, exists bool, backup string) bool {
 		m.diag.Printf("copied '%s' -> '%s'%s", src, dst, backupNote(backup))
 	}
 
-	if err := os.RemoveAll(src); err != nil {
+	if err := fsys.RemoveAll(src); err != nil {
 		m.diag.Errorf("cannot remove '%s': %s", src, errText(err))
 		return false
 	}
@@ -323,10 +325,10 @@ func backupNote(backup string) string {
 // unBackup puts a backup back in place of a destination that could not be
 // created, as GNU does.
 func (m *Mv) unBackup(backup, dst string) {
-	if _, err := os.Lstat(dst); err == nil {
+	if _, err := fsys.Lstat(dst); err == nil {
 		return
 	}
-	if err := os.Rename(backup, dst); err != nil {
+	if err := fsys.Rename(backup, dst); err != nil {
 		m.diag.Errorf("cannot un-backup '%s': %s", dst, errText(err))
 		return
 	}
@@ -348,11 +350,11 @@ func sameEntry(a, b string) bool {
 	if filepath.Base(a) != filepath.Base(b) {
 		return false
 	}
-	da, err := os.Stat(filepath.Dir(a))
+	da, err := fsys.Stat(filepath.Dir(a))
 	if err != nil {
 		return false
 	}
-	db, err := os.Stat(filepath.Dir(b))
+	db, err := fsys.Stat(filepath.Dir(b))
 	return err == nil && os.SameFile(da, db)
 }
 
@@ -371,11 +373,11 @@ func sameNameIgnoringCase(a, b string) bool {
 	if a == b || !strings.EqualFold(filepath.Base(a), filepath.Base(b)) {
 		return false
 	}
-	da, err := os.Stat(filepath.Dir(a))
+	da, err := fsys.Stat(filepath.Dir(a))
 	if err != nil {
 		return false
 	}
-	db, err := os.Stat(filepath.Dir(b))
+	db, err := fsys.Stat(filepath.Dir(b))
 	if err != nil {
 		return false
 	}

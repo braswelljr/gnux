@@ -10,8 +10,9 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
-	"os"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -75,7 +76,7 @@ func (c *Coder) Run(args []string) error {
 	}
 	r := c.streams.In
 	if name != "-" {
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			c.diag.Errorf("%s: %s", name, core.ErrText(err))
 			return core.ErrFailed

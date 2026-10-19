@@ -9,7 +9,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/human"
+	"github.com/braswelljr/gnux/core/internal/quotearg"
 )
 
 // Exit-status severities, as documented by GNU ls.
@@ -30,8 +34,9 @@ type entry struct {
 	link   string      // symlink target text (long format only)
 	target os.FileInfo // what a symlink resolves to; nil when dangling or not needed
 
-	shown string // name after quoting
-	width int    // display width of shown
+	shown  string // name after quoting
+	quoted bool   // quoting changed the name
+	width  int    // display width of shown
 }
 
 // isDir reports whether the entry is a directory.
@@ -87,6 +92,10 @@ func (l *Ls) Run(args []string) error {
 		l.listDir(d.path, d.info, header, serious, nil)
 	}
 
+	if l.dired {
+		l.diredSummary()
+	}
+
 	switch l.status {
 	case 0:
 		return nil
@@ -117,7 +126,9 @@ func (l *Ls) prepare() error {
 		}
 	}
 
-	l.hideCtl = l.HideControlChars || (l.IsTerminal && l.Quoting == QuoteLiteral)
+	// -q and --show-control-chars, else "?" on a terminal; dir and vdir,
+	// which escape names instead, set ShowControlChars.
+	l.hideCtl = l.HideControlChars || (!l.ShowControlChars && l.IsTerminal)
 
 	// As in GNU ls, TIME_STYLE supplies the style when --time-style does not.
 	name := l.TimeStyle
@@ -131,11 +142,126 @@ func (l *Ls) prepare() error {
 	l.style = style
 
 	l.width = l.lineWidth()
+	l.prepareQuoting()
+
+	l.eol = "\n"
+	if l.Zero {
+		l.eol = "\x00"
+	}
+	if err := l.prepareSizes(); err != nil {
+		return err
+	}
+	l.hyperlink = l.Hyperlink == WhenAlways || (l.Hyperlink == WhenAuto && l.IsTerminal)
+	if l.hyperlink && l.Hostname != nil {
+		l.host, _ = l.Hostname()
+	}
+	// As in GNU, --dired applies to the long format only, never with
+	// --hyperlink, and cannot mark up NUL-terminated lines.
+	l.dired = l.Dired && l.format == FormatLong && !l.hyperlink
+	if l.dired && l.Zero {
+		l.diag.Errorf("--dired and --zero are incompatible")
+		return &core.ExitError{Code: serious}
+	}
 
 	l.palette = nil
 	if l.Color == WhenAlways || (l.Color == WhenAuto && l.IsTerminal && l.Getenv("TERM") != "dumb") {
 		l.palette = newPalette(l.Getenv("LS_COLORS"))
 	}
+	return nil
+}
+
+// prepareQuoting settles the quoting style, as GNU ls does: the option, else
+// QUOTING_STYLE, else the variant's default, else shell-escape on a
+// terminal and literal otherwise.
+func (l *Ls) prepareQuoting() {
+	q := l.Quoting
+	if q == QuoteAuto {
+		if env := l.Getenv("QUOTING_STYLE"); env != "" {
+			parsed, err := ParseQuoting(env)
+			if err != nil {
+				l.diag.Warnf("ignoring invalid value of environment variable QUOTING_STYLE: %s", quoteArg(env))
+			} else {
+				q = parsed
+			}
+		}
+	}
+	if q == QuoteAuto {
+		q = l.QuotingDefault
+	}
+	if q == QuoteAuto {
+		q = QuoteLiteral
+		if l.IsTerminal {
+			q = QuoteShellEscape
+		}
+	}
+	l.quoting = q
+
+	o := quotearg.Options{Style: q.style()}
+	if q == QuoteLocale || q == QuoteCLocale {
+		if utf8Locale(l.Getenv) {
+			o.LeftQuote, o.RightQuote = quotearg.UTF8LeftQuote, quotearg.UTF8RightQuote
+		}
+	}
+	l.dirQuote = o
+	l.dirQuote.Also = ":"
+	if q == QuoteEscape {
+		o.Also += " "
+	}
+	// The characters an indicator could be confused with (GNU's own table).
+	switch l.Indicator {
+	case IndicatorFileType:
+		o.Also += "*=>@|"
+	case IndicatorClassify:
+		o.Also += "=>@|"
+	}
+	l.nameQuote = o
+
+	columns := l.format == FormatColumns || l.format == FormatAcross
+	l.align = (l.format == FormatLong || columns && l.width > 0) &&
+		(q == QuoteShell || q == QuoteShellEscape || q == QuoteCMaybe)
+}
+
+// utf8Locale reports whether the locale's character set is UTF-8, which
+// gives the locale quoting styles their curved quotes.
+func utf8Locale(getenv func(string) string) bool {
+	for _, name := range []string{"LC_ALL", "LC_CTYPE", "LANG"} {
+		if v := getenv(name); v != "" {
+			v = strings.ToLower(v)
+			return strings.Contains(v, "utf-8") || strings.Contains(v, "utf8")
+		}
+	}
+	return false
+}
+
+// prepareSizes settles the units of the long format's size column and of
+// the -s counts and totals, as GNU ls does: -h, --si or --block-size for
+// both; else LS_BLOCK_SIZE or BLOCK_SIZE for both; else bytes for sizes and
+// 1024 (512 under POSIXLY_CORRECT, 1024 again with -k) for blocks.
+func (l *Ls) prepareSizes() error {
+	switch {
+	case l.HumanReadable:
+		l.blockSize, l.blockOpts = 1, human.Autoscale|human.SI|human.Base1024
+	case l.SI:
+		l.blockSize, l.blockOpts = 1, human.Autoscale|human.SI
+	case l.BlockSize != "":
+		size, opts, err := human.ParseBlockSize(l.BlockSize)
+		if err != nil {
+			l.diag.Errorf("invalid --block-size argument %s", quoteArg(l.BlockSize))
+			return &core.ExitError{Code: serious}
+		}
+		l.blockSize, l.blockOpts = size, opts
+	default:
+		l.blockSize, l.blockOpts = human.DefaultBlockSize(l.Getenv, "LS_BLOCK_SIZE")
+		l.fileBlock, l.fileOpts = 1, 0
+		if l.Getenv("LS_BLOCK_SIZE") != "" || l.Getenv("BLOCK_SIZE") != "" {
+			l.fileBlock, l.fileOpts = l.blockSize, l.blockOpts
+		}
+		if l.Kibibytes {
+			l.blockSize, l.blockOpts = 1024, 0
+		}
+		return nil
+	}
+	l.fileBlock, l.fileOpts = l.blockSize, l.blockOpts
 	return nil
 }
 
@@ -179,13 +305,13 @@ func (l *Ls) statOperand(arg string) *entry {
 	)
 	switch {
 	case l.Dereference || l.DereferenceArgs:
-		info, err = os.Stat(arg)
+		info, err = fsys.Stat(arg)
 	case l.Directory || l.format == FormatLong || l.Indicator == IndicatorClassify:
-		info, err = os.Lstat(arg)
+		info, err = fsys.Lstat(arg)
 	default:
-		info, err = os.Stat(arg)
+		info, err = fsys.Stat(arg)
 		if err != nil || !info.IsDir() {
-			info, err = os.Lstat(arg)
+			info, err = fsys.Lstat(arg)
 		}
 	}
 	if err != nil {
@@ -201,15 +327,28 @@ func (l *Ls) statOperand(arg string) *entry {
 // named starts an entry, quoting its name once for every later use.
 func (l *Ls) named(name, path string) *entry {
 	e := &entry{name: name, path: path}
-	e.shown = l.quoteName(name)
+	e.shown, e.quoted = l.quoteName(name)
 	e.width = displayWidth(e.shown)
 	return e
 }
 
 // put writes s to stdout. Write errors are ignored: there is nowhere useful to
-// report a broken stdout.
+// report a broken stdout. It counts what it writes, for --dired.
 func (l *Ls) put(s string) {
+	l.pos += int64(len(s))
 	_, _ = l.out.WriteString(s)
+}
+
+// putRaw writes terminal control sequences, which --dired does not count.
+func (l *Ls) putRaw(s string) {
+	_, _ = l.out.WriteString(s)
+}
+
+// diredIndent writes the two spaces --dired puts before each line it marks up.
+func (l *Ls) diredIndent() {
+	if l.dired {
+		l.put("  ")
+	}
 }
 
 // newEntry examines one name found in a directory. A failure is a minor
@@ -223,11 +362,11 @@ func (l *Ls) newEntry(dir, name string, de os.DirEntry) *entry {
 	)
 	switch {
 	case l.Dereference:
-		info, err = os.Stat(e.path)
+		info, err = fsys.Stat(e.path)
 	case de != nil:
 		info, err = de.Info()
 	default:
-		info, err = os.Lstat(e.path)
+		info, err = fsys.Lstat(e.path)
 	}
 	if err != nil {
 		l.fail(minor, "cannot access %s: %s", quoteArg(e.path), core.ErrText(err))
@@ -251,10 +390,10 @@ func (l *Ls) fill(e *entry, info os.FileInfo) {
 		return
 	}
 	if l.format == FormatLong {
-		e.link, _ = os.Readlink(e.path)
+		e.link, _ = fsys.Readlink(e.path)
 	}
 	if l.format == FormatLong || l.palette != nil || l.GroupDirectories {
-		if target, err := os.Stat(e.path); err == nil {
+		if target, err := fsys.Stat(e.path); err == nil {
 			e.target = target
 		}
 	}
@@ -274,7 +413,7 @@ func (l *Ls) listDir(dir string, info os.FileInfo, header bool, severity int, an
 		}
 	}
 
-	f, err := os.Open(dir)
+	f, err := fsys.Open(dir)
 	if err != nil {
 		l.fail(severity, "cannot open directory %s: %s", quoteArg(dir), core.ErrText(err))
 		return
@@ -302,14 +441,17 @@ func (l *Ls) listDir(dir string, info os.FileInfo, header bool, severity int, an
 		if l.printed {
 			l.put("\n")
 		}
-		l.put(l.quoteName(dir) + ":\n")
+		l.diredIndent()
+		l.putHeader(dir)
+		l.put(":\n")
 	}
 	if l.format == FormatLong || l.ShowBlocks {
 		var blocks int64
 		for _, e := range entries {
 			blocks += e.sys.blocks
 		}
-		l.put("total " + l.blockString(blocks) + "\n")
+		l.diredIndent()
+		l.put("total " + l.blockString(blocks) + l.eol)
 	}
 	l.printEntries(entries)
 	l.printed = true
@@ -399,19 +541,26 @@ func joinPath(dir, name string) string {
 	return dir + "/" + name
 }
 
-// quoteArg quotes a name for a diagnostic: single quotes, switching to double
-// quotes when the name itself contains one.
+// quoteArg quotes a name for a diagnostic, as GNU's quoteaf does.
 func quoteArg(s string) string {
-	if strings.Contains(s, "'") && !strings.Contains(s, `"`) {
-		return `"` + s + `"`
-	}
-	return "'" + s + "'"
+	return quotearg.Quote(s, quotearg.Options{Style: quotearg.ShellEscapeAlways})
 }
 
 // printEntries lays out one group of entries in the selected format.
 func (l *Ls) printEntries(entries []*entry) {
 	if len(entries) == 0 {
 		return
+	}
+	// With the shell styles, an unquoted name gets a space where a quoted
+	// one has its opening quote, so that the names line up.
+	l.someQuoted = false
+	if l.align {
+		for _, e := range entries {
+			if e.quoted {
+				l.someQuoted = true
+				break
+			}
+		}
 	}
 	switch l.format {
 	case FormatLong:
@@ -426,7 +575,7 @@ func (l *Ls) printEntries(entries []*entry) {
 		f := l.newFrills(entries, true)
 		for _, e := range entries {
 			l.writeCell(e, f)
-			l.put("\n")
+			l.put(l.eol)
 		}
 	}
 }

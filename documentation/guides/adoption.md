@@ -54,7 +54,7 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `link` | `linkx` | none | [linkx](../markdown/linkx/index.md) |
 | `ln` | `lnx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-L`, `-n`, `-P`, `-r`, `-s`, `-S SUFFIX`, `-t`, `-T`, `-v` | [lnx](../markdown/lnx/index.md) |
 | `logname` | `lognamex` | none | [lognamex](../markdown/lognamex/index.md) |
-| `ls` | `lsx` | `-1`, `-a`, `-A`, `-B`, `-b`, `-c`, `-C`, `-d`, `-F`, `-g`, `-G`, `-h`, `-H`, `-i`, `-I`, `-l`, `-L`, `-m`, `-n`, `-o`, `-p`, `-q`, `-Q`, `-r`, `-R`, `-s`, `-S`, `-t`, `-T`, `-u`, `-U`, `-v`, `-w`, `-x`, `-X`, `--color`, `--file-type`, `--full-time`, `--group-directories-first`, `--hide`, `--si`, `--sort`, `--time`, `--time-style` | [lsx](../markdown/lsx/index.md) |
+| `ls` | `lsx` | `-1`, `-a`, `-A`, `-B`, `-b`, `-c`, `-C`, `-d`, `-F`, `-g`, `-G`, `-h`, `-H`, `-i`, `-I`, `-l`, `-L`, `-m`, `-n`, `-o`, `-p`, `-q`, `-Q`, `-r`, `-R`, `-s`, `-S`, `-t`, `-T`, `-u`, `-U`, `-v`, `-w`, `-x`, `-X`, `--author`, `--block-size`, `--color`, `-D`/`--dired`, `--file-type`, `--format`, `--full-time`, `--group-directories-first`, `--hide`, `--hyperlink`, `--indicator-style`, `-k`, `-N`, `--quoting-style`, `--show-control-chars`, `--si`, `--sort`, `--time`, `--time-style`, `--zero` | [lsx](../markdown/lsx/index.md) |
 | `md5sum` | `md5sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [md5sumx](../markdown/md5sumx/index.md) |
 | `mkdir` | `mkdirx` | `-m MODE`, `-p`, `-v` | [mkdirx](../markdown/mkdirx/index.md) |
 | `mktemp` | `mktempx` | `-p DIR`, `-d`, `-u`, `-t`, `-q`, `--suffix=SUFF`, `--tmpdir[=DIR]` | [mktempx](../markdown/mktempx/index.md) |
@@ -151,7 +151,7 @@ The rule is in the project's [rules](../../docs/rules/README.md) as "conflicts r
 | `cutx` | `-c` counts bytes, as GNU's cut does. The same kind of list given twice keeps the last instead of refusing |
 | `envx` | GNU `env` replaces itself with the command; `envx` runs it as a child process on the same streams and exits with its status (128 plus the signal number when a signal killed it), so it behaves the same on platforms that cannot replace a running process |
 | `lnx` | Option precedence as above. On Windows, symbolic links need Developer Mode or an elevated prompt, a link's target is stored with backslashes, and replacing a link to a directory (`-sfn`) is not atomic: the old link is removed before the new one is renamed in |
-| `lsx` | Names sort by plain byte comparison (the C locale) whatever `LANG` says, so uppercase sorts before lowercase. On Windows the owner, group, inode and block columns hold placeholders, and every directory is colored as a plain directory (Windows has no other-writable or sticky bits). Several single-letter options also have gnux long names: `--long`, `--one-per-line`, `--sort-size`, `--sort-time`, `--sort-version`, `--sort-extension`, `--unsorted`, `--columns`, `--across`, `--commas`, `--slash`, `--ctime`, `--atime`, `--long-no-owner`, `--long-no-group` |
+| `lsx` | Names sort by plain byte comparison (the C locale) whatever `LANG` says, so uppercase sorts before lowercase. On Windows the owner, group, inode and block columns hold placeholders, and every directory is colored as a plain directory (Windows has no other-writable or sticky bits). Several single-letter options also have gnux long names: `--long`, `--one-per-line`, `--sort-size`, `--sort-time`, `--sort-version`, `--sort-extension`, `--unsorted`, `--columns`, `--across`, `--commas`, `--slash`, `--ctime`, `--atime`, `--long-no-owner`, `--long-no-group`. Names are read as UTF-8 in every locale, so in the C locale a printable accented letter is shown where GNU escapes its bytes |
 | `dirx`, `vdirx` | As `lsx`: they are `lsx -C -b` and `lsx -l -b`, and an option that picks a format or quoting replaces those defaults |
 | `mkdirx` | On Windows only the read-only attribute is representable, so most of a `-m` mode has no effect |
 | `mvx` | Option precedence as above |
@@ -214,7 +214,7 @@ These GNU options are refused with `unrecognized option` (or `invalid option` fo
 | `cpx` | `--reflink`, `--sparse`, `--attributes-only`, `--copy-contents`, `--keep-directory-symlink`, `-Z`, `--context`, `--debug` |
 | `envx` | `--block-signal`, `--default-signal`, `--ignore-signal`, `--list-signal-handling` |
 | `lnx` | `-d`, `-F`, `--directory` |
-| `lsx` | `--author`, `--block-size`, `-D`, `--dired`, `-f`, `--format`, `--hyperlink`, `--indicator-style`, `-k`, `--kibibytes`, `-N`, `--literal`, `--quoting-style`, `--show-control-chars`, `-Z`, `--context`, `--zero` |
+| `lsx` | `-f`, `-Z`, `--context` |
 | `mkdirx` | `-Z`, `--context` |
 | `mvx` | `-Z`, `--context`, `--exchange`, `--debug` |
 | `realpathx` | `-E`, `--canonicalize` (the default behavior anyway) |
@@ -227,7 +227,7 @@ These GNU options are refused with `unrecognized option` (or `invalid option` fo
 | `splitx` | `--filter`, `--io-blksize` |
 | `odx` | `--traditional` and the `[+]OFFSET[.][b]` operand |
 
-If a script uses one, the fix is usually simple: replace `ls -f` with `lsx -aU`; replace `--format=long` with `-l`.
+If a script uses one, the fix is usually simple: replace `ls -f` with `lsx -aU`.
 
 ## Things that look different but are not
 

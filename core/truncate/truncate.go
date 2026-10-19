@@ -9,6 +9,8 @@ import (
 	"math"
 	"os"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/head"
 )
@@ -85,7 +87,7 @@ func (t *Truncate) Run(args []string) error {
 
 	refSize := int64(-1)
 	if t.Reference != "" {
-		info, err := os.Stat(t.Reference)
+		info, err := fsys.Stat(t.Reference)
 		if err != nil {
 			t.diag.Errorf("cannot stat '%s': %s", t.Reference, core.ErrText(err))
 			return core.ErrFailed
@@ -105,7 +107,7 @@ func (t *Truncate) resize(path string, how op, n, refSize int64) {
 	if !t.NoCreate {
 		flags |= os.O_CREATE
 	}
-	f, err := os.OpenFile(path, flags, 0o666)
+	f, err := fsys.OpenFile(path, flags, 0o666)
 	if err != nil {
 		if t.NoCreate && errors.Is(err, os.ErrNotExist) {
 			return

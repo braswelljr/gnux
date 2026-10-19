@@ -1,0 +1,37 @@
+---
+title: "-h, --human-numeric-sort"
+description: "Compare human readable numbers (e.g., 2K 1G)."
+---
+
+An option of [sortx](/docs/v1.0/tools/sortx).
+
+## Usage
+
+```bash
+sortx -h [FILE]...
+sortx --human-numeric-sort [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-h` | `--human-numeric-sort` | none |  | compare human readable numbers (e.g., 2K 1G) |
+
+## Examples
+
+### Sort human-readable sizes
+
+```bash tab="bash" tab-group="shell"
+printf '2K\n1G\n10M\n' | sortx -h
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+'2K', '1G', '10M' | sortx -h
+```
+
+## Help in the terminal
+
+```bash
+gnux help sortx --human-numeric-sort
+```

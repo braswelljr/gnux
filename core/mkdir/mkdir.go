@@ -6,6 +6,8 @@ package mkdir
 import (
 	"os"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -80,7 +82,7 @@ func (m *Mkdir) create(path string, mode os.FileMode, explicit bool) {
 		return
 	}
 
-	if err := os.Mkdir(target, mode.Perm()); err != nil {
+	if err := fsys.Mkdir(target, mode.Perm()); err != nil {
 		if m.Parents && isDir(target) {
 			return
 		}
@@ -91,7 +93,7 @@ func (m *Mkdir) create(path string, mode os.FileMode, explicit bool) {
 	// The kernel masks the mode passed to mkdir(2) with the umask and ignores
 	// the special bits, so an explicit -m has to be applied afterwards.
 	if explicit {
-		if err := os.Chmod(target, mode); err != nil {
+		if err := fsys.Chmod(target, mode); err != nil {
 			m.diag.Errorf("cannot change permissions of '%s': %s", path, core.ErrText(err))
 			return
 		}
@@ -108,7 +110,7 @@ func (m *Mkdir) createParents(target string) bool {
 		}
 		parent := target[:i]
 
-		if err := os.Mkdir(parent, 0o777); err != nil {
+		if err := fsys.Mkdir(parent, 0o777); err != nil {
 			// Already there (or created by someone else meanwhile) is fine,
 			// and so is a prefix that is not creatable at all, like "C:".
 			if isDir(parent) {
@@ -133,20 +135,20 @@ func (m *Mkdir) created(path string) {
 // made intermediate directory. A restrictive umask could otherwise leave it
 // unusable for creating the next component inside it.
 func ensureTraversable(path string) {
-	info, err := os.Stat(path)
+	info, err := fsys.Stat(path)
 	if err != nil {
 		return
 	}
 	const special = os.ModeSetuid | os.ModeSetgid | os.ModeSticky
 	if mode := info.Mode() & (os.ModePerm | special); mode&0o300 != 0o300 {
-		_ = os.Chmod(path, mode|0o300)
+		_ = fsys.Chmod(path, mode|0o300)
 	}
 }
 
 // isDir reports whether path is a directory, following symbolic links so a
 // link to a directory counts as an existing parent.
 func isDir(path string) bool {
-	info, err := os.Stat(path)
+	info, err := fsys.Stat(path)
 	return err == nil && info.IsDir()
 }
 
@@ -154,7 +156,7 @@ func isDir(path string) bool {
 // path that is already there (EEXIST, EISDIR for a root, access denied on
 // Windows), so anything that exists is reported the way GNU does.
 func mkdirText(path string, err error) string {
-	if _, statErr := os.Lstat(path); statErr == nil {
+	if _, statErr := fsys.Lstat(path); statErr == nil {
 		return "File exists"
 	}
 	return core.ErrText(err)

@@ -1,0 +1,37 @@
+---
+title: "-U, --unsorted"
+description: "Do not sort; list entries in directory order."
+---
+
+An option of [lsx](/docs/v1.0/tools/lsx).
+
+## Usage
+
+```bash
+lsx -U [FILE]...
+lsx --unsorted [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-U` | `--unsorted` | none |  | do not sort; list entries in directory order |
+
+## Examples
+
+### List in directory order without sorting, or sort with a word instead of a letter
+
+```bash tab="bash" tab-group="shell"
+lsx -U && lsx --sort=size -l
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -U; lsx --sort=size -l
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --unsorted
+```

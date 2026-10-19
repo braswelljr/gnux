@@ -3,6 +3,7 @@ package tool
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -45,11 +46,25 @@ const ownNameKey = "gnux/own-name"
 // gnux also has --columns for -C). Every name must be registered.
 func OwnNames(fs *pflag.FlagSet, names ...string) {
 	for _, name := range names {
-		if err := fs.SetAnnotation(name, ownNameKey, []string{"true"}); err != nil {
-			panic(fmt.Sprintf("OwnNames: %v", err))
+		f := fs.Lookup(name)
+		if f == nil {
+			panic(fmt.Sprintf("OwnNames: no flag %q", name))
 		}
+		if f.Annotations == nil {
+			// Every tool builds its flags on every run, so the mark is one
+			// shared, read-only map rather than a new one per flag.
+			f.Annotations = ownNameMark
+			continue
+		}
+		f.Annotations = maps.Clone(f.Annotations)
+		f.Annotations[ownNameKey] = ownNameMark[ownNameKey]
 	}
 }
+
+// ownNameMark is the annotation OwnNames gives a flag that has no other. It
+// is shared, so nothing may write to it: a flag that gets a second
+// annotation gets a map of its own first (see OwnNames).
+var ownNameMark = map[string][]string{ownNameKey: {"true"}}
 
 func isOwn(f *pflag.Flag) bool {
 	_, ok := f.Annotations[ownNameKey]
@@ -176,14 +191,22 @@ func isSwitch(f *pflag.Flag) bool {
 
 // getoptError rewords pflag's parse errors as glibc's getopt words them.
 func getoptError(err error) error {
+	if err == nil {
+		// Before the targets below, which errors.As makes escape: a
+		// successful parse, the common case, allocates nothing here.
+		return nil
+	}
+	return rewordParseError(err)
+}
+
+// rewordParseError is getoptError for an error that is not nil.
+func rewordParseError(err error) error {
 	var (
 		notExist *pflag.NotExistError
 		required *pflag.ValueRequiredError
 		invalid  *pflag.InvalidValueError
 	)
 	switch {
-	case err == nil:
-		return nil
 	case errors.As(err, &notExist):
 		if notExist.GetSpecifiedShortnames() != "" {
 			return fmt.Errorf("invalid option -- '%s'", notExist.GetSpecifiedName())
@@ -198,4 +221,13 @@ func getoptError(err error) error {
 		return fmt.Errorf("option '--%s' doesn't allow an argument", invalid.GetFlag().Name)
 	}
 	return err
+}
+
+// OwnNameMarkIntact reports whether the annotation OwnNames shares between
+// flags still holds only its own mark: something that annotated one of those
+// flags with pflag's SetAnnotation would have written into every one. The
+// registry tests check it after building every tool.
+func OwnNameMarkIntact() bool {
+	v, ok := ownNameMark[ownNameKey]
+	return len(ownNameMark) == 1 && ok && len(v) == 1 && v[0] == "true"
 }

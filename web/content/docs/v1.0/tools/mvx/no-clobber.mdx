@@ -1,0 +1,37 @@
+---
+title: "-n, --no-clobber"
+description: "Do not overwrite an existing file."
+---
+
+An option of [mvx](/docs/v1.0/tools/mvx).
+
+## Usage
+
+```bash
+mvx -n SOURCE... DIRECTORY
+mvx --no-clobber SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-n` | `--no-clobber` | none |  | do not overwrite an existing file |
+
+## Examples
+
+### Move without ever overwriting an existing file
+
+```bash tab="bash" tab-group="shell"
+mvx -n photo.jpg ~/Pictures/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+mvx -n photo.jpg $HOME\Pictures
+```
+
+## Help in the terminal
+
+```bash
+gnux help mvx --no-clobber
+```

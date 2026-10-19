@@ -1,0 +1,105 @@
+---
+title: "-r, -R, --recursive, --recursive-upper"
+description: "Remove directories and their contents recursively (-r, -R)."
+---
+
+An option of [rmx](/docs/v1.0/tools/rmx).
+
+## Usage
+
+```bash
+rmx -r [FILE]...
+rmx --recursive [FILE]...
+rmx -R [FILE]...
+rmx --recursive-upper [FILE]...
+```
+
+## Description
+
+By default `rmx` refuses to remove directories. `-r` (or its alias `-R`) removes each directory and everything beneath it, walking the tree post-order so children are removed before their parents. It composes with the other flags: `-ri` prompts per entry, `-rv` reports each removal, `-rf` deletes without prompting.
+
+## Permissions
+
+Recursive removal needs read+execute permission to list and descend into each directory, and write permission on a directory to `unlink` the entries inside it. A directory you cannot write to fails with 'Permission denied' and its contents are left in place. The `--preserve-root` failsafe additionally refuses to recurse on '/'.
+
+## Use cases
+
+- Deleting a directory and all of its contents in one command.
+- Clearing build/output trees (build/, dist/, node_modules/).
+- Combining with `-i`/`-I` for confirmation or `-v` to audit a large delete.
+- Resetting a generated directory before regenerating it.
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-r` | `--recursive` | none |  | remove directories and their contents recursively |
+| `-R` | `--recursive-upper` | none |  | equivalent to `-r` |
+
+## Examples
+
+### Remove a directory and everything under it
+
+```bash tab="bash" tab-group="shell"
+rmx -r logs/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+rmx -r logs
+```
+
+### Recursively remove a directory, printing each deletion
+
+```bash tab="bash" tab-group="shell"
+rmx -rv cache/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+rmx -rv cache
+```
+
+### Use the -R spelling, as with GNU rm
+
+```bash tab="bash" tab-group="shell"
+rmx -R dist/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+rmx -R dist
+```
+
+### Remove several trees without prompting
+
+```bash tab="bash" tab-group="shell"
+rmx -rf node_modules/ coverage/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+rmx -rf node_modules coverage
+```
+
+### Reset a directory and recreate it empty
+
+```bash tab="bash" tab-group="shell"
+rmx -rf out/ && mkdirx out
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+rmx -rf out; if ($LASTEXITCODE -eq 0) { mkdirx out }
+```
+
+### Recursively clean up with the gnux shell
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'rmx -r tmp-*'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'rmx -r tmp-*'
+```
+
+## Help in the terminal
+
+```bash
+gnux help rmx --recursive
+```

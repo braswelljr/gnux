@@ -1,0 +1,36 @@
+---
+title: "--inodes"
+description: "List inode usage information instead of block usage."
+---
+
+An option of [dux](/docs/v1.0/tools/dux).
+
+## Usage
+
+```bash
+dux --inodes [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--inodes` | none |  | list inode usage information instead of block usage |
+
+## Examples
+
+### Find which directory holds millions of tiny files (out of inodes)
+
+```bash tab="bash" tab-group="shell"
+dux --inodes -d 1 /var | sortx -n -r | headx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dux --inodes -d 1 C:\ProgramData | sortx -n -r | headx
+```
+
+## Help in the terminal
+
+```bash
+gnux help dux --inodes
+```

@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -236,7 +238,7 @@ func (s *Sort) Run(args []string) error {
 		if name == "-" {
 			continue
 		}
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			return s.die("cannot read: %s: %s", name, core.ErrText(err))
 		}
@@ -247,7 +249,7 @@ func (s *Sort) Run(args []string) error {
 	if s.Output != "" && s.Check == CheckNone {
 		// Opened without truncating: the output may also be an input, which
 		// is read in full before the file is emptied and rewritten.
-		f, err := os.OpenFile(s.Output, os.O_WRONLY|os.O_CREATE, 0o666)
+		f, err := fsys.OpenFile(s.Output, os.O_WRONLY|os.O_CREATE, 0o666)
 		if err != nil {
 			return s.die("open failed: %s: %s", s.Output, core.ErrText(err))
 		}
@@ -376,7 +378,7 @@ func (s *Sort) seedRandom() error {
 		}
 		return nil
 	}
-	f, err := os.Open(s.RandomSource)
+	f, err := fsys.Open(s.RandomSource)
 	if err != nil {
 		return s.die("open failed: %s: %s", s.RandomSource, core.ErrText(err))
 	}
@@ -523,7 +525,7 @@ func (s *Sort) readNames() ([]string, error) {
 			data, err = io.ReadAll(s.streams.In)
 		}
 	} else {
-		data, err = os.ReadFile(s.Files0From)
+		data, err = fsys.ReadFile(s.Files0From)
 	}
 	if err != nil {
 		return nil, s.die("cannot open '%s' for reading: %s", s.Files0From, core.ErrText(err))
@@ -558,7 +560,7 @@ func (s *Sort) read(name string) ([][]byte, error) {
 			}
 		}
 	} else {
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			return nil, err
 		}

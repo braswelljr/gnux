@@ -1,13 +1,13 @@
 import { type MetadataRoute } from 'next';
-import { docs } from 'lib/source';
+import { latestDocs } from 'lib/source';
 import { siteConfig } from '@/config/site';
 
 const STATIC_ROUTES = ['', '/install', '/playground'];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  // Every page of the docs source, so a newly generated page is listed
-  // without anything here changing.
-  const pages = docs.getPages().map((page) => ({
+  // Every page of the latest docs, so a newly generated page is listed
+  // without anything here changing; older versions' pages are not indexed.
+  const pages = latestDocs.getPages().map((page) => ({
     url: `${siteConfig.url}${page.url}`,
     changeFrequency: 'weekly' as const,
     priority: page.url === '/docs' ? 0.9 : 0.7

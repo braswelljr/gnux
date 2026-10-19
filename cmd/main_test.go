@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/internal/tool"
 )
 
 // run executes gnux with argv and returns the exit status and both streams.
@@ -77,6 +78,20 @@ func TestEveryToolAnswersHelpAndVersion(t *testing.T) {
 				t.Errorf("--help: status=%d stdout=%q stderr=%q", status, out, errb)
 			}
 		})
+	}
+}
+
+// TestOwnNameMarkIsShared checks the one map tool.OwnNames gives every flag
+// it marks: building and running every tool, help and all, must leave it as
+// it was.
+func TestOwnNameMarkIsShared(t *testing.T) {
+	for _, s := range Commands() {
+		c := s.Command(core.Discard())
+		c.SetArgs([]string{"--help"})
+		_ = c.Execute()
+	}
+	if !tool.OwnNameMarkIntact() {
+		t.Fatal("a flag annotation was written into the map tool.OwnNames shares")
 	}
 }
 

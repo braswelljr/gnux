@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -42,8 +44,8 @@ type Test struct {
 	// terminal.
 	IsTerminal func(fd int) bool
 
-	// Stat and Lstat read file metadata; they default to os.Stat and
-	// os.Lstat.
+	// Stat and Lstat read file metadata; they default to fsys.Stat and
+	// fsys.Lstat.
 	Stat  func(string) (os.FileInfo, error)
 	Lstat func(string) (os.FileInfo, error)
 
@@ -59,8 +61,8 @@ type Test struct {
 func New(opts Options, s core.Streams) *Test {
 	t := &Test{
 		Options: opts,
-		Stat:    os.Stat,
-		Lstat:   os.Lstat,
+		Stat:    fsys.Stat,
+		Lstat:   fsys.Lstat,
 		Access:  access,
 		streams: s,
 		diag:    core.NewDiag(Name, s),

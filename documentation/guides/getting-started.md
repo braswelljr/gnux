@@ -55,6 +55,7 @@ From v0.0.2 on, every release is published to the package managers below. Each i
 | Windows | Scoop | `scoop bucket add gnux https://github.com/braswelljr/gnux`, then `scoop install gnux/gnux` | `scoop install gnux/gnux@0.0.2` |
 | Linux | Snap | `sudo snap install gnux` | `--channel=edge` for the newest prerelease |
 | Arch Linux | AUR | `yay -S gnux-bin` | The newest only |
+| Any, in a Node project | npm | `npm install --save-dev gnux` (every tool is then on the PATH of package scripts; see [Node and npm](node-and-npm.md)) | `npm install --save-dev gnux@1.2.0` |
 | Debian, Ubuntu | `.deb` from the release | `sudo dpkg -i gnux-v0.0.2-linux-amd64.deb` | Download that version's file |
 | Fedora, RHEL, openSUSE | `.rpm` from the release | `sudo rpm -i gnux-v0.0.2-linux-amd64.rpm` | Download that version's file |
 | Alpine | `.apk` from the release | `sudo apk add --allow-untrusted gnux-v0.0.2-linux-amd64.apk` | Download that version's file |

@@ -1,0 +1,36 @@
+---
+title: "--untagged"
+description: "Create a reversed style checksum, without digest type."
+---
+
+An option of [cksumx](/docs/v1.0/tools/cksumx).
+
+## Usage
+
+```bash
+cksumx --untagged [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--untagged` | none |  | create a reversed style checksum, without digest type |
+
+## Examples
+
+### Print it in the sha256sumx style
+
+```bash tab="bash" tab-group="shell"
+cksumx -a sha256 --untagged file.iso
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cksumx -a sha256 --untagged file.iso
+```
+
+## Help in the terminal
+
+```bash
+gnux help cksumx --untagged
+```

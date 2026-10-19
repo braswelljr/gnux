@@ -1,0 +1,107 @@
+---
+title: "-t, --format"
+description: "Select output format or formats; TYPE is a, c, d, f, o, u or x with an optional size, and z."
+---
+
+An option of [odx](/docs/v1.0/tools/odx).
+
+## Usage
+
+```bash
+odx -t TYPE [FILE]...
+odx --format=TYPE [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-t` | `--format` | `TYPE` |  | select output format or formats; TYPE is a, c, d, f, o, u or x with an optional size, and z |
+
+## Examples
+
+### A hexdump with offsets in hex and the text alongside
+
+```bash tab="bash" tab-group="shell"
+odx -A x -t x1z image.png
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -A x -t x1z image.png
+```
+
+### Read the first four bytes (a magic number)
+
+```bash tab="bash" tab-group="shell"
+odx -A n -t x1 -N 4 image.png
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -A n -t x1 -N 4 image.png
+```
+
+### Skip a 512-byte header and dump the next 64 bytes
+
+```bash tab="bash" tab-group="shell"
+odx -j 512 -N 64 -t x1 disk.img
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -j 512 -N 64 -t x1 disk.img
+```
+
+### Decode big-endian 32-bit integers
+
+```bash tab="bash" tab-group="shell"
+odx --endian=big -t u4 counts.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx --endian=big -t u4 counts.bin
+```
+
+### Decode floating-point values
+
+```bash tab="bash" tab-group="shell"
+odx -t f8 samples.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -t f8 samples.bin
+```
+
+### Two formats per line, hex bytes over characters
+
+```bash tab="bash" tab-group="shell"
+odx -t x1 -t c file.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -t x1 -t c file.txt
+```
+
+### Print every line, even repeated ones
+
+```bash tab="bash" tab-group="shell"
+odx -v -t x1 zeros.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -v -t x1 zeros.bin
+```
+
+### Eight bytes per line
+
+```bash tab="bash" tab-group="shell"
+odx -w8 -t x1 data.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -w8 -t x1 data.bin
+```
+
+## Help in the terminal
+
+```bash
+gnux help odx --format
+```

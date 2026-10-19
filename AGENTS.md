@@ -65,10 +65,14 @@ gnux/
     common/                # AppName ("gnux") + link-time Version
     docmeta/               # zero-dep doc metadata (Meta, Example) for tools and flags
     tool/                  # tool.Spec / tool.Topic, Spec.Command, --help/--version handling
+    sandbox/               # Enter(Policy): Landlock (Linux), Seatbelt (macOS), AppContainer (Windows)
+    mcp/                   # a small MCP server (JSON-RPC 2.0 over stdio) for `gnux mcp`
   tools/gendocs/           # `go run ./tools/gendocs [dir] [format]` - reference generator
   tools/wasm/              # js/wasm entry point for the playground (build tag js && wasm)
   tools/changelog/         # `go run ./tools/changelog vX.Y.Z` - a release's CHANGELOG.md section
   tools/benchcheck/        # `go run ./tools/benchcheck OLD NEW` - fail on a benchmark regression
+  tools/npm/               # `go run ./tools/npm -version vX.Y.Z -from DIR -out DIR` - the npm packages
+  tools/docsnap/           # `go run ./tools/docsnap -tag vX.Y.Z` - a release's docs for the website
   CHANGELOG.md             # Release history (Keep a Changelog); published as /docs/changelog
   web/                     # Next.js + Fumadocs site and playground (own go.mod: not part of ./...)
     content/docs/          # Generated MDX (committed) - never edit by hand
@@ -131,6 +135,8 @@ make web/build     # production build of the website
 make release/check # validate .goreleaser.yaml (needs goreleaser v2)
 make release/snapshot # every release archive and manifest into dist/, nothing published
 make completions   # bash/zsh/fish/PowerShell completion scripts into completions/
+make npm/pack      # the npm packages (gnux + one per platform) into dist/npm
+make wasi          # gnux for WASI (GOOS=wasip1) into bin/gnux.wasm
 
 # Always build into bin/ and run ./bin/gnux (or the links make links puts beside it). A bare
 # `go build` at the root drops a `gnux` binary there: .gitignore keeps it out of a commit, and
@@ -227,6 +233,37 @@ is not reachable through `argv[0]` and is not in `--list`. Options stop at `SCRI
   because nothing can interrupt a script in a browser tab.
 - Exit status: last command's; 2 on a syntax error (which aborts a non-interactive script);
   127 for an unknown command; 1 for an unset variable under `-u`.
+
+## The sandbox and `gnux mcp` (`internal/sandbox`, `internal/mcp`, `cmd/mcp.go`)
+
+- `sandbox.Enter(Policy{Write, Read})` confines the whole process for good: Landlock on Linux
+  (applied to every thread with `AllThreadsSyscall`, so it needs `CGO_ENABLED=0`), Seatbelt on
+  macOS (gnux re-runs itself under `sandbox-exec`) and an AppContainer on Windows (gnux grants
+  the container the directories, re-runs itself inside it and passes the exit status through)
+  and Capsicum on FreeBSD (the directories opened as `os.Root` handles in a `fsys.Rooted`, put in
+  place with `fsys.Use`, then `cap_enter`). The re-run gnux knows itself by the `GNUX_SANDBOX`
+  marker. After entering, `verify` must fail to create a file outside the policy, or Enter
+  refuses. Elsewhere (js, wasip1) Enter returns `ErrUnsupported`: **never fall back to running
+  unconfined.**
+- **`core/fsys`** is how every engine reaches files: `fsys.Open`, `fsys.Stat`, `fsys.WalkDir`,
+  ... with the signatures of their os and filepath counterparts, and those functions by default.
+  forbidigo rejects a direct `os.Open` (and the rest) under `core/`, since under Capsicum it
+  would bypass the roots. `go test -tags gnux_rooted ./...` runs the whole suite with a
+  `fsys.Rooted` of the whole disk; the Test workflow does it on every change.
+- `gnux shell --sandbox DIR [--sandbox-read DIR]` enters it before reading the script; a refusal
+  is status 125. `gnux mcp DIR...` enters it (on FreeBSD, where a confined process starts no
+  other, each call enters it instead: `sandboxEachCall`), then serves one tool, `run`, which runs
+  each command line as `gnux shell -c` in a child process (inheriting the sandbox) with a timeout,
+  an output cap (`cappedBuffer`: keep `bytes.Buffer` a field, not embedded, or `io.Copy` uses
+  its `ReadFrom` and the cap never applies) and its process tree killed on cancel.
+- Like the shell, `mcp` is in `Commands()`, not `Tools()`, and `cmd.Main` dispatches it directly.
+
+## The npm packages (`tools/npm`)
+
+`gnux` on npm is a JavaScript launcher with one `bin` per x-named tool (never the GNU names) and
+one optional dependency per release platform (`gnux-<platform>-<arch>`, `os`/`cpu` limited,
+holding only the binary). The Release workflow's `npm` job builds them from the release archives
+and publishes the platform packages first, with provenance, when `NPM_TOKEN` is set.
 
 ## The tool contract
 
@@ -385,6 +422,15 @@ When a change adds, removes or alters behavior a requirement describes, update t
 the same change; cite the IDs in commits and PRs where it helps. When it changes how a process
 runs (dispatch, the shell, the generator, CI), update the matching `docs/workflows/` page; when
 it changes a usage example the guides show, update the guide.
+
+**Versions.** The website also serves the docs of each stable release, as it shipped:
+`tools/docsnap -tag vX.Y.Z` (`make docs/snapshot TAG=...`, and the Release workflow's `docs`
+job) runs that tag's own generator in a temporary worktree into `web/content/docs/vX.Y/`,
+rewrites its `/docs` links into `/docs/vX.Y`, and makes its `meta.json` a root folder.
+`GenerateMDX` never deletes those folders (`VersionDir`). On the site, `lib/source.ts`
+(`pageVersion`, `docsVersions`, `latestDocs`) tells them apart: the version select in the docs
+sidebar switches between them, an older version's page is noindex with the latest page as its
+canonical, and search, the sitemap and `llms.txt` hold the latest docs only.
 
 `gendocs <dir> mdx` (run by `make docs` / `go generate` with `web/content/docs`) writes the
 website's content instead: `index.mdx`, `guide.mdx`, `library.mdx`, `shell.mdx`,

@@ -7,6 +7,8 @@ import (
 	"os/user"
 	"strconv"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 )
 
 // lookupUser resolves a user name or numeric ID.
@@ -33,7 +35,7 @@ func lookupGroup(name string) (int, bool) {
 
 // chown changes the owner and group of path; -1 leaves one unchanged.
 func chown(path string, uid, gid int) error {
-	return os.Lchown(path, uid, gid)
+	return fsys.Lchown(path, uid, gid)
 }
 
 // sameOwner reports whether info already has the requested owner and group.

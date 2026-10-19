@@ -1,0 +1,36 @@
+---
+title: "--random-source"
+description: "Get random bytes from FILE."
+---
+
+An option of [shufx](/docs/v1.0/tools/shufx).
+
+## Usage
+
+```bash
+shufx --random-source=FILE [FILE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--random-source` | `FILE` |  | get random bytes from FILE |
+
+## Examples
+
+### A reproducible order for tests
+
+```bash tab="bash" tab-group="shell"
+shufx --random-source=seed.bin cases.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+shufx --random-source=seed.bin cases.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help shufx --random-source
+```

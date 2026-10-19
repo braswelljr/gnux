@@ -1,0 +1,37 @@
+---
+title: "-F, --follow-retry"
+description: "Same as --follow=name --retry."
+---
+
+An option of [tailx](/docs/v1.0/tools/tailx).
+
+## Usage
+
+```bash
+tailx -F [FILE]...
+tailx --follow-retry [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-F` | `--follow-retry` | none |  | same as `--follow`=name `--retry` |
+
+## Examples
+
+### Follow a log across rotations, polling twice a second
+
+```bash tab="bash" tab-group="shell"
+tailx -F -s 0.5 /var/log/app.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tailx -F -s 0.5 C:\logs\app.log
+```
+
+## Help in the terminal
+
+```bash
+gnux help tailx --follow-retry
+```

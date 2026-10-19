@@ -27,7 +27,7 @@ cp -b b.txt a.txt; cp -b a.txt~ a.txt; echo $?; ls
 cp --backup=t b.txt a.txt; cp --backup=t a.txt.~1~ a.txt; ls
 cp -b -v b.txt link; ls -l link link~ | cut -c1
 touch a.txt.~9~ a.txt.~09~ a.txt.~x~; cp --backup=t -v b.txt a.txt; ls
-cp -rb -v dir a.txt; ls; ls a.txt
+cp -rb -v dir a.txt | sort; ls; ls a.txt
 mkdir d2; cp -r dir d2; cp -rbv dir/one dir/two d2/dir; ls d2/dir
 cp -b -v b.txt nonexist
 cp -b -v a.txt b.txt dir; ls dir

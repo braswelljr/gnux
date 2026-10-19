@@ -1,0 +1,37 @@
+---
+title: "-E, --show-ends"
+description: "Display $ at end of each line."
+---
+
+An option of [catx](/docs/v1.0/tools/catx).
+
+## Usage
+
+```bash
+catx -E [FILE]...
+catx --show-ends [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-E` | `--show-ends` | none |  | display $ at end of each line |
+
+## Examples
+
+### Show only line ends, or only tabs
+
+```bash tab="bash" tab-group="shell"
+catx -E list.txt && catx -T Makefile
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+catx -E list.txt; catx -T Makefile
+```
+
+## Help in the terminal
+
+```bash
+gnux help catx --show-ends
+```

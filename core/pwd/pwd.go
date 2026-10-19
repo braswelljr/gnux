@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -26,7 +28,7 @@ type Pwd struct {
 	Options
 
 	// Getenv and Getwd are the injection points tests use to control the
-	// environment; they default to os.Getenv and os.Getwd.
+	// environment; they default to os.Getenv and fsys.Getwd.
 	Getenv func(string) string
 	Getwd  func() (string, error)
 
@@ -39,7 +41,7 @@ func New(opts Options, s core.Streams) *Pwd {
 	return &Pwd{
 		Options: opts,
 		Getenv:  os.Getenv,
-		Getwd:   os.Getwd,
+		Getwd:   fsys.Getwd,
 		streams: s,
 		diag:    core.NewDiag(Name, s),
 	}
@@ -58,7 +60,7 @@ func (p *Pwd) Run(_ []string) error {
 		if env := p.Getenv("PWD"); logicalOK(env, dir) {
 			dir = env
 		}
-	} else if resolved, err := filepath.EvalSymlinks(dir); err == nil {
+	} else if resolved, err := fsys.EvalSymlinks(dir); err == nil {
 		dir = resolved
 	}
 
@@ -73,11 +75,11 @@ func logicalOK(env, dir string) bool {
 	if env == "" || !filepath.IsAbs(env) || filepath.Clean(env) != env {
 		return false
 	}
-	a, err := os.Stat(env)
+	a, err := fsys.Stat(env)
 	if err != nil {
 		return false
 	}
-	b, err := os.Stat(dir)
+	b, err := fsys.Stat(dir)
 	if err != nil {
 		return false
 	}

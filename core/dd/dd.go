@@ -12,6 +12,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -155,7 +157,7 @@ func (d *Dd) openInput() (io.Reader, string, func(), bool) {
 	if d.Input == "" {
 		return d.streams.In, "standard input", func() {}, true
 	}
-	f, err := os.Open(d.Input)
+	f, err := fsys.Open(d.Input)
 	if err != nil {
 		d.diag.Errorf("failed to open '%s': %s", d.Input, core.ErrText(err))
 		return nil, "", nil, false
@@ -184,7 +186,7 @@ func (d *Dd) openOutput(obs int64) (io.Writer, string, func(), bool) {
 	if d.Append {
 		flags |= os.O_APPEND
 	}
-	f, err := os.OpenFile(d.Output, flags, 0o666)
+	f, err := fsys.OpenFile(d.Output, flags, 0o666)
 	if err != nil {
 		d.diag.Errorf("failed to open '%s': %s", d.Output, core.ErrText(err))
 		return nil, "", nil, false

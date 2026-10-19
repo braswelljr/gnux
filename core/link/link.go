@@ -4,7 +4,7 @@
 package link
 
 import (
-	"os"
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -20,7 +20,7 @@ type Options struct{}
 type Link struct {
 	Options
 
-	// LinkFn creates the hard link; it defaults to os.Link.
+	// LinkFn creates the hard link; it defaults to fsys.Link.
 	LinkFn func(oldname, newname string) error
 
 	streams core.Streams
@@ -31,7 +31,7 @@ type Link struct {
 func New(opts Options, s core.Streams) *Link {
 	return &Link{
 		Options: opts,
-		LinkFn:  os.Link,
+		LinkFn:  fsys.Link,
 		streams: s,
 		diag:    core.NewDiag(Name, s),
 	}

@@ -1,7 +1,10 @@
 # Requirement enforced: the code vets and passes its tests under the race
 # detector on Linux, macOS and Windows with the Go version pinned in go.mod,
 # the built binary dispatches on its own name, every tool still compiles for
-# js/wasm (the web playground), every parser of untrusted text survives a
+# js/wasm (the web playground) and WASI, the sandbox confines a process on
+# Linux, macOS, Windows and (in a FreeBSD virtual machine) FreeBSD, the whole
+# suite passes with every file access through os.Root, every parser of
+# untrusted text survives a
 # short fuzzing run, and every case in cmd/testdata/conformance gives the same
 # output, errors and exit status as GNU coreutils, grep, sed and findutils.
 name: Test
@@ -69,6 +72,31 @@ jobs:
           GOARCH: wasm
         run: go build -o /dev/null ./tools/wasm
 
+      # A WASI runtime is what confines gnux to the directories it opens, so
+      # every tool must keep compiling for wasip1 too.
+      - name: Build for WASI
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          GOOS: wasip1
+          GOARCH: wasm
+        run: go build -o /dev/null .
+
+      # The sandbox's tests confine a copy of the test binary (Landlock on
+      # Linux, Seatbelt on macOS, an AppContainer on Windows) and check what it
+      # can still reach. Landlock needs a build without cgo, which the race
+      # detector's run above has, so they run once more without it.
+      # Every engine reaches files through core/fsys, which the FreeBSD
+      # sandbox points at os.Root handles; the whole suite runs once that way,
+      # so a change that would break the sandbox fails here, on every system.
+      - name: Test with every file access through os.Root
+        if: matrix.os == 'ubuntu-latest'
+        run: go test -tags gnux_rooted ./...
+
+      - name: Test the sandbox without cgo
+        env:
+          CGO_ENABLED: "0"
+        run: go test -count=1 ./internal/sandbox
+
       # The shell, sedx, grepx, findx and xargsx read text gnux did not write
       # (a script, a pattern, an expression, a list of names); a short run of
       # each fuzz target catches a panic before it ships. Seeds also run in
@@ -106,3 +134,20 @@ jobs:
           chown -R runner-gnux "$GITHUB_WORKSPACE"
           # Unprivileged, as a user runs the tools: root ignores permissions.
           su runner-gnux -c "cd '$GITHUB_WORKSPACE' && PATH=/usr/local/go/bin:\$PATH GOTOOLCHAIN=auto go test -tags conformance -run TestConformance ./cmd/"
+
+  # FreeBSD's sandbox is Capsicum, which only a FreeBSD kernel has: the
+  # sandbox and rooted file system tests run in a FreeBSD virtual machine.
+  freebsd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Test in FreeBSD
+        uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          prepare: pkg install -y go git
+          run: |
+            export GOTOOLCHAIN=auto CGO_ENABLED=0 HOME=/tmp
+            go test -count=1 ./internal/sandbox ./core/fsys ./cmd/ -run 'Confinement|Resolve|Rooted|Capped|Runner'

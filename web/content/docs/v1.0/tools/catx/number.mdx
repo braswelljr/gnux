@@ -1,0 +1,47 @@
+---
+title: "-n, --number"
+description: "Number all output lines."
+---
+
+An option of [catx](/docs/v1.0/tools/catx).
+
+## Usage
+
+```bash
+catx -n [FILE]...
+catx --number [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-n` | `--number` | none |  | number all output lines |
+
+## Examples
+
+### Number the lines of a file
+
+```bash tab="bash" tab-group="shell"
+catx -n main.go
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+catx -n main.go
+```
+
+### Squeeze runs of blank lines into one, then number the result
+
+```bash tab="bash" tab-group="shell"
+catx -sn draft.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+catx -sn draft.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help catx --number
+```

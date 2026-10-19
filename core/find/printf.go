@@ -2,10 +2,11 @@ package find
 
 import (
 	"io/fs"
-	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/sysstat"
@@ -293,7 +294,7 @@ func (f *Find) followedType(e *entry) byte {
 	if t&fs.ModeSymlink == 0 {
 		return typeLetter(t)
 	}
-	info, err := os.Stat(e.path)
+	info, err := fsys.Stat(e.path)
 	switch {
 	case err == nil:
 		return typeLetter(info.Mode().Type())

@@ -1,0 +1,36 @@
+---
+title: "--zero"
+description: "End each output line with NUL, not newline."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx --zero [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--zero` | none |  | end each output line with NUL, not newline |
+
+## Examples
+
+### Pass every name to another tool safely, even ones with spaces or newlines
+
+```bash tab="bash" tab-group="shell"
+lsx --zero downloads | xargsx -0 sha256sumx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx --zero downloads | xargsx -0 sha256sumx
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --zero
+```

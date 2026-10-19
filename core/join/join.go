@@ -8,8 +8,9 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"os"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -147,7 +148,7 @@ func (j *Join) Run(args []string) error {
 				r = strings.NewReader("")
 			}
 		} else {
-			f, err := os.Open(name)
+			f, err := fsys.Open(name)
 			if err != nil {
 				j.diag.Errorf("%s: %s", name, core.ErrText(err))
 				j.close()

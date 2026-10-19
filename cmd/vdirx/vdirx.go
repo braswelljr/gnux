@@ -35,8 +35,9 @@ func Meta() docmeta.Meta {
 			"lsx does and takes every lsx option, but in the long format (mode, link count, " +
 			"owner, group, size, timestamp and name) by default, and writes unprintable " +
 			"characters in names as backslash escapes (\\n, \\t, \\ooo) so that every entry " +
-			"fits on one line. An option that picks a format (-1, -C, -x, -m) or a quoting " +
-			"style (-Q) replaces those defaults. Diagnostics and exit statuses are lsx's, " +
+			"fits on one line, and never prints '?' for one unless -q is given. An option " +
+			"that picks a format (-1, -C, -x, -m, --format) or a quoting style (-N, -Q, " +
+			"--quoting-style, or the QUOTING_STYLE variable) replaces those defaults. Diagnostics and exit statuses are lsx's, " +
 			"prefixed with vdirx.",
 		Permissions: "Listing a directory needs read permission on it, and the long format " +
 			"needs search permission to examine each entry. Nothing is ever modified.",

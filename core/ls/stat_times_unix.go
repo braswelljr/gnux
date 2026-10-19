@@ -1,4 +1,4 @@
-//go:build !windows && !darwin && !freebsd && !netbsd && !js
+//go:build !windows && !darwin && !freebsd && !netbsd && !js && !wasip1
 
 package ls
 

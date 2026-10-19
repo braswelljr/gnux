@@ -7,9 +7,10 @@ import (
 	"bufio"
 	"errors"
 	"io"
-	"os"
 	"slices"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -66,7 +67,7 @@ func (t *Tsort) Run(args []string) (err error) {
 
 	r := t.streams.In
 	if name != "-" {
-		f, err := os.Open(name)
+		f, err := fsys.Open(name)
 		if err != nil {
 			t.diag.Errorf("%s: %s", name, core.ErrText(err))
 			return t.diag.Result()

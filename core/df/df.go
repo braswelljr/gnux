@@ -12,6 +12,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/fsstat"
 	"github.com/braswelljr/gnux/core/internal/human"
@@ -114,7 +116,7 @@ func New(opts Options, s core.Streams) *Df {
 		mounts:  fsstat.Mounts,
 		statfs:  fsstat.Statfs,
 		devOf: func(p string) (uint64, error) {
-			info, err := os.Stat(p)
+			info, err := fsys.Stat(p)
 			if err != nil {
 				return 0, err
 			}
@@ -361,12 +363,12 @@ func (d *Df) filter(mounts []fsstat.Mount) []fsstat.Mount {
 
 // entry reports the file system holding a FILE operand.
 func (d *Df) entry(name string, mounts []fsstat.Mount) {
-	abs, err := filepath.Abs(name)
+	abs, err := fsys.Abs(name)
 	if err == nil {
-		abs, err = filepath.EvalSymlinks(abs)
+		abs, err = fsys.EvalSymlinks(abs)
 	}
 	if err == nil {
-		_, err = os.Stat(abs)
+		_, err = fsys.Stat(abs)
 	}
 	if err != nil {
 		d.diag.Errorf("%s: %s", name, core.ErrText(err))

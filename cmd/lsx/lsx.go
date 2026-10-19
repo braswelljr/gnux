@@ -53,7 +53,25 @@ func Meta() docmeta.Meta {
 			"so uppercase sorts before lowercase regardless of the environment's locale - or by " +
 			"time (-t), size (-S), extension (-X) or version (-v), optionally reversed with -r. " +
 			"When several flags of one family are given (-l/-1/-C/-x/-m, the sort keys, -a/-A, " +
-			"-c/-u/--time, …) the last one on the command line wins, as in GNU ls. The exit " +
+			"-c/-u/--time, …) the last one on the command line wins, as in GNU ls. Names are " +
+			"quoted in GNU's styles: on a terminal, for the shell where a shell would need " +
+			"it ('a b', 'new'$'\\n''line'), with an unquoted name moved one column right to " +
+			"line up with quoted ones; otherwise as they are. --quoting-style=WORD picks " +
+			"literal (-N), shell, shell-always, shell-escape, shell-escape-always, c (-Q), " +
+			"c-maybe, escape (-b), locale or clocale, and the QUOTING_STYLE variable does " +
+			"when no option does. On a terminal -q, or a style that leaves control " +
+			"characters as they are, prints '?' for them, unless --show-control-chars. " +
+			"--format=WORD and --indicator-style=WORD are the long forms of the format and " +
+			"indicator options. --zero ends each line with NUL instead of a newline (and " +
+			"implies -1, -N, --show-control-chars and no color unless later options say " +
+			"otherwise). --block-size=SIZE scales sizes in the long format and the -s counts " +
+			"(K, 1M, KB, human-readable, si; LS_BLOCK_SIZE and BLOCK_SIZE when no option " +
+			"gives one), and -k counts -s blocks in KiB. --author adds the author column, " +
+			"which is the owner. --hyperlink[=WHEN] makes each name a terminal hyperlink to " +
+			"its file:// URL. -D (--dired) adds the marks Emacs' dired reads: each long-format " +
+			"line indented two spaces, then //DIRED// and //SUBDIRED// with the byte offsets " +
+			"of each name and directory header; it implies -l, turns --hyperlink off, and " +
+			"cannot be combined with --zero. The exit " +
 			"status is 0 on success, 1 for minor problems such as an entry that cannot be " +
 			"examined, and 2 for serious trouble such as an operand that cannot be accessed.",
 		Permissions: "Listing a directory needs read permission on it; examining its entries " +
@@ -195,6 +213,26 @@ func Meta() docmeta.Meta {
 				Bash:        "gnux shell -c 'lsx -1 *.log | wcx -l'",
 				PowerShell:  "gnux shell -c 'lsx -1 *.log | wcx -l'",
 			},
+			{
+				Description: "Pass every name to another tool safely, even ones with spaces or newlines:",
+				Bash:        "lsx --zero downloads | xargsx -0 sha256sumx",
+				PowerShell:  "lsx --zero downloads | xargsx -0 sha256sumx",
+			},
+			{
+				Description: "Print names you can paste straight back into a shell command:",
+				Bash:        "lsx --quoting-style=shell-escape uploads",
+				PowerShell:  "lsx --quoting-style=shell-escape uploads",
+			},
+			{
+				Description: "Show the size of each video in megabytes:",
+				Bash:        "lsx -l --block-size=M videos",
+				PowerShell:  "lsx -l --block-size=M videos",
+			},
+			{
+				Description: "Make every name clickable in a terminal that supports hyperlinks:",
+				Bash:        "lsx --hyperlink=auto ~/projects",
+				PowerShell:  "lsx --hyperlink=auto $HOME\\projects",
+			},
 		},
 	}
 }
@@ -203,13 +241,16 @@ func Meta() docmeta.Meta {
 // form of every member; see latest.
 var (
 	hiddenFlags    = []string{"all", "almost-all"}
-	formatFlags    = []string{"long", "one-per-line", "columns", "across", "commas", "long-no-owner", "long-no-group", "numeric-uid-gid", "full-time"}
+	formatFlags    = []string{"long", "one-per-line", "columns", "across", "commas", "long-no-owner", "long-no-group", "numeric-uid-gid", "full-time", "format", "zero", "dired"}
 	sortFlags      = []string{"sort-time", "sort-size", "sort-extension", "unsorted", "sort-version", "sort"}
 	timeFlags      = []string{"ctime", "atime", "time"}
-	sizeFlags      = []string{"human-readable", "si"}
-	indicatorFlags = []string{"classify", "slash", "file-type"}
+	sizeFlags      = []string{"human-readable", "si", "block-size"}
+	indicatorFlags = []string{"classify", "slash", "file-type", "indicator-style"}
 	derefFlags     = []string{"dereference", "dereference-command-line"}
-	quotingFlags   = []string{"quote-name", "escape"}
+	quotingFlags   = []string{"quote-name", "escape", "literal", "quoting-style", "zero"}
+	controlFlags   = []string{"hide-control-chars", "show-control-chars", "zero"}
+	colorFlags     = []string{"color", "zero"}
+	hyperlinkFlags = []string{"hyperlink", "dired"}
 	styleFlags     = []string{"time-style", "full-time"}
 )
 
@@ -233,8 +274,20 @@ func Register(fs *pflag.FlagSet) {
 	flag("ctime", "c", "with -lt: sort by, and show, ctime (time of last change of file status "+
 		"information); with -l: show ctime and sort by name; otherwise: sort by ctime, newest first")
 	flag("columns", "C", "list entries by columns")
-	fs.String("color", "never", "color the output `WHEN`: 'always' (the default when WHEN is omitted), 'auto', or 'never'")
+	word("color", "color the output `WHEN`: 'always' (the default when WHEN is omitted), 'auto', or 'never'")
 	fs.Lookup("color").NoOptDefVal = "always"
+	fs.Bool("author", false, "with -l, print the author of each file")
+	word("block-size", "with -l, scale sizes by `SIZE` when printing them; e.g., '--block-size=M'")
+	flag("dired", "D", "generate output designed for Emacs' dired mode")
+	word("format", "across -x, commas -m, horizontal -x, long -l, single-column -1, verbose -l, vertical -C (`WORD`)")
+	word("hyperlink", "hyperlink file names `WHEN`: 'always' (the default when WHEN is omitted), 'auto', or 'never'")
+	fs.Lookup("hyperlink").NoOptDefVal = "always"
+	word("indicator-style", "append indicator with style `WORD` to entry names: none (default), slash (-p), file-type (--file-type), classify (-F)")
+	fs.BoolP("kibibytes", "k", false, "default to 1024-byte blocks for file system usage; used only with -s and per directory totals")
+	flag("literal", "N", "print entry names without quoting")
+	word("quoting-style", "use quoting style `WORD` for entry names: literal, locale, shell, shell-always, shell-escape, shell-escape-always, c, escape (overrides QUOTING_STYLE environment variable)")
+	flag("show-control-chars", "", "show nongraphic characters as-is (the default, unless program is 'ls' and output is a terminal)")
+	flag("zero", "", "end each output line with NUL, not newline")
 	fs.BoolP("directory", "d", false, "list directories themselves, not their contents")
 	flag("classify", "F", "append indicator (one of */=@|) to entries")
 	flag("file-type", "", "likewise, except do not append '*'")
@@ -255,7 +308,7 @@ func Register(fs *pflag.FlagSet) {
 	flag("numeric-uid-gid", "n", "like -l, but list numeric user and group IDs")
 	flag("long-no-group", "o", "like -l, but do not list group information")
 	flag("slash", "p", "append / indicator to directories")
-	fs.BoolP("hide-control-chars", "q", false, "print ? instead of nongraphic characters")
+	flag("hide-control-chars", "q", "print ? instead of nongraphic characters")
 	flag("quote-name", "Q", "enclose entry names in double quotes")
 	fs.BoolP("reverse", "r", false, "reverse order while sorting")
 	fs.BoolP("recursive", "R", false, "list subdirectories recursively")
@@ -305,8 +358,10 @@ func RunAs(name string, format ls.Format) func(fs *pflag.FlagSet, args []string,
 		if opts.Format == ls.FormatAuto {
 			opts.Format = format
 		}
-		if latest(fs, quotingFlags) == "" {
-			opts.Quoting = ls.QuoteEscape
+		// GNU's dir and vdir escape names and never print "?" for them.
+		opts.QuotingDefault = ls.QuoteEscape
+		if latest(fs, controlFlags) == "" {
+			opts.ShowControlChars = true
 		}
 		return ls.NewAs(name, opts, s).Run(args)
 	}
@@ -324,7 +379,16 @@ func buildOptions(fs *pflag.FlagSet) (ls.Options, error) {
 	o.ShowBlocks, _ = fs.GetBool("size")
 	o.Inode, _ = fs.GetBool("inode")
 	o.GroupDirectories, _ = fs.GetBool("group-directories-first")
-	o.HideControlChars, _ = fs.GetBool("hide-control-chars")
+	switch latest(fs, controlFlags) {
+	case "hide-control-chars":
+		o.HideControlChars = true
+	case "show-control-chars", "zero":
+		o.ShowControlChars = true
+	}
+	o.Zero = given(fs, "zero")
+	o.Author, _ = fs.GetBool("author")
+	o.Kibibytes, _ = fs.GetBool("kibibytes")
+	o.Dired = given(fs, "dired")
 	o.IgnoreBackups, _ = fs.GetBool("ignore-backups")
 	o.Ignore = patternsOf(fs, "ignore")
 	o.Hide = patternsOf(fs, "hide")
@@ -346,7 +410,13 @@ func buildOptions(fs *pflag.FlagSet) (ls.Options, error) {
 	o.NumericIDs = given(fs, "numeric-uid-gid")
 	for _, name := range inOrder(fs, formatFlags) {
 		switch name {
-		case "one-per-line":
+		case "format":
+			f, err := ls.ParseFormat(value(fs, name))
+			if err != nil {
+				return ls.Options{}, err
+			}
+			o.Format = f
+		case "one-per-line", "zero":
 			// -1 does not cancel an earlier long format; GNU ls prints the
 			// long listing either way.
 			if o.Format != ls.FormatLong {
@@ -407,15 +477,21 @@ func buildOptions(fs *pflag.FlagSet) (ls.Options, error) {
 		o.HumanReadable = true
 	case "si":
 		o.SI = true
+	case "block-size":
+		o.BlockSize = value(fs, "block-size")
 	}
 
-	switch latest(fs, indicatorFlags) {
+	switch name := latest(fs, indicatorFlags); name {
 	case "classify":
 		o.Indicator = ls.IndicatorClassify
 	case "slash":
 		o.Indicator = ls.IndicatorSlash
 	case "file-type":
 		o.Indicator = ls.IndicatorFileType
+	case "indicator-style":
+		if o.Indicator, err = ls.ParseIndicator(value(fs, name)); err != nil {
+			return ls.Options{}, err
+		}
 	}
 
 	switch latest(fs, derefFlags) {
@@ -425,16 +501,30 @@ func buildOptions(fs *pflag.FlagSet) (ls.Options, error) {
 		o.DereferenceArgs = true
 	}
 
-	switch latest(fs, quotingFlags) {
+	switch name := latest(fs, quotingFlags); name {
 	case "quote-name":
 		o.Quoting = ls.QuoteC
 	case "escape":
 		o.Quoting = ls.QuoteEscape
+	case "literal", "zero":
+		o.Quoting = ls.QuoteLiteral
+	case "quoting-style":
+		if o.Quoting, err = ls.ParseQuoting(value(fs, name)); err != nil {
+			return ls.Options{}, err
+		}
 	}
 
-	color, _ := fs.GetString("color")
-	if o.Color, err = ls.ParseWhen("--color", color); err != nil {
-		return ls.Options{}, err
+	// --zero turns color off; a later --color turns it back on.
+	if latest(fs, colorFlags) == "color" {
+		if o.Color, err = ls.ParseWhen("--color", value(fs, "color")); err != nil {
+			return ls.Options{}, err
+		}
+	}
+	// -D turns hyperlinks off; a later --hyperlink turns them back on.
+	if latest(fs, hyperlinkFlags) == "hyperlink" {
+		if o.Hyperlink, err = ls.ParseWhen("--hyperlink", value(fs, "hyperlink")); err != nil {
+			return ls.Options{}, err
+		}
 	}
 
 	if w, _ := fs.GetString("width"); w != "" {

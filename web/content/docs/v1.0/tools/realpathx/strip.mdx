@@ -1,0 +1,37 @@
+---
+title: "-s, --strip"
+description: "Don't expand symlinks."
+---
+
+An option of [realpathx](/docs/v1.0/tools/realpathx).
+
+## Usage
+
+```bash
+realpathx -s FILE...
+realpathx --strip FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-s` | `--strip` | none |  | don't `expand` symlinks |
+
+## Examples
+
+### Clean up a path without expanding symbolic links
+
+```bash tab="bash" tab-group="shell"
+realpathx -s bin/tool
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+realpathx -s bin\tool
+```
+
+## Help in the terminal
+
+```bash
+gnux help realpathx --strip
+```

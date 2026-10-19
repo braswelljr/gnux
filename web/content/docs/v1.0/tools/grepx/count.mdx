@@ -1,0 +1,42 @@
+---
+title: "-c, --count"
+description: "Print only a count of selected lines per FILE."
+---
+
+An option of [grepx](/docs/v1.0/tools/grepx).
+
+## Usage
+
+```bash
+grepx -c PATTERNS [FILE]...
+grepx --count PATTERNS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-c` | `--count` | none |  | print only a count of selected lines per FILE |
+
+## Examples
+
+### Count the matching lines in each file
+
+```bash tab="bash" tab-group="shell"
+grepx -c '^func ' *.go
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -c '^func ' (Get-ChildItem *.go).Name
+```
+
+```text title="Output"
+main.go:3
+util.go:11
+```
+
+## Help in the terminal
+
+```bash
+gnux help grepx --count
+```

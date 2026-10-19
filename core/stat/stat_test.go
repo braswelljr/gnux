@@ -106,7 +106,7 @@ func TestSymlink(t *testing.T) {
 		t.Skip("symlinks unavailable")
 	}
 	out, _, _ := run(format("%N|%F"), link)
-	if want := "'" + link + "' -> target|symbolic link\n"; out != want {
+	if want := "'" + link + "' -> 'target'|symbolic link\n"; out != want { // GNU quotes the target too
 		t.Fatalf("%%N = %q, want %q", out, want)
 	}
 	out, _, _ = run(stat.Options{Format: "%F %s", FormatSet: true, Dereference: true}, link)

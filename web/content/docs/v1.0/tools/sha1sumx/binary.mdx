@@ -1,0 +1,37 @@
+---
+title: "-b, --binary"
+description: "Read in binary mode."
+---
+
+An option of [sha1sumx](/docs/v1.0/tools/sha1sumx).
+
+## Usage
+
+```bash
+sha1sumx -b [FILE]...
+sha1sumx --binary [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-b` | `--binary` | none |  | read in binary mode |
+
+## Examples
+
+### Match the '*' binary-mode lines produced by tools on Windows
+
+```bash tab="bash" tab-group="shell"
+sha1sumx -b setup.exe
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sha1sumx -b setup.exe
+```
+
+## Help in the terminal
+
+```bash
+gnux help sha1sumx --binary
+```

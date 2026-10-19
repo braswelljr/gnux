@@ -2,7 +2,9 @@
 
 package cp
 
-import "os"
+import (
+	"os"
+)
 
 // inode is unavailable through os.FileInfo on Windows, so hard links between
 // sources are copied as independent files there.
@@ -15,7 +17,7 @@ func chown(_ string, _ os.FileInfo) error {
 	return nil
 }
 
-// createdDirMode is the mode a directory made by os.Mkdir(path, perm) is meant
+// createdDirMode is the mode a directory made by fsys.Mkdir(path, perm) is meant
 // to have. Windows ignores the mode given to Mkdir and has no umask, so it is
 // perm itself; cp applies it once the contents are in, which is how a
 // read-only source directory gives a read-only copy.

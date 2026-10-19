@@ -13,9 +13,10 @@ import (
 	"errors"
 	"io"
 	"math"
-	"os"
 	"strings"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -179,7 +180,7 @@ func (f *Fmt) Run(args []string) error {
 				r = strings.NewReader("")
 			}
 		} else {
-			file, err := os.Open(name)
+			file, err := fsys.Open(name)
 			if err != nil {
 				f.diag.Errorf("cannot open '%s' for reading: %s", name, core.ErrText(err))
 				continue

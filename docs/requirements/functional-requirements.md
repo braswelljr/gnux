@@ -873,8 +873,9 @@ dirx takes every option of lsx (FR-60).
 
 - **Behavior.** dirx is lsx with GNU dir's defaults: it takes every lsx option (FR-60) and
   lists exactly as lsx does, but arranges the names in columns whether or not the output is a terminal, and writes unprintable characters in names as backslash
-  escapes, as -b does. An option that picks a format or a quoting style replaces those defaults.
-  Diagnostics and exit statuses are lsx's, prefixed with dirx.
+  escapes, as -b does, and never prints `?` for one without `-q`. An option that picks a format
+  or a quoting style, or the `QUOTING_STYLE` variable, replaces those defaults. Diagnostics and
+  exit statuses are lsx's, prefixed with dirx.
 - **Verified by.** `cmd/dirx/dirx_test.go`, `core/ls/ls_test.go`.
 
 ### FR-108: dux
@@ -1504,14 +1505,18 @@ lsx [OPTION]... [FILE]...
 |---------------------------------|-------------------------------------------------------------------------|
 | `-a`, `--all`                   | Do not ignore entries starting with `.`                                 |
 | `-A`, `--almost-all`            | Do not list implied `.` and `..`                                        |
+| `--author`                      | With `-l`, print the author of each file                                |
 | `-b`, `--escape`                | Print C-style escapes for nongraphic characters                         |
 | `-B`, `--ignore-backups`        | Do not list implied entries ending with `~`                             |
+| `--block-size=SIZE`             | With `-l` and `-s`, scale sizes by SIZE (`K`, `1M`, `KB`, `human-readable`, `si`) |
 | `-c`                            | Use the status change time, for sorting and for display                 |
 | `-C`                            | List entries by columns                                                 |
 | `--color[=WHEN]`                | Color the output: `always` (when WHEN is omitted), `auto` or `never`    |
 | `-d`, `--directory`             | List directories themselves, not their contents                         |
+| `-D`, `--dired`                 | Generate output for Emacs' dired mode (implies `-l`)                    |
 | `-F`, `--classify`              | Append an indicator (one of `*/=@` or a vertical bar) to entries        |
 | `--file-type`                   | Likewise, except do not append `*`                                      |
+| `--format=WORD`                 | across, commas, horizontal, long, single-column, verbose, vertical      |
 | `--full-time`                   | Like `-l --time-style=full-iso`                                         |
 | `-g`                            | Like `-l`, but do not list owner                                        |
 | `--group-directories-first`     | Group directories before files                                          |
@@ -1520,19 +1525,25 @@ lsx [OPTION]... [FILE]...
 | `--si`                          | Likewise, but use powers of 1000, not 1024                              |
 | `-H`, `--dereference-command-line` | Follow symbolic links listed on the command line                     |
 | `--hide=PATTERN`                | Do not list implied entries matching PATTERN (overridden by `-a`, `-A`) |
+| `--hyperlink[=WHEN]`            | Hyperlink file names: `always` (when WHEN is omitted), `auto` or `never` |
 | `-i`, `--inode`                 | Print the index number of each file                                     |
 | `-I`, `--ignore=PATTERN`        | Do not list implied entries matching PATTERN                            |
+| `--indicator-style=WORD`        | none, slash (`-p`), file-type (`--file-type`), classify (`-F`)          |
+| `-k`, `--kibibytes`             | Count `-s` blocks and totals in 1024-byte units                         |
 | `-l`                            | Use a long listing format                                               |
 | `-L`, `--dereference`           | Show information for the file a symbolic link references                |
 | `-m`                            | Fill width with a comma-separated list of entries                       |
 | `-n`, `--numeric-uid-gid`       | Like `-l`, but list numeric user and group IDs                          |
+| `-N`, `--literal`               | Print entry names without quoting                                       |
 | `-o`                            | Like `-l`, but do not list group information                            |
 | `-p`                            | Append `/` to directories                                               |
 | `-q`, `--hide-control-chars`    | Print `?` instead of nongraphic characters                              |
 | `-Q`, `--quote-name`            | Enclose entry names in double quotes                                    |
+| `--quoting-style=WORD`          | literal, shell, shell-always, shell-escape, shell-escape-always, c, c-maybe, escape, locale, clocale |
 | `-r`, `--reverse`               | Reverse order while sorting                                             |
 | `-R`, `--recursive`             | List subdirectories recursively                                         |
 | `-s`, `--size`                  | Print the allocated size of each file, in blocks                        |
+| `--show-control-chars`          | Print nongraphic characters as they are                                 |
 | `-S`                            | Sort by file size, largest first                                        |
 | `--sort=WORD`                   | Sort by WORD: none, size, time, version, extension, name, width         |
 | `--time=WORD`                   | Which timestamp: atime, access, use; ctime, status; mtime, modification; birth, creation |
@@ -1546,6 +1557,7 @@ lsx [OPTION]... [FILE]...
 | `-x`                            | List entries by lines instead of by columns                             |
 | `-X`                            | Sort alphabetically by entry extension                                  |
 | `-1`                            | List one file per line                                                  |
+| `--zero`                        | End each output line with NUL, not newline                              |
 
 - **Behavior.** Operands that are not directories are listed first, then each directory under a
   header. On a terminal names are arranged in columns sized to the window; when output is piped
@@ -1554,17 +1566,42 @@ lsx [OPTION]... [FILE]...
   still listed, with `?` in place of the unknown fields. When several options of one family are
   given (the formats, the sort keys, `-a` and `-A`, the time selectors) the last one on the
   command line wins, as in GNU. The exit status is 0 on success, 1 for minor problems, and 2
-  for serious trouble such as an operand that cannot be accessed or a bad command line.
+  for serious trouble such as an operand that cannot be accessed or a bad command line; an
+  invalid word for an option (`--sort=x`, `--format=x`) exits 1, as GNU's argmatch does.
+- **Quoting.** Names are quoted as gnulib's quotearg quotes them, in the style `--quoting-style`
+  names (or `-N`, `-b`, `-Q`), else the one the `QUOTING_STYLE` variable names (an invalid one
+  is warned about and ignored), else shell-escape on a terminal and literal otherwise (dir and
+  vdir: escape). The escape style also escapes a space, and with `-F` or `--file-type` the
+  indicator characters; a directory header also escapes `:`. In the long format and in columns,
+  with the shell, shell-escape and c-maybe styles, an unquoted name gets a leading space when
+  some name in the listing is quoted, so that the names line up. `?` replaces a nonprintable
+  character with `-q`, or on a terminal unless `--show-control-chars`, in the literal and shell
+  styles; dir and vdir never do so without `-q`. A control character left in a name takes no
+  column.
+- **Other options.** `--zero` ends each line (and each name in `-m`) with NUL, leaves headers'
+  `:` lines and the blank line between directories as they are, and implies `-1` (unless `-l`),
+  `-N`, `--show-control-chars` and no color, each undone by a later option. `--block-size` sets
+  both the long format's size unit and the `-s` unit; without it (or `-h`, `--si`),
+  `LS_BLOCK_SIZE` and then `BLOCK_SIZE` set both, and otherwise sizes are in bytes and blocks in
+  1024 bytes (512 under `POSIXLY_CORRECT`; `-k` makes it 1024 again); an invalid value exits 2
+  with `invalid --block-size argument`. `--author` adds a column after the group holding the
+  owner. `--hyperlink` wraps each name, and each directory header, in an OSC 8 link to
+  `file://HOST/PATH`, PATH absolute with symbolic links resolved and percent-encoded; a quoted
+  name lined up with unquoted ones keeps its quotes outside the link. `-D` implies `-l` and
+  turns `--hyperlink` off, both undone by a later option; with the long format it indents each
+  line by two spaces and ends the output with `//DIRED//` and `//SUBDIRED//` (the byte offsets
+  of every name and directory header) and `//DIRED-OPTIONS// --quoting-style=STYLE`; without
+  the long format it does nothing, and with `--zero` it is refused (`--dired and --zero are
+  incompatible`, status 2).
 - **Deviations.** Names are sorted by plain byte comparison (the C locale), whatever the
   environment's locale. On Windows, which has no POSIX owner, group, inode or block count, those
   columns hold placeholders. The single-letter options `-c`, `-C`, `-g`, `-l`, `-m`, `-o`,
   `-p`, `-S`, `-t`, `-u`, `-U`, `-v`, `-x`, `-X` and `-1` also answer to long names of gnux's
   own (`--ctime`, `--columns`, `--long-no-owner`, `--long`, `--commas`, `--long-no-group`,
   `--slash`, `--sort-size`, `--sort-time`, `--atime`, `--unsorted`, `--sort-version`,
-  `--across`, `--sort-extension`, `--one-per-line`). Not implemented: `--author`,
-  `--block-size`, `-D` and `--dired`, `-f`, `--format`, `--hyperlink`, `--indicator-style`,
-  `-k` and `--kibibytes`, `-N` and `--literal`, `--quoting-style`, `--show-control-chars`,
-  `-Z` and `--context`, `--zero`.
+  `--across`, `--sort-extension`, `--one-per-line`). A multibyte name is read as UTF-8 in
+  every locale, so in the C locale a printable non-ASCII character is shown where GNU escapes
+  its bytes. Not implemented: `-f`, `-Z` and `--context`.
 - **Verified by.** `core/ls/ls_test.go`, `cmd/lsx/lsx_test.go`.
 
 ### FR-119: md5sumx
@@ -2479,7 +2516,9 @@ statx [OPTION]... FILE...
   (device type of a special file), %m (mount point), %w %x %y %z (birth, access, modification and
   change times) and %W %X %Y %Z (the same as seconds since the epoch, which take a precision:
   %.3Y), with printf flags and widths (%-10s, %04a). With -f: %n %i %l %t %T %s %S %b %f %a %c %d.
-  Names are quoted only when a shell would need it. The device is shown as major,minor, as GNU
+  %N quotes the name, and a link's target, in the style `QUOTING_STYLE` names (as `lsx
+  --quoting-style` takes it; an invalid one is warned about and ignored), else shell-escape-always;
+  the default formats name files as they are. The device is shown as major,minor, as GNU
   stat 9 shows it. Missing data is reported honestly rather than invented: the birth time prints
   '-' where the system does not record it (Linux without statx), and on Windows, which has no
   numeric owners, %u and %g print '?'. SELinux contexts (%C) are not supported. --cached is
@@ -2954,8 +2993,9 @@ vdirx takes every option of lsx (FR-60).
 
 - **Behavior.** vdirx is lsx with GNU vdir's defaults: it takes every lsx option (FR-60) and
   lists exactly as lsx does, but uses the long format, and writes unprintable characters in names as backslash
-  escapes, as -b does. An option that picks a format or a quoting style replaces those defaults.
-  Diagnostics and exit statuses are lsx's, prefixed with vdirx.
+  escapes, as -b does, and never prints `?` for one without `-q`. An option that picks a format
+  or a quoting style, or the `QUOTING_STYLE` variable, replaces those defaults. Diagnostics and
+  exit statuses are lsx's, prefixed with vdirx.
 - **Verified by.** `cmd/vdirx/vdirx_test.go`, `core/ls/ls_test.go`.
 
 ### FR-71: wcx
@@ -3451,6 +3491,63 @@ With `-u`, expanding a variable that is not set must be an error that stops the 
   and a `cd` they make, end with the substitution. A command made only of assignments has the
   status of its last substitution.
 - **Verified by.** `TestSubstitution` in `core/shell/control_test.go`.
+
+### FR-168: the sandbox
+
+`gnux shell --sandbox DIR` (and `gnux mcp`, FR-169) must confine the process with the operating
+system's own sandbox before it reads or runs anything.
+
+| Option                  | Meaning |
+|-------------------------|---------|
+| `--sandbox DIR`         | Let the shell, its commands and the programs they start read and write DIR; may be repeated |
+| `--sandbox-read DIR`    | With `--sandbox`, also let them read DIR; may be repeated |
+
+- **Acceptance.** Once entered, the process (every tool, in-process, and every program a command
+  starts) can read and write the `--sandbox` directories, read the `--sandbox-read` ones and the
+  system's own directories (programs, libraries, configuration, time zones), write `/dev/null`,
+  and reach nothing else, the home directory included; neither a symbolic link nor `..` gets
+  around it, and it cannot be lifted. The sandbox is Landlock on Linux 5.13 or later (in a build
+  without cgo, which can restrict every thread), Seatbelt (`sandbox-exec`, the process run again
+  under a deny-by-default profile) on macOS, and an AppContainer on Windows 8 or later (the
+  process run again inside a container granted the directories by an inherited access entry, its
+  streams and exit status passed through, ended with its parent by a job), and Capsicum on
+  FreeBSD (the directories opened as `os.Root` handles, every engine's file access sent through
+  them by `core/fsys`, then capability mode entered, in which nothing can be opened by path and
+  no program started, so a command runs gnux's tools only). After entering, the
+  process checks that it is confined (creating a file in a directory outside the policy must be
+  refused) and refuses to go on otherwise. A directory that does not exist, `--sandbox-read`
+  without `--sandbox`, or a system with no usable sandbox (js, wasip1, a Linux kernel without
+  Landlock, a cgo build on Linux) runs nothing: the reason is written and the status is 125.
+- **Deviations.** On macOS `stat` can see the names and sizes of files outside the policy, never
+  their contents. On Windows the container has no network access; on Linux and macOS the network
+  is not restricted. On Windows the access entries stay on the directories, so that a later run
+  with the same policy starts at once; a container of another policy is granted none of them. On
+  FreeBSD the read-only directories are kept read-only by `core/fsys`, not by the kernel.
+- **Verified by.** `internal/sandbox/sandbox_test.go`, which confines a copy of the test binary
+  and checks what it can still read and write (run without cgo in the Test workflow on Linux,
+  macOS and Windows, and in a FreeBSD virtual machine); `core/fsys/rooted_test.go`; and the whole
+  suite with `-tags gnux_rooted`, which sends every file access through `os.Root`.
+
+### FR-169: gnux mcp
+
+`gnux mcp [--read DIR]... [--timeout DURATION] [--max-output BYTES] [DIR]...` must serve the
+tools to an AI agent over the Model Context Protocol, sandboxed to DIR.
+
+- **Acceptance.** The server speaks JSON-RPC 2.0 over standard input and output, one message
+  per line, and answers `initialize` (protocol revisions 2025-06-18, 2025-03-26 and
+  2024-11-05), `ping`, `tools/list` and `tools/call`; anything else gets "method not found",
+  malformed input "parse error", and notifications no answer. Before answering it enters the
+  sandbox (FR-168) with each DIR (the current directory when none is given) writable and each
+  `--read` DIR readable; where it cannot, it serves nothing and exits 125. It offers one tool,
+  `run`, taking a `command` (a gnux shell command line) and an optional `directory` (relative to
+  the first DIR, or absolute, and inside a DIR; another is refused). Each call runs as a process
+  of its own, which inherits the sandbox, with no standard input; it is stopped, with every
+  program it started, after `--timeout` (2 minutes), and each output stream is cut off after
+  `--max-output` bytes (1 MiB). The result carries the text for the model and the same as
+  structured content (`stdout`, `stderr`, `status`, `timedOut`, `truncated`), and is an error
+  when the status is not 0. Requests are handled concurrently.
+- **Verified by.** `internal/mcp/mcp_test.go` (the protocol), `cmd/mcp_test.go` (the output
+  limit, the directory check, the result text).
 
 ## 6. The Go library
 

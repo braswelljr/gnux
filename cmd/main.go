@@ -38,8 +38,10 @@ func Main(argv []string, s core.Streams) int {
 		}
 		// The shell is not a tool (no program name selects it), but a
 		// script should not wait for every tool's command to be built.
-		if shell := ShellSpec(); args[0] == shell.Name() {
-			return runCommand(shell.Command(s), args[1:], s)
+		for _, spec := range []tool.Spec{ShellSpec(), MCPSpec()} {
+			if args[0] == spec.Name() {
+				return runCommand(spec.Command(s), args[1:], s)
+			}
 		}
 	}
 	return execute(NewRoot(s), args, s)
@@ -145,6 +147,9 @@ func exitStatus(ran *cobra.Command, err error, s core.Streams) int {
 	}
 	fmt.Fprintf(s.Err, "%s: %v\n", name, err)
 	fmt.Fprintf(s.Err, "Try '%s --help' for more information.\n", name)
+	if usage := (*core.UsageError)(nil); errors.As(err, &usage) && usage.Code != 0 {
+		return usage.Code
+	}
 	return tool.UsageExit(ran)
 }
 

@@ -50,6 +50,29 @@ release/check: ## Validate .goreleaser.yaml
 release/snapshot: ## Build every release archive and package into dist/ without publishing
 	goreleaser release --snapshot --clean --skip=publish$(if $(shell command -v snapcraft),,$(comma)snapcraft)
 
+# The npm packages (tools/npm): a binary for every release platform, built
+# here rather than taken from archives, then the gnux package and one package
+# per platform in dist/npm, ready for `npm pack` or `npm publish`.
+NPM_PLATFORMS := darwin/amd64 darwin/arm64 freebsd/amd64 freebsd/arm64 linux/amd64 linux/arm64 linux/riscv64 windows/amd64 windows/arm64
+
+# The website's docs of a release (tools/docsnap): that tag's own generator
+# run in a temporary worktree, into web/content/docs/vX.Y. The Release
+# workflow does it for every stable release; `make docs` keeps the snapshots.
+.PHONY: docs/snapshot
+docs/snapshot: ## Snapshot a release's docs for the website's version select (TAG=vX.Y.Z)
+	@test -n "$(TAG)" || { echo "usage: make docs/snapshot TAG=vX.Y.Z"; exit 2; }
+	go run ./tools/docsnap -tag $(TAG)
+
+.PHONY: npm/pack
+npm/pack: ## Build the npm packages into dist/npm (NPM_VERSION=x.y.z, default from git)
+	@rm -rf dist/npm-bin && mkdir -p dist/npm-bin
+	@for p in $(NPM_PLATFORMS); do \
+		os=$${p%/*}; arch=$${p#*/}; ext=; [ $$os = windows ] && ext=.exe; \
+		echo "build $$os/$$arch"; \
+		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath $(LDFLAGS) -o dist/npm-bin/gnux-$$os-$$arch$$ext . || exit 1; \
+	done
+	go run ./tools/npm -version $(or $(NPM_VERSION),$(patsubst v%,%,$(firstword $(subst -, ,$(VERSION))))) -from dist/npm-bin -out dist/npm
+
 .PHONY: completions
 completions: ## Write bash/zsh/fish/PowerShell completion scripts into completions/
 	@mkdir -p completions
@@ -197,6 +220,10 @@ docs/check: docs ## Fail if the committed docs are out of date
 web/wasm: ## Build gnux for the browser (web/public/gnux.wasm + wasm_exec.js)
 	GOOS=js GOARCH=wasm go build -trimpath $(LDFLAGS) -o $(WEB_DIR)/public/gnux.wasm ./tools/wasm
 	cp "$$(go env GOROOT)/lib/wasm/wasm_exec.js" $(WEB_DIR)/public/wasm_exec.js
+
+.PHONY: wasi
+wasi: ## Build gnux for WASI (bin/gnux.wasm), to run under a WASI runtime
+	GOOS=wasip1 GOARCH=wasm go build -trimpath $(LDFLAGS) -o bin/gnux.wasm .
 
 .PHONY: web/docs
 web/docs: ## Regenerate the website's documentation content

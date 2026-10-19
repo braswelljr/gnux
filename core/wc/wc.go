@@ -16,6 +16,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -175,7 +177,7 @@ func (w *Wc) readNames() ([]string, bool) {
 			data, err = io.ReadAll(w.streams.In)
 		}
 	} else {
-		data, err = os.ReadFile(w.Files0From)
+		data, err = fsys.ReadFile(w.Files0From)
 	}
 	if err != nil {
 		if fromStdin {
@@ -256,7 +258,7 @@ func (w *Wc) stat(name *string) (os.FileInfo, error) {
 		}
 		return nil, nil
 	}
-	return os.Stat(*name)
+	return fsys.Stat(*name)
 }
 
 // file counts one operand. ok is false when there is nothing to print for it.
@@ -273,7 +275,7 @@ func (w *Wc) file(name *string) (c counts, ok bool) {
 			r = strings.NewReader("")
 		}
 	} else {
-		f, err := os.Open(*name)
+		f, err := fsys.Open(*name)
 		if err != nil {
 			w.diag.Errorf("%s: %s", display, core.ErrText(err))
 			return c, false

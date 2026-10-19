@@ -35,8 +35,9 @@ func Meta() docmeta.Meta {
 			"does and takes every lsx option, but arranges the names in columns even when the " +
 			"output is piped or redirected (80 columns wide then, or -w COLS), and writes " +
 			"unprintable characters in names as backslash escapes (\\n, \\t, \\ooo) so that " +
-			"every name fits on one line. An option that picks a format (-l, -1, -x, -m) or a " +
-			"quoting style (-Q) replaces those defaults. Diagnostics and exit statuses are " +
+			"every name fits on one line, and never prints '?' for one unless -q is given. An " +
+			"option that picks a format (-l, -1, -x, -m, --format) or a quoting style (-N, " +
+			"-Q, --quoting-style, or the QUOTING_STYLE variable) replaces those defaults. Diagnostics and exit statuses are " +
 			"lsx's, prefixed with dirx.",
 		Permissions: "Listing a directory needs read permission on it; examining its entries " +
 			"(-l, -s, -i, -F, --color, sorting by time or size) also needs search permission. " +

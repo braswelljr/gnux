@@ -16,6 +16,8 @@ import (
 	"syscall"
 	"unicode"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/mattn/go-isatty"
 )
 
@@ -40,6 +42,10 @@ func (e *ExitError) Error() string {
 // "Try '<tool> --help' for more information." hint.
 type UsageError struct {
 	Msg string
+	// Code is the exit status, when it is not the tool's usual one for a
+	// usage error (zero). GNU exits 1 for an invalid option argument read
+	// with argmatch even in a tool, such as ls, whose usage errors exit 2.
+	Code int
 }
 
 func (e *UsageError) Error() string {
@@ -265,7 +271,7 @@ func Describe(info os.FileInfo) string {
 
 // IsRoot reports whether path resolves to a filesystem root (e.g. "/" or "C:\").
 func IsRoot(path string) bool {
-	abs, err := filepath.Abs(path)
+	abs, err := fsys.Abs(path)
 	if err != nil {
 		return false
 	}

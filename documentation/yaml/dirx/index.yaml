@@ -2,7 +2,7 @@ name: dirx
 synopsis: |
     List directory contents in columns, whether or not the output is a terminal.
 description: |-
-    dirx is lsx -C -b: it lists each FILE, or the current directory, exactly as lsx does and takes every lsx option, but arranges the names in columns even when the output is piped or redirected (80 columns wide then, or -w COLS), and writes unprintable characters in names as backslash escapes (\n, \t, \ooo) so that every name fits on one line. An option that picks a format (-l, -1, -x, -m) or a quoting style (-Q) replaces those defaults. Diagnostics and exit statuses are lsx's, prefixed with dirx.
+    dirx is lsx -C -b: it lists each FILE, or the current directory, exactly as lsx does and takes every lsx option, but arranges the names in columns even when the output is piped or redirected (80 columns wide then, or -w COLS), and writes unprintable characters in names as backslash escapes (\n, \t, \ooo) so that every name fits on one line, and never prints '?' for one unless -q is given. An option that picks a format (-l, -1, -x, -m, --format) or a quoting style (-N, -Q, --quoting-style, or the QUOTING_STYLE variable) replaces those defaults. Diagnostics and exit statuses are lsx's, prefixed with dirx.
 
     EXIT STATUS.
       0  success
@@ -40,12 +40,17 @@ options:
       default_value: "false"
       usage: |
         with -lt: sort by, and show, access time; with -l: show access time and sort by name; otherwise: sort by access time, newest first
+    - name: author
+      default_value: "false"
+      usage: with -l, print the author of each file
+    - name: block-size
+      usage: |
+        with -l, scale sizes by `SIZE` when printing them; e.g., '--block-size=M'
     - name: classify
       shorthand: F
       default_value: "false"
       usage: append indicator (one of */=@|) to entries
     - name: color
-      default_value: never
       usage: |
         color the output `WHEN`: 'always' (the default when WHEN is omitted), 'auto', or 'never'
     - name: columns
@@ -74,6 +79,10 @@ options:
       shorthand: d
       default_value: "false"
       usage: list directories themselves, not their contents
+    - name: dired
+      shorthand: D
+      default_value: "false"
+      usage: generate output designed for Emacs' dired mode
     - name: escape
       shorthand: b
       default_value: "false"
@@ -81,6 +90,9 @@ options:
     - name: file-type
       default_value: "false"
       usage: likewise, except do not append '*'
+    - name: format
+      usage: |
+        across -x, commas -m, horizontal -x, long -l, single-column -1, verbose -l, vertical -C (`WORD`)
     - name: full-time
       default_value: "false"
       usage: like -l --time-style=full-iso
@@ -102,6 +114,9 @@ options:
       shorthand: h
       default_value: "false"
       usage: with -l and -s, print sizes like 1K 234M 2G etc.
+    - name: hyperlink
+      usage: |
+        hyperlink file names `WHEN`: 'always' (the default when WHEN is omitted), 'auto', or 'never'
     - name: ignore
       shorthand: I
       usage: do not list implied entries matching shell `PATTERN`
@@ -109,10 +124,22 @@ options:
       shorthand: B
       default_value: "false"
       usage: do not list implied entries ending with ~
+    - name: indicator-style
+      usage: |
+        append indicator with style `WORD` to entry names: none (default), slash (-p), file-type (--file-type), classify (-F)
     - name: inode
       shorthand: i
       default_value: "false"
       usage: print the index number of each file
+    - name: kibibytes
+      shorthand: k
+      default_value: "false"
+      usage: |
+        default to 1024-byte blocks for file system usage; used only with -s and per directory totals
+    - name: literal
+      shorthand: "N"
+      default_value: "false"
+      usage: print entry names without quoting
     - name: long
       shorthand: l
       default_value: "false"
@@ -141,6 +168,9 @@ options:
       shorthand: Q
       default_value: "false"
       usage: enclose entry names in double quotes
+    - name: quoting-style
+      usage: |
+        use quoting style `WORD` for entry names: literal, locale, shell, shell-always, shell-escape, shell-escape-always, c, escape (overrides QUOTING_STYLE environment variable)
     - name: recursive
       shorthand: R
       default_value: "false"
@@ -149,6 +179,10 @@ options:
       shorthand: r
       default_value: "false"
       usage: reverse order while sorting
+    - name: show-control-chars
+      default_value: "false"
+      usage: |
+        show nongraphic characters as-is (the default, unless program is 'ls' and output is a terminal)
     - name: si
       default_value: "false"
       usage: likewise, but use powers of 1000 not 1024
@@ -198,6 +232,9 @@ options:
     - name: width
       shorthand: w
       usage: set output width to `COLS`; 0 means no limit
+    - name: zero
+      default_value: "false"
+      usage: end each output line with NUL, not newline
 example: |4-
       # List the current directory in columns
       dirx

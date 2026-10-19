@@ -2,7 +2,9 @@
 
 package find
 
-import "os"
+import (
+	"github.com/braswelljr/gnux/core/fsys"
+)
 
 // The mode bits of access(2).
 const (
@@ -16,7 +18,7 @@ const (
 // is readable, the owner write bit stands for the read-only attribute, and a
 // directory or a file with an owner execute bit is executable.
 func access(path string, mode uint32) bool {
-	info, err := os.Stat(path)
+	info, err := fsys.Stat(path)
 	if err != nil {
 		return false
 	}

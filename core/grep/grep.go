@@ -9,6 +9,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -368,7 +370,7 @@ func (g *Grep) readAll(name string) ([]byte, error) {
 		}
 		return io.ReadAll(g.streams.In)
 	}
-	return os.ReadFile(name)
+	return fsys.ReadFile(name)
 }
 
 // setup derives the run's settings from the options.
@@ -472,7 +474,7 @@ func (g *Grep) operand(name string, several bool) {
 	}
 
 	// Stat, not Lstat: a symbolic link named as an operand is followed.
-	info, err := os.Stat(name)
+	info, err := fsys.Stat(name)
 	if err != nil {
 		g.fileError(name, err)
 		return
@@ -506,7 +508,7 @@ func (g *Grep) operand(name string, several bool) {
 // tree searches the working directory, which is what -r means with no file.
 // Names are printed without a leading "./".
 func (g *Grep) tree() {
-	info, err := os.Stat(".")
+	info, err := fsys.Stat(".")
 	if err != nil {
 		g.fileError(".", err)
 		return
@@ -532,7 +534,7 @@ func (g *Grep) showName(directory, several bool) bool {
 // not depend on the filesystem. prefix is what a child's name is appended to;
 // ancestors are the directories being descended, for loop detection.
 func (g *Grep) walk(dir, prefix string, ancestors []os.FileInfo) {
-	entries, err := os.ReadDir(dir) // sorted by name
+	entries, err := fsys.ReadDir(dir) // sorted by name
 	if err != nil {
 		g.fileError(dir, err)
 		return
@@ -550,7 +552,7 @@ func (g *Grep) walk(dir, prefix string, ancestors []os.FileInfo) {
 			if !g.Dereference {
 				continue
 			}
-			if info, err = os.Stat(path); err != nil {
+			if info, err = fsys.Stat(path); err != nil {
 				g.fileError(path, err)
 				continue
 			}
@@ -605,7 +607,7 @@ func isDevice(mode os.FileMode) bool {
 
 // searchFile opens and searches one file.
 func (g *Grep) searchFile(name string) {
-	f, err := os.Open(name)
+	f, err := fsys.Open(name)
 	if err != nil {
 		g.fileError(name, err)
 		return

@@ -14,9 +14,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/fsstat"
 	"github.com/braswelljr/gnux/core/internal/quote"
+	"github.com/braswelljr/gnux/core/internal/quotearg"
 	"github.com/braswelljr/gnux/core/internal/sysstat"
 )
 
@@ -73,7 +76,10 @@ type Stat struct {
 	// UserName and GroupName look up the names of owners; they return false
 	// when there is none.
 	UserName, GroupName func(id int64) (string, bool)
+	// Getenv reads QUOTING_STYLE, the style of %N; it defaults to os.Getenv.
+	Getenv func(string) string
 
+	quoting *quotearg.Options // %N's style, settled on first use
 	streams core.Streams
 	diag    *core.Diag
 	out     *bufio.Writer
@@ -85,9 +91,27 @@ func New(opts Options, s core.Streams) *Stat {
 		Options:   opts,
 		UserName:  lookupUser,
 		GroupName: lookupGroup,
+		Getenv:    os.Getenv,
 		streams:   s,
 		diag:      core.NewDiag(Name, s),
 	}
+}
+
+// quoteN quotes a name for %N as GNU stat does: in the style QUOTING_STYLE
+// names, or shell-escape-always.
+func (st *Stat) quoteN(name string) string {
+	if st.quoting == nil {
+		o := quotearg.Options{Style: quotearg.ShellEscapeAlways}
+		if env := st.Getenv("QUOTING_STYLE"); env != "" {
+			if style, ok := quotearg.ParseStyle(env); ok {
+				o.Style = style
+			} else {
+				st.diag.Warnf("ignoring invalid value of environment variable QUOTING_STYLE: '%s'", env)
+			}
+		}
+		st.quoting = &o
+	}
+	return quotearg.Quote(name, *st.quoting)
 }
 
 func lookupUser(id int64) (string, bool) {
@@ -123,6 +147,11 @@ func (st *Stat) Run(args []string) (err error) {
 	defer core.FlushOutput(st.out, st.diag, &err)
 
 	format, format2, escapes, trailing := st.formats()
+	// As in GNU, the default formats name the file as it is; a %N the user
+	// writes quotes it (QUOTING_STYLE, else shell-escape-always).
+	if !st.PrintfSet && !st.FormatSet {
+		st.quoting = &quotearg.Options{Style: quotearg.Literal}
+	}
 	for _, name := range args {
 		var err error
 		if st.FileSystem {
@@ -181,9 +210,9 @@ func (st *Stat) stat(name, format, format2 string, escapes bool, trailing string
 			return nil
 		}
 	case st.Dereference:
-		info, err = os.Stat(name)
+		info, err = fsys.Stat(name)
 	default:
-		info, err = os.Lstat(name)
+		info, err = fsys.Lstat(name)
 	}
 	if err != nil {
 		st.diag.Errorf("cannot stat '%s': %s", name, core.ErrText(err))
@@ -479,16 +508,16 @@ func (st *Stat) fileDirective(d directive, f *file) {
 		}
 		st.outString(d, name)
 	case 'N':
-		st.outString(d, quote.ShellEscape(f.name))
+		st.outString(d, st.quoteN(f.name))
 		if f.info.Mode()&os.ModeSymlink != 0 {
-			target, err := os.Readlink(f.name)
+			target, err := fsys.Readlink(f.name)
 			if err != nil {
 				_ = st.out.Flush()
 				st.diag.Errorf("cannot read symbolic link '%s': %s", f.name, core.ErrText(err))
 				return
 			}
 			_, _ = st.out.WriteString(" -> ")
-			st.outString(d, quote.ShellEscape(target))
+			st.outString(d, st.quoteN(target))
 		}
 	case 'd':
 		major, minor := sysstat.DeviceNumbers(s.Dev)
@@ -721,7 +750,7 @@ func mountPoint(f *file) string {
 	if !f.info.IsDir() {
 		dir = filepath.Dir(dir)
 	}
-	dir, err := filepath.Abs(dir)
+	dir, err := fsys.Abs(dir)
 	if err != nil {
 		return "?"
 	}
@@ -731,7 +760,7 @@ func mountPoint(f *file) string {
 		if parent == dir {
 			return dir
 		}
-		info, err := os.Stat(parent)
+		info, err := fsys.Stat(parent)
 		if err != nil || sysstat.Of(info).Dev != dev {
 			return dir
 		}

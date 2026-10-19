@@ -1,0 +1,37 @@
+---
+title: "-p, --preserve-timestamps"
+description: "Apply access/modification times of SOURCE files to corresponding destination files."
+---
+
+An option of [installx](/docs/v1.0/tools/installx).
+
+## Usage
+
+```bash
+installx -p SOURCE... DEST
+installx --preserve-timestamps SOURCE... DEST
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-p` | `--preserve-timestamps` | none |  | apply access/modification times of SOURCE files to corresponding destination files |
+
+## Examples
+
+### Keep the source's modification time
+
+```bash tab="bash" tab-group="shell"
+installx -p data.db backup/data.db
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+installx -p data.db backup\data.db
+```
+
+## Help in the terminal
+
+```bash
+gnux help installx --preserve-timestamps
+```

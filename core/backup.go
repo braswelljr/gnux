@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/fsys"
 )
 
 // BackupControl says whether, and how, a destination is backed up before it
@@ -82,12 +84,21 @@ func ParseBackupControl(context, word string) (BackupControl, error) {
 		problem = "ambiguous"
 	}
 	var b strings.Builder
-	b.WriteString(problem + " argument '" + word + "' for '" + context + "'\nValid arguments are:")
+	b.WriteString(problem)
+	b.WriteString(" argument '")
+	b.WriteString(word)
+	b.WriteString("' for '")
+	b.WriteString(context)
+	b.WriteString("'\nValid arguments are:")
 	for i, w := range backupWords {
 		if i == 0 || backupWords[i-1].control != w.control {
-			b.WriteString("\n  - '" + w.word + "'")
+			b.WriteString("\n  - '")
+			b.WriteString(w.word)
+			b.WriteString("'")
 		} else {
-			b.WriteString(", '" + w.word + "'")
+			b.WriteString(", '")
+			b.WriteString(w.word)
+			b.WriteString("'")
 		}
 	}
 	return NoBackup, &UsageError{Msg: b.String()}
@@ -148,7 +159,7 @@ func highestBackup(dir, base string) (version string, ok bool) {
 	if dir == "" {
 		dir = "."
 	}
-	entries, err := os.ReadDir(dir)
+	entries, err := fsys.ReadDir(dir)
 	version = "0"
 	if err != nil {
 		return version, false
@@ -208,16 +219,16 @@ func (b Backup) MakeBackup(path string) (string, error) {
 		name, numbered := b.backupName(path)
 		if numbered {
 			// Another process may have taken the number since the scan.
-			if _, err := os.Lstat(name); err == nil {
+			if _, err := fsys.Lstat(name); err == nil {
 				continue
 			}
 		}
-		err := os.Rename(strings.TrimRight(path, "/"), name)
+		err := fsys.Rename(strings.TrimRight(path, "/"), name)
 		switch {
 		case err == nil:
 			return name, nil
 		case errors.Is(err, fs.ErrNotExist):
-			if _, lerr := os.Lstat(path); errors.Is(lerr, fs.ErrNotExist) {
+			if _, lerr := fsys.Lstat(path); errors.Is(lerr, fs.ErrNotExist) {
 				return "", nil
 			}
 		}
@@ -237,6 +248,6 @@ func (b Backup) BackupWouldDestroy(src string, si os.FileInfo, dst string) bool 
 	if filepath.Base(src) != filepath.Base(dst)+suffix {
 		return false
 	}
-	bi, err := os.Stat(strings.TrimRight(dst, "/") + suffix)
+	bi, err := fsys.Stat(strings.TrimRight(dst, "/") + suffix)
 	return err == nil && os.SameFile(si, bi)
 }

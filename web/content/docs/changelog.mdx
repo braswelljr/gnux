@@ -5,10 +5,41 @@ description: "Every notable change to gnux, release by release, newest first. Th
 
 ## [Unreleased]
 
+### Added
+
+- gnux on npm: `npm install --save-dev gnux` puts every tool on the PATH of a project's package
+  scripts, under its gnux name (`rmx`, never `rm`), so one dependency replaces rimraf, mkdirp,
+  cpy-cli, shx and cross-env on every platform. The native binary comes in a package per
+  platform (`gnux-linux-x64`, `gnux-darwin-arm64`, `gnux-win32-x64`, ...) that npm installs as
+  an optional dependency, with no install script; `require('gnux')` offers `run` and
+  `binaryPath`, and `GNUX_BINARY` points the launchers at another gnux. The Release workflow
+  publishes them with provenance when `NPM_TOKEN` is set; `make npm/pack` builds them locally.
+  The Node and npm guide covers package scripts, globs on Windows and the JavaScript API.
+- Documentation for each release on the website: a version select in the docs sidebar switches
+  between the latest docs and those of every stable release as it shipped (`/docs/v1.0/...`),
+  staying on the same page when that version has it. Older versions say so at the top of each
+  page and are left out of search, the sitemap and `llms.txt`. The Release workflow snapshots
+  each stable release's docs with `tools/docsnap` (`make docs/snapshot TAG=vX.Y.Z`).
+- gnux builds for WASI (`GOOS=wasip1`, `make wasi`): the tools that only read and write files
+  run under a WASI runtime, which lets them reach only the directories it opens.
+- `gnux shell --sandbox DIR [--sandbox-read DIR]`: the script, and every program it starts, can
+  read and write DIR, read the system's directories, and reach nothing else, enforced by the
+  kernel: Landlock on Linux, Seatbelt on macOS, an AppContainer on Windows and Capsicum on
+  FreeBSD. Where no sandbox can be used it refuses with status 125 rather than run unconfined.
+- For Go callers: `core/fsys`, through which every engine now reaches the file system. By
+  default it is the os package; `fsys.Use(fsys.NewRooted(...))` confines every engine to a set
+  of directories through `os.Root`, in any program.
+- `gnux mcp DIR...`: a Model Context Protocol server inside that sandbox, so that an AI agent
+  (Claude Code, Claude Desktop, Cursor, VS Code) can run gnux command lines in a project and
+  reach nothing outside it, each call with a time limit and an output limit. The Sandbox and AI
+  agents guide covers both.
+
 ## [1.1.0] - 2026-10-19
 
 gnux 1.1.0 adds nine tools and closes most of the gap with GNU's option surface: backups in
-`cpx`, `mvx`, `lnx` and `installx`, GNU's getopt rules for every option, and the options
+`cpx`, `mvx`, `lnx` and `installx`, every GNU ls option but `-f` and `-Z` (GNU's ten quoting
+styles, `--zero`, `--hyperlink`, `--dired`, `--block-size`, ...), GNU's getopt rules for every
+option, and the options
 `chgrpx --from`, `chmodx -h`, `datex --resolution`, `cpx --remove-destination`, `mvx --no-copy`,
 `tailx --max-unchanged-stats` and `sortx -R`. Every one of them is now checked against GNU
 coreutils itself by a conformance harness that runs in CI.
@@ -60,9 +91,19 @@ coreutils itself by a conformance harness that runs in CI.
   and `SIMPLE_BACKUP_SUFFIX`, as in GNU: the same backup names, `-v` lines and refusals,
   checked against GNU in `cmd/testdata/conformance/backups.txt`. For Go callers,
   `core.Backup` makes and names backups, and `core.ParseBackupControl` reads a CONTROL word.
+- The rest of GNU ls's options in `lsx`, `dirx` and `vdirx`: `--quoting-style` with all ten of
+  gnulib's styles, `-N` (`--literal`) and the `QUOTING_STYLE` variable, `--show-control-chars`,
+  `--format`, `--indicator-style`, `--zero`, `--block-size` with `LS_BLOCK_SIZE` and
+  `BLOCK_SIZE`, `-k` (`--kibibytes`), `--author`, `--hyperlink` and `-D` (`--dired`), each
+  settled by option order as GNU does and checked against GNU in
+  `cmd/testdata/conformance/ls-options.txt`.
 
 ### Changed
 
+- `lsx` on a terminal quotes names for the shell, as GNU ls has since 8.25: `'a b'`,
+  `'new'$'\n''line'`, with unquoted names moved a column right to line up with quoted ones. Use
+  `-N` (or `QUOTING_STYLE=literal`) for the old output. For Go callers, `ls.Quoting`'s zero value
+  is now `ls.QuoteAuto`, GNU's default, and `ls.QuoteLiteral` is `-N`.
 - Option errors are worded as GNU's getopt words them in every tool: `unrecognized option
   '--foo'`, `invalid option -- 'z'`, `option requires an argument -- 'n'`, `option '--force'
   doesn't allow an argument`.
@@ -90,6 +131,12 @@ coreutils itself by a conformance harness that runs in CI.
 - `chownx -R --dereference` and `chgrpx -R --dereference` without `-H` or `-L` no longer add a
   `Try '... --help'` line to the error, as GNU does not.
 - `chmodx -v` reports `'FILE' could not be accessed` for a file it cannot reach, as GNU does.
+- `lsx`: an invalid word for an option (`--sort=x`, `--color=x`, `--time=x`) exits 1, as GNU
+  does, not 2; the error lists synonyms on one line (`'always', 'yes', 'force'`) and `--sort`'s
+  words in GNU's order. A diagnostic quotes a name as GNU's does.
+- `statx -c %N` quotes every name, and a link's target, as GNU does (`'a.txt'`, `"it's"`,
+  `''$'\001'`), in the style `QUOTING_STYLE` names; the default format names files as they are
+  (`File: a b`), where it used to quote them.
 - `lnx` names a directory it refuses as GNU does, quoted only when the name needs it
   (`lnx: e: cannot overwrite directory`).
 - The Docker image builds again: it used Go 1.25, older than `go.mod` requires.

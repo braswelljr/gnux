@@ -1,0 +1,46 @@
+---
+title: "--first-only"
+description: "Convert only leading sequences of blanks (overrides -a)."
+---
+
+An option of [unexpandx](/docs/v1.0/tools/unexpandx).
+
+## Usage
+
+```bash
+unexpandx --first-only [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--first-only` | none |  | convert only leading sequences of blanks (overrides `-a`) |
+
+## Examples
+
+### Retab a Go file for gofmt, leaving alignment inside lines alone
+
+```bash tab="bash" tab-group="shell"
+unexpandx -t 4 --first-only main.go
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+unexpandx -t 4 --first-only main.go
+```
+
+### Edit with spaces, then hand the file back with tabs
+
+```bash tab="bash" tab-group="shell"
+expandx -t 4 a.go | unexpandx -t 4 --first-only > b.go
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+expandx -t 4 a.go | unexpandx -t 4 --first-only > b.go
+```
+
+## Help in the terminal
+
+```bash
+gnux help unexpandx --first-only
+```

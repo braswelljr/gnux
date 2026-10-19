@@ -1,0 +1,43 @@
+---
+title: "-H, --heading"
+description: "Print line of column headings."
+---
+
+An option of [whox](/docs/v1.0/tools/whox).
+
+## Usage
+
+```bash
+whox -H [ FILE | ARG1 ARG2 ]
+whox --heading [ FILE | ARG1 ARG2 ]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-H` | `--heading` | none |  | print line of column headings |
+
+## Examples
+
+### See how long each session has been idle, with headings
+
+```bash tab="bash" tab-group="shell"
+whox -uH
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox -uH
+```
+
+```text title="Output"
+NAME     LINE         TIME         IDLE          PID COMMENT
+alice    pts/0        Oct 12 09:30 01:30        1234 (10.0.0.5)
+bob      pts/1        Oct 12 13:02   .          1300 (laptop.lan)
+```
+
+## Help in the terminal
+
+```bash
+gnux help whox --heading
+```

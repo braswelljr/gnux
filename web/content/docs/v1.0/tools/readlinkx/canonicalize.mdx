@@ -1,0 +1,47 @@
+---
+title: "-f, --canonicalize"
+description: "Canonicalize by following every symlink in every component recursively; all but the last component must exist."
+---
+
+An option of [readlinkx](/docs/v1.0/tools/readlinkx).
+
+## Usage
+
+```bash
+readlinkx -f FILE...
+readlinkx --canonicalize FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-f` | `--canonicalize` | none |  | canonicalize by following every symlink in every component recursively; all but the last component must exist |
+
+## Examples
+
+### Print the canonical, absolute name of a file
+
+```bash tab="bash" tab-group="shell"
+readlinkx -f ./bin/../bin/tool
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+readlinkx -f ./bin/../bin/tool
+```
+
+### Resolve several links at once, NUL-separated
+
+```bash tab="bash" tab-group="shell"
+readlinkx -z -f a b c | trx '\0' '\n'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+readlinkx -z -f a b c | trx '\0' '\n'
+```
+
+## Help in the terminal
+
+```bash
+gnux help readlinkx --canonicalize
+```

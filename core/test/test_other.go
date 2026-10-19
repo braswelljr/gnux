@@ -2,14 +2,18 @@
 
 package test
 
-import "os"
+import (
+	"os"
+
+	"github.com/braswelljr/gnux/core/fsys"
+)
 
 // access approximates -r/-w/-x off Unix, where there is no access(2): every
 // existing file is readable, the owner write bit stands for the read-only
 // attribute, and a directory or a file with an owner execute bit is
 // executable.
 func access(path string, mode uint32) bool {
-	info, err := os.Stat(path)
+	info, err := fsys.Stat(path)
 	if err != nil {
 		return false
 	}

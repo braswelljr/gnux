@@ -6,11 +6,13 @@ import (
 	"errors"
 	"os"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 )
 
 // ReadFile reads a utmp-format file in this platform's layout.
 func ReadFile(path string) ([]Entry, error) {
-	data, err := os.ReadFile(path)
+	data, err := fsys.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

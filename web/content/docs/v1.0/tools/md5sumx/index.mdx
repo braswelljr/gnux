@@ -1,0 +1,219 @@
+---
+title: "md5sumx"
+description: "Print or check MD5 (128-bit) checksums."
+---
+
+Mirrors GNU `md5sum`. Run it as `md5sumx`, or as `gnux md5sumx`.
+
+## Synopsis
+
+```bash
+md5sumx [OPTION]... [FILE]...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: md5sum invocation](https://www.gnu.org/software/coreutils/manual/html_node/md5sum-invocation.html)
+- [Source: src/cksum.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/cksum.c)
+
+## Description
+
+`md5sumx` prints or checks MD5 message digests (RFC 1321, 128 bits). For each FILE it prints one line: the digest in hexadecimal, a space, a mode mark (a space for text mode, '*' with `-b`), and the file name. With no FILE, or when FILE is -, it reads standard input. Files are always read as bytes, so `-b` and `-t` change only the mark; when both are given, `-t` wins. `--tag` prints BSD-style lines instead ('ALGORITHM (FILE) = DIGEST'). A file name containing a backslash, newline or carriage return is escaped and its line starts with a backslash, unless `-z` ends lines with NUL instead. `-c` reads such lines (in either style) from the FILEs and checks each listed file, printing 'FILE: OK' or 'FILE: FAILED' and a summary warning of mismatches, unreadable files and improperly formatted lines; `--quiet` drops the OK lines, `--status` prints nothing, `--ignore-missing` skips listed files that do not exist, `-w` warns about each improperly formatted line and `--strict` fails because of them. The exit status is 0 when everything was read (and, with `-c`, matched), 1 otherwise. On Windows a backslash in a file name is the path separator, so it is not escaped as GNU escapes it on Unix; a name with a newline is still escaped. MD5 is broken for security purposes: use it to detect accidental corruption, not tampering, and prefer `sha256sumx` or `b2sumx` otherwise.
+
+## Permissions
+
+Needs read permission on each FILE (and, with `-c`, on the checksum lists and every file they name) and search permission on the directories leading to them. Nothing is ever modified.
+
+## Use cases
+
+- Verifying a download against the checksum its publisher lists.
+- Recording digests of release artifacts so users can check them.
+- Detecting whether files changed between two points in time.
+- Finding duplicate files by comparing their digests.
+- Checking a backup or a copy against the original.
+
+## Flags
+
+```text
+  -b, --binary           read in binary mode
+  -c, --check            read checksums from the FILEs and check them
+      --help             display this help and exit
+      --ignore-missing   don't fail or report status for missing files
+      --quiet            don't print OK for each successfully verified file
+      --status           don't output anything, status code shows success
+      --strict           exit non-zero for improperly formatted checksum lines
+      --tag              create a BSD-style checksum
+  -t, --text             read in text mode (default)
+      --version          output version information and exit
+  -w, --warn             warn about improperly formatted checksum lines
+  -z, --zero             end each output line with NUL, not newline, and disable file name escaping
+```
+
+## Examples
+
+### You downloaded an installer: print its digest to compare with the one on the website
+
+```bash tab="bash" tab-group="shell"
+md5sumx ubuntu-24.04-desktop-amd64.iso
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx ubuntu-24.04-desktop-amd64.iso
+```
+
+### Verify the download against the publisher's checksum file, which lists other files too
+
+```bash tab="bash" tab-group="shell"
+md5sumx -c --ignore-missing md5.sums
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx -c --ignore-missing md5.sums
+```
+
+```text title="Output"
+ubuntu-24.04-desktop-amd64.iso: OK
+```
+
+### Publish checksums next to your release archives
+
+```bash tab="bash" tab-group="shell"
+md5sumx dist/*.tar.gz > dist/md5.sums
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx (Get-ChildItem dist\*.zip -Name) > dist\md5.sums
+```
+
+### Check that a backup copied to a USB drive still matches the original
+
+```bash tab="bash" tab-group="shell"
+md5sumx photos.tar /media/usb/photos.tar
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx photos.tar E:\photos.tar
+```
+
+### Find duplicate photos in a folder: files with the same digest have the same content
+
+```bash tab="bash" tab-group="shell"
+md5sumx *.jpg | sortx | uniqx -w 32 -D
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx (Get-ChildItem *.jpg -Name) | sortx | uniqx -w 32 -D
+```
+
+### In CI, fail the build when a vendored file was changed by hand
+
+```bash tab="bash" tab-group="shell"
+md5sumx -c --status vendor.md5sums || { echox 'vendored files changed' >&2; exit 1; }
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx -c --status vendor.md5sums; if ($LASTEXITCODE -ne 0) { Write-Error 'vendored files changed'; exit 1 }
+```
+
+### Re-check a large archive set and show only what no longer matches
+
+```bash tab="bash" tab-group="shell"
+md5sumx -c --quiet md5.sums
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx -c --quiet md5.sums
+```
+
+```text title="Output"
+notes.txt: FAILED
+md5sumx: WARNING: 1 computed checksum did NOT match
+```
+
+### Hash a token from a variable, without the newline echo would add
+
+```bash tab="bash" tab-group="shell"
+printfx '%s' "$TOKEN" | md5sumx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+printfx '%s' $env:TOKEN | md5sumx
+```
+
+### Write lines that name the algorithm, so a mixed list can be checked with cksumx -c
+
+```bash tab="bash" tab-group="shell"
+md5sumx --tag release.tar.gz >> CHECKSUMS
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx --tag release.zip >> CHECKSUMS
+```
+
+### Refuse a checksum list with malformed lines instead of skipping them
+
+```bash tab="bash" tab-group="shell"
+md5sumx -c --strict -w md5.sums
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx -c --strict -w md5.sums
+```
+
+### Match the '*' binary-mode lines produced by tools on Windows
+
+```bash tab="bash" tab-group="shell"
+md5sumx -b setup.exe
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+md5sumx -b setup.exe
+```
+
+### Record a digest next to the file in the portable gnux shell, the same on every OS
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'md5sumx file.iso > file.iso.md5sum'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'md5sumx file.iso > file.iso.md5sum'
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-b, --binary](/docs/v1.0/tools/md5sumx/binary): Read in binary mode.
+- [-c, --check](/docs/v1.0/tools/md5sumx/check): Read checksums from the FILEs and check them.
+- [--ignore-missing](/docs/v1.0/tools/md5sumx/ignore-missing): Don't fail or report status for missing files.
+- [--quiet](/docs/v1.0/tools/md5sumx/quiet): Don't print OK for each successfully verified file.
+- [--status](/docs/v1.0/tools/md5sumx/status): Don't output anything, status code shows success.
+- [--strict](/docs/v1.0/tools/md5sumx/strict): Exit non-zero for improperly formatted checksum lines.
+- [--tag](/docs/v1.0/tools/md5sumx/tag): Create a BSD-style checksum.
+- [-t, --text](/docs/v1.0/tools/md5sumx/text): Read in text mode (default).
+- [-w, --warn](/docs/v1.0/tools/md5sumx/warn): Warn about improperly formatted checksum lines.
+- [-z, --zero](/docs/v1.0/tools/md5sumx/zero): End each output line with NUL, not newline, and disable file name escaping.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+md5sumx --help                # options, first examples, exit status
+gnux help md5sumx             # this page: the full manual
+gnux help md5sumx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [cksumx](/docs/v1.0/tools/cksumx)
+- [sha1sumx](/docs/v1.0/tools/sha1sumx)
+- [sha256sumx](/docs/v1.0/tools/sha256sumx)
+- [sha512sumx](/docs/v1.0/tools/sha512sumx)
+- [b2sumx](/docs/v1.0/tools/b2sumx)

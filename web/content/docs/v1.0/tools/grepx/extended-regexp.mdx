@@ -1,0 +1,47 @@
+---
+title: "-E, --extended-regexp"
+description: "PATTERNS are extended regular expressions."
+---
+
+An option of [grepx](/docs/v1.0/tools/grepx).
+
+## Usage
+
+```bash
+grepx -E PATTERNS [FILE]...
+grepx --extended-regexp PATTERNS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-E` | `--extended-regexp` | none |  | PATTERNS are extended regular expressions |
+
+## Examples
+
+### Match either of two words with an extended regular expression
+
+```bash tab="bash" tab-group="shell"
+grepx -E 'warn(ing)?|error' build.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -E 'warn(ing)?|error' build.log
+```
+
+### Print only the matched parts, here every IPv4-looking address
+
+```bash tab="bash" tab-group="shell"
+grepx -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' access.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' access.log
+```
+
+## Help in the terminal
+
+```bash
+gnux help grepx --extended-regexp
+```

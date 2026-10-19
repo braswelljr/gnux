@@ -8,6 +8,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -86,7 +88,7 @@ func (t *Tee) Run(args []string) error {
 
 	outs := []*output{{name: "standard output", w: t.streams.Out}}
 	for _, name := range args {
-		f, err := os.OpenFile(name, flags, 0o666)
+		f, err := fsys.OpenFile(name, flags, 0o666)
 		if err != nil {
 			t.diag.Errorf("%s: %s", name, core.ErrText(err))
 			continue

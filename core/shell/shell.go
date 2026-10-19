@@ -46,12 +46,13 @@ import (
 	"io"
 	"maps"
 	"os"
-	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
 	"sync"
 	"syscall"
+
+	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -105,7 +106,7 @@ type Shell struct {
 	HomeDir func() (string, error)
 
 	// Glob lists the files an unquoted pattern matches; it defaults to
-	// filepath.Glob. It is the injection point for a host that supplies its
+	// fsys.Glob. It is the injection point for a host that supplies its
 	// own filesystem, and for tests that must not walk the real one.
 	Glob func(pattern string) ([]string, error)
 
@@ -142,7 +143,7 @@ func New(opts Options, exec ExecFunc, s core.Streams) *Shell {
 		Exec:    exec,
 		Getenv:  os.Getenv,
 		HomeDir: os.UserHomeDir,
-		Glob:    filepath.Glob,
+		Glob:    fsys.Glob,
 		streams: s,
 		vars:    map[string]string{},
 		name:    Name,
@@ -175,8 +176,8 @@ func (sh *Shell) errorf(s core.Streams, format string, a ...any) {
 // the tools resolve relative paths against; Run restores the original
 // directory before returning.
 func (sh *Shell) Run(r io.Reader) error {
-	if wd, err := os.Getwd(); err == nil {
-		defer func() { _ = os.Chdir(wd) }()
+	if wd, err := fsys.Getwd(); err == nil {
+		defer func() { _ = fsys.Chdir(wd) }()
 	}
 
 	reader := core.NewReader(r)
@@ -825,11 +826,11 @@ func (sh *Shell) redirect(redirs []target, s core.Streams) (core.Streams, func()
 		var err error
 		switch r.op {
 		case "<":
-			f, err = os.Open(r.path)
+			f, err = fsys.Open(r.path)
 		case ">", "2>":
-			f, err = os.OpenFile(r.path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
+			f, err = fsys.OpenFile(r.path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 		default: // ">>", "2>>"
-			f, err = os.OpenFile(r.path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o644)
+			f, err = fsys.OpenFile(r.path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o644)
 		}
 		if err != nil {
 			sh.errorf(s, "%s: %s", r.path, core.ErrText(err))
@@ -868,13 +869,13 @@ func (sh *Shell) cd(args []string, s core.Streams, piped bool) int {
 	}
 
 	if piped {
-		if _, err := os.Stat(dir); err != nil {
+		if _, err := fsys.Stat(dir); err != nil {
 			sh.errorf(s, "cd: %s: %s", dir, core.ErrText(err))
 			return 1
 		}
 		return 0
 	}
-	if err := os.Chdir(dir); err != nil {
+	if err := fsys.Chdir(dir); err != nil {
 		sh.errorf(s, "cd: %s: %s", dir, core.ErrText(err))
 		return 1
 	}

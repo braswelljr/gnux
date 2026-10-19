@@ -11,6 +11,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -111,7 +113,7 @@ func (in *Install) Run(args []string) error {
 		return in.diag.Result()
 	}
 
-	if info, err := os.Stat(dest); err == nil && info.IsDir() {
+	if info, err := fsys.Stat(dest); err == nil && info.IsDir() {
 		for _, src := range srcs {
 			in.installFile(src, filepath.Join(dest, filepath.Base(src)))
 		}
@@ -175,7 +177,7 @@ func (in *Install) makeDir(dir string) {
 
 // mkdirAll is mkdir -p with -v reporting; parents get the default mode.
 func (in *Install) mkdirAll(dir string) bool {
-	if info, err := os.Stat(dir); err == nil {
+	if info, err := fsys.Stat(dir); err == nil {
 		if !info.IsDir() {
 			in.diag.Errorf("cannot create directory '%s': %s", dir, "File exists")
 			return false
@@ -187,7 +189,7 @@ func (in *Install) mkdirAll(dir string) bool {
 			return false
 		}
 	}
-	if err := os.Mkdir(dir, defaultMode); err != nil && !errors.Is(err, os.ErrExist) {
+	if err := fsys.Mkdir(dir, defaultMode); err != nil && !errors.Is(err, os.ErrExist) {
 		in.diag.Errorf("cannot create directory '%s': %s", dir, core.ErrText(err))
 		return false
 	}
@@ -202,7 +204,7 @@ func (in *Install) targetDir(dir string) bool {
 	if in.CreateLeading && !in.mkdirAll(dir) {
 		return false
 	}
-	info, err := os.Stat(dir)
+	info, err := fsys.Stat(dir)
 	if err != nil {
 		in.diag.Errorf("failed to access '%s': %s", dir, core.ErrText(err))
 		return false
@@ -226,7 +228,7 @@ func (in *Install) toFile(src, dest string) {
 
 // installFile copies one regular file into place and sets its attributes.
 func (in *Install) installFile(src, dest string) {
-	sinfo, err := os.Stat(src)
+	sinfo, err := fsys.Stat(src)
 	if err != nil {
 		in.diag.Errorf("cannot stat '%s': %s", src, core.ErrText(err))
 		return
@@ -237,13 +239,13 @@ func (in *Install) installFile(src, dest string) {
 	}
 
 	backup := ""
-	dinfo, derr := os.Lstat(dest)
+	dinfo, derr := fsys.Lstat(dest)
 	if derr == nil {
 		if dinfo.IsDir() {
 			in.diag.Errorf("cannot overwrite directory '%s' with non-directory", dest)
 			return
 		}
-		if same, err := os.Stat(dest); err == nil && os.SameFile(sinfo, same) {
+		if same, err := fsys.Stat(dest); err == nil && os.SameFile(sinfo, same) {
 			in.diag.Errorf("'%s' and '%s' are the same file", src, dest)
 			return
 		}
@@ -264,7 +266,7 @@ func (in *Install) installFile(src, dest string) {
 			backup = name
 		default:
 			// Replace rather than rewrite, so a running program keeps its copy.
-			if err := os.Remove(dest); err != nil {
+			if err := fsys.Remove(dest); err != nil {
 				in.diag.Errorf("cannot remove '%s': %s", dest, core.ErrText(err))
 				return
 			}
@@ -273,7 +275,7 @@ func (in *Install) installFile(src, dest string) {
 
 	if !in.copyFile(src, dest) {
 		if backup != "" {
-			if err := os.Rename(backup, dest); err != nil {
+			if err := fsys.Rename(backup, dest); err != nil {
 				in.diag.Errorf("cannot un-backup '%s': %s", dest, core.ErrText(err))
 			}
 		}
@@ -290,7 +292,7 @@ func (in *Install) installFile(src, dest string) {
 		return
 	}
 	if in.PreserveTimestamps {
-		if err := os.Chtimes(dest, sinfo.ModTime(), sinfo.ModTime()); err != nil {
+		if err := fsys.Chtimes(dest, sinfo.ModTime(), sinfo.ModTime()); err != nil {
 			in.diag.Errorf("cannot set timestamps for '%s': %s", dest, core.ErrText(err))
 		}
 	}
@@ -298,13 +300,13 @@ func (in *Install) installFile(src, dest string) {
 
 // copyFile writes src's content to a new file at dest.
 func (in *Install) copyFile(src, dest string) bool {
-	r, err := os.Open(src)
+	r, err := fsys.Open(src)
 	if err != nil {
 		in.diag.Errorf("cannot open '%s' for reading: %s", src, core.ErrText(err))
 		return false
 	}
 	defer r.Close()
-	w, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+	w, err := fsys.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if err != nil {
 		in.diag.Errorf("cannot create regular file '%s': %s", dest, core.ErrText(err))
 		return false
@@ -323,7 +325,7 @@ func (in *Install) copyFile(src, dest string) bool {
 
 // setAttrs applies the mode, then the owner and group.
 func (in *Install) setAttrs(path string) bool {
-	if err := os.Chmod(path, in.mode); err != nil {
+	if err := fsys.Chmod(path, in.mode); err != nil {
 		in.diag.Errorf("cannot change permissions of '%s': %s", path, core.ErrText(err))
 		return false
 	}
@@ -354,12 +356,12 @@ func (in *Install) unchanged(src, dest string, sinfo, dinfo os.FileInfo) bool {
 
 // sameContent compares two files byte for byte.
 func sameContent(a, b string) (bool, error) {
-	fa, err := os.Open(a)
+	fa, err := fsys.Open(a)
 	if err != nil {
 		return false, fmt.Errorf("open: %w", err)
 	}
 	defer fa.Close()
-	fb, err := os.Open(b)
+	fb, err := fsys.Open(b)
 	if err != nil {
 		return false, fmt.Errorf("open: %w", err)
 	}

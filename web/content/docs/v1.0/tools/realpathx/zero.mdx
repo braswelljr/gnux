@@ -1,0 +1,37 @@
+---
+title: "-z, --zero"
+description: "End each output line with NUL, not newline."
+---
+
+An option of [realpathx](/docs/v1.0/tools/realpathx).
+
+## Usage
+
+```bash
+realpathx -z FILE...
+realpathx --zero FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-z` | `--zero` | none |  | end each output line with NUL, not newline |
+
+## Examples
+
+### Separate the output with NUL bytes instead of newlines
+
+```bash tab="bash" tab-group="shell"
+realpathx -z lib/util.go src/app/main.go | od -c
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+realpathx -z lib\util.go src\app\main.go | Format-Hex
+```
+
+## Help in the terminal
+
+```bash
+gnux help realpathx --zero
+```

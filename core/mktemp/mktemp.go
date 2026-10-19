@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -178,16 +180,16 @@ func (m *Mktemp) create(prefix string, x int, suffix string) (string, error) {
 		var err error
 		switch {
 		case m.DryRun:
-			if _, err = os.Lstat(name); err == nil {
+			if _, err = fsys.Lstat(name); err == nil {
 				err = os.ErrExist
 			} else if errors.Is(err, os.ErrNotExist) {
 				err = nil
 			}
 		case m.Directory:
-			err = os.Mkdir(name, 0o700)
+			err = fsys.Mkdir(name, 0o700)
 		default:
 			var f *os.File
-			if f, err = os.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0o600); err == nil {
+			if f, err = fsys.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0o600); err == nil {
 				f.Close()
 			}
 		}

@@ -1,6 +1,6 @@
 # Publishing a Release
 
-How a gnux version gets from a commit on `main` to every place a user installs it from: the GitHub release, the `.deb`, `.rpm` and `.apk` packages, Homebrew, Scoop, winget, the Snap Store, the AUR, `go install` and the setup-gnux action. Pushing a `vX.Y.Z` tag does all of it, and Homebrew and Scoop are served from this repository with nothing to set up, but winget, the Snap Store and the AUR each first need something set up once, outside it: a fork, an account, a registered name, a secret. This page is that setup, channel by channel, then the release itself step by step, how to check each channel afterwards, how a user installs one particular version from each, and what to do when a release goes wrong. What the Release workflow runs, job by job, is in [ci-and-release](ci-and-release.md); what a release contains is written once, in `.goreleaser.yaml`.
+How a gnux version gets from a commit on `main` to every place a user installs it from: the GitHub release, the `.deb`, `.rpm` and `.apk` packages, Homebrew, Scoop, winget, the Snap Store, the AUR, npm, `go install` and the setup-gnux action. Pushing a `vX.Y.Z` tag does all of it, and Homebrew and Scoop are served from this repository with nothing to set up, but winget, the Snap Store, the AUR and npm each first need something set up once, outside it: a fork, an account, a registered name, a secret. This page is that setup, channel by channel, then the release itself step by step, how to check each channel afterwards, how a user installs one particular version from each, and what to do when a release goes wrong. What the Release workflow runs, job by job, is in [ci-and-release](ci-and-release.md); what a release contains is written once, in `.goreleaser.yaml`.
 
 ## Where a release goes
 
@@ -11,6 +11,7 @@ How a gnux version gets from a commit on `main` to every place a user installs i
 | Docker (GHCR)      | `docker run --rm ghcr.io/braswelljr/gnux:v1 --list`, or `:v1-scratch` | The `image` job (Buildx)   | Nothing; make the package public once, after the first push         |
 | `go install`       | `go install github.com/braswelljr/gnux@v0.0.2`    | The tag itself                       | Nothing                                                             |
 | setup-gnux action  | `uses: braswelljr/gnux@v0`                        | The workflow moves the `v0` tag      | Nothing                                                             |
+| npm                | `npm install --save-dev gnux`                     | The `npm` job (`tools/npm`)          | An npm account with 2FA, `NPM_TOKEN`                                |
 | Homebrew (own tap) | `brew tap braswelljr/gnux https://github.com/braswelljr/gnux`, then `brew install --cask braswelljr/gnux/gnux` | GoReleaser (`homebrew_casks`), into `Casks/` here | Nothing |
 | Scoop              | `scoop bucket add gnux https://github.com/braswelljr/gnux`, then `scoop install gnux/gnux` | GoReleaser (`scoops`), into `bucket/` here | Nothing |
 | winget             | `winget install braswelljr.gnux`                  | GoReleaser (`winget`), then Microsoft's review | A fork of `microsoft/winget-pkgs`, `WINGET_GITHUB_TOKEN`    |
@@ -122,6 +123,29 @@ When the secret is set, the Release workflow installs `snapcraft`, and GoRelease
 
 The package installs `/usr/bin/gnux`, the license and the three completions. It `provides` and `conflicts` with `gnux`, so a from-source `gnux` package can replace it later.
 
+### npm
+
+The `npm` job of the Release workflow turns the release's archives into ten packages, with `tools/npm`, and publishes them: `gnux`, the launcher a project installs, and one per platform (`gnux-linux-x64`, `gnux-darwin-arm64`, `gnux-win32-x64`, ...) holding that platform's binary. All are unscoped, so no npm organization is needed.
+
+1. Create an account at [npmjs.com](https://www.npmjs.com/signup) and turn on two-factor authentication. Check that the names are free: `npm view gnux` and `npm view gnux-linux-x64` should both say 404.
+
+2. Create a **granular access token** (Access Tokens, Generate New Token, Granular) with **read and write** on packages, no organization, and "bypass two-factor authentication" allowed, so that a workflow can publish. Before the first release the packages do not exist yet, so the token cannot be limited to them; after it, generate a new token limited to the ten packages and replace the secret.
+
+3. Store it:
+
+   ```bash
+   gh secret set NPM_TOKEN --repo braswelljr/gnux
+   ```
+
+What to expect:
+
+- **The platform packages are published first**, then `gnux`, so `gnux` never depends on a version that is not there. A version already on npm is skipped, so a failed job can be re-run.
+- **A prerelease goes to the `next` dist-tag.** `npm install gnux` keeps installing the last stable release; `npm install gnux@next` gets the prerelease.
+- **Each package carries npm's provenance statement**, signed through the job's id-token, which links it to the commit and the workflow run (`npm audit signatures` checks it).
+- **A published version cannot be replaced**, only deprecated (`npm deprecate gnux@1.2.0 "..."`) or, within 72 hours, unpublished. Fix forward with a new version.
+
+`make npm/pack` builds the same packages locally from binaries it compiles itself, into `dist/npm`; `npm pack` in a package's directory then makes the tarball `npm publish` would upload, to install in a test project.
+
 ### Docker images on GHCR
 
 The `image` job of the Release workflow builds the `Dockerfile` for linux/amd64 and linux/arm64 and pushes two images to `ghcr.io/<owner>/gnux` with the job's own token (`packages: write`):
@@ -227,8 +251,9 @@ Once it is merged, the README and the install page can say `brew install gnux`. 
 | `WINGET_GITHUB_TOKEN`         | winget    | Classic token with `public_repo`                                   | When you set it to         |
 | `SNAPCRAFT_STORE_CREDENTIALS` | Snap Store | Output of `snapcraft export-login`, limited to the `gnux` snap    | After a year, by default   |
 | `AUR_KEY`                     | AUR       | An ed25519 private key whose public half is on the AUR account     | Never                      |
+| `NPM_TOKEN`                   | npm       | Granular access token, read and write on the gnux packages        | When you set it to         |
 
-`gh secret list --repo braswelljr/gnux` shows which are set. No secret is ever read by a pull request's workflows: only the `release` job of the Release workflow receives them, and it runs only on a pushed tag.
+`gh secret list --repo braswelljr/gnux` shows which are set. No secret is ever read by a pull request's workflows: only the `release` and `npm` jobs of the Release workflow receive them, and it runs only on a pushed tag.
 
 ## Cutting the release
 
@@ -318,8 +343,10 @@ Check each channel that was not skipped. Every line should end with the new vers
 | winget           | The pull request on `microsoft/winget-pkgs`, then `winget show braswelljr.gnux`               | After review: hours to days        |
 | Snap Store       | `snapcraft status gnux`, or `snap info gnux`                                                  | Minutes, after the automatic review |
 | AUR              | `https://aur.archlinux.org/packages/gnux-bin`                                                 | At once                            |
+| npm              | `npm view gnux version`, then `npx gnux@0.0.2 --version`                                      | At once                            |
 | Linux package    | `sudo dpkg -i gnux-v0.0.2-linux-amd64.deb && gnux --version`                                  | At once                            |
 | Website          | `/docs/changelog` shows the section                                                           | After the site deploys             |
+| Docs snapshot    | A `docs: snapshot of v0.0.2` commit on `main`, and `/docs/v0.0` in the site's version select | After the site deploys again       |
 
 Then update the two places that name a version in an example, so that copied commands fetch the release just made: the `v=` line under Prebuilt binaries in `README.md` and the one in `web/src/config/install.ts`.
 
@@ -338,6 +365,7 @@ Users pin a version for reproducible builds; this is what each channel offers, a
 | Snap             | `sudo snap install gnux --channel=edge` for a prerelease; `sudo snap refresh --hold gnux` stays on the installed revision | A channel holds one revision; older ones are not installable by version |
 | Homebrew         | The newest only. `brew pin` does not apply to casks                     | For an older version, use the archive or `go install`        |
 | AUR              | The newest only                                                         | An older `PKGBUILD` is in the package's git history          |
+| npm              | `npm install --save-dev gnux@0.0.2`                                     | Every version stays on the registry; `--save-exact` pins it  |
 | Docker           | `docker build --build-arg VERSION=v0.0.2 -t gnux:v0.0.2 .` on a checkout of the tag |                                                  |
 
 ## When a release goes wrong

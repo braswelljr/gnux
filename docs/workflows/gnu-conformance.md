@@ -31,6 +31,10 @@ Shell builtins (`echo`, `printf`, `test`, `[`, `true`, `false`, `pwd`, `kill`) w
 - Write the command line the way a GNU user would, with GNU names: the same line runs in both worlds.
 - Cover an option's output, its diagnostics and its exit status. `cmd; echo $?` shows a status that the pipeline would hide.
 - A documented deviation (a tool's `Meta().Long`) is not a case: the harness is for what must be equal. When a case finds a difference, either fix gnux or, if the difference is deliberate, document it and drop the case.
+- Pipe through `sort` any output that follows a directory walk (`rm -rv`, `du -a`, `chmod -Rv`,
+  `cp -rv`, `find`). GNU lists entries in the order the file system returns them, which is
+  sorted on Docker's overlay file system but hashed on ext4, as on the CI runners, while gnux
+  sorts them; a case that does not sort passes locally and fails in CI. `ls` sorts by itself.
 - Use the fixture; a case that needs another file creates it in its own command line (`cp a.txt e.txt && sed -i ... e.txt`).
 
 ## What it has found

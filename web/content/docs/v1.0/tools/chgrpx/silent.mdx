@@ -1,0 +1,37 @@
+---
+title: "-f, --silent"
+description: "Suppress most error messages."
+---
+
+An option of [chgrpx](/docs/v1.0/tools/chgrpx).
+
+## Usage
+
+```bash
+chgrpx -f GROUP FILE...
+chgrpx --silent GROUP FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-f` | `--silent` | none |  | suppress most error messages |
+
+## Examples
+
+### Suppress most error messages
+
+```bash tab="bash" tab-group="shell"
+chgrpx -f staff maybe-missing.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chgrpx -f staff maybe-missing.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help chgrpx --silent
+```

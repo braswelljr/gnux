@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"syscall"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -67,7 +69,7 @@ type Options struct {
 type Chmod struct {
 	Options
 
-	// ChmodFn changes a file's mode; it defaults to os.Chmod and is the
+	// ChmodFn changes a file's mode; it defaults to fsys.Chmod and is the
 	// injection point for tests.
 	ChmodFn func(path string, mode os.FileMode) error
 	// LchmodFn changes the mode of a symbolic link itself; it fails with
@@ -87,7 +89,7 @@ type Chmod struct {
 func New(opts Options, s core.Streams) *Chmod {
 	return &Chmod{
 		Options:  opts,
-		ChmodFn:  os.Chmod,
+		ChmodFn:  fsys.Chmod,
 		LchmodFn: lchmod,
 		Umask:    processUmask,
 		diag:     core.NewDiag(Name, s),
@@ -104,7 +106,7 @@ func (c *Chmod) Run(args []string) error {
 		return core.ErrFailed
 	}
 	if c.Reference != "" {
-		info, err := os.Stat(c.Reference)
+		info, err := fsys.Stat(c.Reference)
 		if err != nil {
 			c.diag.Errorf("failed to get attributes of '%s': %s", c.Reference, core.ErrText(err))
 			return core.ErrFailed
@@ -149,7 +151,7 @@ func (c *Chmod) errorf(format string, a ...any) {
 }
 
 func (c *Chmod) operand(path string) {
-	info, err := os.Lstat(path)
+	info, err := fsys.Lstat(path)
 	if err != nil {
 		c.errorf("cannot access '%s': %s", path, core.ErrText(err))
 		c.inaccessible(path)
@@ -161,7 +163,7 @@ func (c *Chmod) operand(path string) {
 			c.link(path, info)
 			return
 		}
-		if info, err = os.Stat(path); err != nil {
+		if info, err = fsys.Stat(path); err != nil {
 			c.errorf("cannot operate on dangling symlink '%s'", path)
 			c.inaccessible(path)
 			return
@@ -217,7 +219,7 @@ func (c *Chmod) visit(path string, info os.FileInfo, ancestors []os.FileInfo) {
 		}
 	}
 
-	entries, err := os.ReadDir(path)
+	entries, err := fsys.ReadDir(path)
 	if err != nil {
 		c.errorf("cannot read directory '%s': %s", path, core.ErrText(err))
 		return
@@ -225,7 +227,7 @@ func (c *Chmod) visit(path string, info os.FileInfo, ancestors []os.FileInfo) {
 	ancestors = append(ancestors, info)
 	for _, e := range entries {
 		child := filepath.Join(path, e.Name())
-		ci, err := os.Lstat(child)
+		ci, err := fsys.Lstat(child)
 		if err != nil {
 			c.errorf("cannot access '%s': %s", child, core.ErrText(err))
 			c.inaccessible(child)
@@ -239,7 +241,7 @@ func (c *Chmod) visit(path string, info os.FileInfo, ancestors []os.FileInfo) {
 				c.link(child, ci)
 				continue
 			}
-			if ci, err = os.Stat(child); err != nil {
+			if ci, err = fsys.Stat(child); err != nil {
 				c.errorf("cannot operate on dangling symlink '%s'", child)
 				c.inaccessible(child)
 				continue

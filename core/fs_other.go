@@ -2,13 +2,17 @@
 
 package core
 
-import "os"
+import (
+	"os"
+
+	"github.com/braswelljr/gnux/core/fsys"
+)
 
 // Writable reports whether path is writable. Off Unix (Windows, WebAssembly)
 // there is no access(2); approximate with the owner write bit, which is how
 // the read-only attribute surfaces.
 func Writable(path string) bool {
-	info, err := os.Stat(path)
+	info, err := fsys.Stat(path)
 	if err != nil {
 		return true
 	}

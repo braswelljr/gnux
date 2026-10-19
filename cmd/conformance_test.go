@@ -151,7 +151,11 @@ func runCase(t *testing.T, line, gnuxBin string) result {
 	}
 	// The two runs have directories of their own: a path that names one
 	// is written as $DIR.
-	clean := func(s string) string { return strings.ReplaceAll(s, dir, "$DIR") }
+	// The directory also appears percent-encoded, in ls --hyperlink's URLs.
+	clean := func(s string) string {
+		s = strings.ReplaceAll(s, dir, "$DIR")
+		return strings.ReplaceAll(s, uriEscape(dir), "$DIR")
+	}
 	return result{clean(out.String()), clean(errb.String()), status}
 }
 
@@ -222,6 +226,22 @@ func diffResults(want, got result) string {
 	}
 	if want.stderr != got.stderr {
 		fmt.Fprintf(&b, "stderr:\n  GNU:  %q\n  gnux: %q\n", want.stderr, got.stderr)
+	}
+	return b.String()
+}
+
+// uriEscape percent-encodes a path as ls --hyperlink does: every byte but
+// '/' and RFC 3986's unreserved characters.
+func uriEscape(path string) string {
+	var b strings.Builder
+	for i := 0; i < len(path); i++ {
+		c := path[i]
+		switch {
+		case c == '/', c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c >= '0' && c <= '9', c == '~', c == '-', c == '.', c == '_':
+			b.WriteByte(c)
+		default:
+			fmt.Fprintf(&b, "%%%02x", c)
+		}
 	}
 	return b.String()
 }

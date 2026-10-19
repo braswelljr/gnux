@@ -16,6 +16,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/sysstat"
 )
@@ -256,14 +258,14 @@ func startsExpression(arg string) bool {
 
 // walkStart examines one starting point and the tree below it.
 func (f *Find) walkStart(start string) {
-	info, err := os.Lstat(start)
+	info, err := fsys.Lstat(start)
 	if err != nil {
 		f.diag.Errorf("'%s': %s", start, errText(err))
 		return
 	}
 	e := &entry{path: start, start: start, info: info, infoDone: true}
 	if f.follow != followNever && info.Mode()&fs.ModeSymlink != 0 {
-		target, err := os.Stat(start)
+		target, err := fsys.Stat(start)
 		switch {
 		case err == nil:
 			e.info, e.follow = target, true
@@ -337,9 +339,9 @@ func (f *Find) sameDevice(e *entry, dev uint64) bool {
 
 // descend walks the entries of directory e in name order.
 func (f *Find) descend(e *entry, dev uint64, ancestors []*entry) {
-	// os.ReadDir returns the entries sorted by name, and whatever it read
+	// fsys.ReadDir returns the entries sorted by name, and whatever it read
 	// before an error.
-	entries, err := os.ReadDir(e.path)
+	entries, err := fsys.ReadDir(e.path)
 	if err != nil && !f.vanished(err) {
 		f.diag.Errorf("'%s': %s", e.path, errText(err))
 	}
@@ -350,7 +352,7 @@ func (f *Find) descend(e *entry, dev uint64, ancestors []*entry) {
 	for _, de := range entries {
 		child := &entry{path: joinPath(e.path, de.Name()), start: e.start, depth: e.depth + 1, de: de}
 		if f.follow == followAll && de.Type()&fs.ModeSymlink != 0 {
-			info, err := os.Stat(child.path)
+			info, err := fsys.Stat(child.path)
 			switch {
 			case err == nil:
 				child.info, child.infoDone, child.follow = info, true, true
@@ -434,11 +436,11 @@ func (f *Find) sysOf(e *entry) (sysstat.Stat, bool) {
 // under -H and -L, falling back to the link itself when it is broken.
 func (f *Find) refStat(path string) (os.FileInfo, error) {
 	if f.follow != followNever {
-		if info, err := os.Stat(path); err == nil {
+		if info, err := fsys.Stat(path); err == nil {
 			return info, nil
 		}
 	}
-	return os.Lstat(path)
+	return fsys.Lstat(path)
 }
 
 // danglingLink reports whether a failed stat means "a symbolic link whose
@@ -525,7 +527,7 @@ func (f *Find) outputFor(path string) (*output, error) {
 	if o, ok := f.outputs[path]; ok {
 		return o, nil
 	}
-	file, err := os.Create(path)
+	file, err := fsys.Create(path)
 	if err != nil {
 		return nil, err
 	}

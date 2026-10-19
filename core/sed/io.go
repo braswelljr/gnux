@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -110,7 +112,7 @@ func (m *machine) openOutputs() {
 		if c.out != nil {
 			continue
 		}
-		f, err := os.Create(c.file)
+		f, err := fsys.Create(c.file)
 		if err != nil {
 			m.fatalf("couldn't open file %s: %s", c.file, core.ErrText(err))
 		}
@@ -153,11 +155,11 @@ func (m *machine) open(name string) bool {
 	} else {
 		path := name
 		if m.e.InPlace && m.e.FollowSymlinks {
-			if resolved, err := filepath.EvalSymlinks(name); err == nil {
+			if resolved, err := fsys.EvalSymlinks(name); err == nil {
 				path = resolved
 			}
 		}
-		f, err := os.Open(path)
+		f, err := fsys.Open(path)
 		if err != nil {
 			m.diag.Errorf("can't read %s: %s", name, core.ErrText(err))
 			m.badInput = true
@@ -193,14 +195,14 @@ func (m *machine) beginEdit(name, path string, f *os.File) {
 		m.fatalf("couldn't edit %s: not a regular file", name)
 	}
 	dir := filepath.Dir(path)
-	temp, err := os.CreateTemp(dir, "sed")
+	temp, err := fsys.CreateTemp(dir, "sed")
 	if err != nil {
 		f.Close()
 		m.fatalf("couldn't open temporary file %s: %s", filepath.Join(dir, "sedXXXXXX"), core.ErrText(err))
 	}
 	// The new file takes the old one's permissions. Where they cannot be
 	// set (a filesystem without them) the edit still goes ahead.
-	_ = os.Chmod(temp.Name(), info.Mode().Perm())
+	_ = fsys.Chmod(temp.Name(), info.Mode().Perm())
 	m.edit = &edit{name: name, path: path, temp: temp}
 	m.out = &output{m: m, w: core.NewWriter(temp), name: temp.Name()}
 }
@@ -225,11 +227,11 @@ func (m *machine) closeInput() {
 		out.fail(err)
 	}
 	if m.e.Suffix != "" {
-		if err := os.Rename(ed.path, backupName(ed.path, m.e.Suffix)); err != nil {
+		if err := fsys.Rename(ed.path, backupName(ed.path, m.e.Suffix)); err != nil {
 			m.fatalf("cannot rename %s: %s", ed.path, core.ErrText(err))
 		}
 	}
-	if err := os.Rename(ed.temp.Name(), ed.path); err != nil {
+	if err := fsys.Rename(ed.temp.Name(), ed.path); err != nil {
 		m.fatalf("cannot rename %s: %s", ed.temp.Name(), core.ErrText(err))
 	}
 	m.edit = nil
@@ -341,7 +343,7 @@ func (m *machine) flushQueue() {
 		// A file that cannot be read is no error: it adds nothing.
 		var src io.Reader = m.stdin
 		if q.file != devStdin {
-			f, err := os.Open(q.file)
+			f, err := fsys.Open(q.file)
 			if err != nil {
 				continue
 			}
@@ -376,7 +378,7 @@ func (m *machine) readFileLine(name string) []byte {
 		lr = &lineReader{}
 		if name == devStdin {
 			lr.r = m.stdin
-		} else if f, err := os.Open(name); err == nil {
+		} else if f, err := fsys.Open(name); err == nil {
 			lr.f, lr.r = f, core.NewReader(f)
 		}
 		if m.readers == nil {
@@ -419,7 +421,7 @@ func (m *machine) cleanup() {
 		// The run stopped before the file was replaced: it is left as it
 		// was, and the unfinished copy goes.
 		m.edit.temp.Close()
-		_ = os.Remove(m.edit.temp.Name())
+		_ = fsys.Remove(m.edit.temp.Name())
 	}
 	m.closeReaders()
 	for _, o := range m.outputs {

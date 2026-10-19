@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/sysstat"
 	"github.com/braswelljr/gnux/core/internal/utmp"
@@ -89,7 +91,7 @@ func New(opts Options, s core.Streams) *Who {
 		current:  utmp.Current,
 		readFile: utmp.ReadFile,
 		ttyName:  tty.Lookup,
-		stat:     os.Stat,
+		stat:     fsys.Stat,
 	}
 }
 

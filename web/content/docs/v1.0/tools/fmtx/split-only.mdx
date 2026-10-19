@@ -1,0 +1,37 @@
+---
+title: "-s, --split-only"
+description: "Split long lines, but do not refill."
+---
+
+An option of [fmtx](/docs/v1.0/tools/fmtx).
+
+## Usage
+
+```bash
+fmtx [-WIDTH] -s [FILE]...
+fmtx [-WIDTH] --split-only [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-s` | `--split-only` | none |  | `split` long lines, but do not refill |
+
+## Examples
+
+### Shorten overlong lines in a script or list without merging its lines
+
+```bash tab="bash" tab-group="shell"
+fmtx -s -w 80 script.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+fmtx -s -w 80 script.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help fmtx --split-only
+```

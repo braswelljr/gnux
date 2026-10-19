@@ -32,3 +32,11 @@ export function prop(value: unknown, key: string): unknown {
 export function arrayOf<T>(value: unknown, guard: (item: unknown) => item is T): T[] {
   return Array.isArray(value) ? value.filter(guard) : [];
 }
+
+/** The docs-versions route's answer: each version's page paths. */
+export function isVersionPaths(value: unknown): value is Record<string, string[]> {
+  return (
+    isRecord(value) &&
+    Object.values(value).every((paths) => Array.isArray(paths) && paths.every(isString))
+  );
+}

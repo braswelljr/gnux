@@ -11,10 +11,13 @@ description: |-
 
     The exit status is that of the last command run, 2 for a syntax error, and 127 for an unknown command. With -e the script stops at the first failing command, except one whose status is tested: by &&, || or !, or as the condition of an if or a while. With -u, expanding a variable that is not set is an error that stops the script with status 1; ${NAME:-default} reads one that may be missing. An environment variable that is set but empty counts as unset.
 
+    --sandbox DIR confines the shell, before it reads or runs anything, with the operating system's own sandbox: its commands, and any program they start through envx, may then read and write each --sandbox DIR, only read each --sandbox-read DIR and the system's own directories, and reach nothing else, the home directory included. The kernel enforces it, so neither a symbolic link nor .. gets around it, and it cannot be lifted. The sandbox is Landlock on Linux (5.13 or later, in a gnux built without cgo, as releases are), Seatbelt on macOS, an AppContainer on Windows and Capsicum on FreeBSD, where a command can run gnux's own tools only (capability mode starts no other program); where none can be used the shell refuses with status 125 and runs nothing. A SCRIPT must lie in an allowed directory, as it is read after the sandbox is entered.
+
     EXIT STATUS.
       N  the exit status of the last command run
       1  a redirection could not be opened (that command is not run), or with -u a variable was not set
       2  a syntax error, exit with a non-numeric argument, or a command-line mistake
+      125  --sandbox was given but the sandbox could not be entered; nothing was run
       127  an unknown command, or a SCRIPT that cannot be opened
 
     HELP. gnux shell --help shows the options and the first examples; gnux help shell prints the full manual, and gnux help shell OPTION explains one option.
@@ -25,6 +28,7 @@ description: |-
 
     USE CASES.
       - Build, clean and packaging scripts that must run unchanged on Windows, macOS and Linux.
+      - Running a script you did not write, or one an AI agent wrote, where it can only touch one directory.
       - A consistent interactive shell on machines without the GNU tools installed.
       - Embedding small file-management scripts in a Go application without spawning processes.
 usage: shell [OPTION]... [SCRIPT [ARG]...]
@@ -43,6 +47,13 @@ options:
       shorthand: u
       default_value: "false"
       usage: treat expanding an unset variable as an error
+    - name: sandbox
+      default_value: '[]'
+      usage: |
+        confine the shell, its commands and the programs they start to `DIR`, which they may read and write, and the system's own directories, which they may only read; may be repeated (Linux and macOS)
+    - name: sandbox-read
+      default_value: '[]'
+      usage: with --sandbox, also let them read `DIR`; may be repeated
     - name: version
       default_value: "false"
       usage: output version information and exit
@@ -64,6 +75,12 @@ example: |4-
 
       # Use a command's output
       gnux shell -c 'mkdirx -p "build/$(unamex -s)"'
+
+      # Run a downloaded build script so that it can change nothing outside the project
+      gnux shell --sandbox . -e ./build.gnux
+
+      # Let a cleanup script read the shared config but write only in dist
+      gnux shell --sandbox dist --sandbox-read config -c 'rmx -rf dist/* && cpx config/app.json dist/'
 
       # Pipe a script in
       echo 'catx *.log | wcx -l' | gnux shell

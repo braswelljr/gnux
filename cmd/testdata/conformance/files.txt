@@ -31,7 +31,7 @@ rm -f missing; echo $?
 rm dir
 rm -r dir && ls
 rm -d dir
-rm -rv dir
+rm -rv dir | sort
 rm -i a.txt < /dev/null
 rm .
 rm -r /
@@ -61,7 +61,7 @@ realpath link dir/sub
 realpath -e missing
 realpath -m missing/x
 du -s dir
-du -a dir
+du -a dir | sort -k2
 du -sh dir
 du -c a.txt b.txt
 du missing

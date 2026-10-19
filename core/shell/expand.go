@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/braswelljr/gnux/core/fsys"
+
 	"github.com/braswelljr/gnux/core"
 )
 
@@ -180,7 +182,7 @@ func (ex *expander) substitute(body []step) string {
 	// afterwards, unless this is a pipeline stage, where cd changes nothing.
 	wd, wdErr := "", os.ErrInvalid
 	if sh.subshell == 0 {
-		wd, wdErr = os.Getwd()
+		wd, wdErr = fsys.Getwd()
 	}
 	sh.loops = 0
 
@@ -188,7 +190,7 @@ func (ex *expander) substitute(body []step) string {
 	ex.substituted, ex.status = true, sh.status
 
 	if wdErr == nil {
-		_ = os.Chdir(wd)
+		_ = fsys.Chdir(wd)
 	}
 	sh.restore(saved)
 	return strings.TrimRight(out.String(), "\r\n")
@@ -299,7 +301,7 @@ func (sh *Shell) lookup(name string) (value string, set bool) {
 		return v, true
 	}
 	if name == "PWD" {
-		if wd, err := os.Getwd(); err == nil {
+		if wd, err := fsys.Getwd(); err == nil {
 			return wd, true
 		}
 	}
