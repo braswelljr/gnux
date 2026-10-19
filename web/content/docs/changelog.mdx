@@ -5,6 +5,20 @@ description: "Every notable change to gnux, release by release, newest first. Th
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-19
+
+gnux 1.1.0 adds nine tools and closes most of the gap with GNU's option surface: backups in
+`cpx`, `mvx`, `lnx` and `installx`, every GNU ls option but `-f` and `-Z` (GNU's ten quoting
+styles, `--zero`, `--hyperlink`, `--dired`, `--block-size`, ...), GNU's getopt rules for every
+option, and the options
+`chgrpx --from`, `chmodx -h`, `datex --resolution`, `cpx --remove-destination`, `mvx --no-copy`,
+`tailx --max-unchanged-stats` and `sortx -R`. Every one of them is now checked against GNU
+coreutils itself by a conformance harness that runs in CI.
+
+It also brings gnux to npm (`npm install --save-dev gnux`), a kernel-enforced sandbox for
+`gnux shell` on Linux, macOS, Windows and FreeBSD, `gnux mcp` to give an AI agent the tools
+inside that sandbox, a WASI build, and documentation for each release on the website.
+
 ### Added
 
 - gnux on npm: `npm install --save-dev gnux` puts every tool on the PATH of a project's package
@@ -33,23 +47,6 @@ description: "Every notable change to gnux, release by release, newest first. Th
   (Claude Code, Claude Desktop, Cursor, VS Code) can run gnux command lines in a project and
   reach nothing outside it, each call with a time limit and an output limit. The Sandbox and AI
   agents guide covers both.
-
-### Fixed
-
-- `lsx -l` with files and directories as operands sizes the files' columns to fit the directories too, as GNU does: `ls -l a.txt dir` padded the size column to the file alone.
-
-## [1.1.0] - 2026-10-19
-
-gnux 1.1.0 adds nine tools and closes most of the gap with GNU's option surface: backups in
-`cpx`, `mvx`, `lnx` and `installx`, every GNU ls option but `-f` and `-Z` (GNU's ten quoting
-styles, `--zero`, `--hyperlink`, `--dired`, `--block-size`, ...), GNU's getopt rules for every
-option, and the options
-`chgrpx --from`, `chmodx -h`, `datex --resolution`, `cpx --remove-destination`, `mvx --no-copy`,
-`tailx --max-unchanged-stats` and `sortx -R`. Every one of them is now checked against GNU
-coreutils itself by a conformance harness that runs in CI.
-
-### Added
-
 - Four more coreutils tools. `archx` prints the machine architecture, as `unamex -m` does.
   `factorx` prints the prime factors of each number, with no size limit, and `-h`
   (`--exponents`) writes repeated factors as `p^e`. `sumx` prints the BSD checksum (or, with
@@ -124,6 +121,7 @@ coreutils itself by a conformance harness that runs in CI.
 
 ### Fixed
 
+- `lsx -l` with files and directories as operands sizes the files' columns to fit the directories too, as GNU does: `ls -l a.txt dir` padded the size column to the file alone.
 - `nicex` no longer races with the command it runs over a shared error stream that is not a
   file (a `gnux shell` pipeline, the playground, an embedding program): its warning and the
   command's own error output used to be written from two goroutines at once.
