@@ -1,6 +1,6 @@
 import { type Metadata } from 'next';
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { docs, getPageImage, pageVersion } from 'lib/source';
@@ -14,13 +14,9 @@ type Props = { params: Promise<{ slug?: string[] }> };
 export default async function Page(props: Props) {
   const params = await props.params;
   const page = docs.getPage(params.slug);
-  if (!page) {
-    // A page an older version did not have: that version's first page,
-    // which is where its version select would have gone too.
-    const version = pageVersion(Array.isArray(params.slug) ? params.slug : []);
-    if (version && docs.getPage([version])) redirect(`/docs/${version}`);
-    notFound();
-  }
+  // A page a version does not have is not found, like any other: the
+  // version select checks first, and goes to the version's first page.
+  if (!page) notFound();
 
   const MDX = page.data.body;
   const version = pageVersion(page.slugs);

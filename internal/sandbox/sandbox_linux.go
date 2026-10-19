@@ -32,6 +32,22 @@ const (
 		unix.LANDLOCK_ACCESS_FS_READ_DIR
 )
 
+// rulesetAttr is struct landlock_ruleset_attr as Landlock's first version
+// defines it. gnux keeps its own copy rather than x/sys's, whose fields have
+// been renamed and added to as Landlock grew: the kernel takes a structure
+// of any size it knows (the size goes with it), and this one every Landlock
+// kernel knows.
+type rulesetAttr struct {
+	handledAccessFS uint64
+}
+
+// pathBeneathAttr is struct landlock_path_beneath_attr: the kernel reads
+// its first 12 bytes (it is packed), which Go lays out the same.
+type pathBeneathAttr struct {
+	allowedAccess uint64
+	parentFd      int32
+}
+
 // handledRights are the rights a kernel of Landlock ABI version abi
 // understands: all of them are restricted, so that what is not granted is
 // denied.
@@ -57,7 +73,7 @@ func enter(p Policy) error {
 	}
 	handled := handledRights(int(abi))
 
-	attr := unix.LandlockRulesetAttr{Access_fs: handled}
+	attr := rulesetAttr{handledAccessFS: handled}
 	fd, _, errno := unix.Syscall(unix.SYS_LANDLOCK_CREATE_RULESET, uintptr(unsafe.Pointer(&attr)), unsafe.Sizeof(attr), 0)
 	if errno != 0 {
 		return fmt.Errorf("sandbox: creating the Landlock ruleset: %w", errno)
@@ -125,7 +141,7 @@ func addRule(ruleset int, path string, rights uint64) error {
 	if st.Mode&unix.S_IFMT != unix.S_IFDIR {
 		rights &= fileRights
 	}
-	rule := unix.LandlockPathBeneathAttr{Allowed_access: rights, Parent_fd: int32(fd)}
+	rule := pathBeneathAttr{allowedAccess: rights, parentFd: int32(fd)}
 	if _, _, errno := unix.Syscall6(unix.SYS_LANDLOCK_ADD_RULE, uintptr(ruleset), unix.LANDLOCK_RULE_PATH_BENEATH, uintptr(unsafe.Pointer(&rule)), 0, 0, 0); errno != 0 {
 		return fmt.Errorf("sandbox: allowing %s: %w", path, errno)
 	}

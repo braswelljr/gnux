@@ -46,8 +46,8 @@ export function VersionSelect({ versions }: { versions: string[] }) {
         target = pathOf(version, '');
       }
     } catch {
-      // Without the list, try the same page; a missing one falls back to the
-      // version's first page on the server.
+      // Without the list, try the same page; should the version not have
+      // it, that is a page not found, from which the select still works.
     }
     router.push(target);
     setBusy(false);

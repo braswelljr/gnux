@@ -188,9 +188,10 @@ check('a release snapshot is served, not indexed, and points at the latest page'
   );
   assert.ok(html.includes('Documentation version'), 'no version select');
 
-  const missing = await fetch(`${origin}/docs/${version}/no-such-page`, { redirect: 'manual' });
-  assert.ok([307, 308].includes(missing.status), `a missing page answers ${missing.status}`);
-  assert.equal(new URL(missing.headers.get('location'), 'http://x').pathname, `/docs/${version}`);
+  // A page the version does not have is not found (the version select
+  // checks before it switches, and goes to the version's first page).
+  const missing = await get(`/docs/${version}/no-such-page`);
+  assert.equal(missing.response.status, 404);
 });
 
 check('the manifest and the icon are served', async () => {
