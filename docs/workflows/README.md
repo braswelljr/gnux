@@ -15,6 +15,7 @@ How gnux's technical processes actually run inside the code, one document per pr
 | [ci-and-release](ci-and-release.md)                                   | Every GitHub workflow: trigger, steps, requirements enforced, local reproduction, common failures; the tag-to-release flow; where the version comes from |
 | [publishing-a-release](publishing-a-release.md)                       | A version to every place it is installed from: the one-time setup of Homebrew, Scoop, winget, the Snap Store and the AUR, cutting and checking a release, installing one particular version, and recovering from a bad one |
 | [error-handling-and-exit-status](error-handling-and-exit-status.md)   | `ErrFailed`, `ExitError`, `UsageError`, `ErrText`, `Describe`, closed pipes, and a table of every special status |
+| [gnu-conformance](gnu-conformance.md)                                 | The harness that runs each case through the GNU tools and through gnux and compares output, errors and status |
 | [benchmarking-and-robustness](benchmarking-and-robustness.md)         | `make bench` and comparing two runs; the memory, goroutine and open-file tests; `core.FlushIfIdle`; the fuzz targets; where a panic is contained |
 
 ## Where to start

@@ -92,7 +92,7 @@ func Meta() docmeta.Meta {
 			"does not apply to standard input. --line-buffered is implied when standard output is " +
 			"a terminal. -U (--binary) is accepted and has no effect: no platform's line endings " +
 			"are translated. The obsolete -u and the short form -V (use --version) are not " +
-			"accepted, and long options cannot be abbreviated. A file that is also the output is " +
+			"accepted. A file that is also the output is " +
 			"not detected. A missing pattern is reported as 'missing PATTERNS operand' rather " +
 			"than with a usage line. Directory entries are searched in name order, where GNU " +
 			"uses directory order.",
@@ -266,6 +266,10 @@ func Register(fs *pflag.FlagSet) {
 	fs.Lookup("color").NoOptDefVal = "auto"
 	fs.String(flagColour, "", "same as --color=`WHEN`")
 	fs.Lookup(flagColour).NoOptDefVal = "auto"
+	// Hidden, as in GNU's --help, and so that --col completes to --color
+	// alone: glibc does not call a choice between two spellings of one
+	// option ambiguous.
+	fs.Lookup(flagColour).Hidden = true
 	fs.BoolP("binary", "U", false, "accepted for compatibility; has no effect")
 
 	// Options GNU spells with a letter only. pflag wants a long name for

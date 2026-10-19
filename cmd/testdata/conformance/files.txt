@@ -1,0 +1,67 @@
+# File operations: ls, cp, mv, rm, mkdir, rmdir, ln, touch, stat-free
+# checks, basename, dirname, readlink, realpath, du.
+
+ls
+ls -a dir
+ls -l
+ls -la dir/sub
+ls -R dir
+ls -1 -F
+ls -d dir dir/sub
+ls -S
+ls -r -t
+ls missing a.txt
+ls -m dir
+ls -x -w 30
+ls -i empty >/dev/null; echo $?
+cp a.txt c.txt && cat c.txt
+cp -r dir copy && ls -R copy
+cp dir x
+cp missing x
+cp -v a.txt b.txt dir
+cp -n a.txt b.txt; cat b.txt
+cp a.txt a.txt
+mv a.txt moved && ls
+mv -v b.txt dir/ && ls dir
+mv missing x
+mv dir dir/sub
+rm a.txt && ls
+rm missing
+rm -f missing; echo $?
+rm dir
+rm -r dir && ls
+rm -d dir
+rm -rv dir
+rm -i a.txt < /dev/null
+rm .
+rm -r /
+rmdir dir
+rmdir -p dir/sub
+mkdir new && ls -d new
+mkdir -p deep/er/est && ls -R deep
+mkdir dir
+mkdir -v x y
+mkdir -m 700 private && ls -ld private | cut -c1-10
+ln -s a.txt sym && readlink sym
+ln a.txt hard && ls -l hard | cut -c1-12
+ln a.txt b.txt
+ln -sf b.txt link && readlink link
+touch new && ls new
+touch -c ghost; ls ghost
+touch -d '2001-02-03 04:05:06' a.txt && ls -l --time-style=full-iso a.txt
+basename /usr/lib/file.tar.gz .gz
+basename -a /x/a /y/b
+basename -s .txt a.txt b.txt
+dirname /usr/lib/ a/b c
+readlink link
+readlink -f link
+readlink -f dir/../a.txt
+readlink a.txt; echo $?
+realpath link dir/sub
+realpath -e missing
+realpath -m missing/x
+du -s dir
+du -a dir
+du -sh dir
+du -c a.txt b.txt
+du missing

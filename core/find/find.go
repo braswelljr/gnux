@@ -131,15 +131,27 @@ type entry struct {
 	pruned bool
 }
 
+// expressionError reports a mistake in the options or the expression the way
+// GNU find does: the message alone and status 1, with no pointer to --help.
+func (f *Find) expressionError(err error) error {
+	var usage *core.UsageError
+	if !errors.As(err, &usage) {
+		return err
+	}
+	f.diag.Errorf("%s", usage.Msg)
+	return core.ErrFailed
+}
+
 // Run parses args ([-H] [-L] [-P] [starting-point...] [expression]) and walks
-// every starting point. The error is a *core.UsageError for a command line
-// find cannot parse, and core.ErrFailed when any file could not be processed.
+// every starting point. The error is core.ErrFailed, after a diagnostic, for a
+// command line find cannot parse (GNU find adds no --help hint there) and when
+// any file could not be processed.
 func (f *Find) Run(args []string) (err error) {
 	f.reset()
 
 	rest, err := f.parseLeading(args)
 	if err != nil {
-		return err
+		return f.expressionError(err)
 	}
 	split := 0
 	for split < len(rest) && !startsExpression(rest[split]) {
@@ -152,7 +164,7 @@ func (f *Find) Run(args []string) (err error) {
 
 	defer f.closeOutputs()
 	if err := f.parseExpression(rest[split:]); err != nil {
-		return err
+		return f.expressionError(err)
 	}
 
 	for _, start := range starts {

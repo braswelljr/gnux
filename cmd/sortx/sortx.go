@@ -202,6 +202,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.Int("parallel", 0, "accepted for compatibility and ignored (`N` concurrent sorts)")
 	fs.Int("batch-size", 0, "accepted for compatibility and ignored (merge at most `NMERGE` inputs at once)")
 	fs.String("compress-program", "", "accepted for compatibility and ignored (`PROG` to compress temporaries)")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "check-quiet")
 }
 
 // checkModes maps the --check argument to its mode.

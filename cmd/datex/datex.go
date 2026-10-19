@@ -228,7 +228,7 @@ func rewrite(args []string) []string {
 // parseArgs parses the flags on fs and folds them into date.Options.
 func parseArgs(fs *pflag.FlagSet, args []string) (parsed, error) {
 	var p parsed
-	if err := fs.Parse(rewrite(args)); err != nil {
+	if err := tool.ParseFlagSet(fs, rewrite(args), false); err != nil {
 		return p, core.Usagef("%s", err)
 	}
 	on := func(name string) bool {

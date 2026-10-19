@@ -183,6 +183,12 @@ type Ls struct {
 
 // New builds a listing engine writing to s.
 func New(opts Options, s core.Streams) *Ls {
+	return NewAs(Name, opts, s)
+}
+
+// NewAs builds a listing engine whose diagnostics are prefixed with name
+// rather than lsx: the engine behind ls's variants, dirx and vdirx.
+func NewAs(name string, opts Options, s core.Streams) *Ls {
 	l := &Ls{
 		Options:    opts,
 		IsTerminal: core.IsTerminal(s.Out),
@@ -190,7 +196,7 @@ func New(opts Options, s core.Streams) *Ls {
 		Now:        time.Now,
 		Location:   time.Local,
 		streams:    s,
-		diag:       core.NewDiag(Name, s),
+		diag:       core.NewDiag(name, s),
 	}
 	l.TermWidth = func() int {
 		if f, ok := s.Out.(*os.File); ok {

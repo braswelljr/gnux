@@ -90,15 +90,15 @@ gnux/
 ## Tools
 
 `archx`, `b2sumx`, `base32x`, `base64x`, `basenamex`, `catx`, `chgrpx`, `chmodx`, `chownx`,
-`cksumx`, `commx`, `cpx`, `csplitx`, `cutx`, `datex`, `ddx`, `dfx`, `dirnamex`, `dux`, `echox`,
-`envx`, `expandx`, `exprx`, `factorx`, `falsex`, `findx`, `fmtx`, `foldx`, `grepx`, `headx`,
-`hostnamex`, `idx`, `installx`, `joinx`, `killx`, `linkx`, `lnx`, `lsx`, `md5sumx`, `mkdirx`,
-`mktempx`, `mvx`, `nicex`, `nlx`, `nohupx`, `nprocx`, `odx`, `pastex`, `printenvx`, `printfx`,
-`pwdx`, `readlinkx`, `realpathx`, `rmdirx`, `rmx`, `sedx`, `seqx`, `sha1sumx`, `sha224sumx`,
-`sha256sumx`, `sha384sumx`, `sha512sumx`, `shufx`, `sleepx`, `sortx`, `splitx`, `statx`, `sumx`,
-`tacx`, `tailx`, `teex`, `testx`, `timeoutx`, `touchx`, `truex`, `truncatex`, `trx`, `tsortx`,
-`ttyx`, `unamex`, `unexpandx`, `uniqx`, `unlinkx`, `uptimex`, `wcx`, `whoamix`, `whox`, `xargsx`,
-`yesx`. The README's roadmap lists what is not implemented yet.
+`cksumx`, `commx`, `cpx`, `csplitx`, `cutx`, `datex`, `ddx`, `dfx`, `dirnamex`, `dirx`, `dux`,
+`echox`, `envx`, `expandx`, `exprx`, `factorx`, `falsex`, `findx`, `fmtx`, `foldx`, `grepx`,
+`groupsx`, `headx`, `hostnamex`, `idx`, `installx`, `joinx`, `killx`, `linkx`, `lnx`, `lognamex`,
+`lsx`, `md5sumx`, `mkdirx`, `mktempx`, `mvx`, `nicex`, `nlx`, `nohupx`, `nprocx`, `odx`, `pastex`,
+`printenvx`, `printfx`, `pwdx`, `readlinkx`, `realpathx`, `rmdirx`, `rmx`, `sedx`, `seqx`,
+`sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `shufx`, `sleepx`, `sortx`,
+`splitx`, `statx`, `sumx`, `tacx`, `tailx`, `teex`, `testx`, `timeoutx`, `touchx`, `truex`,
+`truncatex`, `trx`, `tsortx`, `ttyx`, `unamex`, `unexpandx`, `uniqx`, `unlinkx`, `uptimex`,
+`usersx`, `vdirx`, `wcx`, `whoamix`, `whox`, `xargsx`, `yesx`. The README's roadmap lists what is not implemented yet.
 
 `grepx`, `sedx`, `findx` and `xargsx` mirror GNU grep, GNU sed and GNU findutils, not coreutils:
 they are the tools a build script reaches for next. `xargsx` and `findx -exec` run a command
@@ -122,6 +122,8 @@ make bench         # benchmark the real tools into bench/latest.txt (BENCH=regex
 make bench/save    # keep the latest results as the baseline; make bench/compare runs benchstat
 make bench/check   # fail if bench/latest.txt regressed against bench/baseline.txt (tools/benchcheck)
 make fuzz          # fuzz every parser for FUZZTIME each (default 30s)
+make conformance   # compare every case in cmd/testdata/conformance with the GNU tools (Linux)
+make conformance/docker # the same, inside a Debian container with current GNU releases
 make web/wasm      # compile gnux to web/public/gnux.wasm (+ wasm_exec.js)
 make web/dev       # wasm + docs content, then `pnpm dev` in web/
 make web/test      # test the playground's in-memory fs against the real wasm
@@ -140,7 +142,7 @@ go build -ldflags "-X github.com/braswelljr/gnux/internal/common.Version=$(git d
 
 ## Requirements
 
-- **Go 1.25+** (pinned in `go.mod`; CI reads it from there) and `git`.
+- **Go 1.26+** (pinned in `go.mod`; CI reads it from there) and `git`.
 - **golangci-lint v2** for `make lint` and `make format`; **lefthook** for the Git hooks
   (`make hooks`): on commit, staged Go files are formatted and their packages linted, and staged
   web files go through Prettier and ESLint; on push, `make docs/check` fails if the generated
@@ -156,7 +158,7 @@ These are mirrored for users in the README's Requirements section and the guide'
 
 ## Tech Stack
 
-- **Go 1.25** - module path `github.com/braswelljr/gnux`
+- **Go 1.26** - module path `github.com/braswelljr/gnux`
 - **Cobra / pflag** - CLI framework; `cobra/doc` for reference generation
 - **mattn/go-isatty** - terminal detection
 - **golang.org/x/sys** - Windows and BSD system calls the standard library lacks (statfs,
@@ -291,6 +293,11 @@ func buildOptions(fs) <gnu>.Options   // fold parsed values into Options (unexpo
 - `RawArgs: true` disables flag parsing for tools whose arguments are not GNU-style options
   (`echox`, `truex`, `falsex`, `yesx`); a lone `--help`/`--version` is still honored.
 - `NoInterspersed: true` stops option parsing at the first operand (`envx`).
+- Options are parsed by `tool.ParseFlags` as glibc's getopt parses them: unambiguous prefixes of
+  long options, `is ambiguous; possibilities:`, getopt's wording for every mistake. A long name
+  gnux invents for an option GNU spells with a letter only goes in `tool.OwnNames(fs, ...)` at
+  the end of `Register`: it then answers only when written in full and never changes what a GNU
+  abbreviation means.
 - `truex` and `falsex` are the one exception to the two-package rule: they have no engine.
 - cobra/pflag do not expose the order flags appeared in, so GNU's "last one wins" between
   conflicting flags is approximated by a fixed precedence - always toward the **most cautious**
@@ -330,7 +337,7 @@ a page in every format - a new tool is covered by both as soon as it is register
 ## The rm engine (`core/rm`)
 
 - `Run` returns `core.ErrFailed` if any removal failed. No operands is a usage error, unless `-f`.
-- Refuses `.` / `..`; refuses recursive `/` unless `NoPreserveRoot`.
+- Refuses `.` / `..` under `-r` (without it they are ordinary directories); refuses recursive `/` unless `NoPreserveRoot`.
 - `os.Lstat` throughout - symlinks are removed, never followed.
 - Non-recursive directory → `Is a directory`; `-d` on a non-empty dir → `Directory not empty`.
 - Recursive removal is **post-order**: with `-i`, prompts `descend into directory?`, then each
@@ -482,9 +489,16 @@ cleanup, and best-effort `fmt.Fprint*` diagnostic writes. `_test.go` files are e
 - `cmd/robust_test.go`, `cmd/robust_unix_test.go` - the real tools held to their limits:
   streaming tools in a fixed amount of memory, no goroutine or open file left behind, a filter
   answering each line while its input stays open.
-- `cmd/bench_test.go` - the benchmark suite (`make bench`); `core/{sed,grep,find,xargs}/fuzz_test.go`
-  and `core/shell/fuzz_test.go` - the fuzz targets (`make fuzz`). All of it is described in
+- `cmd/bench_test.go` - the benchmark suite (`make bench`);
+  `core/{sed,grep,find,xargs,printf,seq,tr,cut}/fuzz_test.go` and `core/shell/fuzz_test.go` - the
+  fuzz targets (`make fuzz`). All of it is described in
   `docs/workflows/benchmarking-and-robustness.md`.
+- `cmd/conformance_test.go` (build tag `conformance`) - every line of
+  `cmd/testdata/conformance/*.txt` run through GNU's tools and through gnux under the GNU names,
+  output, errors and status compared (`make conformance`, `docs/workflows/gnu-conformance.md`).
+  A behavior change that GNU shares gets a case there.
+- `internal/tool/getopt_test.go` - options parsed as getopt does: abbreviations, `OwnNames`,
+  glibc's wording for option errors.
 - `cmd/docs/docs_test.go` - `wrapCode`/`fenceLang`, an end-to-end `GenerateAll` (a page per tool
   per format, markdown links resolve, man stays plain, output is deterministic) and
   `GenerateMDX` (a page per tool, frontmatter present, no unescaped MDX characters).
@@ -495,14 +509,14 @@ cleanup, and best-effort `fmt.Fprint*` diagnostic writes. `_test.go` files are e
 
 | File        | What it does                                                                            |
 |-------------|-----------------------------------------------------------------------------------------|
-| `test.yml`  | `go vet` + `go test -race` on ubuntu/macos/windows, a multi-call smoke test, wasm build, 30s fuzzing of every parser (`make fuzz`) |
+| `test.yml`  | `go vet` + `go test -race` on ubuntu/macos/windows, a multi-call smoke test, wasm build, 30s fuzzing of every parser (`make fuzz`), and the GNU conformance harness in a Debian container |
 | `build.yml` | cross-compiles `gnux` for every release platform and uploads the binaries               |
 | `lint.yml`  | `golangci-lint` (pinned v2 release)                                                     |
 | `docs.yml`  | regenerates `documentation/` and `web/content/docs/`; fails if the committed copies are stale |
 | `web.yml`   | builds the wasm, then lints, type-checks, tests and builds the website                  |
 | `bench.yml` | on a pull request: benchmarks the base commit and the change in one job and fails on a regression (`tools/benchcheck`) |
 | `action.yml` | runs the setup-gnux action (`action.yml` at the root) on linux/macos/windows runners and uses the tools |
-| `release.yml` | on a `vX.Y.Z` tag: re-runs vet/test/docs checks, requires the tag's `CHANGELOG.md` section, then GoReleaser (`.goreleaser.yaml`) builds per-platform archives with completions and `.deb`/`.rpm`/`.apk` packages, publishes a GitHub release with `checksums.txt`, a provenance attestation and that section as its notes, publishes to each of Homebrew, Scoop, winget, the Snap Store and the AUR whose secret is set, and moves the `vX` major tag |
+| `release.yml` | on a `vX.Y.Z` tag: re-runs vet/test/docs checks, requires the tag's `CHANGELOG.md` section, then GoReleaser (`.goreleaser.yaml`) builds per-platform archives with completions and `.deb`/`.rpm`/`.apk` packages, publishes a GitHub release with an SBOM per archive, a cosign-signed `checksums.txt`, a provenance attestation and that section as its notes, publishes to each of Homebrew, Scoop, winget, the Snap Store and the AUR whose secret is set, moves the `vX` major tag, and (job `image`) pushes the Alpine and `scratch` Docker images to GHCR |
 
 An agent prepares a release (changelog section, `make docs`, `make ci`, `make release/check`) and hands the maintainer the commit, push and tag commands; it never runs them ([rule](docs/rules/agents-hand-over-git-commands.md)).
 
@@ -513,7 +527,8 @@ update the link definitions, commit, then `git tag -a vX.Y.Z && git push origin 
 with a hyphen is a prerelease. `docs/workflows/publishing-a-release.md` is the full procedure,
 with the one-time setup of each package manager. The release's notes are that section (`go run
 ./tools/changelog vX.Y.Z` prints them), and a release tag without one fails before it builds. Every workflow is `permissions: contents: read`; only the release's `release` job gets
-`contents: write` (plus `id-token`/`attestations: write` for the attestation). Without link flags, `common.Version` falls back to the build-info module
+`contents: write` (plus `id-token`/`attestations: write` for the attestation and the keyless
+signature), and its `image` job `packages: write`. Without link flags, `common.Version` falls back to the build-info module
 version, so `go install ...@vX.Y.Z` reports the tag.
 
 All read the Go toolchain from `go.mod` via `go-version-file: go.mod` - keep it there rather

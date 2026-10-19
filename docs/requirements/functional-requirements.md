@@ -1,7 +1,7 @@
 # Functional Requirements
 
 Functional requirements define what gnux must do: the behavior every tool shares, the options
-each of the 89 tools must support, the safeguards on destructive operations, how a tool is
+each of the 94 tools must support, the safeguards on destructive operations, how a tool is
 invoked, the portable shell, the Go library, installation, the generated documentation, the
 website, the playground and its discoverability. Each requirement has a stable identifier
 (`FR-n`), a rationale, acceptance criteria and the check that verifies it.
@@ -19,8 +19,9 @@ reason not to, **may** is optional.
 - **Identifiers are stable, not sequential.** `FR-1` to `FR-50` come from the first draft of
   this register and keep their numbers. `FR-51` to `FR-72` are the first 22 tools, in alphabetical
   order, `FR-88` to `FR-94` the text tools added after them, and `FR-96` to `FR-147` the
-  remaining coreutils tools, in alphabetical order, and `FR-156` to `FR-159` the tools added
-  after the first release (`archx`, `factorx`, `sumx`, `tsortx`). `FR-73` onward are the other
+  remaining coreutils tools, in alphabetical order, and `FR-156` to `FR-164` the tools added
+  after the first release (`archx`, `factorx`, `sumx`, `tsortx`, `dirx`, `groupsx`, `lognamex`,
+  `usersx`, `vdirx`). `FR-73` onward are the other
   requirements added since. The document is ordered by area, so the
   numbers do not run in order down the page.
 - **"Verified by" names something that exists.** A test file, a CI workflow, or the word
@@ -181,6 +182,38 @@ honor `--help` and `--version` when either is the sole argument.
 - **Verified by.** `TestLoneVersion` and `TestCommand` in `cmd/echox`, `cmd/truex`,
   `cmd/falsex` and `cmd/yesx`.
 
+### FR-165: options are parsed as GNU getopt parses them
+
+Every tool must read its options as glibc's `getopt_long` does, wherever the command-line
+framework (pflag) differs.
+
+- **Behavior.** A long option may be abbreviated to any prefix that names one option only
+  (`rmx --rec` is `--recursive`); a prefix of several is refused as `option '--co' is ambiguous;
+  possibilities: '--color' '--context'`. Only GNU's own long names take part: a long name gnux
+  gives an option GNU spells with a letter only (`lsx --long`), or a hidden second spelling,
+  answers only when written in full and only when no GNU option starts with it, so an
+  abbreviation means what it means to GNU (`mktempx --dir` is `--directory`). An option that
+  takes no argument refuses one (`option '--force' doesn't allow an argument`). Mistakes are
+  worded as glibc words them: `unrecognized option '--foo'`, `invalid option -- 'z'`, `option
+  requires an argument -- 'n'`, `option '--lines' requires an argument`, followed by the usual
+  `Try '<tool> --help'` line. Tools whose arguments are not options (`echox`, `testx`) parse
+  nothing.
+- **Verified by.** `internal/tool/getopt_test.go`, the conformance harness
+  (`cmd/conformance_test.go`).
+
+### FR-166: the GNU tools are the oracle
+
+Each tool's output, diagnostics and exit status must be checked against the GNU tool it mirrors,
+running both on the same command line.
+
+- **Behavior.** `cmd/conformance_test.go` runs every line of `cmd/testdata/conformance/*.txt` with
+  `sh -c` in two identical fresh directories: once with the GNU tools, once with gnux linked
+  under the GNU names ahead of them on `PATH`. Standard output, standard error and the exit
+  status must be equal, once gnux's own tool names (`rmx:`) are read as GNU's and each run's
+  directory as `$DIR`. A documented deviation is not written as a case.
+- **Verified by.** The `conformance` job of the Test workflow, against Debian's current GNU
+  releases; `make conformance` on Linux and `make conformance/docker` anywhere with Docker.
+
 ## 2. The tools
 
 One requirement per tool. Each states the synopsis, the options that must be supported, the
@@ -189,7 +222,8 @@ behavior that must hold, and the documented deviations from the GNU tool. `--hel
 
 Several GNU options exist only as a single letter. The command-line framework requires a long
 name for every option, so those letters also answer to a long name of gnux's own, which is
-shown in the tables and noted as a deviation.
+shown in the tables and noted as a deviation. Such a name is accepted only when written in full
+and never completes an abbreviation (FR-165), so every GNU command line keeps its meaning.
 
 ### FR-156: archx
 
@@ -780,6 +814,22 @@ dirnamex [OPTION] NAME...
 - **Deviations.** None known.
 - **Verified by.** `core/dirname/dirname_test.go`, `cmd/dirnamex/dirnamex_test.go`.
 
+### FR-160: dirx
+
+`dirx` must list directory contents in columns, as GNU `dir` does.
+
+```text
+dirx [OPTION]... [FILE]...
+```
+
+dirx takes every option of lsx (FR-60).
+
+- **Behavior.** dirx is lsx with GNU dir's defaults: it takes every lsx option (FR-60) and
+  lists exactly as lsx does, but arranges the names in columns whether or not the output is a terminal, and writes unprintable characters in names as backslash
+  escapes, as -b does. An option that picks a format or a quoting style replaces those defaults.
+  Diagnostics and exit statuses are lsx's, prefixed with dirx.
+- **Verified by.** `cmd/dirx/dirx_test.go`, `core/ls/ls_test.go`.
+
 ### FR-108: dux
 
 `dux` must estimate file space usage, as GNU `du` does.
@@ -1120,9 +1170,26 @@ grepx [OPTION]... PATTERNS [FILE]...
   `\>` behave as `\b`, and a repetition count above 1000 is too big. Input is treated as
   UTF-8. Directory entries are searched in name order. A missing pattern is a usage error in
   gnux's form, not GNU's usage line. `GREP_COLOR` is not read, and an input file that is also
-  the output is not detected. Not implemented: `-P`, `-u`, abbreviated long options.
+  the output is not detected. Not implemented: `-P`, `-u`.
 - **Verified by.** `core/grep/grep_test.go`, `core/grep/grep_unix_test.go`,
   `cmd/grepx/grepx_test.go`.
+
+### FR-161: groupsx
+
+`groupsx` must print the groups a user is in, as GNU `groups` does.
+
+```text
+groupsx [OPTION]... [USERNAME]...
+```
+
+groupsx has no options of its own.
+
+- **Behavior.** With no USERNAME, groupsx prints the names of the process's groups: the real
+  group, the effective group when it differs, then the supplementary groups, each once, as
+  idx -Gn does. For each USERNAME it prints 'USERNAME : ' and that user's groups from the account
+  database. An unknown user is reported as 'no such user' and the rest are still printed; a group
+  with no name is reported and printed as its number; either makes the exit status 1.
+- **Verified by.** `core/groups/groups_test.go`, `cmd/groupsx/groupsx_test.go`.
 
 ### FR-58: headx
 
@@ -1355,6 +1422,25 @@ lnx [OPTION]... TARGET... [LINK_NAME|DIRECTORY]
   implemented: `--backup` and `-b`, `--suffix` and `-S`, `-d`, `-F` and `--directory`.
 - **Verified by.** `core/ln/ln_test.go`, `cmd/lnx/lnx_test.go`.
 
+### FR-162: lognamex
+
+`lognamex` must print the user's login name, as GNU `logname` does.
+
+```text
+lognamex [OPTION]...
+```
+
+lognamex has no options of its own.
+
+- **Behavior.** lognamex prints the name the user logged in as, unchanged by su or sudo, and
+  takes no operands. With no login name it reports 'no login name' and exits 1. Without cgo it
+  cannot call getlogin, so it does what glibc does: on Linux the login user the kernel records
+  (/proc/self/loginuid), then on every Unix the login record of the terminal on standard input.
+  On macOS and the BSDs a process with no terminal therefore has no login name, where GNU
+  logname would read the kernel session. On Windows it prints the session's user without the
+  domain.
+- **Verified by.** `core/logname/logname_test.go`, `cmd/lognamex/lognamex_test.go`.
+
 ### FR-60: lsx
 
 `lsx` must list directory contents, as GNU `ls` does.
@@ -1500,7 +1586,7 @@ mktempx [OPTION]... [TEMPLATE]
 
 | Option              | Meaning |
 |---------------------|---------|
-| `-p`, `--dir`       | Use DIR as the directory, like --tmpdir=DIR |
+| `-p`, `--base-dir`  | Use DIR as the directory, like --tmpdir=DIR |
 | `-d`, `--directory` | Create a directory, not a file |
 | `-u`, `--dry-run`   | Do not create anything; merely print a name (unsafe) |
 | `-t`, `--in-tmpdir` | Interpret TEMPLATE as a single file name component, relative to $TMPDIR, else DIR (-p), else the temporary directory (deprecated) |
@@ -1519,7 +1605,7 @@ mktempx [OPTION]... [TEMPLATE]
   mode 700, and creation is atomic: an existing name is never reused. -u only prints a name that
   did not exist at the time, which is unsafe. -q suppresses the diagnostic when creation fails. -t
   is the deprecated form: TEMPLATE is a single name component under $TMPDIR, else -p DIR, else the
-  temporary directory. -p and -t also answer to the gnux long names --dir and --in-tmpdir.
+  temporary directory. -p and -t also answer to the gnux long names --base-dir and --in-tmpdir.
 - **Verified by.** `core/mktemp/mktemp_test.go`, `cmd/mktempx/mktempx_test.go`.
 
 ### FR-62: mvx
@@ -1953,8 +2039,7 @@ sedx [OPTION]... {script-only-if-no-other-script} [input-file]...
   refused at parse time, `\<` and `\>` behave as `\b`, `\w`, `\s` and `\b` are ASCII, and a
   repetition count above 1000 is too big. Patterns must be valid UTF-8. `--posix` changes only
   `n` and `N` at end of input. `-u` flushes per line but still reads in blocks. In-place
-  editing does not keep the owner, group or extended attributes. Not implemented: `--debug`,
-  abbreviated long options.
+  editing does not keep the owner, group or extended attributes. Not implemented: `--debug`.
 - **Verified by.** `core/sed/sed_test.go`, `cmd/sedx/sedx_test.go`.
 
 ### FR-93: seqx
@@ -2472,12 +2557,14 @@ testx EXPRESSION
   from the shell). As POSIX requires, one to four arguments are read by their count first, so
   testx -n = -n compares two strings. A malformed expression is diagnosed with GNU's wording ('a':
   unary operator expected, invalid integer 'x', missing argument after '-f', extra argument 'c')
-  and exits with status 2. Differences from GNU test: the [ form is not provided (a gnux tool's
-  name is its GNU name with an x appended), a lone --help or --version prints help or the version
-  where GNU test would treat it as a non-empty string, the -l STRING length operand is not
-  implemented, and off Unix -O and -G are always false while -r, -w and -x are read from the
-  permission bits.
-- **Verified by.** `core/test/test_test.go`.
+  and exits with status 2. -l STRING may stand for either integer of a comparison and means the
+  length of STRING. The same tool answers to `[ EXPRESSION ]` with the closing `]` required: as
+  `gnux [ ... ]`, as a program named `[`, and in the gnux shell; without the `]` it reports
+  missing ']' and exits 2. `[` is not a tool of its own: it has no x-name, no reference page and
+  no `--list` entry. Differences from GNU test: a lone --help or --version prints help or the
+  version where GNU test would treat it as a non-empty string, and off Unix -O and -G are always
+  false while -r, -w and -x are read from the permission bits.
+- **Verified by.** `core/test/test_test.go`, `cmd/main_test.go` (`TestBracket`).
 
 ### FR-139: timeoutx
 
@@ -2775,6 +2862,39 @@ uptimex [OPTION]... [FILE]
   is left out there, as GNU uptime leaves it out wherever the system cannot report it. If the boot
   time cannot be found the time up is shown as '????' and the exit status is 1.
 - **Verified by.** `core/uptime/uptime_test.go`, `cmd/uptimex/uptimex_test.go`.
+
+### FR-163: usersx
+
+`usersx` must print the user names of the users logged in, as GNU `users` does.
+
+```text
+usersx [OPTION]... [FILE]
+```
+
+usersx has no options of its own.
+
+- **Behavior.** usersx prints the login name of each session, sorted and separated by spaces on
+  one line, a user once per session, and nothing when nobody is logged in. It reads whox's
+  records (FR-147): the utmp file without the sessions whose process has ended, or utmpx on
+  macOS, or the signed-in sessions on Windows. FILE reads another file in utmp format, leaving
+  nothing out; it is not supported on Windows. More than one FILE is a usage error.
+- **Verified by.** `core/users/users_test.go`, `cmd/usersx/usersx_test.go`.
+
+### FR-164: vdirx
+
+`vdirx` must list directory contents in the long format, as GNU `vdir` does.
+
+```text
+vdirx [OPTION]... [FILE]...
+```
+
+vdirx takes every option of lsx (FR-60).
+
+- **Behavior.** vdirx is lsx with GNU vdir's defaults: it takes every lsx option (FR-60) and
+  lists exactly as lsx does, but uses the long format, and writes unprintable characters in names as backslash
+  escapes, as -b does. An option that picks a format or a quoting style replaces those defaults.
+  Diagnostics and exit statuses are lsx's, prefixed with vdirx.
+- **Verified by.** `cmd/vdirx/vdirx_test.go`, `core/ls/ls_test.go`.
 
 ### FR-71: wcx
 

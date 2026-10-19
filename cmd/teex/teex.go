@@ -121,6 +121,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.String("output-error", "",
 		"set behavior on write error; `MODE` can be: warn, warn-nopipe, exit, exit-nopipe")
 	fs.Lookup("output-error").NoOptDefVal = "warn-nopipe"
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "output-error-warn-nopipe")
 }
 
 // outputErrorModes maps the --output-error argument to its mode.

@@ -129,6 +129,37 @@ func TestDispatch(t *testing.T) {
 	})
 }
 
+// TestBracket checks that [ is test with a closing ], by every route: as a
+// subcommand, as the program name, and from the shell, but not as a tool of
+// its own.
+func TestBracket(t *testing.T) {
+	cases := []struct {
+		argv       []string
+		status     int
+		wantStderr string
+	}{
+		{[]string{"gnux", "[", "1", "-eq", "1", "]"}, 0, ""},
+		{[]string{"gnux", "[", "a", "=", "b", "]"}, 1, ""},
+		{[]string{"/usr/local/bin/[", "-n", "x", "]"}, 0, ""},
+		{[]string{"gnux", "[", "1", "-eq", "1"}, 2, "[: missing ']'\n"},
+		{[]string{"[", "-l", "abc", "-eq", "3", "]"}, 0, ""},
+	}
+	for _, c := range cases {
+		status, _, errb := run(t, c.argv...)
+		if status != c.status || errb != c.wantStderr {
+			t.Errorf("%q: status = %d, stderr = %q; want %d, %q", c.argv, status, errb, c.status, c.wantStderr)
+		}
+	}
+	if status, out, _ := run(t, "gnux", "[", "--help"); status != 0 || !strings.HasPrefix(out, "Usage: [ EXPRESSION ]") {
+		t.Errorf("[ --help: status = %d, stdout = %q", status, out)
+	}
+	for _, s := range Tools() {
+		if s.Name() == "[" || s.GNU == "[" {
+			t.Errorf("[ is registered as a tool: %+v", s.Meta.Name)
+		}
+	}
+}
+
 // A tool named by the first argument runs without the root command being
 // built, so it must answer exactly as it does under its own name.
 func TestSubcommandMatchesArgv0(t *testing.T) {

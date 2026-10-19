@@ -142,6 +142,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("dereference-args", "H", false, "with -R, follow symbolic links given on the command line (the default)")
 	fs.BoolP("dereference-all", "L", false, "with -R, follow every symbolic link to a directory")
 	fs.BoolP("no-dereference", "P", false, "with -R, do not follow any symbolic links")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "dereference-all", "dereference-args")
 }
 
 // parsed is a command line split into its parts.
@@ -181,7 +184,7 @@ func parseArgs(fs *pflag.FlagSet, args []string) (parsed, error) {
 			}
 		}
 	}
-	if err := fs.Parse(rest); err != nil {
+	if err := tool.ParseFlagSet(fs, rest, false); err != nil {
 		return p, core.Usagef("%s", err)
 	}
 	on := func(name string) bool {

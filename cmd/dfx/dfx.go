@@ -192,6 +192,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("print-type", "T", false, "print file system type")
 	fs.StringArrayP("exclude-type", "x", nil, "limit listing to file systems not of type `TYPE`")
 	fs.BoolP("sysv", "v", false, "(ignored)")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "kilobytes", "sysv")
 }
 
 // buildOptions folds the parsed flags into df.Options.

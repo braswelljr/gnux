@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-mktempx creates a new, empty file (or a directory with -d) whose name is TEMPLATE with its run of trailing X's replaced by random letters and digits, and prints the name. TEMPLATE must contain at least 3 consecutive X's at the end of the name; whatever follows the last X is kept as a suffix, and --suffix adds one explicitly. With no TEMPLATE, tmp.XXXXXXXXXX is used and the file is created in the temporary directory. A relative TEMPLATE is resolved against the current directory unless -p DIR or --tmpdir[=DIR] is given; then it goes under DIR, else $TMPDIR, else the system temporary directory (/tmp on Unix, the user's temporary folder on Windows), and must not be absolute. The file is created with mode 600 and the directory with mode 700, and creation is atomic: an existing name is never reused. -u only prints a name that did not exist at the time, which is unsafe. -q suppresses the diagnostic when creation fails. -t is the deprecated form: TEMPLATE is a single name component under $TMPDIR, else -p DIR, else the temporary directory. -p and -t also answer to the gnux long names --dir and --in-tmpdir.
+mktempx creates a new, empty file (or a directory with -d) whose name is TEMPLATE with its run of trailing X's replaced by random letters and digits, and prints the name. TEMPLATE must contain at least 3 consecutive X's at the end of the name; whatever follows the last X is kept as a suffix, and --suffix adds one explicitly. With no TEMPLATE, tmp.XXXXXXXXXX is used and the file is created in the temporary directory. A relative TEMPLATE is resolved against the current directory unless -p DIR or --tmpdir[=DIR] is given; then it goes under DIR, else $TMPDIR, else the system temporary directory (/tmp on Unix, the user's temporary folder on Windows), and must not be absolute. The file is created with mode 600 and the directory with mode 700, and creation is atomic: an existing name is never reused. -u only prints a name that did not exist at the time, which is unsafe. -q suppresses the diagnostic when creation fails. -t is the deprecated form: TEMPLATE is a single name component under $TMPDIR, else -p DIR, else the temporary directory. -p and -t also answer to the gnux long names --base-dir and --in-tmpdir.
 
 EXIT STATUS.
   0  success: every operand was processed
@@ -84,7 +84,7 @@ Options
 
 ::
 
-  -p, --dir DIR                  use DIR as the directory, like --tmpdir=DIR
+  -p, --base-dir DIR             use DIR as the directory, like --tmpdir=DIR
   -d, --directory                create a directory, not a file
   -u, --dry-run                  do not create anything; merely print a name (unsafe)
       --help                     display this help and exit

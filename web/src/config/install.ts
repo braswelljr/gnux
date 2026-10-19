@@ -130,7 +130,7 @@ sudo mv "gnux-$v-linux-amd64/gnux" /usr/local/bin/`
     id: 'go',
     name: 'Any platform, with Go',
     summary:
-      'Builds the latest version from source with the Go toolchain, 1.25 or newer; name a tag instead of latest (@v0.0.2) for that version.',
+      'Builds the latest version from source with the Go toolchain, 1.26 or newer; name a tag instead of latest (@v0.0.2) for that version.',
     steps: [
       {
         title: 'Install',

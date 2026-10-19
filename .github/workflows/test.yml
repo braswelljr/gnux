@@ -1,8 +1,9 @@
 # Requirement enforced: the code vets and passes its tests under the race
 # detector on Linux, macOS and Windows with the Go version pinned in go.mod,
 # the built binary dispatches on its own name, every tool still compiles for
-# js/wasm (the web playground), and every parser of untrusted text survives a
-# short fuzzing run.
+# js/wasm (the web playground), every parser of untrusted text survives a
+# short fuzzing run, and every case in cmd/testdata/conformance gives the same
+# output, errors and exit status as GNU coreutils, grep, sed and findutils.
 name: Test
 
 on:
@@ -83,3 +84,25 @@ jobs:
           name: coverage
           path: coverage.out
           if-no-files-found: error
+
+  # The GNU conformance harness (cmd/conformance_test.go): each command line
+  # runs through the GNU tools and through gnux under the GNU names, and the
+  # two must agree. The image carries current GNU releases (Debian trixie);
+  # GOTOOLCHAIN=auto lets go.mod, not the image, decide the Go version.
+  conformance:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.26-trixie
+      env:
+        GOTOOLCHAIN: auto
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Compare with GNU
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          useradd -m runner-gnux
+          chown -R runner-gnux "$GITHUB_WORKSPACE"
+          # Unprivileged, as a user runs the tools: root ignores permissions.
+          su runner-gnux -c "cd '$GITHUB_WORKSPACE' && PATH=/usr/local/go/bin:\$PATH GOTOOLCHAIN=auto go test -tags conformance -run TestConformance ./cmd/"

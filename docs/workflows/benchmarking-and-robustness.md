@@ -102,6 +102,10 @@ A filter calls it after each record it has written. When input is still buffered
 | `FuzzPattern`                 | `core/grep`  | A pattern, an input and a combination of options            |
 | `FuzzExpression`              | `core/find`  | A find expression, evaluated over a small tree              |
 | `FuzzInput`                   | `core/xargs` | xargs input under every way of splitting and batching it    |
+| `FuzzFormat`                  | `core/printf`| A printf format and its arguments                           |
+| `FuzzOperands`                | `core/seq`   | seq operands, a format and a separator, with and without `-w` |
+| `FuzzSets`                    | `core/tr`    | SET1, SET2 and an input, under every combination of `-c`, `-d`, `-s`, `-t` |
+| `FuzzList`                    | `core/cut`   | A LIST, a delimiter and an input, in each mode and option combination |
 
 ```bash
 make fuzz                  # every target for 30 seconds
@@ -109,7 +113,7 @@ make fuzz FUZZTIME=5m      # longer, before a release
 go test -run='^$' -fuzz='^FuzzScript$' -fuzztime=2m ./core/sed
 ```
 
-The seeds run in every `go test`, and the Test workflow runs `make fuzz` on Linux. Each target keeps the fuzzer away from the rest of the machine: sed runs in sandbox mode, so no script reads or writes a file, and a script that branches is only parsed, because it may legitimately never end; a find expression that would write, delete, run a command or name a second starting point is skipped; xargs runs nothing, and checks instead that no command line goes over the `-s` limit it was given.
+The seeds run in every `go test`, and the Test workflow runs `make fuzz` on Linux. Each target keeps the fuzzer away from the rest of the machine: sed runs in sandbox mode, so no script reads or writes a file, and a script that branches is only parsed, because it may legitimately never end; a find expression that would write, delete, run a command or name a second starting point is skipped; xargs runs nothing, and checks instead that no command line goes over the `-s` limit it was given; printf, seq, tr and cut write to an output that fails after 64 KiB, so a command line that asks for endless output (`seqx 1 inf`) ends with a write error, and skip any run of more than four digits, a width or repeat count that would only measure how much memory the machine has.
 
 A failure is saved under the package's `testdata/fuzz/`. Commit that file with the fix: it becomes a seed.
 

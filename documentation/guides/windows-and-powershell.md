@@ -4,7 +4,7 @@ How to use gnux on Windows, where the GNU core utilities are otherwise missing: 
 
 ## Install
 
-With Go 1.25 or newer installed:
+With Go 1.26 or newer installed:
 
 ```powershell
 go install github.com/braswelljr/gnux@latest

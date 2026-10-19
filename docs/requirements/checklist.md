@@ -54,6 +54,7 @@ entry ([adding-a-tool](../workflows/adding-a-tool.md)).
 
 - [x] `chmodx` (FR-100), `chownx` (FR-101), `chgrpx` (FR-99)
 - [x] `statx` (FR-136)
+- [x] `dirx` (FR-160), `vdirx` (FR-164)
 - [x] `dux` (FR-108), `dfx` (FR-107)
 - [x] `mktempx` (FR-120)
 - [x] `installx` (FR-115)
@@ -65,10 +66,11 @@ entry ([adding-a-tool](../workflows/adding-a-tool.md)).
 
 - [x] `datex` (FR-105)
 - [x] `unamex` (FR-142), `archx` (FR-156), `whoamix` (FR-146), `idx` (FR-114), `hostnamex` (FR-113),
-  `nprocx` (FR-124), `printenvx` (FR-127), `ttyx` (FR-141), `whox` (FR-147), `uptimex` (FR-145)
+  `nprocx` (FR-124), `printenvx` (FR-127), `groupsx` (FR-161), `usersx` (FR-163),
+  `lognamex` (FR-162), `ttyx` (FR-141), `whox` (FR-147), `uptimex` (FR-145)
 - [x] `timeoutx` (FR-139), `nicex` (FR-121), `nohupx` (FR-123), `killx` (FR-117)
 - [x] `testx` (FR-138), `exprx` (FR-110)
-- [ ] `[` as another name for `testx`, requiring the closing `]`
+- [x] `[` as another name for `testx`, requiring the closing `]` (FR-138)
 - [x] `ddx` (FR-106)
 
 ### Beyond coreutils
@@ -101,10 +103,10 @@ findutils.
   - Needs: an AUR account with an SSH key and an `AUR_KEY` secret.
 - [ ] A formula in `homebrew/core`, so that `brew install gnux` needs no tap
 - [x] Build provenance attestation for every release archive (FR-36)
-- [ ] An SBOM for every release archive (GoReleaser `sboms`, with syft)
-- [ ] cosign signatures for `checksums.txt`
-- [ ] The Docker image published to GHCR on every release
-- [ ] A `FROM scratch` image with the per-tool links, as a busybox-style base
+- [x] An SBOM for every release archive (GoReleaser `sboms`, with syft)
+- [x] cosign signatures for `checksums.txt`
+- [x] The Docker image published to GHCR on every release
+- [x] A `FROM scratch` image with the per-tool links, as a busybox-style base
 - [ ] A Nix package
 - [ ] An npm package (`@gnux/cli`) that installs the right binary, for Node projects
 - [ ] A WASI build (`GOOS=wasip1`) for wasmtime, wasmer and edge runtimes
@@ -116,7 +118,8 @@ findutils.
     then use `uses: braswelljr/gnux@main`. Optionally, list it on the GitHub Marketplace.
 - [x] Shell completion: `gnux completion bash|zsh|fish|powershell`, listed in `gnux --help` and
   shipped in every archive (FR-95)
-- [ ] A shebang story for scripts: `#!/usr/bin/env -S gnux shell`
+- [x] A shebang story for scripts: `#!/usr/bin/env -S gnux shell` (`cmd/shell_test.go`, the
+  portable scripting guide)
 - [ ] A documented replacement for rimraf, cpy-cli and mkdirp in npm `scripts`
 - [ ] An MCP server mode (`gnux mcp`) exposing the tools as sandboxed file operations
 - [ ] An embeddable playground (`<iframe>` or web component) for other documentation sites
@@ -132,10 +135,10 @@ findutils.
 - [x] Tests for bounded memory, leftover goroutines and open files, and line-by-line response
   (NFR-7, NFR-50, NFR-51)
 - [x] Dependabot for the website's pnpm packages, next to Go modules and Actions (NFR-20)
-- [ ] A GNU conformance harness: run each case through GNU coreutils and gnux on Linux and
-  diff stdout, stderr and the exit status
+- [x] A GNU conformance harness: run each case through GNU coreutils and gnux on Linux and
+  diff stdout, stderr and the exit status (FR-166)
 - [ ] Benchmarks against GNU coreutils and uutils for `cpx -r`, `rmx -r`, `wcx` and `sortx`
-- [ ] Fuzz tests for the option parsers of `printfx`, `seqx`, `trx` and `cutx`
+- [x] Fuzz tests for the option parsers of `printfx`, `seqx`, `trx` and `cutx` (NFR-48)
 
 ## 5. Language and website
 

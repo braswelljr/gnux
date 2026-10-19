@@ -201,6 +201,32 @@ func (i *ID) full(who Identity) string {
 	return b.String()
 }
 
+// Self returns the identity of the running process: its real and effective
+// IDs and its supplementary groups. It is the default of ID.Self.
+func Self() (Identity, error) {
+	return selfIdentity()
+}
+
+// LookupUser returns the identity of a user named by name or, failing that,
+// by number, with the groups the account database lists for it. It is the
+// default of ID.Lookup.
+func LookupUser(name string) (Identity, error) {
+	return lookupUser(name)
+}
+
+// GroupName returns the name of the group with ID gid. It is the default of
+// ID.GroupName.
+func GroupName(gid string) (string, bool) {
+	return groupName(gid)
+}
+
+// GroupList returns the groups of who in the order GNU id -G and groups list
+// them: the real group, then the effective one when it differs, then the
+// supplementary groups, each once.
+func GroupList(who Identity) []string {
+	return groupList(who)
+}
+
 // groupList is the real group, then the effective one when it differs, then
 // the supplementary groups, each once, as GNU id lists them.
 func groupList(who Identity) []string {

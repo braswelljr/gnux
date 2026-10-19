@@ -1,6 +1,6 @@
 # Getting started
 
-This guide takes you from nothing to a working gnux installation: installing the binary with `go install`, `make`, `install.sh` or Docker, turning each of the 89 tools into a command of its own by linking its name to the binary, and running your first commands in both invocation forms. It also covers the GNU-name aliases that let scripts written for the GNU tools run unchanged, the `--help`, `--version` and `--list` options every installation has, and how to check that everything is wired up correctly.
+This guide takes you from nothing to a working gnux installation: installing the binary with `go install`, `make`, `install.sh` or Docker, turning each of the 94 tools into a command of its own by linking its name to the binary, and running your first commands in both invocation forms. It also covers the GNU-name aliases that let scripts written for the GNU tools run unchanged, the `--help`, `--version` and `--list` options every installation has, and how to check that everything is wired up correctly.
 
 ## What you are installing
 
@@ -19,7 +19,7 @@ Without step 2 everything still works, through the subcommand form: `gnux rmx -r
 |-------|----------|
 | Run gnux | Nothing but the binary: Linux or macOS (amd64, arm64) or Windows (amd64). No cgo, no runtime dependencies |
 | Use the per-tool commands | A filesystem with symbolic links (or copies of the binary) and the install directory on `PATH` |
-| Install with `go install` or build from source | Go 1.25 or newer, and `git` |
+| Install with `go install` or build from source | Go 1.26 or newer, and `git` |
 | Use the optional helpers | `make` for the Makefile, `bash` for `install.sh`, Docker for the image |
 
 ## Install with `go install`
@@ -121,7 +121,7 @@ A typical run prints:
 ```text
 Installing github.com/braswelljr/gnux@latest...
 Installed gnux to /home/you/go/bin/gnux
-Linked 89 tools (rmx, cpx, lsx, ...) in /home/you/go/bin
+Linked 94 tools (rmx, cpx, lsx, ...) in /home/you/go/bin
 Ensure /home/you/go/bin is on your PATH, then run: gnux --help
 ```
 
@@ -149,10 +149,33 @@ go build -ldflags "-X github.com/braswelljr/gnux/internal/common.Version=$(git d
 
 ## Run in Docker
 
-The repository's `Dockerfile` is a two-stage build: a `golang:1.25-alpine` stage compiles a static binary and links every tool name, and an `alpine:3.20` stage carries only `/usr/local/bin/gnux` and its links. The image runs as an unprivileged user (uid 10001) in `/work`, with `gnux` as its entry point.
+Every release publishes two images to the GitHub Container Registry, for linux/amd64 and linux/arm64:
+
+| Image | What is in it |
+|-------|---------------|
+| `ghcr.io/braswelljr/gnux:v1` (also `:latest` and the exact version) | Alpine, with `gnux` and every tool name in `/usr/local/bin` |
+| `ghcr.io/braswelljr/gnux:v1-scratch` (also `:scratch`) | Nothing but `gnux`, its x-names, the GNU names and `[` in `/bin`, and an empty `/tmp`: a base image for a container that needs file tools and no distribution |
+
+Both run as an unprivileged user (uid 10001) in `/work`, with `gnux` as the entry point.
+
+```bash
+docker run --rm ghcr.io/braswelljr/gnux:v1 --list
+docker run --rm -v "$(pwd):/work" ghcr.io/braswelljr/gnux:v1-scratch lsx -la
+```
+
+In a `Dockerfile` of your own, the scratch image is a stage to copy the tools from:
+
+```dockerfile
+FROM ghcr.io/braswelljr/gnux:v1-scratch AS gnux
+FROM gcr.io/distroless/static
+COPY --from=gnux /bin/ /usr/local/bin/
+```
+
+The repository's `Dockerfile` builds the same images: a `golang:1.26-alpine` stage compiles a static binary and links every tool name, then the default `alpine:3.20` stage carries `/usr/local/bin/gnux` and its links, and `--target scratch` carries them alone.
 
 ```bash
 docker build -t gnux .
+docker build -t gnux:scratch --target scratch .
 docker build -t gnux --build-arg VERSION=v0.1.0 .     # stamp a version
 
 docker run --rm gnux --list
@@ -310,7 +333,7 @@ rmx --no-such-flag x
 ```
 
 ```text
-rmx: unknown flag: --no-such-flag
+rmx: unrecognized option '--no-such-flag'
 Try 'rmx --help' for more information.
 ```
 

@@ -90,10 +90,28 @@ test: ## Run tests with the race detector
 	go test -race ./...
 
 # The fuzz targets, as PACKAGE:TARGET. Each reads text gnux did not write: a
-# shell script, a sed script, a pattern, a find expression, xargs input.
+# shell script, a sed script, a pattern, a find expression, xargs input, a
+# printf format, seq operands, tr sets, a cut list.
 FUZZ_TARGETS := core/shell:FuzzParse core/shell:FuzzRun core/sed:FuzzScript \
-	core/grep:FuzzPattern core/find:FuzzExpression core/xargs:FuzzInput
+	core/grep:FuzzPattern core/find:FuzzExpression core/xargs:FuzzInput \
+	core/printf:FuzzFormat core/seq:FuzzOperands core/tr:FuzzSets core/cut:FuzzList
 FUZZTIME ?= 30s
+
+# The GNU conformance harness: every line of cmd/testdata/conformance through
+# GNU's tools and through gnux, compared. `conformance` needs GNU coreutils,
+# grep, sed and findutils (Linux); `conformance/docker` brings them along.
+CONFORMANCE_IMAGE ?= golang:1.26-trixie
+
+.PHONY: conformance
+conformance: ## Compare gnux with the GNU tools installed here (Linux)
+	go test -tags conformance -run TestConformance ./cmd/
+
+.PHONY: conformance/docker
+conformance/docker: ## Compare gnux with GNU inside a Debian container (needs Docker)
+	docker run --rm --user "$$(id -u):$$(id -g)" -e HOME=/tmp -e GOCACHE=/tmp/gocache \
+		-e GOMODCACHE=/tmp/gomod -e GOFLAGS=-buildvcs=false -e GOTOOLCHAIN=auto \
+		-v "$(CURDIR)":/src -w /src $(CONFORMANCE_IMAGE) \
+		go test -tags conformance -run TestConformance ./cmd/
 
 .PHONY: fuzz
 fuzz: ## Fuzz every parser for FUZZTIME each (default 30s)

@@ -173,6 +173,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("verbose", "v", false, "always output headers giving file names")
 	fs.BoolP("zero-terminated", "z", false, "line delimiter is NUL, not newline")
 	registerObsolete(fs, ord)
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "follow-retry")
 }
 
 // order stamps each count-setting flag as it is parsed. GNU tail lets the last

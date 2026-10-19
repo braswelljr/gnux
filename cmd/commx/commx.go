@@ -128,6 +128,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.StringArray("output-delimiter", nil, "separate columns with `STR`")
 	fs.Bool("total", false, "output a summary")
 	fs.BoolP("zero-terminated", "z", false, "line delimiter is NUL, not newline")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "suppress-common", "suppress-file1", "suppress-file2")
 }
 
 // fatalError is a mistake GNU comm reports without the --help hint.

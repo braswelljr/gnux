@@ -47,11 +47,13 @@ func Meta() docmeta.Meta {
 			"by their count first, so testx -n = -n compares two strings. A malformed " +
 			"expression is diagnosed with GNU's wording ('a': unary operator expected, " +
 			"invalid integer 'x', missing argument after '-f', extra argument 'c') and exits " +
-			"with status 2. Differences from GNU test: the [ form is not provided (a gnux " +
-			"tool's name is its GNU name with an x appended), a lone --help or --version " +
-			"prints help or the version where GNU test would treat it as a non-empty string, " +
-			"the -l STRING length operand is not implemented, and off Unix -O and -G are " +
-			"always false while -r, -w and -x are read from the permission bits.",
+			"with status 2. As in GNU test, -l STRING may stand for either integer of a " +
+			"comparison and means the length of STRING (testx -l \"$name\" -gt 8). The same " +
+			"tool answers to [ EXPRESSION ], with the closing ] required: as gnux [ ... ], " +
+			"as a link named [, and inside gnux shell; without the ] it reports missing ']' " +
+			"and exits 2. Differences from GNU test: a lone --help or --version prints help " +
+			"or the version where GNU test would treat it as a non-empty string, and off Unix " +
+			"-O and -G are always false while -r, -w and -x are read from the permission bits.",
 		Permissions: "Reads file metadata only: -e, -f, -d and the other file tests need search " +
 			"permission on the directories leading to the file; -r, -w and -x ask the " +
 			"operating system whether you could read, write or execute it, without trying. " +
@@ -137,4 +139,25 @@ func Meta() docmeta.Meta {
 
 func run(_ *pflag.FlagSet, args []string, s core.Streams) error {
 	return test.New(test.Options{}, s).Run(args)
+}
+
+// BracketSpec describes test written as '[ EXPRESSION ]'. It is not a tool of
+// its own (it has no name with an x, no reference page and no --list entry):
+// the registry looks it up by the name [, so that gnux [ ... ], a link named
+// [ and the gnux shell all reach it.
+func BracketSpec() tool.Spec {
+	m := Meta()
+	m.Name = test.BracketName
+	m.Use = test.BracketName + " EXPRESSION ]"
+	return tool.Spec{
+		Meta:      m,
+		GNU:       test.BracketName,
+		Run:       runBracket,
+		RawArgs:   true,
+		UsageExit: test.ExitError,
+	}
+}
+
+func runBracket(_ *pflag.FlagSet, args []string, s core.Streams) error {
+	return test.New(test.Options{Bracket: true}, s).Run(args)
 }

@@ -100,7 +100,10 @@ func (r *Rm) runConcurrent(paths []string) {
 
 // removeArg handles a single top-level operand.
 func (r *Rm) removeArg(path string) {
-	if base := filepath.Base(filepath.Clean(path)); base == "." || base == ".." {
+	// As in GNU rm, only a recursive removal refuses . and .. outright.
+	// Without -r they meet the ordinary rules: a directory is refused, and
+	// -d fails, since neither can be removed while it is in use.
+	if base := filepath.Base(filepath.Clean(path)); r.Recursive && (base == "." || base == "..") {
 		r.diag.Errorf("refusing to remove '.' or '..' directory: skipping '%s'", path)
 		return
 	}

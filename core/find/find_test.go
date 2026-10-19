@@ -333,9 +333,8 @@ func TestFileActions(t *testing.T) {
 	}
 
 	r = run(t, nil, ".", "-fprint", filepath.Join(t.TempDir(), "no", "such", "dir"))
-	var usage *core.UsageError
-	if !errors.As(r.e, &usage) || !strings.HasSuffix(usage.Msg, ": No such file or directory") {
-		t.Fatalf("err = %v", r.e)
+	if !errors.Is(r.e, core.ErrFailed) || !strings.HasSuffix(r.err, ": No such file or directory\n") {
+		t.Fatalf("err = %v, stderr = %q", r.e, r.err)
 	}
 }
 
@@ -723,14 +722,14 @@ func TestUsageErrors(t *testing.T) {
 		{[]string{"-Ofast", "."}, "The -O option must be immediately followed by a decimal integer"},
 	}
 	for _, tt := range tests {
+		// As in GNU find: the message, status 1, and no pointer to --help.
 		r := run(t, nil, tt.args...)
-		var usage *core.UsageError
-		if !errors.As(r.e, &usage) {
-			t.Errorf("findx %q: err = %v, want a usage error", tt.args, r.e)
+		if !errors.Is(r.e, core.ErrFailed) {
+			t.Errorf("findx %q: err = %v, want ErrFailed", tt.args, r.e)
 			continue
 		}
-		if usage.Msg != tt.want {
-			t.Errorf("findx %q:\n got %q\nwant %q", tt.args, usage.Msg, tt.want)
+		if want := "findx: " + tt.want + "\n"; r.err != want {
+			t.Errorf("findx %q:\n got %q\nwant %q", tt.args, r.err, want)
 		}
 		if r.out != "" {
 			t.Errorf("findx %q: stdout = %q, want none", tt.args, r.out)

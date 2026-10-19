@@ -457,7 +457,8 @@ The playground's filesystem must be tested against the real WebAssembly build.
 ### NFR-48: parsers survive arbitrary input
 
 No script text may make the shell's lexer, parser or expansion panic, and no sed script, grep
-pattern, find expression or xargs input may make its tool panic.
+pattern, find expression, xargs input, printf format, seq operand, tr set or cut list may make its
+tool panic.
 
 - **Rationale.** `gnux shell` reads scripts it did not write, including whatever a visitor
   types into the playground.
@@ -468,8 +469,9 @@ pattern, find expression or xargs input may make its tool panic.
   in-memory file list: a pattern
   such as `/*/*/*/*` against a real Linux runner's disk walks `/proc` and stalls the fuzzer.
   `FuzzScript` (`core/sed`), `FuzzPattern` (`core/grep`), `FuzzExpression` (`core/find`) and
-  `FuzzInput` (`core/xargs`) run the engines on generated input, each kept from touching the
-  rest of the machine.
+  `FuzzInput` (`core/xargs`), `FuzzFormat` (`core/printf`), `FuzzOperands` (`core/seq`),
+  `FuzzSets` (`core/tr`) and `FuzzList` (`core/cut`) run the engines on generated input, each
+  kept from touching the rest of the machine.
 - **Verified by.** The seeds run in every `go test`; the Test workflow fuzzes each target for
   30 seconds on Linux (`make fuzz`).
 

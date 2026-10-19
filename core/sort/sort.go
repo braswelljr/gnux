@@ -872,13 +872,28 @@ func parseFloat(b []byte) (float64, bool) {
 		j++
 	}
 	for end := j; end > i; end-- {
-		v, err := strconv.ParseFloat(string(b[i:end]), 64)
+		v, err := strconv.ParseFloat(strtodSyntax(b[i:end]), 64)
 		var ne *strconv.NumError
 		if err == nil || errors.As(err, &ne) && errors.Is(ne.Err, strconv.ErrRange) {
 			return v, true
 		}
 	}
 	return 0, false
+}
+
+// strtodSyntax makes a number strtod accepts readable by strconv.ParseFloat:
+// strtod reads a hexadecimal number without a binary exponent (0x10, 0x1.8),
+// where Go's syntax requires one, so a missing exponent is given as p0.
+func strtodSyntax(b []byte) string {
+	s := string(b)
+	digits := strings.TrimLeft(s, "+-")
+	if len(s)-len(digits) > 1 || len(digits) < 3 || digits[0] != '0' || digits[1]|0x20 != 'x' {
+		return s
+	}
+	if strings.ContainsAny(digits[2:], "pP") {
+		return s
+	}
+	return s + "p0"
 }
 
 func floatChar(c byte) bool {

@@ -1,0 +1,255 @@
+.nh
+.TH "DIRX" "1" "Jan 2024" "gnux" "gnux manual"
+
+.SH NAME
+dirx - List directory contents in columns, whether or not the output is a terminal.
+
+
+.SH SYNOPSIS
+\fBdirx [OPTION]... [FILE]...\fP
+
+
+.SH DESCRIPTION
+dirx is lsx -C -b: it lists each FILE, or the current directory, exactly as lsx does and takes every lsx option, but arranges the names in columns even when the output is piped or redirected (80 columns wide then, or -w COLS), and writes unprintable characters in names as backslash escapes (\\n, \\t, \\ooo) so that every name fits on one line. An option that picks a format (-l, -1, -x, -m) or a quoting style (-Q) replaces those defaults. Diagnostics and exit statuses are lsx's, prefixed with dirx.
+
+.PP
+EXIT STATUS.
+  0  success
+  1  minor trouble: an entry found while listing could not be examined
+  2  serious trouble: a command-line operand could not be accessed, a directory could not be read, or a command-line mistake
+
+.PP
+HELP. dirx --help shows the options and the first examples; gnux help dirx prints the full manual, and gnux help dirx OPTION explains one option.
+
+.PP
+SEE ALSO. lsx, vdirx.
+
+.PP
+PERMISSIONS. Listing a directory needs read permission on it; examining its entries (-l, -s, -i, -F, --color, sorting by time or size) also needs search permission. Nothing is ever modified.
+
+.PP
+USE CASES.
+  - Getting a compact column listing in a log or a file, where lsx prints one name per line.
+  - Listing a directory the way Windows users expect a dir command to work.
+  - Seeing names with newlines or tabs in them as escapes rather than broken lines.
+  - Keeping a script's listing the same whether or not it runs in a terminal.
+  - Comparing directory contents side by side in a narrow terminal with -w.
+
+
+.SH OPTIONS
+\fB-x\fP, \fB--across\fP[=false]
+	list entries by lines instead of by columns
+
+.PP
+\fB-a\fP, \fB--all\fP[=false]
+	do not ignore entries starting with .
+
+.PP
+\fB-A\fP, \fB--almost-all\fP[=false]
+	do not list implied . and ..
+
+.PP
+\fB-u\fP, \fB--atime\fP[=false]
+	with -lt: sort by, and show, access time; with -l: show access time and sort by name; otherwise: sort by access time, newest first
+
+.PP
+\fB-F\fP, \fB--classify\fP[=false]
+	append indicator (one of */=@|) to entries
+
+.PP
+\fB--color\fP[="never"]
+	color the output \fBWHEN\fR: 'always' (the default when WHEN is omitted), 'auto', or 'never'
+
+.PP
+\fB-C\fP, \fB--columns\fP[=false]
+	list entries by columns
+
+.PP
+\fB-m\fP, \fB--commas\fP[=false]
+	fill width with a comma separated list of entries
+
+.PP
+\fB-c\fP, \fB--ctime\fP[=false]
+	with -lt: sort by, and show, ctime (time of last change of file status information); with -l: show ctime and sort by name; otherwise: sort by ctime, newest first
+
+.PP
+\fB-L\fP, \fB--dereference\fP[=false]
+	when showing file information for a symbolic link, show information for the file the link references rather than for the link itself
+
+.PP
+\fB-H\fP, \fB--dereference-command-line\fP[=false]
+	follow symbolic links listed on the command line
+
+.PP
+\fB-d\fP, \fB--directory\fP[=false]
+	list directories themselves, not their contents
+
+.PP
+\fB-b\fP, \fB--escape\fP[=false]
+	print C-style escapes for nongraphic characters
+
+.PP
+\fB--file-type\fP[=false]
+	likewise, except do not append '*'
+
+.PP
+\fB--full-time\fP[=false]
+	like -l --time-style=full-iso
+
+.PP
+\fB--group-directories-first\fP[=false]
+	group directories before files; any use of --sort=none (-U) disables grouping
+
+.PP
+\fB--help\fP[=false]
+	display this help and exit
+
+.PP
+\fB--hide\fP=""
+	do not list implied entries matching shell \fBPATTERN\fR (overridden by -a or -A)
+
+.PP
+\fB-q\fP, \fB--hide-control-chars\fP[=false]
+	print ? instead of nongraphic characters
+
+.PP
+\fB-h\fP, \fB--human-readable\fP[=false]
+	with -l and -s, print sizes like 1K 234M 2G etc.
+
+.PP
+\fB-I\fP, \fB--ignore\fP=""
+	do not list implied entries matching shell \fBPATTERN\fR
+
+.PP
+\fB-B\fP, \fB--ignore-backups\fP[=false]
+	do not list implied entries ending with ~
+
+.PP
+\fB-i\fP, \fB--inode\fP[=false]
+	print the index number of each file
+
+.PP
+\fB-l\fP, \fB--long\fP[=false]
+	use a long listing format
+
+.PP
+\fB-o\fP, \fB--long-no-group\fP[=false]
+	like -l, but do not list group information
+
+.PP
+\fB-g\fP, \fB--long-no-owner\fP[=false]
+	like -l, but do not list owner
+
+.PP
+\fB-G\fP, \fB--no-group\fP[=false]
+	in a long listing, don't print group names
+
+.PP
+\fB-n\fP, \fB--numeric-uid-gid\fP[=false]
+	like -l, but list numeric user and group IDs
+
+.PP
+\fB-1\fP, \fB--one-per-line\fP[=false]
+	list one file per line
+
+.PP
+\fB-Q\fP, \fB--quote-name\fP[=false]
+	enclose entry names in double quotes
+
+.PP
+\fB-R\fP, \fB--recursive\fP[=false]
+	list subdirectories recursively
+
+.PP
+\fB-r\fP, \fB--reverse\fP[=false]
+	reverse order while sorting
+
+.PP
+\fB--si\fP[=false]
+	likewise, but use powers of 1000 not 1024
+
+.PP
+\fB-s\fP, \fB--size\fP[=false]
+	print the allocated size of each file, in blocks
+
+.PP
+\fB-p\fP, \fB--slash\fP[=false]
+	append / indicator to directories
+
+.PP
+\fB--sort\fP=""
+	sort by \fBWORD\fR instead of name: none (-U), size (-S), time (-t), version (-v), extension (-X), name, width
+
+.PP
+\fB-X\fP, \fB--sort-extension\fP[=false]
+	sort alphabetically by entry extension
+
+.PP
+\fB-S\fP, \fB--sort-size\fP[=false]
+	sort by file size, largest first
+
+.PP
+\fB-t\fP, \fB--sort-time\fP[=false]
+	sort by time, newest first; see --time
+
+.PP
+\fB-v\fP, \fB--sort-version\fP[=false]
+	natural sort of (version) numbers within text
+
+.PP
+\fB-T\fP, \fB--tabsize\fP=""
+	assume tab stops at each \fBCOLS\fR instead of 8
+
+.PP
+\fB--time\fP=""
+	select which timestamp is shown or sorted on, \fBWORD\fR: access time (-u): atime, access, use; metadata change time (-c): ctime, status; modified time (default): mtime, modification; birth time: birth, creation
+
+.PP
+\fB--time-style\fP=""
+	time/date format with -l, \fBTIME_STYLE\fR: full-iso, long-iso, iso, locale, or +FORMAT
+
+.PP
+\fB-U\fP, \fB--unsorted\fP[=false]
+	do not sort; list entries in directory order
+
+.PP
+\fB--version\fP[=false]
+	output version information and exit
+
+.PP
+\fB-w\fP, \fB--width\fP=""
+	set output width to \fBCOLS\fR; 0 means no limit
+
+
+.SH EXAMPLE
+.EX
+  # List the current directory in columns
+  dirx
+
+  # Keep the columns when writing to a file
+  dirx > listing.txt
+
+  # Include hidden entries
+  dirx -a
+
+  # List entries across rather than down
+  dirx -x src
+
+  # Fit the columns in 40 characters
+  dirx -w 40 /etc
+
+  # Mark directories and executables
+  dirx -F
+
+  # Sort by modification time, newest first
+  dirx -t
+
+  # Show sizes in blocks next to each name
+  dirx -sh
+
+  # Switch to the long format, as vdirx does
+  dirx -l
+
+  # List a directory in the portable gnux shell
+  gnux shell -c 'dirx -A dist'
+.EE

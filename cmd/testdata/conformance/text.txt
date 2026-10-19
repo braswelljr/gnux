@@ -1,0 +1,66 @@
+# Text filters: cat, head, tail, sort, uniq, cut, paste, tr, nl, wc, fold,
+# fmt, expand, unexpand, tac, comm, join, od, base64, base32.
+
+cat -n a.txt b.txt
+cat -A tabs crlf noeol
+cat -s -b a.txt empty b.txt
+cat missing a.txt
+head -n 2 a.txt words
+head -c 5 a.txt
+head -n -1 a.txt
+tail -n 1 a.txt b.txt
+tail -c 4 noeol
+tail -n +2 a.txt
+sort words a.txt
+sort -n nums
+sort -g nums
+sort -r -u dup
+sort -t, -k2,2n csv
+sort -f dup
+sort -c dup
+sort -k3 missing
+uniq dup
+uniq -c dup
+uniq -d -i dup
+uniq -u dup
+cut -d, -f1,3 csv
+cut -c2-4 a.txt
+cut -f2 tabs
+cut -d, -f2 --complement csv
+cut -s -d: -f1 a.txt
+cut -f
+cut -c0 a.txt
+paste a.txt b.txt
+paste -s -d, a.txt
+paste -d: a.txt b.txt empty
+tr a-z A-Z < words
+tr -d aeiou < words
+tr -s ' o' < words
+tr -c -d 'a-z\n' < words
+tr '[:lower:]' '[:upper:]' < a.txt
+tr a
+nl a.txt
+nl -ba -s': ' empty a.txt
+wc a.txt b.txt
+wc -l -w words
+wc -c noeol
+LC_ALL=C.UTF-8 wc -m bin a.txt
+wc missing a.txt
+fold -w 6 words
+fold -s -w 10 words
+fmt -w 12 words
+expand tabs
+expand -t 4 tabs
+unexpand -a tabs
+tac a.txt b.txt
+comm a.txt b.txt
+comm -12 a.txt b.txt
+join a.txt b.txt
+od -c bin
+od -An -tx1 a.txt
+od -x noeol
+base64 a.txt
+base64 -w 8 words
+base64 a.txt | base64 -d
+base32 b.txt
+base32 -d a.txt

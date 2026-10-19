@@ -90,6 +90,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.StringP("target-directory", "t", "", "copy all SOURCE arguments into `DIRECTORY`")
 	fs.BoolP("no-target-directory", "T", false, "treat DEST as a normal file")
 	fs.BoolP("verbose", "v", false, "print the name of each created file or directory")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "copy", "create-leading")
 }
 
 // buildOptions folds the parsed flags into install.Options.

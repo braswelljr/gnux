@@ -1,5 +1,5 @@
 ---
-title: "-p, --dir"
+title: "-p, --base-dir"
 description: "Use DIR as the directory, like --tmpdir=DIR."
 ---
 
@@ -9,14 +9,14 @@ An option of [mktempx](/docs/tools/mktempx).
 
 ```bash
 mktempx -p DIR [TEMPLATE]
-mktempx --dir=DIR [TEMPLATE]
+mktempx --base-dir=DIR [TEMPLATE]
 ```
 
 ## Details
 
 | Short | Long | Value | Default | Meaning |
 | --- | --- | --- | --- | --- |
-| `-p` | `--dir` | `DIR` |  | use DIR as the directory, like `--tmpdir`=DIR |
+| `-p` | `--base-dir` | `DIR` |  | use DIR as the directory, like `--tmpdir`=DIR |
 
 ## Examples
 
@@ -43,5 +43,5 @@ mktempx -q -p C:\nonexistent; if ($LASTEXITCODE -ne 0) { echox 'no temp dir' }
 ## Help in the terminal
 
 ```bash
-gnux help mktempx --dir
+gnux help mktempx --base-dir
 ```

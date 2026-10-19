@@ -8,6 +8,7 @@ How a gnux version gets from a commit on `main` to every place a user installs i
 |--------------------|---------------------------------------------------|--------------------------------------|---------------------------------------------------------------------|
 | GitHub release     | downloads `gnux-<tag>-<os>-<arch>.tar.gz` / `.zip` | GoReleaser                           | Nothing                                                             |
 | Linux packages     | `sudo dpkg -i`, `sudo rpm -i`, `sudo apk add` on a file from the release | GoReleaser (`nfpms`)  | Nothing                                                             |
+| Docker (GHCR)      | `docker run --rm ghcr.io/braswelljr/gnux:v1 --list`, or `:v1-scratch` | The `image` job (Buildx)   | Nothing; make the package public once, after the first push         |
 | `go install`       | `go install github.com/braswelljr/gnux@v0.0.2`    | The tag itself                       | Nothing                                                             |
 | setup-gnux action  | `uses: braswelljr/gnux@v0`                        | The workflow moves the `v0` tag      | Nothing                                                             |
 | Homebrew (own tap) | `brew tap braswelljr/gnux https://github.com/braswelljr/gnux`, then `brew install --cask braswelljr/gnux/gnux` | GoReleaser (`homebrew_casks`), into `Casks/` here | Nothing |
@@ -17,7 +18,7 @@ How a gnux version gets from a commit on `main` to every place a user installs i
 | AUR                | `yay -S gnux-bin`                                 | GoReleaser (`aurs`)                  | An AUR account with an SSH key, `AUR_KEY`                           |
 | Homebrew core      | `brew install gnux`                               | A pull request to `Homebrew/homebrew-core`, by hand | Homebrew's acceptance; see [Homebrew core](#homebrew-core-a-formula) |
 
-**A channel whose secret is not set is skipped, not failed.** The `Choose what to publish` step of the Release workflow adds it to GoReleaser's `--skip`, so the first six rows work today and each of the others starts working at the first release after its secret exists. Nothing has to be set up all at once.
+**A channel whose secret is not set is skipped, not failed.** The `Choose what to publish` step of the Release workflow adds it to GoReleaser's `--skip`, so the first seven rows work today and each of the others starts working at the first release after its secret exists. Nothing has to be set up all at once.
 
 **A prerelease stays out of the package managers.** A tag with a hyphen (`v0.0.2-rc.1`) gets a GitHub prerelease with every archive and package, and a snap on the `edge` channel; Homebrew, Scoop, winget and the AUR are left alone (`skip_upload: auto`), and `v0` does not move.
 
@@ -120,6 +121,31 @@ When the secret is set, the Release workflow installs `snapcraft`, and GoRelease
    ```
 
 The package installs `/usr/bin/gnux`, the license and the three completions. It `provides` and `conflicts` with `gnux`, so a from-source `gnux` package can replace it later.
+
+### Docker images on GHCR
+
+The `image` job of the Release workflow builds the `Dockerfile` for linux/amd64 and linux/arm64 and pushes two images to `ghcr.io/<owner>/gnux` with the job's own token (`packages: write`):
+
+| Tag                          | Image                                                                   | Moves on                |
+|------------------------------|-------------------------------------------------------------------------|-------------------------|
+| `v1.2.3`, `v1`, `latest`     | Alpine, with `gnux` and every tool name on the PATH (the default target) | `v1` and `latest`: a stable release |
+| `v1.2.3-scratch`, `v1-scratch`, `scratch` | `FROM scratch`: `gnux`, its x-names and GNU names (and `[`) in `/bin`, an empty `/tmp`, nothing else | the same |
+
+A prerelease (`v1.3.0-rc.1`) gets its own tags only. The first push creates the package as private: on GitHub, open the package (Profile, Packages, `gnux`), Package settings, and change its visibility to public, once. Both images run as uid 10001 in `/work`, with `gnux` as the entry point; the binary embeds the time zone database, which the scratch image has no copy of.
+
+### SBOMs and signatures
+
+Nothing to set up. Every archive gets an SPDX software bill of materials beside it (`gnux-<tag>-<os>-<arch>.tar.gz.sbom.json`), written by syft through GoReleaser's `sboms`, and listed in `checksums.txt`. `checksums.txt` itself is signed with cosign, keyless: the job's GitHub OIDC token gets a short-lived certificate from Sigstore naming this workflow, and `checksums.txt.sigstore.json` carries the signature, that certificate and the transparency-log entry. Checking a download is two steps, the signature and then the checksum:
+
+```bash
+cosign verify-blob checksums.txt \
+  --bundle checksums.txt.sigstore.json \
+  --certificate-identity-regexp '^https://github.com/braswelljr/gnux/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+sha256sumx --ignore-missing -c checksums.txt
+```
+
+The provenance attestation (`gh attestation verify`) proves the same origin through GitHub's own store; the signature works without the `gh` command and offline once downloaded.
 
 ### Linux packages
 
@@ -281,8 +307,10 @@ Check each channel that was not skipped. Every line should end with the new vers
 
 | Channel          | Check                                                                                         | Ready                              |
 |------------------|-----------------------------------------------------------------------------------------------|------------------------------------|
-| GitHub release   | `gh release view v0.0.2` lists 9 archives, 9 packages, the snaps if built, and `checksums.txt` | At once                           |
+| GitHub release   | `gh release view v0.0.2` lists 9 archives with their SBOMs, 9 packages, the snaps if built, `checksums.txt` and `checksums.txt.sigstore.json` | At once                           |
 | Attestation      | `gh attestation verify gnux-v0.0.2-linux-amd64.tar.gz --repo braswelljr/gnux`                 | At once                            |
+| Signature        | `cosign verify-blob` on `checksums.txt`, as under [SBOMs and signatures](#sboms-and-signatures) | At once                          |
+| Docker images    | `docker run --rm ghcr.io/braswelljr/gnux:v0.0.2 --version`, and `:v0.0.2-scratch`              | At once                            |
 | `go install`     | `go install github.com/braswelljr/gnux@v0.0.2 && gnux --version`                              | Within minutes (the module proxy)  |
 | setup-gnux       | `git ls-remote origin refs/tags/v0 refs/tags/v0.0.2^{}` shows the same commit                 | At once                            |
 | Homebrew         | `brew update && brew info --cask braswelljr/gnux/gnux`                                         | At once                            |

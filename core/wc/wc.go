@@ -231,14 +231,11 @@ func (w *Wc) numberWidth(names []*string) int {
 
 	minimum := 1
 	var total int64
-	for i, name := range names {
+	for _, name := range names {
 		info, err := w.stat(name)
 		if err != nil {
-			// GNU quirk, kept for identical output: an unreadable first
-			// operand disables the estimate altogether.
-			if i == 0 {
-				return 1
-			}
+			// An operand that cannot be read adds nothing: it is reported,
+			// and the estimate covers the others.
 			continue
 		}
 		if info == nil || !info.Mode().IsRegular() {

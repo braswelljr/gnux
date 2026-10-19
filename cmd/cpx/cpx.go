@@ -196,6 +196,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.Lookup("update").NoOptDefVal = "older"
 	fs.BoolP("verbose", "v", false, "explain what is being done")
 	fs.BoolP("one-file-system", "x", false, "stay on this file system")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "dereference-args", "no-dereference-links", "preserve-default")
 }
 
 // buildOptions folds the parsed flags into cp.Options. GNU cp resolves

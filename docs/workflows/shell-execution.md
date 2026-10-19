@@ -54,7 +54,7 @@ unknown option is a usage error with status 2 (FR-23):
 
 ```text
 $ gnux shell --nosuch
-gnux shell: unknown flag: --nosuch
+gnux shell: unrecognized option '--nosuch'
 Try 'gnux shell --help' for more information.     # status 2
 $ gnux shell missing.gnux
 gnux: missing.gnux: No such file or directory     # status 127

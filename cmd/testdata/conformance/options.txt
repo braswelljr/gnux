@@ -1,0 +1,32 @@
+# Option parsing, as getopt_long does it: abbreviations, ambiguity, and the
+# wording of every mistake.
+
+rm --rec dir && ls
+head --li 1 a.txt
+sort --rev a.txt
+sort --numeric --rev nums
+cut --deli=, --fie=2 csv
+sed --exp p --qu a.txt
+xargs --max-ar 1 echo < a.txt
+date --ut -d @0
+chmod --rec 700 dir && ls -ld dir | cut -c1-10
+uniq --cou dup
+wc --lin a.txt
+rm --foo x
+rm -z x
+rm -rz x
+head --lines
+head -n
+rm --force=yes x
+rm --for=1 x
+cut --f
+wc --help=x
+grep --colo=never beta a.txt
+grep --col=never beta a.txt
+ls --col=never dir
+ls --long=x
+sed --in-pl=.bak s/a/b/ a.txt && cat a.txt a.txt.bak
+seq --separ=: 3
+tr --del a < a.txt
+cat --number --squ a.txt
+touch --no-c ghost; ls ghost

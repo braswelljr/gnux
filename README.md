@@ -56,6 +56,7 @@ against an in-memory filesystem.
 | `ddx`        | `dd`        | Convert and copy a file, block by block |
 | `dfx`        | `df`        | Report file system space usage |
 | `dirnamex`   | `dirname`   | Strip the last component from file names |
+| `dirx`       | `dir`       | List directory contents in columns |
 | `dux`        | `du`        | Estimate file space usage |
 | `echox`      | `echo`      | Display a line of text |
 | `envx`       | `env`       | Run a program in a modified environment, or print the environment |
@@ -67,6 +68,7 @@ against an in-memory filesystem.
 | `fmtx`       | `fmt`       | Reformat each paragraph of text |
 | `foldx`      | `fold`      | Wrap each input line to fit in a specified width |
 | `grepx`      | `grep`      | Print the lines that match patterns |
+| `groupsx`    | `groups`    | Print the groups a user is in |
 | `headx`      | `head`      | Print the first part of each file |
 | `hostnamex`  | `hostname`  | Print the name of the current host system |
 | `idx`        | `id`        | Print real and effective user and group IDs |
@@ -75,6 +77,7 @@ against an in-memory filesystem.
 | `killx`      | `kill`      | Send a signal to processes, or list signals |
 | `linkx`      | `link`      | Call the link function to create a hard link to a file |
 | `lnx`        | `ln`        | Make hard or symbolic links between files |
+| `lognamex`   | `logname`   | Print the user's login name |
 | `lsx`        | `ls`        | List information about files and directory contents |
 | `md5sumx`    | `md5sum`    | Print or check MD5 (128-bit) checksums |
 | `mkdirx`     | `mkdir`     | Create the DIRECTORY(ies), if they do not already exist |
@@ -122,6 +125,8 @@ against an in-memory filesystem.
 | `uniqx`      | `uniq`      | Report or omit repeated lines |
 | `unlinkx`    | `unlink`    | Call the unlink function to remove the specified file |
 | `uptimex`    | `uptime`    | Tell how long the system has been running |
+| `usersx`     | `users`     | Print the user names of users currently logged in |
+| `vdirx`      | `vdir`      | List directory contents in the long format |
 | `wcx`        | `wc`        | Print newline, word, and byte counts for each file |
 | `whoamix`    | `whoami`    | Print the user name associated with the current effective user ID |
 | `whox`       | `who`       | Show who is logged on |
@@ -150,7 +155,7 @@ it back to the system's own tools, which differ between Linux, macOS and Windows
 
 **To install or build from source**
 
-- [Go](https://go.dev/dl/) 1.25 or newer (the version is pinned in `go.mod`).
+- [Go](https://go.dev/dl/) 1.26 or newer (the version is pinned in `go.mod`).
 - `git`, for `go install` and for the version string stamped into source builds.
 - Optional: `make` for the Makefile targets, `bash` for `install.sh`, Docker for the image.
 
@@ -160,7 +165,7 @@ it back to the system's own tools, which differ between Linux, macOS and Windows
 
 **To use gnux as a library**
 
-- A Go module on Go 1.25 or newer. The engines depend only on the standard library,
+- A Go module on Go 1.26 or newer. The engines depend only on the standard library,
   `github.com/mattn/go-isatty`, `golang.org/x/sys` (system calls the standard library does not
   wrap, on Windows and the BSDs) and `golang.org/x/crypto` (BLAKE2b), all pure Go; cobra is
   compiled only into the command-line packages under `cmd/`.
@@ -294,8 +299,16 @@ gnux completion powershell | Out-String | Invoke-Expression
 
 ### Docker
 
+Every release is on GHCR: `ghcr.io/braswelljr/gnux` (Alpine, every tool on the PATH) and the same
+tags with `-scratch` appended (gnux alone, `FROM scratch`, a base image the size of one binary).
+
 ```bash
-docker build -t gnux .
+docker run --rm -v "$(pwd):/work" ghcr.io/braswelljr/gnux:v1 lsx -la
+docker run --rm -v "$(pwd):/work" ghcr.io/braswelljr/gnux:v1-scratch shell -c 'wcx -l *.go'
+
+# or build it yourself:
+docker build -t gnux .                     # Alpine
+docker build -t gnux:scratch --target scratch .
 docker run --rm -v "$(pwd):/work" gnux lsx -la
 docker run --rm -v "$(pwd):/work" --entrypoint rmx gnux -rv build/
 # or via compose:
@@ -513,9 +526,8 @@ Not yet implemented, roughly in priority order. The full list of planned tools, 
 channels and integrations, ticked off as they land, is
 [`docs/requirements/checklist.md`](docs/requirements/checklist.md).
 
-- **Tools:** `[` (as another name for `testx`), `basenc`, `numfmt`, `pr`, `mkfifo`, `mknod`,
-  `pathchk`, `logname`, `groups`, `users`, `pinky`, `stdbuf`, `sync`, `shred`, `dircolors`, `dir`,
-  `vdir`, `hostid`, `ptx`, `stty`
+- **Tools:** `basenc`, `numfmt`, `pr`, `mkfifo`, `mknod`, `pathchk`, `pinky`, `stdbuf`, `sync`,
+  `shred`, `dircolors`, `hostid`, `ptx`, `stty`
 - **Out of scope by design:** `chroot`, `chcon` and `runcon`, which change system-wide state
   that gnux leaves to the system's own tools
 

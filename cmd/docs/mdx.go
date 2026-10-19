@@ -276,7 +276,7 @@ const mdxLibrary = `gnux is a Go module as well as a binary. Everything the comm
 
 ## Requirements
 
-A Go module on Go 1.25 or newer. The engines depend only on the standard library and ` + "`github.com/mattn/go-isatty`" + `; cobra is compiled only into the command-line packages under ` + "`cmd/`" + `.
+A Go module on Go 1.26 or newer. The engines depend only on the standard library and ` + "`github.com/mattn/go-isatty`" + `; cobra is compiled only into the command-line packages under ` + "`cmd/`" + `.
 
 ` + "```bash" + `
 go get github.com/braswelljr/gnux

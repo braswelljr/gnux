@@ -37,7 +37,7 @@ Without the action, `actions/setup-go` puts `$(go env GOPATH)/bin` on the `PATH`
 ```yaml
 - uses: actions/setup-go@v5
   with:
-    go-version: '1.25'
+    go-version: '1.26'
 
 - name: Install gnux
   shell: bash
@@ -151,7 +151,7 @@ variables:
   GOPATH: "$CI_PROJECT_DIR/.go"
 
 .gnux:
-  image: golang:1.25
+  image: golang:1.26
   before_script:
     - go install github.com/braswelljr/gnux@latest
     - export PATH="$GOPATH/bin:$PATH"
@@ -223,7 +223,7 @@ Two habits keep CI steps honest:
 
 ### The gnux image
 
-The repository's `Dockerfile` builds a static binary in `golang:1.25-alpine`, links every tool name next to it, and copies the result into `alpine:3.20`, where it runs as uid 10001 in `/work` with `gnux` as the entry point:
+The repository's `Dockerfile` builds a static binary in `golang:1.26-alpine`, links every tool name next to it, and copies the result into `alpine:3.20`, where it runs as uid 10001 in `/work` with `gnux` as the entry point:
 
 ```bash
 docker build -t gnux --build-arg VERSION=v0.1.0 .
@@ -246,12 +246,12 @@ The binary is static and has no runtime dependencies, so it can be copied into a
 
 ```dockerfile
 # syntax=docker/dockerfile:1
-FROM golang:1.25-alpine AS gnux
+FROM golang:1.26-alpine AS gnux
 RUN CGO_ENABLED=0 go install -trimpath -ldflags "-s -w" github.com/braswelljr/gnux@latest \
  && mkdir /out && cp /go/bin/gnux /out/ \
  && cd /out && for t in $(./gnux --list); do ln -s gnux "$t"; done
 
-FROM golang:1.25-alpine AS build
+FROM golang:1.26-alpine AS build
 WORKDIR /src
 COPY . .
 RUN CGO_ENABLED=0 go build -o /out/app .

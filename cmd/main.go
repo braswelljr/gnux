@@ -79,7 +79,7 @@ func execute(root *cobra.Command, args []string, s core.Streams) int {
 // do when xargsx or findx hands one tens of thousands of names.
 func runCommand(command *cobra.Command, args []string, s core.Streams) int {
 	return contained(command, s, func() (*cobra.Command, error) {
-		err := command.ParseFlags(args)
+		err := tool.ParseFlags(command, args)
 		// pflag asks for help itself when it meets -h on a tool that
 		// defines no such option.
 		if help, _ := command.Flags().GetBool("help"); help || errors.Is(err, pflag.ErrHelp) {

@@ -164,6 +164,7 @@ var proseWords = map[string]bool{
 	"cat": true, "echo": true, "env": true, "false": true, "head": true,
 	"sleep": true, "tail": true, "touch": true, "true": true, "yes": true,
 	"sort": true, "cut": true, "tee": true, "find": true,
+	"dir": true, "groups": true, "users": true, "sum": true, "factor": true, "arch": true,
 }
 
 // cmdWordRe matches standalone command names: gnux, every tool, and the GNU

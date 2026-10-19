@@ -152,6 +152,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("show-tabs", "T", false, "display TAB characters as ^I")
 	fs.BoolP("unbuffered", "u", false, "(ignored)")
 	fs.BoolP("show-nonprinting", "v", false, "use ^ and M- notation, except for LFD and TAB")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "show-nonprinting-ends", "show-nonprinting-tabs", "unbuffered")
 }
 
 // buildOptions folds the parsed flags into cat.Options, expanding the

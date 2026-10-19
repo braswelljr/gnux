@@ -1,0 +1,23 @@
+# Checksums and digests.
+
+md5sum a.txt b.txt
+sha1sum a.txt
+sha256sum a.txt empty
+sha512sum noeol
+sha224sum a.txt
+sha384sum a.txt
+b2sum a.txt
+b2sum -l 128 a.txt
+sha256sum --tag a.txt
+sha256sum a.txt b.txt > sums && sha256sum -c sums
+sha256sum a.txt > sums && env echo x >> a.txt && sha256sum -c sums
+sha256sum -c --quiet missing
+md5sum missing a.txt
+cksum a.txt b.txt
+cksum -a sha256 a.txt
+cksum -a bsd a.txt
+cksum < empty
+sum a.txt b.txt
+sum -s a.txt
+sum < words
+sum missing

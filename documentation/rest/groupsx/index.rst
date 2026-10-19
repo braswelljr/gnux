@@ -1,0 +1,77 @@
+.. _groupsx:
+
+groupsx
+-------
+
+Print the groups a user is in.
+
+Synopsis
+~~~~~~~~
+
+
+groupsx prints the names of the groups the current process is in: its real group, its effective group when that differs, then its supplementary groups, each once, as idx -Gn does. For each USERNAME it prints 'USERNAME : ' and the groups the account database lists for that user instead, which can differ from a running process's groups until the user logs in again. An unknown user is reported as 'no such user' and the remaining names are still printed; a group with no name is reported and printed as its number. On Windows the groups are the account's local groups, which is what Go's account lookup reports.
+
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+HELP. groupsx --help shows the options and the first examples; gnux help groupsx prints the full manual, and gnux help groupsx OPTION explains one option.
+
+SEE ALSO. idx, whoamix, chgrpx.
+
+PERMISSIONS. Needs no permissions. Reads the process's credentials and the account database.
+
+USE CASES.
+  - Checking that you are in the docker, wheel or sudo group after adding yourself.
+  - Seeing which groups another user belongs to.
+  - Debugging a 'Permission denied' on a group-writable file.
+  - Recording the CI user's groups in a build log.
+  - Testing group membership in a script with grepx -w.
+
+::
+
+  groupsx [OPTION]... [USERNAME]...
+
+Examples
+~~~~~~~~
+
+::
+
+    # Print your groups
+    groupsx
+
+    # Print another user's groups
+    groupsx root
+
+    # Print several users' groups
+    groupsx alice bob
+
+    # Check membership of one group
+    groupsx | grepx -qw docker && echox 'in docker'
+
+    # Print one group per line
+    groupsx | trx ' ' '\n'
+
+    # Count your groups
+    groupsx | wcx -w
+
+    # Print the numeric group IDs instead
+    idx -G
+
+    # Compare the account database with this process
+    groupsx "$(whoamix)"; groupsx
+
+    # Log the groups of the build user
+    echox "groups: $(groupsx)" >> build.log
+
+    # Check a group in the portable gnux shell
+    gnux shell -c 'if groupsx | grepx -qw wheel; then echox admin; fi'
+
+Options
+~~~~~~~
+
+::
+
+      --help      display this help and exit
+      --version   output version information and exit
+

@@ -74,8 +74,7 @@ func Meta() docmeta.Meta {
 			"\\b, and word characters are ASCII letters, digits and the underscore. A " +
 			"repetition count may be at most 1000. Text is taken as UTF-8 whatever the " +
 			"locale, a regular expression must itself be valid UTF-8, and l shows every " +
-			"non-ASCII byte in octal. --debug is not supported, and long options cannot be " +
-			"abbreviated. --posix only changes what n and N do at the end of the input " +
+			"non-ASCII byte in octal. --debug is not supported. --posix only changes what n and N do at the end of the input " +
 			"(nothing is printed); the GNU extensions stay available. -u flushes the " +
 			"output after every line but still reads the input in blocks. -i does not " +
 			"carry over a file's owner, group or extended attributes. A value of -l that " +
@@ -233,6 +232,9 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("unbuffered", "u", false, "flush the output after every line")
 	fs.BoolP("null-data", "z", false, "separate lines by NUL characters")
 	fs.BoolP("binary", "b", false, "open files in binary mode (always the case here)")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "binary")
 }
 
 // valueOptions are the short options that take a value, with their long
@@ -339,10 +341,10 @@ func buildOptions(fs *pflag.FlagSet) (sed.Options, error) {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
-	if err := fs.Parse(rewriteArgs(args)); err != nil {
+	if err := tool.ParseFlagSet(fs, rewriteArgs(args), false); err != nil {
 		if errors.Is(err, pflag.ErrHelp) {
 			// What the parser says for -h when the tool has no such option.
-			return core.Usagef("unknown shorthand flag: 'h' in -h")
+			return core.Usagef("invalid option -- 'h'")
 		}
 		return core.Usagef("%s", err)
 	}

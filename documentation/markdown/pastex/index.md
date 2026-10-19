@@ -134,7 +134,7 @@ pastex -z keys.bin values.bin
 pastex -z keys.bin values.bin
 ```
 
-Turn a column of numbers into one `sum` expression (1+2+3+4+5):
+Turn a column of numbers into one sum expression (1+2+3+4+5):
 
 ```bash
 seqx 5 | pastex -s -d +

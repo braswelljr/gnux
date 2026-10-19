@@ -276,6 +276,9 @@ func Register(fs *pflag.FlagSet) {
 	flag("across", "x", "list entries by lines instead of by columns")
 	flag("sort-extension", "X", "sort alphabetically by entry extension")
 	flag("one-per-line", "1", "list one file per line")
+
+	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.OwnNames(fs, "across", "atime", "columns", "commas", "ctime", "long", "long-no-group", "long-no-owner", "one-per-line", "slash", "sort-extension", "sort-size", "sort-time", "sort-version", "unsorted")
 }
 
 // run builds the listing options from the parsed flags and runs the engine
@@ -286,6 +289,27 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		return err
 	}
 	return ls.New(opts, s).Run(args)
+}
+
+// RunAs returns the Run of one of ls's variants, which GNU builds from the
+// same source as ls: dirx (columns) and vdirx (the long format). The variant
+// takes every lsx option; its format applies when no option picks one, and it
+// escapes unprintable characters in names (as -b does) unless an option picks
+// the quoting. Its diagnostics carry its own name.
+func RunAs(name string, format ls.Format) func(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	return func(fs *pflag.FlagSet, args []string, s core.Streams) error {
+		opts, err := buildOptions(fs)
+		if err != nil {
+			return err
+		}
+		if opts.Format == ls.FormatAuto {
+			opts.Format = format
+		}
+		if latest(fs, quotingFlags) == "" {
+			opts.Quoting = ls.QuoteEscape
+		}
+		return ls.NewAs(name, opts, s).Run(args)
+	}
 }
 
 // buildOptions folds the parsed flags into a single ls.Options, resolving each
@@ -469,6 +493,10 @@ func (o *ordered) String() string {
 }
 
 // Type names the value kind for help output.
+// IsBoolFlag marks a switch as taking no argument, as pflag's own booleans
+// are marked (lsx --long=x is refused, as in GNU).
+func (o *ordered) IsBoolFlag() bool { return o.boolean }
+
 func (o *ordered) Type() string {
 	if o.boolean {
 		return "bool"

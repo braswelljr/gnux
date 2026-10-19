@@ -1,8 +1,10 @@
 # Requirement enforced: a pushed version tag (v*) becomes a GitHub release with
 # a statically linked (CGO_ENABLED=0) gnux archive for every supported platform
 # - linux on amd64/arm64/riscv64, darwin and freebsd on amd64/arm64, windows on
-# amd64/arm64 - each reporting the tag as its version, plus a checksums file
-# and a build provenance attestation. Its notes are the tag's section of
+# amd64/arm64 - each reporting the tag as its version, with an SBOM per
+# archive, a checksums file signed with cosign (keyless) and a build
+# provenance attestation, and the Docker images (Alpine and scratch, for
+# linux/amd64 and linux/arm64) are pushed to ghcr.io/<owner>/gnux. Its notes are the tag's section of
 # CHANGELOG.md, which a release must have; only a prerelease without one falls
 # back to notes generated from the commits. The archives, checksums, Linux
 # packages (.deb, .rpm, .apk) and package managers (Homebrew, Scoop, winget,
@@ -130,6 +132,14 @@ jobs:
           [ -s "$NOTES" ] && args="$args --release-notes=$NOTES"
           echo "args=$args" >> "$GITHUB_OUTPUT"
 
+      # GoReleaser writes an SBOM per archive with syft and signs
+      # checksums.txt with cosign, keyless, through this job's id-token.
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
       # GoReleaser packs and uploads the snap with the snapcraft command.
       - name: Install snapcraft
         if: steps.plan.outputs.snap == 'true'
@@ -162,3 +172,74 @@ jobs:
           major="${TAG%%.*}"
           git tag -f "$major" "$TAG^{commit}"
           git push -f origin "refs/tags/$major"
+
+  # The Docker images, from the Dockerfile at the tag: ghcr.io/<owner>/gnux is
+  # Alpine with gnux on the PATH, and the same name with -scratch appended is
+  # gnux and its links alone. A stable release also moves the major version
+  # tag (v1, v1-scratch) and latest (latest, scratch); a prerelease moves
+  # neither.
+  image:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Tags for the Alpine image
+        id: alpine
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/gnux
+          tags: |
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}
+
+      - name: Tags for the scratch image
+        id: scratch
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/gnux
+          flavor: |
+            latest=false
+            suffix=-scratch
+          tags: |
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}
+            type=raw,value=scratch,suffix=,enable=${{ !contains(github.ref_name, '-') }}
+
+      - name: Build and push the Alpine image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          build-args: VERSION=${{ github.ref_name }}
+          push: true
+          tags: ${{ steps.alpine.outputs.tags }}
+          labels: ${{ steps.alpine.outputs.labels }}
+
+      - name: Build and push the scratch image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: scratch
+          platforms: linux/amd64,linux/arm64
+          build-args: VERSION=${{ github.ref_name }}
+          push: true
+          tags: ${{ steps.scratch.outputs.tags }}
+          labels: ${{ steps.scratch.outputs.labels }}

@@ -14,6 +14,55 @@ description: "Every notable change to gnux, release by release, newest first. Th
   topologically, in GNU's order, and names the strings of any loop it finds.
 - For Go callers: `cksum.BSD` and `cksum.SysV`, the two legacy checksums on any `io.Reader`, and
   `uname.System`, the system information `unamex` prints.
+- Five more coreutils tools. `dirx` and `vdirx` are `lsx` with GNU `dir` and `vdir`'s defaults:
+  columns or the long format whatever the output is, and names with unprintable characters
+  escaped. `groupsx` prints the groups of the process or of each user named. `usersx` prints
+  the users logged in. `lognamex` prints the name the user logged in as, which stays the same
+  under `su` and `sudo`.
+- `[ EXPRESSION ]`: the test tool answers to `[`, with the closing `]` required, as
+  `gnux [ ... ]` and as a link named `[`, as it already did in `gnux shell`.
+- `testx -l STRING`: the length of STRING, for either side of an integer comparison, as in GNU
+  test.
+- For Go callers: `id.Self`, `id.LookupUser`, `id.GroupName` and `id.GroupList`, and
+  `ls.NewAs`, an ls engine whose diagnostics carry another name.
+- Docker images on GHCR with every release: `ghcr.io/braswelljr/gnux` (Alpine) and the same
+  tags with `-scratch` appended, gnux and its links alone in a `FROM scratch` image, for
+  linux/amd64 and linux/arm64.
+- Every release archive has an SPDX SBOM beside it, and `checksums.txt` is signed with cosign
+  (keyless, `checksums.txt.sigstore.json`).
+- `core.Diag.ChildErr`, the error stream for a child process that runs while diagnostics may
+  still be written.
+
+- Long options may be abbreviated to any unambiguous prefix in every tool (`rmx --rec`), as GNU's
+  getopt allows; an ambiguous one lists its possibilities.
+- A GNU conformance harness: `make conformance` (or `make conformance/docker`) runs each case
+  in `cmd/testdata/conformance/` through the GNU tools and through gnux and compares output,
+  errors and exit status; CI runs it on every change.
+- Fuzz targets for the parsers of `printfx`, `seqx`, `trx` and `cutx`.
+
+### Changed
+
+- Option errors are worded as GNU's getopt words them in every tool: `unrecognized option
+  '--foo'`, `invalid option -- 'z'`, `option requires an argument -- 'n'`, `option '--force'
+  doesn't allow an argument`.
+- `findx` reports a mistake in its expression without the `Try 'findx --help'` line, as GNU find
+  does; the status is still 1.
+- `mktempx -p` answers to `--base-dir` instead of `--dir`, which is GNU's abbreviation of
+  `--directory` and now means that.
+- Building gnux needs Go 1.26, which `go.mod` has required since `golang.org/x/crypto` 0.57;
+  the Dockerfile and the documented requirements say so now.
+
+### Fixed
+
+- `nicex` no longer races with the command it runs over a shared error stream that is not a
+  file (a `gnux shell` pipeline, the playground, an embedding program): its warning and the
+  command's own error output used to be written from two goroutines at once.
+- `sortx -g` reads hexadecimal numbers as `strtold` does (`0x10` is 16).
+- `wcx` keeps its column width when an operand cannot be read, as GNU 9 does.
+- `rmx .` without `-r` reports `Is a directory`, and `rmx -d .` tries and fails, as in GNU;
+  only `-r` refuses `.` and `..` by name.
+- `grepx '['` reports `Invalid regular expression`, as GNU grep 3.11 does.
+- The Docker image builds again: it used Go 1.25, older than `go.mod` requires.
 
 ## [1.0.0] - 2026-10-14
 
