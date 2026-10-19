@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-installx copies SOURCE to DEST, or several SOURCE files into the existing directory DEST (or into -t DIRECTORY), and then sets each copy's permission mode (755 unless -m gives another, octal or symbolic) and, with -o and -g, its owner and group. An existing DEST is removed and replaced, not rewritten, so a running program keeps its copy. With -d every operand is a directory to create, with its missing parents; the mode applies to the named directories, and parents get 755 minus the umask. -D creates the leading directories of DEST (or the -t directory) first. -T treats DEST as a file even if it is a directory. -C leaves a destination alone when it already has the same content, mode, owner and group. -p gives each copy its source's modification time (the access time is set to the same value). -v reports each file and directory. -s is accepted, but stripping symbol tables needs a strip program, so it only warns that files are installed unstripped. -c is accepted and ignored, as in GNU. -D also answers to the gnux long name --create-leading. A symbolic -m starts from no permissions (u=rwx,go=rx is 755), as GNU install does.
+installx copies SOURCE to DEST, or several SOURCE files into the existing directory DEST (or into -t DIRECTORY), and then sets each copy's permission mode (755 unless -m gives another, octal or symbolic) and, with -o and -g, its owner and group. An existing DEST is removed and replaced, not rewritten, so a running program keeps its copy. --backup[=CONTROL] (or -b) first renames each existing destination to a backup: CONTROL simple (or never) appends a suffix, numbered (t) appends .~N~ with N one past the highest already there, existing (nil, the default) numbers the backup only when numbered backups already exist, and none (off) makes none; without a CONTROL the VERSION_CONTROL variable chooses. The suffix is ~, or SUFFIX with -S (which asks for backups by itself), or the SIMPLE_BACKUP_SUFFIX variable. With -d every operand is a directory to create, with its missing parents; the mode applies to the named directories, and parents get 755 minus the umask. -D creates the leading directories of DEST (or the -t directory) first. -T treats DEST as a file even if it is a directory. -C leaves a destination alone when it already has the same content, mode, owner and group. -p gives each copy its source's modification time (the access time is set to the same value). -v reports each file and directory. -s is accepted, but stripping symbol tables needs a strip program, so it only warns that files are installed unstripped. -c is accepted and ignored, as in GNU. -D also answers to the gnux long name --create-leading. A symbolic -m starts from no permissions (u=rwx,go=rx is 755), as GNU install does.
 
 EXIT STATUS.
   0  success: every operand was processed
@@ -79,23 +79,29 @@ Examples
     # An install step in the portable gnux shell
     gnux shell -e -c 'installx -D -m 644 site/index.html public/index.html'
 
+    # Install a new binary but keep numbered copies of the ones it replaces
+    installx --backup=numbered -m 755 build/tool /usr/local/bin/tool
+
 Options
 ~~~~~~~
 
 ::
 
-  -C, --compare                      compare content of source and destination files, and if no change to content, ownership, and permissions, do not modify the destination at all
-  -c, --copy                         ignored; for compatibility with old Unix versions of install
-  -D, --create-leading               create all leading components of DEST except the last, or all components of --target-directory, then copy SOURCE to DEST
-  -d, --directory                    treat all arguments as directory names; create all components of the specified directories
-  -g, --group GROUP                  set group ownership, instead of process' current group, to GROUP
-      --help                         display this help and exit
-  -m, --mode MODE                    set permission mode (as in chmod) to MODE, instead of rwxr-xr-x
-  -T, --no-target-directory          treat DEST as a normal file
-  -o, --owner OWNER                  set ownership (super-user only) to OWNER
-  -p, --preserve-timestamps          apply access/modification times of SOURCE files to corresponding destination files
-  -s, --strip                        strip symbol tables (not supported: warns and installs unstripped)
-  -t, --target-directory DIRECTORY   copy all SOURCE arguments into DIRECTORY
-  -v, --verbose                      print the name of each created file or directory
-      --version                      output version information and exit
+      --backup CONTROL[="$VERSION_CONTROL"]   make a backup of each existing destination file; CONTROL is none (off), simple (never), existing (nil) or numbered (t)
+  -b, --backup-default                        like --backup but does not accept an argument
+  -C, --compare                               compare content of source and destination files, and if no change to content, ownership, and permissions, do not modify the destination at all
+  -c, --copy                                  ignored; for compatibility with old Unix versions of install
+  -D, --create-leading                        create all leading components of DEST except the last, or all components of --target-directory, then copy SOURCE to DEST
+  -d, --directory                             treat all arguments as directory names; create all components of the specified directories
+  -g, --group GROUP                           set group ownership, instead of process' current group, to GROUP
+      --help                                  display this help and exit
+  -m, --mode MODE                             set permission mode (as in chmod) to MODE, instead of rwxr-xr-x
+  -T, --no-target-directory                   treat DEST as a normal file
+  -o, --owner OWNER                           set ownership (super-user only) to OWNER
+  -p, --preserve-timestamps                   apply access/modification times of SOURCE files to corresponding destination files
+  -s, --strip                                 strip symbol tables (not supported: warns and installs unstripped)
+  -S, --suffix SUFFIX                         override the usual backup suffix, '~', with SUFFIX
+  -t, --target-directory DIRECTORY            copy all SOURCE arguments into DIRECTORY
+  -v, --verbose                               print the name of each created file or directory
+      --version                               output version information and exit
 

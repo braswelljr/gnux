@@ -2,6 +2,7 @@
 package cpx
 
 import (
+	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -44,7 +45,16 @@ func Meta() docmeta.Meta {
 			"otherwise; -f removes a destination that cannot be opened and tries again, and " +
 			"--remove-destination removes every existing destination before writing it, so a " +
 			"destination symbolic link is replaced rather than written through and a file " +
-			"that other names share is not changed under them. GNU cp " +
+			"that other names share is not changed under them. " +
+			"--backup[=CONTROL] (or -b) first renames each existing destination to a backup: " +
+			"CONTROL simple (or never) appends a suffix, numbered (t) appends .~N~ with N one " +
+			"past the highest already there, existing (nil, the default) numbers the backup " +
+			"only when numbered backups already exist, and none (off) makes none; without a " +
+			"CONTROL the VERSION_CONTROL variable chooses. The suffix is ~, or SUFFIX with -S " +
+			"(which asks for backups by itself), or the SIMPLE_BACKUP_SUFFIX variable. A destination " +
+			"directory is merged into, never backed up; a file whose backup is the source is " +
+			"refused ('backing up ... might destroy source'); -f -b FILE FILE copies FILE to " +
+			"its backup name, as in GNU; and --backup cannot be combined with -n. GNU cp " +
 			"lets the last of conflicting options win; cpx cannot see option order, so it " +
 			"prefers the most cautious instead: -n overrides -i, and an explicit -P/-d overrides " +
 			"-H, which overrides -L.",
@@ -172,6 +182,16 @@ func Meta() docmeta.Meta {
 				Bash:        "cpx --remove-destination config/base.conf current.conf",
 				PowerShell:  "cpx --remove-destination config\\base.conf current.conf",
 			},
+			{
+				Description: "Update a config file but keep the previous version as config.yml~:",
+				Bash:        "cpx -b new/config.yml config.yml",
+				PowerShell:  "cpx -b new\\config.yml config.yml",
+			},
+			{
+				Description: "Keep every earlier version of a deployed file as app.conf.~1~, app.conf.~2~, ...:",
+				Bash:        "cpx --backup=numbered build/app.conf /etc/app/app.conf",
+				PowerShell:  "cpx --backup=numbered build\\app.conf C:\\app\\app.conf",
+			},
 		},
 	}
 }
@@ -179,6 +199,7 @@ func Meta() docmeta.Meta {
 // Register installs the cpx flags on fs.
 func Register(fs *pflag.FlagSet) {
 	fs.BoolP("archive", "a", false, "same as -dR --preserve=all")
+	tool.RegisterBackup(fs)
 	fs.BoolP("no-dereference-links", "d", false, "same as --no-dereference --preserve=links")
 	fs.BoolP("force", "f", false, "if an existing destination file cannot be opened, remove it and try again")
 	fs.BoolP("interactive", "i", false, "prompt before overwrite")
@@ -282,7 +303,15 @@ func buildOptions(fs *pflag.FlagSet) (cp.Options, error) {
 	}
 	if o.NoClobber {
 		o.Interactive = false
+		if tool.Backups(fs) {
+			return cp.Options{}, core.Usagef("--backup is mutually exclusive with -n or --update=none-fail")
+		}
 	}
+	backup, err := tool.BackupOptions(fs, os.Getenv)
+	if err != nil {
+		return cp.Options{}, err
+	}
+	o.Backup = backup
 	return o, nil
 }
 

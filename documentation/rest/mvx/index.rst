@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-mvx renames SOURCE to DEST, or moves several SOURCEs into DIRECTORY (also selectable with -t; -T forces the two-operand form). Within one filesystem a move is an atomic rename. Across filesystems mvx copies the source with all of its attributes, symbolic links and hard links intact and removes the original only after the copy has fully succeeded; --no-copy refuses such a move instead ('Invalid cross-device link'), so a move is always a rename. An existing destination is replaced unless -n (never), -u (only when the source is newer) or -i (ask first) says otherwise; a directory is never moved into itself, and a directory only replaces an empty directory. GNU mv lets the last of -f, -i and -n win; mvx cannot see option order, so it prefers the most cautious instead: -n over -i over -f.
+mvx renames SOURCE to DEST, or moves several SOURCEs into DIRECTORY (also selectable with -t; -T forces the two-operand form). Within one filesystem a move is an atomic rename. Across filesystems mvx copies the source with all of its attributes, symbolic links and hard links intact and removes the original only after the copy has fully succeeded; --no-copy refuses such a move instead ('Invalid cross-device link'), so a move is always a rename. An existing destination is replaced unless -n (never), -u (only when the source is newer) or -i (ask first) says otherwise; a directory is never moved into itself, and a directory only replaces an empty directory. --backup[=CONTROL] (or -b) first renames each existing destination to a backup: CONTROL simple (or never) appends a suffix, numbered (t) appends .~N~ with N one past the highest already there, existing (nil, the default) numbers the backup only when numbered backups already exist, and none (off) makes none; without a CONTROL the VERSION_CONTROL variable chooses. The suffix is ~, or SUFFIX with -S (which asks for backups by itself), or the SIMPLE_BACKUP_SUFFIX variable. A destination directory is backed up too, so with a backup a directory may replace a file and a file a directory; --backup cannot be combined with -n. GNU mv lets the last of -f, -i and -n win; mvx cannot see option order, so it prefers the most cautious instead: -n over -i over -f.
 
 EXIT STATUS.
   0  success: every operand was processed
@@ -86,20 +86,26 @@ Examples
     # Publish a finished build atomically, or fail if it is on another disk
     mvx --no-copy build/site.new www/site
 
+    # Replace a log with a new one, keeping the old one as server.log.old
+    mvx -S .old server.log.new server.log
+
 Options
 ~~~~~~~
 
 ::
 
-  -f, --force                     do not prompt before overwriting
-      --help                      display this help and exit
-  -i, --interactive               prompt before overwrite
-  -n, --no-clobber                do not overwrite an existing file
-      --no-copy                   do not copy if renaming fails
-  -T, --no-target-directory       treat DEST as a normal file
-      --strip-trailing-slashes    remove any trailing slashes from each SOURCE argument
-  -t, --target-directory string   move all SOURCE arguments into DIRECTORY
-  -u, --update string[="older"]   control which existing files are updated: all, none, or older (the default for -u)
-  -v, --verbose                   explain what is being done
-      --version                   output version information and exit
+      --backup CONTROL[="$VERSION_CONTROL"]   make a backup of each existing destination file; CONTROL is none (off), simple (never), existing (nil) or numbered (t)
+  -b, --backup-default                        like --backup but does not accept an argument
+  -f, --force                                 do not prompt before overwriting
+      --help                                  display this help and exit
+  -i, --interactive                           prompt before overwrite
+  -n, --no-clobber                            do not overwrite an existing file
+      --no-copy                               do not copy if renaming fails
+  -T, --no-target-directory                   treat DEST as a normal file
+      --strip-trailing-slashes                remove any trailing slashes from each SOURCE argument
+  -S, --suffix SUFFIX                         override the usual backup suffix, '~', with SUFFIX
+  -t, --target-directory string               move all SOURCE arguments into DIRECTORY
+  -u, --update string[="older"]               control which existing files are updated: all, none, or older (the default for -u)
+  -v, --verbose                               explain what is being done
+      --version                               output version information and exit
 

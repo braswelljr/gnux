@@ -28,6 +28,9 @@ type Options struct {
 	NoTargetDirectory    bool   // -T: treat the destination as a normal file
 	StripTrailingSlashes bool   // --strip-trailing-slashes: trim '/' from each source
 	NoCopy               bool   // --no-copy: fail rather than copy when the rename crosses file systems
+	// Backup (--backup, -b, -S) renames an existing destination, directory
+	// or not, to a backup name before the move replaces it.
+	Backup core.Backup
 }
 
 // Mv is the move engine. Construct it with New.
@@ -79,6 +82,8 @@ func (m *Mv) Run(args []string) error {
 	switch {
 	case m.TargetDirectory != "" && m.NoTargetDirectory:
 		return core.Usagef("cannot combine --target-directory (-t) and --no-target-directory (-T)")
+	case m.backingUp() && m.NoClobber:
+		return core.Usagef("cannot combine --backup with --exchange, -n, or --update=none-fail")
 	case len(args) == 0:
 		return core.Usagef("missing file operand")
 	}
@@ -136,7 +141,8 @@ func (m *Mv) Run(args []string) error {
 // earlier operand of the same invocation produced (mv a/f b/f dir).
 func (m *Mv) moveOperand(src, dst string) {
 	key := filepath.Clean(dst)
-	if _, dup := m.moved[key]; dup {
+	// A numbered backup keeps the earlier file, so nothing is lost.
+	if _, dup := m.moved[key]; dup && m.Backup.Control != core.NumberedBackup {
 		m.diag.Errorf("will not overwrite just-created '%s' with '%s'", dst, src)
 		return
 	}
@@ -167,7 +173,9 @@ func (m *Mv) move(src, dst string) bool {
 	// is a plain rename, not an overwrite.
 	caseRename := exists && os.SameFile(si, di) && sameNameIgnoringCase(src, dst)
 
-	if exists && !caseRename && os.SameFile(si, di) {
+	// With a backup the destination is moved aside first, so only the very
+	// same name is refused.
+	if exists && !caseRename && os.SameFile(si, di) && (!m.backingUp() || sameEntry(src, dst)) {
 		m.diag.Errorf("'%s' and '%s' are the same file", src, dst)
 		return false
 	}
@@ -181,10 +189,10 @@ func (m *Mv) move(src, dst string) bool {
 			return false
 		case m.NoClobber:
 			return false
-		case si.IsDir() && !di.IsDir():
+		case si.IsDir() && !di.IsDir() && !m.backingUp():
 			m.diag.Errorf("cannot overwrite non-directory '%s' with directory '%s'", dst, src)
 			return false
-		case !si.IsDir() && di.IsDir():
+		case !si.IsDir() && di.IsDir() && !m.backingUp():
 			m.diag.Errorf("cannot overwrite directory '%s' with non-directory", dst)
 			return false
 		case !m.confirmOverwrite(dst, di):
@@ -192,6 +200,29 @@ func (m *Mv) move(src, dst string) bool {
 		}
 	}
 
+	backup := ""
+	if exists && !caseRename && m.backingUp() && !dotOrDotDot(src) {
+		if m.Backup.BackupWouldDestroy(src, si, dst) {
+			m.diag.Errorf("backing up '%s' might destroy source;  '%s' not moved", dst, src)
+			return false
+		}
+		name, err := m.Backup.MakeBackup(dst)
+		if err != nil {
+			m.diag.Errorf("cannot backup '%s': %s", dst, errText(err))
+			return false
+		}
+		backup, exists = name, false
+	}
+	moved := m.rename(src, dst, di, exists, caseRename, backup)
+	if !moved && backup != "" {
+		m.unBackup(backup, dst)
+	}
+	return moved
+}
+
+// rename moves src to dst once any backup has been made: a rename, or across
+// file systems a copy and a removal.
+func (m *Mv) rename(src, dst string, di os.FileInfo, exists, caseRename bool, backup string) bool {
 	if exists && !caseRename && di.IsDir() {
 		// rename(2) lets a directory replace an empty directory, but
 		// os.Rename refuses every existing directory, so the empty one is
@@ -203,11 +234,11 @@ func (m *Mv) move(src, dst string) bool {
 		exists = false
 	}
 
-	err = m.RenameFn(src, dst)
+	err := m.RenameFn(src, dst)
 	switch {
 	case err == nil:
 		if m.Verbose {
-			m.diag.Printf("renamed '%s' -> '%s'", src, dst)
+			m.diag.Printf("renamed '%s' -> '%s'%s", src, dst, backupNote(backup))
 		}
 		return true
 	case isCrossDevice(err) && m.NoCopy:
@@ -215,7 +246,7 @@ func (m *Mv) move(src, dst string) bool {
 		m.diag.Errorf("cannot move '%s' to '%s': Invalid cross-device link", src, dst)
 		return false
 	case isCrossDevice(err):
-		return m.moveAcross(src, dst, exists)
+		return m.moveAcross(src, dst, exists, backup)
 	default:
 		m.diag.Errorf("cannot move '%s' to '%s': %s", src, dst, errText(err))
 		return false
@@ -239,7 +270,7 @@ func (m *Mv) confirmOverwrite(dst string, di os.FileInfo) bool {
 // moveAcross moves src to dst on another filesystem: the destination is
 // cleared, src is copied with every attribute preserved, and only once the
 // copy is complete is src removed.
-func (m *Mv) moveAcross(src, dst string, exists bool) bool {
+func (m *Mv) moveAcross(src, dst string, exists bool, backup string) bool {
 	if exists {
 		// rename(2) would have replaced the destination atomically; removing
 		// it first keeps the same "replace, never merge" outcome.
@@ -263,7 +294,7 @@ func (m *Mv) moveAcross(src, dst string, exists bool) bool {
 		return false
 	}
 	if m.Verbose {
-		m.diag.Printf("copied '%s' -> '%s'", src, dst)
+		m.diag.Printf("copied '%s' -> '%s'%s", src, dst, backupNote(backup))
 	}
 
 	if err := os.RemoveAll(src); err != nil {
@@ -274,6 +305,55 @@ func (m *Mv) moveAcross(src, dst string, exists bool) bool {
 		m.diag.Printf("removed '%s'", src)
 	}
 	return true
+}
+
+// backingUp reports whether existing destinations are backed up.
+func (m *Mv) backingUp() bool {
+	return m.Backup.Control != core.NoBackup
+}
+
+// backupNote is what -v adds to a line about a replaced destination.
+func backupNote(backup string) string {
+	if backup == "" {
+		return ""
+	}
+	return " (backup: '" + backup + "')"
+}
+
+// unBackup puts a backup back in place of a destination that could not be
+// created, as GNU does.
+func (m *Mv) unBackup(backup, dst string) {
+	if _, err := os.Lstat(dst); err == nil {
+		return
+	}
+	if err := os.Rename(backup, dst); err != nil {
+		m.diag.Errorf("cannot un-backup '%s': %s", dst, errText(err))
+		return
+	}
+	if m.Verbose {
+		m.diag.Printf("'%s' -> '%s' (unbackup)", backup, dst)
+	}
+}
+
+// dotOrDotDot reports whether the last component of path is "." or "..",
+// whose destination is never backed up.
+func dotOrDotDot(path string) bool {
+	base := filepath.Base(path)
+	return base == "." || base == ".."
+}
+
+// sameEntry reports whether a and b are the same name in the same directory,
+// as opposed to two hard links to one file.
+func sameEntry(a, b string) bool {
+	if filepath.Base(a) != filepath.Base(b) {
+		return false
+	}
+	da, err := os.Stat(filepath.Dir(a))
+	if err != nil {
+		return false
+	}
+	db, err := os.Stat(filepath.Dir(b))
+	return err == nil && os.SameFile(da, db)
 }
 
 // ask poses a yes/no question, returning true on an affirmative answer.

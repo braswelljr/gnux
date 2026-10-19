@@ -214,6 +214,38 @@ running both on the same command line.
 - **Verified by.** The `conformance` job of the Test workflow, against Debian's current GNU
   releases; `make conformance` on Linux and `make conformance/docker` anywhere with Docker.
 
+### FR-167: backups of replaced destinations
+
+`cpx`, `mvx`, `lnx` and `installx` must back up a destination they replace when asked, as GNU's
+`--backup` does in `cp`, `mv`, `ln` and `install`.
+
+| Option                | Meaning |
+|-----------------------|---------|
+| `--backup[=CONTROL]`  | Make a backup of each existing destination file |
+| `-b`                  | Like `--backup` but does not accept an argument |
+| `-S`, `--suffix=SUFFIX` | Override the usual backup suffix; also asks for backups |
+
+- **Behavior.** The existing destination is renamed to its backup name before it is replaced.
+  CONTROL is `none` or `off` (no backups), `simple` or `never` (FILE plus the suffix, replacing
+  an earlier simple backup), `numbered` or `t` (FILE`.~N~`, N one past the highest number in
+  use, never replacing a file) or `existing` or `nil` (numbered when numbered backups already
+  exist, simple otherwise); an unambiguous abbreviation is accepted, and anything else is a
+  usage error that lists the valid words. Without CONTROL, `VERSION_CONTROL` chooses, and is
+  `existing` when unset or empty; it is read only when backups are asked for. The suffix is
+  `-S SUFFIX`, else `SIMPLE_BACKUP_SUFFIX`, else `~`; an empty suffix or one containing a `/`
+  means `~`. A name too long for the file system ends in a single `~` instead. Nothing that does
+  not exist is backed up. `-v` names the backup: `'SRC' -> 'DEST' (backup: 'BACKUP')` (`cpx`,
+  `installx`), `renamed 'SRC' -> 'DEST' (backup: 'BACKUP')` (`mvx`) and `'BACKUP' ~ 'DEST' =>
+  'TARGET'` (`lnx`). When the destination cannot then be created, the backup is renamed back.
+  A source that is the destination's simple backup is refused (`backing up 'DEST' might
+  destroy source;  'SRC' not copied`, or `not moved`). `cpx` merges into a destination
+  directory without backing it up, and `-f -b FILE FILE` copies FILE to its backup name;
+  `mvx` backs up directories too; with a backup, a directory may replace a non-directory and,
+  in `mvx`, the other way round. `--backup`, even `--backup=none`, cannot be combined with `-n`
+  or `--update=none` in `cpx` and `mvx`.
+- **Verified by.** `core/backup_test.go`, `internal/tool/backup_test.go`, the engines' tests,
+  and `cmd/testdata/conformance/backups.txt`.
+
 ## 2. The tools
 
 One requirement per tool. Each states the synopsis, the options that must be supported, the
@@ -581,6 +613,7 @@ cpx [OPTION]... SOURCE... DIRECTORY
 | Option                          | Meaning                                                                  |
 |---------------------------------|--------------------------------------------------------------------------|
 | `-a`, `--archive`               | Same as `-dR --preserve=all`                                             |
+| `--backup[=CONTROL]`, `-b`, `-S` | Back up each existing destination (FR-167)                              |
 | `-d`                            | Same as `--no-dereference --preserve=links`                              |
 | `-f`, `--force`                 | If an existing destination cannot be opened, remove it and try again     |
 | `-i`, `--interactive`           | Prompt before overwrite                                                  |
@@ -611,12 +644,12 @@ cpx [OPTION]... SOURCE... DIRECTORY
   same base name. `--remove-destination` removes an existing destination before writing it, so
   a destination symbolic link is replaced rather than written through and a file shared by hard
   links is not changed under its other names; with `-v` it reports `removed 'DEST'`. `-l` with
-  `-s`, and `-t` with `-T`, are usage errors.
+  `-s`, and `-t` with `-T`, are usage errors. Backups follow FR-167.
 - **Deviations.** Option order is not visible, so `-n` overrides `-i`, and an explicit `-P` or
   `-d` overrides `-H`, which overrides `-L`. `-d`, `-H` and `-p` also answer to the long names
   `--no-dereference-links`, `--dereference-args` and `--preserve-default`. On Windows only the
-  read-only attribute and the modification time are carried over. Not implemented: `--backup`
-  and `-b`, `--suffix` and `-S`, `--reflink`, `--sparse`, `--attributes-only`,
+  read-only attribute and the modification time are carried over. `-b` also answers to the
+  long name `--backup-default`. Not implemented: `--reflink`, `--sparse`, `--attributes-only`,
   `--copy-contents`, `--keep-directory-symlink`, `-Z` and `--context`,
   `--debug`.
 - **Verified by.** `core/cp/cp_test.go`, `cmd/cpx/cpx_test.go`.
@@ -1288,6 +1321,7 @@ installx [OPTION]... SOURCE... DEST
 
 | Option                        | Meaning |
 |-------------------------------|---------|
+| `--backup[=CONTROL]`, `-b`, `-S` | Back up each existing destination (FR-167) |
 | `-C`, `--compare`             | Compare content of source and destination files, and if no change to content, ownership, and permissions, do not modify the destination at all |
 | `-c`, `--copy`                | Ignored; for compatibility with old Unix versions of install |
 | `-D`, `--create-leading`      | Create all leading components of DEST except the last, or all components of --target-directory, then copy SOURCE to DEST |
@@ -1313,7 +1347,8 @@ installx [OPTION]... SOURCE... DEST
   directory. -s is accepted, but stripping symbol tables needs a strip program, so it only warns
   that files are installed unstripped. -c is accepted and ignored, as in GNU. -D also answers to
   the gnux long name --create-leading. A symbolic -m starts from no permissions (u=rwx,go=rx is
-  755), as GNU install does.
+  755), as GNU install does. With a backup (FR-167) an existing DEST is renamed to its backup
+  name instead of being removed.
 - **Verified by.** `core/install/install_test.go`, `cmd/installx/installx_test.go`.
 
 ### FR-116: joinx
@@ -1415,6 +1450,7 @@ lnx [OPTION]... TARGET... [LINK_NAME|DIRECTORY]
 
 | Option                             | Meaning                                                                  |
 |------------------------------------|--------------------------------------------------------------------------|
+| `--backup[=CONTROL]`, `-b`, `-S`   | Back up each existing destination (FR-167)                               |
 | `-f`, `--force`                    | Remove existing destination files                                        |
 | `-i`, `--interactive`              | Prompt whether to remove destinations                                    |
 | `-L`, `--logical`                  | Dereference TARGETs that are symbolic links                              |
@@ -1430,10 +1466,11 @@ lnx [OPTION]... TARGET... [LINK_NAME|DIRECTORY]
   `-f` or `-i` is given. A replacement is atomic: the new link is created under a temporary
   name beside the destination and renamed into place, so the old entry survives a failure. A
   hard link to the same file as its destination is refused. `-r` without `-s`, and `-t` with
-  `-T`, are usage errors.
+  `-T`, are usage errors. Backups follow FR-167: a backup replaces the destination as `-f`
+  would, and only a hard link is then checked against its own name.
 - **Deviations.** Option order is not visible, so `-i` overrides `-f` and `-L` overrides `-P`.
-  On Windows, creating symbolic links needs Developer Mode or an elevated prompt. Not
-  implemented: `--backup` and `-b`, `--suffix` and `-S`, `-d`, `-F` and `--directory`.
+  On Windows, creating symbolic links needs Developer Mode or an elevated prompt. `-b` also
+  answers to the long name `--backup-default`. Not implemented: `-d`, `-F` and `--directory`.
 - **Verified by.** `core/ln/ln_test.go`, `cmd/lnx/lnx_test.go`.
 
 ### FR-162: lognamex
@@ -1632,6 +1669,7 @@ mvx [OPTION]... SOURCE... DIRECTORY
 
 | Option                             | Meaning                                                                 |
 |------------------------------------|-------------------------------------------------------------------------|
+| `--backup[=CONTROL]`, `-b`, `-S`   | Back up each existing destination (FR-167)                              |
 | `-f`, `--force`                    | Do not prompt before overwriting                                        |
 | `-i`, `--interactive`              | Prompt before overwrite                                                 |
 | `-n`, `--no-clobber`               | Do not overwrite an existing file                                       |
@@ -1649,9 +1687,10 @@ mvx [OPTION]... SOURCE... DIRECTORY
   its target. On a terminal, replacing a write-protected destination asks for confirmation
   unless `-f` is given. `--no-copy` refuses a move across filesystems with `cannot move 'SOURCE'
   to 'DEST': Invalid cross-device link` instead of copying, and leaves the source in place.
+  Backups follow FR-167.
 - **Deviations.** Option order is not visible, so `-n` overrides `-i`, which overrides `-f`.
-  Not implemented: `--backup` and `-b`, `--suffix` and `-S`, `-Z` and `--context`,
-  `--exchange`, `--debug`.
+  `-b` also answers to the long name `--backup-default`. Not implemented: `-Z` and
+  `--context`, `--exchange`, `--debug`.
 - **Verified by.** `core/mv/mv_test.go`, `cmd/mvx/mvx_test.go`.
 
 ### FR-121: nicex

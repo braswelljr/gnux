@@ -2,6 +2,8 @@
 package mvx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -35,7 +37,15 @@ func Meta() docmeta.Meta {
 			"cross-device link'), so a move is always a rename. An existing destination is replaced unless -n " +
 			"(never), -u (only when the source is newer) or -i (ask first) says otherwise; a " +
 			"directory is never moved into itself, and a directory only replaces an empty " +
-			"directory. GNU mv lets the last of -f, -i and -n win; mvx cannot see option order, " +
+			"directory. " +
+			"--backup[=CONTROL] (or -b) first renames each existing destination to a backup: " +
+			"CONTROL simple (or never) appends a suffix, numbered (t) appends .~N~ with N one " +
+			"past the highest already there, existing (nil, the default) numbers the backup " +
+			"only when numbered backups already exist, and none (off) makes none; without a " +
+			"CONTROL the VERSION_CONTROL variable chooses. The suffix is ~, or SUFFIX with -S " +
+			"(which asks for backups by itself), or the SIMPLE_BACKUP_SUFFIX variable. A destination " +
+			"directory is backed up too, so with a backup a directory may replace a file " +
+			"and a file a directory; --backup cannot be combined with -n. GNU mv lets the last of -f, -i and -n win; mvx cannot see option order, " +
 			"so it prefers the most cautious instead: -n over -i over -f.",
 		Permissions: "Renaming needs write and search permission on both the source and " +
 			"destination directories, not on the file itself; in a sticky directory you must " +
@@ -130,12 +140,18 @@ func Meta() docmeta.Meta {
 				Bash:        "mvx --no-copy build/site.new www/site",
 				PowerShell:  "mvx --no-copy build\\site.new www\\site",
 			},
+			{
+				Description: "Replace a log with a new one, keeping the old one as server.log.old:",
+				Bash:        "mvx -S .old server.log.new server.log",
+				PowerShell:  "mvx -S .old server.log.new server.log",
+			},
 		},
 	}
 }
 
 // Register installs the mvx flags on fs.
 func Register(fs *pflag.FlagSet) {
+	tool.RegisterBackup(fs)
 	fs.BoolP("force", "f", false, "do not prompt before overwriting")
 	fs.BoolP("interactive", "i", false, "prompt before overwrite")
 	fs.BoolP("no-clobber", "n", false, "do not overwrite an existing file")
@@ -184,9 +200,17 @@ func buildOptions(fs *pflag.FlagSet) (mv.Options, error) {
 	switch {
 	case o.NoClobber:
 		o.Interactive, o.Force = false, false
+		if tool.Backups(fs) {
+			return mv.Options{}, core.Usagef("cannot combine --backup with --exchange, -n, or --update=none-fail")
+		}
 	case o.Interactive:
 		o.Force = false
 	}
+	backup, err := tool.BackupOptions(fs, os.Getenv)
+	if err != nil {
+		return mv.Options{}, err
+	}
+	o.Backup = backup
 	return o, nil
 }
 

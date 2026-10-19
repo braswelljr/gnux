@@ -25,12 +25,15 @@ import (
 //	dir/guide.mdx          requirements, installation, usage, workflows
 //	dir/library.mdx        using the engines from Go
 //	dir/shell.mdx          the gnux shell
-//	dir/tools/<tool>/index.mdx    one page per tool
+//	dir/tools/<tool>/index.mdx    one page per tool that has options
 //	dir/tools/<tool>/<flag>.mdx   one page per option, with its usage and examples
+//	dir/tools/<tool>.mdx          the page of a tool without options
 //	dir/meta.json, dir/tools/meta.json, dir/tools/<tool>/meta.json   navigation order
 //
 // In the sidebar the tools sit under a "Tools" heading rather than inside a
-// collapsible folder; each tool is a folder whose children are its options.
+// collapsible folder; a tool with options is a folder whose children are its
+// options, and a tool without any is a plain page, so the sidebar never shows
+// a folder with nothing in it. Both are served at /docs/tools/<tool>.
 //
 // extra pages are hand-written markdown (see HandwrittenPages): they are added
 // after the generated ones, each in the folder its Dir names.
@@ -63,6 +66,10 @@ func GenerateMDX(dir string, extra ...Page) error {
 		sub := filepath.Join("tools", t.Name())
 		flags := t.Command(discard).Flags()
 		options := flagPages(t, flags)
+		if len(options) == 0 {
+			docs = append(docs, doc{"tools", t.Name(), t.Name(), t.Meta.Short, mdxTool(t, flags, options)})
+			continue
+		}
 		docs = append(docs, doc{sub, "index", t.Name(), t.Meta.Short, mdxTool(t, flags, options)})
 		toolFolders[t.Name()] = []string{}
 		for _, o := range options {

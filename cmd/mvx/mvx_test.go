@@ -47,6 +47,11 @@ func TestBuildOptions(t *testing.T) {
 		{"no target directory", []string{"-T"}, mv.Options{NoTargetDirectory: true}},
 		{"strip trailing slashes", []string{"--strip-trailing-slashes"}, mv.Options{StripTrailingSlashes: true}},
 		{"no copy", []string{"--no-copy"}, mv.Options{NoCopy: true}},
+		{"-b", []string{"-b"}, mv.Options{Backup: core.Backup{Control: core.ExistingBackup}}},
+		{"--backup=t", []string{"--backup=t"}, mv.Options{Backup: core.Backup{Control: core.NumberedBackup}}},
+		{"--backup bare", []string{"--backup"}, mv.Options{Backup: core.Backup{Control: core.ExistingBackup}}},
+		{"-S", []string{"-S", ".bak"}, mv.Options{Backup: core.Backup{Control: core.ExistingBackup, Suffix: ".bak"}}},
+		{"--suffix", []string{"--suffix=.k"}, mv.Options{Backup: core.Backup{Control: core.ExistingBackup, Suffix: ".k"}}},
 		{"combined -uv keeps the default WHEN", []string{"-uv"}, mv.Options{Update: true, Verbose: true}},
 
 		// Precedence: the most cautious option wins, whatever the order.
@@ -57,6 +62,8 @@ func TestBuildOptions(t *testing.T) {
 		{"-n beats both", []string{"-fin"}, mv.Options{NoClobber: true}},
 		{"update=none beats -f", []string{"-f", "--update=none"}, mv.Options{NoClobber: true}},
 	}
+	t.Setenv("VERSION_CONTROL", "")
+	t.Setenv("SIMPLE_BACKUP_SUFFIX", "")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := options(t, tt.args...)

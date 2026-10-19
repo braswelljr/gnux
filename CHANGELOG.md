@@ -4,6 +4,14 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-19
+
+gnux 1.1.0 adds nine tools and closes most of the gap with GNU's option surface: backups in
+`cpx`, `mvx`, `lnx` and `installx`, GNU's getopt rules for every option, and the options
+`chgrpx --from`, `chmodx -h`, `datex --resolution`, `cpx --remove-destination`, `mvx --no-copy`,
+`tailx --max-unchanged-stats` and `sortx -R`. Every one of them is now checked against GNU
+coreutils itself by a conformance harness that runs in CI.
+
 ### Added
 
 - Four more coreutils tools. `archx` prints the machine architecture, as `unamex -m` does.
@@ -46,6 +54,11 @@ Every notable change to gnux, release by release, newest first. The format follo
   already checks a followed name on every poll); and `sortx -R` (`--random-sort`,
   `--sort=random`) with `--random-source=FILE`, which orders exactly as GNU sort does for the
   same FILE. Each has GNU conformance cases in `cmd/testdata/conformance/gnu-options.txt`.
+- Backups in `cpx`, `mvx`, `lnx` and `installx`: `--backup[=CONTROL]` (`none`, `simple`,
+  `existing`, `numbered` and their synonyms), `-b`, and `-S`/`--suffix`, with `VERSION_CONTROL`
+  and `SIMPLE_BACKUP_SUFFIX`, as in GNU: the same backup names, `-v` lines and refusals,
+  checked against GNU in `cmd/testdata/conformance/backups.txt`. For Go callers,
+  `core.Backup` makes and names backups, and `core.ParseBackupControl` reads a CONTROL word.
 
 ### Changed
 
@@ -58,6 +71,8 @@ Every notable change to gnux, release by release, newest first. The format follo
   for `-h` and now means that.
 - `mktempx -p` answers to `--base-dir` instead of `--dir`, which is GNU's abbreviation of
   `--directory` and now means that.
+- On the website, a tool without options is a single page in the sidebar rather than a folder
+  with nothing to open; its address, `/docs/tools/<tool>`, is unchanged.
 - Building gnux needs Go 1.26, which `go.mod` has required since `golang.org/x/crypto` 0.57;
   the Dockerfile and the documented requirements say so now.
 
@@ -74,6 +89,8 @@ Every notable change to gnux, release by release, newest first. The format follo
 - `chownx -R --dereference` and `chgrpx -R --dereference` without `-H` or `-L` no longer add a
   `Try '... --help'` line to the error, as GNU does not.
 - `chmodx -v` reports `'FILE' could not be accessed` for a file it cannot reach, as GNU does.
+- `lnx` names a directory it refuses as GNU does, quoted only when the name needs it
+  (`lnx: e: cannot overwrite directory`).
 - The Docker image builds again: it used Go 1.25, older than `go.mod` requires.
 
 ## [1.0.0] - 2026-10-14
@@ -246,7 +263,8 @@ reach Homebrew, Scoop, winget, the Snap Store, the AUR and `.deb` / `.rpm` / `.a
 
 - The project is now gnux, a portable implementation of the GNU core utilities. `rmx`, which it started as, was rewritten as one of its tools, with GNU's full `rm` flag surface.
 
-[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/braswelljr/gnux/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/braswelljr/gnux/compare/v0.0.2...v1.0.0
 [0.0.2]: https://github.com/braswelljr/gnux/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/braswelljr/gnux/releases/tag/v0.0.1

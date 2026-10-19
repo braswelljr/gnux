@@ -39,7 +39,13 @@ func TestBuildOptions(t *testing.T) {
 		{"-i beats -f", []string{"-i", "-f"}, ln.Options{Interactive: true, Physical: true}},
 		{"-i beats -f reversed", []string{"-f", "-i"}, ln.Options{Interactive: true, Physical: true}},
 		{"-L beats -P", []string{"-P", "-L"}, ln.Options{Logical: true}},
+
+		{"-b", []string{"-b"}, ln.Options{Physical: true, Backup: core.Backup{Control: core.ExistingBackup}}},
+		{"--backup=numbered", []string{"--backup=numbered"}, ln.Options{Physical: true, Backup: core.Backup{Control: core.NumberedBackup}}},
+		{"-S", []string{"-S", ".old"}, ln.Options{Physical: true, Backup: core.Backup{Control: core.ExistingBackup, Suffix: ".old"}}},
 	}
+	t.Setenv("VERSION_CONTROL", "")
+	t.Setenv("SIMPLE_BACKUP_SUFFIX", "")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fs := pflag.NewFlagSet(ln.Name, pflag.ContinueOnError)
@@ -47,7 +53,7 @@ func TestBuildOptions(t *testing.T) {
 			if err := fs.Parse(tt.args); err != nil {
 				t.Fatalf("parse %v: %v", tt.args, err)
 			}
-			if got := buildOptions(fs); got != tt.want {
+			if got, err := buildOptions(fs); err != nil || got != tt.want {
 				t.Fatalf("buildOptions(%v) = %+v, want %+v", tt.args, got, tt.want)
 			}
 		})

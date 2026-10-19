@@ -25,7 +25,7 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `chown` | `chownx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chownx](../markdown/chownx/index.md) |
 | `cksum` | `cksumx` | `-a TYPE`, `--base64`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--raw`, `--status`, `--strict`, `--tag`, `--untagged`, `-w`, `-z` | [cksumx](../markdown/cksumx/index.md) |
 | `comm` | `commx` | `--check-order`, `--nocheck-order`, `--output-delimiter=STR`, `-3`, `-1`, `-2`, `--total`, `-z` | [commx](../markdown/commx/index.md) |
-| `cp` | `cpx` | `-a`, `-d`, `-f`, `-H`, `-i`, `-l`, `-L`, `-n`, `-p`, `-P`, `-r`/`-R`, `-s`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `-x`, `--parents`, `--preserve[=LIST]`, `--no-preserve=LIST`, `--remove-destination`, `--strip-trailing-slashes` | [cpx](../markdown/cpx/index.md) |
+| `cp` | `cpx` | `-a`, `--backup[=CONTROL]`, `-b`, `-d`, `-f`, `-H`, `-i`, `-l`, `-L`, `-n`, `-p`, `-P`, `-r`/`-R`, `-s`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `-x`, `--parents`, `--preserve[=LIST]`, `--no-preserve=LIST`, `--remove-destination`, `-S SUFFIX`, `--strip-trailing-slashes` | [cpx](../markdown/cpx/index.md) |
 | `csplit` | `csplitx` | `-n DIGITS`, `-z`, `-k`, `-f PREFIX`, `-s`, `-q`, `-b FORMAT`, `--suppress-matched` | [csplitx](../markdown/csplitx/index.md) |
 | `cut` | `cutx` | `-b LIST`, `-c LIST`, `-d DELIM`, `-f LIST`, `-n`, `-s`, `-z`, `--complement`, `--output-delimiter=STRING` | [cutx](../markdown/cutx/index.md) |
 | `date` | `datex` | `-d STRING`, `-f DATEFILE`, `-I[=FMT]`, `-r FILE`, `--resolution`, `--rfc-3339=FMT`, `-R`, `-s STRING`, `--universal`, `-u` | [datex](../markdown/datex/index.md) |
@@ -48,17 +48,17 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `head` | `headx` | `-c [-]NUM`, `-n [-]NUM`, `-NUM`, `-q`, `-v`, `-z`, size suffixes | [headx](../markdown/headx/index.md) |
 | `hostname` | `hostnamex` | none | [hostnamex](../markdown/hostnamex/index.md) |
 | `id` | `idx` | `-a`, `-Z`, `-g`, `-G`, `-n`, `-r`, `-u`, `-z` | [idx](../markdown/idx/index.md) |
-| `install` | `installx` | `-C`, `-c`, `-D`, `-d`, `-g GROUP`, `-m MODE`, `-T`, `-o OWNER`, `-p`, `-s`, `-t DIRECTORY`, `-v` | [installx](../markdown/installx/index.md) |
+| `install` | `installx` | `--backup[=CONTROL]`, `-b`, `-C`, `-c`, `-D`, `-d`, `-g GROUP`, `-m MODE`, `-T`, `-o OWNER`, `-p`, `-s`, `-S SUFFIX`, `-t DIRECTORY`, `-v` | [installx](../markdown/installx/index.md) |
 | `join` | `joinx` | `--check-order`, `-e EMPTY`, `-1 FIELD`, `-2 FIELD`, `--header`, `-i`, `-j STRINGARRAY`, `--nocheck-order`, `-v STRINGARRAY`, `-o FORMAT`, `-t CHAR`, `-a FILENUM`, `-z` | [joinx](../markdown/joinx/index.md) |
 | `kill` | `killx` | `-l`, `-n NUMBER`, `-s STRING`, `-L` | [killx](../markdown/killx/index.md) |
 | `link` | `linkx` | none | [linkx](../markdown/linkx/index.md) |
-| `ln` | `lnx` | `-f`, `-i`, `-L`, `-n`, `-P`, `-r`, `-s`, `-t`, `-T`, `-v` | [lnx](../markdown/lnx/index.md) |
+| `ln` | `lnx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-L`, `-n`, `-P`, `-r`, `-s`, `-S SUFFIX`, `-t`, `-T`, `-v` | [lnx](../markdown/lnx/index.md) |
 | `logname` | `lognamex` | none | [lognamex](../markdown/lognamex/index.md) |
 | `ls` | `lsx` | `-1`, `-a`, `-A`, `-B`, `-b`, `-c`, `-C`, `-d`, `-F`, `-g`, `-G`, `-h`, `-H`, `-i`, `-I`, `-l`, `-L`, `-m`, `-n`, `-o`, `-p`, `-q`, `-Q`, `-r`, `-R`, `-s`, `-S`, `-t`, `-T`, `-u`, `-U`, `-v`, `-w`, `-x`, `-X`, `--color`, `--file-type`, `--full-time`, `--group-directories-first`, `--hide`, `--si`, `--sort`, `--time`, `--time-style` | [lsx](../markdown/lsx/index.md) |
 | `md5sum` | `md5sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [md5sumx](../markdown/md5sumx/index.md) |
 | `mkdir` | `mkdirx` | `-m MODE`, `-p`, `-v` | [mkdirx](../markdown/mkdirx/index.md) |
 | `mktemp` | `mktempx` | `-p DIR`, `-d`, `-u`, `-t`, `-q`, `--suffix=SUFF`, `--tmpdir[=DIR]` | [mktempx](../markdown/mktempx/index.md) |
-| `mv` | `mvx` | `-f`, `-i`, `-n`, `--no-copy`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `--strip-trailing-slashes` | [mvx](../markdown/mvx/index.md) |
+| `mv` | `mvx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-n`, `--no-copy`, `-S SUFFIX`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `--strip-trailing-slashes` | [mvx](../markdown/mvx/index.md) |
 | `nice` | `nicex` | `-n N` | [nicex](../markdown/nicex/index.md) |
 | `nl` | `nlx` | `-b STYLE`, `-f STYLE`, `-h STYLE`, `-l NUMBER`, `-i STRING`, `-p`, `-n FORMAT`, `-s STRING`, `-w NUMBER`, `-d CC`, `-v STRING` | [nlx](../markdown/nlx/index.md) |
 | `nohup` | `nohupx` | none | [nohupx](../markdown/nohupx/index.md) |
@@ -211,12 +211,12 @@ These GNU options are refused with `unrecognized option` (or `invalid option` fo
 
 | Tool | Not implemented |
 |------|-----------------|
-| `cpx` | `--backup`, `-b`, `--suffix`, `-S`, `--reflink`, `--sparse`, `--attributes-only`, `--copy-contents`, `--keep-directory-symlink`, `-Z`, `--context`, `--debug` |
+| `cpx` | `--reflink`, `--sparse`, `--attributes-only`, `--copy-contents`, `--keep-directory-symlink`, `-Z`, `--context`, `--debug` |
 | `envx` | `--block-signal`, `--default-signal`, `--ignore-signal`, `--list-signal-handling` |
-| `lnx` | `--backup`, `-b`, `--suffix`, `-S`, `-d`, `-F`, `--directory` |
+| `lnx` | `-d`, `-F`, `--directory` |
 | `lsx` | `--author`, `--block-size`, `-D`, `--dired`, `-f`, `--format`, `--hyperlink`, `--indicator-style`, `-k`, `--kibibytes`, `-N`, `--literal`, `--quoting-style`, `--show-control-chars`, `-Z`, `--context`, `--zero` |
 | `mkdirx` | `-Z`, `--context` |
-| `mvx` | `--backup`, `-b`, `--suffix`, `-S`, `-Z`, `--context`, `--exchange`, `--debug` |
+| `mvx` | `-Z`, `--context`, `--exchange`, `--debug` |
 | `realpathx` | `-E`, `--canonicalize` (the default behavior anyway) |
 | `rmx` | `--preserve-root=all` |
 | `sortx` | `--debug` |
@@ -227,7 +227,7 @@ These GNU options are refused with `unrecognized option` (or `invalid option` fo
 | `splitx` | `--filter`, `--io-blksize` |
 | `odx` | `--traditional` and the `[+]OFFSET[.][b]` operand |
 
-If a script uses one, the fix is usually simple: drop `--backup` and copy first with `cpx -n`; replace `ls -f` with `lsx -aU`; replace `--format=long` with `-l`.
+If a script uses one, the fix is usually simple: replace `ls -f` with `lsx -aU`; replace `--format=long` with `-l`.
 
 ## Things that look different but are not
 

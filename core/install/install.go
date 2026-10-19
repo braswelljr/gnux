@@ -45,6 +45,9 @@ type Options struct {
 	// Compare (-C) leaves a destination untouched when it already has the
 	// same content, mode, owner and group.
 	Compare bool
+	// Backup (--backup, -b, -S) renames an existing destination file to a
+	// backup name instead of removing it.
+	Backup core.Backup
 }
 
 // Install is the engine. Construct it with New.
@@ -233,6 +236,7 @@ func (in *Install) installFile(src, dest string) {
 		return
 	}
 
+	backup := ""
 	dinfo, derr := os.Lstat(dest)
 	if derr == nil {
 		if dinfo.IsDir() {
@@ -246,18 +250,41 @@ func (in *Install) installFile(src, dest string) {
 		if in.Compare && in.unchanged(src, dest, sinfo, dinfo) {
 			return
 		}
-		// Replace rather than rewrite, so a running program keeps its copy.
-		if err := os.Remove(dest); err != nil {
-			in.diag.Errorf("cannot remove '%s': %s", dest, core.ErrText(err))
-			return
+		switch {
+		case in.Backup.Control != core.NoBackup:
+			if in.Backup.BackupWouldDestroy(src, sinfo, dest) {
+				in.diag.Errorf("backing up '%s' might destroy source;  '%s' not copied", dest, src)
+				return
+			}
+			name, err := in.Backup.MakeBackup(dest)
+			if err != nil {
+				in.diag.Errorf("cannot backup '%s': %s", dest, core.ErrText(err))
+				return
+			}
+			backup = name
+		default:
+			// Replace rather than rewrite, so a running program keeps its copy.
+			if err := os.Remove(dest); err != nil {
+				in.diag.Errorf("cannot remove '%s': %s", dest, core.ErrText(err))
+				return
+			}
 		}
 	}
 
 	if !in.copyFile(src, dest) {
+		if backup != "" {
+			if err := os.Rename(backup, dest); err != nil {
+				in.diag.Errorf("cannot un-backup '%s': %s", dest, core.ErrText(err))
+			}
+		}
 		return
 	}
 	if in.Verbose {
-		in.diag.Printf("'%s' -> '%s'", src, dest)
+		if backup != "" {
+			in.diag.Printf("'%s' -> '%s' (backup: '%s')", src, dest, backup)
+		} else {
+			in.diag.Printf("'%s' -> '%s'", src, dest)
+		}
 	}
 	if !in.setAttrs(dest) {
 		return

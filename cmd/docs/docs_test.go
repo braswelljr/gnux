@@ -224,13 +224,24 @@ func TestGenerateMDX(t *testing.T) {
 
 	want := []string{"index.mdx", "guide.mdx", "library.mdx", "shell.mdx", "meta.json", "tools/meta.json"}
 	for _, tool := range cmd.Tools() {
+		if tree[filepath.FromSlash("tools/"+tool.Name()+".mdx")] != "" {
+			// A tool without options is a page, not a folder.
+			if tree[filepath.FromSlash("tools/"+tool.Name()+"/meta.json")] != "" {
+				t.Errorf("%s is both a page and a folder", tool.Name())
+			}
+			continue
+		}
 		want = append(want, "tools/"+tool.Name()+"/index.mdx", "tools/"+tool.Name()+"/meta.json")
 		for _, topic := range tool.Topics {
 			want = append(want, "tools/"+tool.Name()+"/"+topic.Meta.Name+".mdx")
 		}
 	}
-	// Every option has a page, not only the ones with a Topic.
-	want = append(want, "tools/lsx/all.mdx", "tools/headx/lines.mdx")
+	// Every option has a page, not only the ones with a Topic, and a tool
+	// without options is a single page with no folder around it.
+	want = append(want, "tools/lsx/all.mdx", "tools/headx/lines.mdx", "tools/truex.mdx")
+	if _, folder := tree[filepath.FromSlash("tools/truex/index.mdx")]; folder {
+		t.Error("truex has no options, so it should not be a folder")
+	}
 	for _, p := range want {
 		if tree[filepath.FromSlash(p)] == "" {
 			t.Errorf("expected non-empty %s", p)

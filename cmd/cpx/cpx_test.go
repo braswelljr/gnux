@@ -70,6 +70,11 @@ func TestBuildOptions(t *testing.T) {
 		{"parents", []string{"--parents"}, cp.Options{Parents: true}},
 		{"strip trailing slashes", []string{"--strip-trailing-slashes"}, cp.Options{StripTrailingSlashes: true}},
 		{"remove destination", []string{"--remove-destination"}, cp.Options{RemoveDestination: true}},
+		{"-b", []string{"-b"}, cp.Options{Backup: core.Backup{Control: core.ExistingBackup}}},
+		{"--backup=t", []string{"--backup=t"}, cp.Options{Backup: core.Backup{Control: core.NumberedBackup}}},
+		{"--backup bare", []string{"--backup"}, cp.Options{Backup: core.Backup{Control: core.ExistingBackup}}},
+		{"-S", []string{"-S", ".bak"}, cp.Options{Backup: core.Backup{Control: core.ExistingBackup, Suffix: ".bak"}}},
+		{"--suffix", []string{"--suffix=.k"}, cp.Options{Backup: core.Backup{Control: core.ExistingBackup, Suffix: ".k"}}},
 		{"combined -rvf", []string{"-rvf"}, cp.Options{Recursive: true, Verbose: true, Force: true}},
 		{"combined -uv keeps the default WHEN", []string{"-uv"}, cp.Options{Update: true, Verbose: true}},
 
@@ -82,6 +87,8 @@ func TestBuildOptions(t *testing.T) {
 		{"explicit -L overrides the -P implied by -a", []string{"-aL"},
 			cp.Options{Recursive: true, Dereference: cp.DerefAlways, Preserve: cp.PreserveAll()}},
 	}
+	t.Setenv("VERSION_CONTROL", "")
+	t.Setenv("SIMPLE_BACKUP_SUFFIX", "")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := options(t, tt.args...)
@@ -100,6 +107,7 @@ func TestBuildOptionsInvalidValues(t *testing.T) {
 		{"--preserve=bogus"},
 		{"--no-preserve=bogus"},
 		{"--update=bogus"},
+		{"--backup=bogus"},
 	} {
 		_, err := options(t, args...)
 		var usage *core.UsageError
@@ -109,6 +117,16 @@ func TestBuildOptionsInvalidValues(t *testing.T) {
 		}
 		if !strings.Contains(usage.Msg, "invalid argument 'bogus'") {
 			t.Errorf("buildOptions(%v) usage = %q", args, usage.Msg)
+		}
+	}
+}
+
+func TestBackupWithNoClobber(t *testing.T) {
+	for _, args := range [][]string{{"-b", "-n"}, {"--backup=none", "--update=none"}, {"-S", "~", "-n"}} {
+		_, err := options(t, args...)
+		var usage *core.UsageError
+		if !errors.As(err, &usage) || usage.Msg != "--backup is mutually exclusive with -n or --update=none-fail" {
+			t.Errorf("%v: err = %v", args, err)
 		}
 	}
 }

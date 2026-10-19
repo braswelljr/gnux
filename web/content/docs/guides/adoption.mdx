@@ -26,7 +26,7 @@ description: "How to adopt gnux next to the GNU coreutils you already know. gnux
 | `chown` | `chownx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chownx](/docs/tools/chownx) |
 | `cksum` | `cksumx` | `-a TYPE`, `--base64`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--raw`, `--status`, `--strict`, `--tag`, `--untagged`, `-w`, `-z` | [cksumx](/docs/tools/cksumx) |
 | `comm` | `commx` | `--check-order`, `--nocheck-order`, `--output-delimiter=STR`, `-3`, `-1`, `-2`, `--total`, `-z` | [commx](/docs/tools/commx) |
-| `cp` | `cpx` | `-a`, `-d`, `-f`, `-H`, `-i`, `-l`, `-L`, `-n`, `-p`, `-P`, `-r`/`-R`, `-s`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `-x`, `--parents`, `--preserve[=LIST]`, `--no-preserve=LIST`, `--remove-destination`, `--strip-trailing-slashes` | [cpx](/docs/tools/cpx) |
+| `cp` | `cpx` | `-a`, `--backup[=CONTROL]`, `-b`, `-d`, `-f`, `-H`, `-i`, `-l`, `-L`, `-n`, `-p`, `-P`, `-r`/`-R`, `-s`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `-x`, `--parents`, `--preserve[=LIST]`, `--no-preserve=LIST`, `--remove-destination`, `-S SUFFIX`, `--strip-trailing-slashes` | [cpx](/docs/tools/cpx) |
 | `csplit` | `csplitx` | `-n DIGITS`, `-z`, `-k`, `-f PREFIX`, `-s`, `-q`, `-b FORMAT`, `--suppress-matched` | [csplitx](/docs/tools/csplitx) |
 | `cut` | `cutx` | `-b LIST`, `-c LIST`, `-d DELIM`, `-f LIST`, `-n`, `-s`, `-z`, `--complement`, `--output-delimiter=STRING` | [cutx](/docs/tools/cutx) |
 | `date` | `datex` | `-d STRING`, `-f DATEFILE`, `-I[=FMT]`, `-r FILE`, `--resolution`, `--rfc-3339=FMT`, `-R`, `-s STRING`, `--universal`, `-u` | [datex](/docs/tools/datex) |
@@ -49,17 +49,17 @@ description: "How to adopt gnux next to the GNU coreutils you already know. gnux
 | `head` | `headx` | `-c [-]NUM`, `-n [-]NUM`, `-NUM`, `-q`, `-v`, `-z`, size suffixes | [headx](/docs/tools/headx) |
 | `hostname` | `hostnamex` | none | [hostnamex](/docs/tools/hostnamex) |
 | `id` | `idx` | `-a`, `-Z`, `-g`, `-G`, `-n`, `-r`, `-u`, `-z` | [idx](/docs/tools/idx) |
-| `install` | `installx` | `-C`, `-c`, `-D`, `-d`, `-g GROUP`, `-m MODE`, `-T`, `-o OWNER`, `-p`, `-s`, `-t DIRECTORY`, `-v` | [installx](/docs/tools/installx) |
+| `install` | `installx` | `--backup[=CONTROL]`, `-b`, `-C`, `-c`, `-D`, `-d`, `-g GROUP`, `-m MODE`, `-T`, `-o OWNER`, `-p`, `-s`, `-S SUFFIX`, `-t DIRECTORY`, `-v` | [installx](/docs/tools/installx) |
 | `join` | `joinx` | `--check-order`, `-e EMPTY`, `-1 FIELD`, `-2 FIELD`, `--header`, `-i`, `-j STRINGARRAY`, `--nocheck-order`, `-v STRINGARRAY`, `-o FORMAT`, `-t CHAR`, `-a FILENUM`, `-z` | [joinx](/docs/tools/joinx) |
 | `kill` | `killx` | `-l`, `-n NUMBER`, `-s STRING`, `-L` | [killx](/docs/tools/killx) |
 | `link` | `linkx` | none | [linkx](/docs/tools/linkx) |
-| `ln` | `lnx` | `-f`, `-i`, `-L`, `-n`, `-P`, `-r`, `-s`, `-t`, `-T`, `-v` | [lnx](/docs/tools/lnx) |
+| `ln` | `lnx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-L`, `-n`, `-P`, `-r`, `-s`, `-S SUFFIX`, `-t`, `-T`, `-v` | [lnx](/docs/tools/lnx) |
 | `logname` | `lognamex` | none | [lognamex](/docs/tools/lognamex) |
 | `ls` | `lsx` | `-1`, `-a`, `-A`, `-B`, `-b`, `-c`, `-C`, `-d`, `-F`, `-g`, `-G`, `-h`, `-H`, `-i`, `-I`, `-l`, `-L`, `-m`, `-n`, `-o`, `-p`, `-q`, `-Q`, `-r`, `-R`, `-s`, `-S`, `-t`, `-T`, `-u`, `-U`, `-v`, `-w`, `-x`, `-X`, `--color`, `--file-type`, `--full-time`, `--group-directories-first`, `--hide`, `--si`, `--sort`, `--time`, `--time-style` | [lsx](/docs/tools/lsx) |
 | `md5sum` | `md5sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [md5sumx](/docs/tools/md5sumx) |
 | `mkdir` | `mkdirx` | `-m MODE`, `-p`, `-v` | [mkdirx](/docs/tools/mkdirx) |
 | `mktemp` | `mktempx` | `-p DIR`, `-d`, `-u`, `-t`, `-q`, `--suffix=SUFF`, `--tmpdir[=DIR]` | [mktempx](/docs/tools/mktempx) |
-| `mv` | `mvx` | `-f`, `-i`, `-n`, `--no-copy`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `--strip-trailing-slashes` | [mvx](/docs/tools/mvx) |
+| `mv` | `mvx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-n`, `--no-copy`, `-S SUFFIX`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `--strip-trailing-slashes` | [mvx](/docs/tools/mvx) |
 | `nice` | `nicex` | `-n N` | [nicex](/docs/tools/nicex) |
 | `nl` | `nlx` | `-b STYLE`, `-f STYLE`, `-h STYLE`, `-l NUMBER`, `-i STRING`, `-p`, `-n FORMAT`, `-s STRING`, `-w NUMBER`, `-d CC`, `-v STRING` | [nlx](/docs/tools/nlx) |
 | `nohup` | `nohupx` | none | [nohupx](/docs/tools/nohupx) |
@@ -212,12 +212,12 @@ These GNU options are refused with `unrecognized option` (or `invalid option` fo
 
 | Tool | Not implemented |
 |------|-----------------|
-| `cpx` | `--backup`, `-b`, `--suffix`, `-S`, `--reflink`, `--sparse`, `--attributes-only`, `--copy-contents`, `--keep-directory-symlink`, `-Z`, `--context`, `--debug` |
+| `cpx` | `--reflink`, `--sparse`, `--attributes-only`, `--copy-contents`, `--keep-directory-symlink`, `-Z`, `--context`, `--debug` |
 | `envx` | `--block-signal`, `--default-signal`, `--ignore-signal`, `--list-signal-handling` |
-| `lnx` | `--backup`, `-b`, `--suffix`, `-S`, `-d`, `-F`, `--directory` |
+| `lnx` | `-d`, `-F`, `--directory` |
 | `lsx` | `--author`, `--block-size`, `-D`, `--dired`, `-f`, `--format`, `--hyperlink`, `--indicator-style`, `-k`, `--kibibytes`, `-N`, `--literal`, `--quoting-style`, `--show-control-chars`, `-Z`, `--context`, `--zero` |
 | `mkdirx` | `-Z`, `--context` |
-| `mvx` | `--backup`, `-b`, `--suffix`, `-S`, `-Z`, `--context`, `--exchange`, `--debug` |
+| `mvx` | `-Z`, `--context`, `--exchange`, `--debug` |
 | `realpathx` | `-E`, `--canonicalize` (the default behavior anyway) |
 | `rmx` | `--preserve-root=all` |
 | `sortx` | `--debug` |
@@ -228,7 +228,7 @@ These GNU options are refused with `unrecognized option` (or `invalid option` fo
 | `splitx` | `--filter`, `--io-blksize` |
 | `odx` | `--traditional` and the `[+]OFFSET[.][b]` operand |
 
-If a script uses one, the fix is usually simple: drop `--backup` and copy first with `cpx -n`; replace `ls -f` with `lsx -aU`; replace `--format=long` with `-l`.
+If a script uses one, the fix is usually simple: replace `ls -f` with `lsx -aU`; replace `--format=long` with `-l`.
 
 ## Things that look different but are not
 

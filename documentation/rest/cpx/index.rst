@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-cpx copies SOURCE to DEST, or several SOURCEs into DIRECTORY (also selectable with -t; -T forces the two-operand form). Directories are copied only with -r, and a directory is never copied into itself. A new file receives the source's permission bits filtered by the umask; -p or --preserve[=LIST] carries over mode, ownership, timestamps and hard links, and -a is shorthand for -dR --preserve=all. Symbolic links are followed unless copying recursively; -P/-d keep them as links, -L follows them everywhere and -H only on the command line. -l and -s create hard or symbolic links instead of copying data. Existing destinations are overwritten unless -n (never), -u (only when the source is newer) or -i (ask first) says otherwise; -f removes a destination that cannot be opened and tries again, and --remove-destination removes every existing destination before writing it, so a destination symbolic link is replaced rather than written through and a file that other names share is not changed under them. GNU cp lets the last of conflicting options win; cpx cannot see option order, so it prefers the most cautious instead: -n overrides -i, and an explicit -P/-d overrides -H, which overrides -L.
+cpx copies SOURCE to DEST, or several SOURCEs into DIRECTORY (also selectable with -t; -T forces the two-operand form). Directories are copied only with -r, and a directory is never copied into itself. A new file receives the source's permission bits filtered by the umask; -p or --preserve[=LIST] carries over mode, ownership, timestamps and hard links, and -a is shorthand for -dR --preserve=all. Symbolic links are followed unless copying recursively; -P/-d keep them as links, -L follows them everywhere and -H only on the command line. -l and -s create hard or symbolic links instead of copying data. Existing destinations are overwritten unless -n (never), -u (only when the source is newer) or -i (ask first) says otherwise; -f removes a destination that cannot be opened and tries again, and --remove-destination removes every existing destination before writing it, so a destination symbolic link is replaced rather than written through and a file that other names share is not changed under them. --backup[=CONTROL] (or -b) first renames each existing destination to a backup: CONTROL simple (or never) appends a suffix, numbered (t) appends .~N~ with N one past the highest already there, existing (nil, the default) numbers the backup only when numbered backups already exist, and none (off) makes none; without a CONTROL the VERSION_CONTROL variable chooses. The suffix is ~, or SUFFIX with -S (which asks for backups by itself), or the SIMPLE_BACKUP_SUFFIX variable. A destination directory is merged into, never backed up; a file whose backup is the source is refused ('backing up ... might destroy source'); -f -b FILE FILE copies FILE to its backup name, as in GNU; and --backup cannot be combined with -n. GNU cp lets the last of conflicting options win; cpx cannot see option order, so it prefers the most cautious instead: -n overrides -i, and an explicit -P/-d overrides -H, which overrides -L.
 
 EXIT STATUS.
   0  success: every operand was processed
@@ -105,12 +105,20 @@ Examples
     # Replace a symbolic link with a real copy instead of writing through it
     cpx --remove-destination config/base.conf current.conf
 
+    # Update a config file but keep the previous version as config.yml~
+    cpx -b new/config.yml config.yml
+
+    # Keep every earlier version of a deployed file as app.conf.~1~, app.conf.~2~, ...
+    cpx --backup=numbered build/app.conf /etc/app/app.conf
+
 Options
 ~~~~~~~
 
 ::
 
   -a, --archive                                         same as -dR --preserve=all
+      --backup CONTROL[="$VERSION_CONTROL"]             make a backup of each existing destination file; CONTROL is none (off), simple (never), existing (nil) or numbered (t)
+  -b, --backup-default                                  like --backup but does not accept an argument
   -L, --dereference                                     always follow symbolic links in SOURCE
   -H, --dereference-args                                follow command-line symbolic links in SOURCE
   -f, --force                                           if an existing destination file cannot be opened, remove it and try again
@@ -129,6 +137,7 @@ Options
   -r, --recursive                                       copy directories recursively
       --remove-destination                              remove each existing destination file before attempting to open it (contrast with --force)
       --strip-trailing-slashes                          remove any trailing slashes from each SOURCE argument
+  -S, --suffix SUFFIX                                   override the usual backup suffix, '~', with SUFFIX
   -s, --symbolic-link                                   make symbolic links instead of copying
   -t, --target-directory string                         copy all SOURCE arguments into DIRECTORY
   -u, --update string[="older"]                         control which existing files are updated: all, none, or older (the default for -u)

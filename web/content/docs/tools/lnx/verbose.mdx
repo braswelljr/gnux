@@ -50,6 +50,16 @@ gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
 gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
 ```
 
+### Repoint a symbolic link, keeping the old one as current~ in case you need to roll back
+
+```bash tab="bash" tab-group="shell"
+lnx -sbv releases/v5 current
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -sbv releases\v5 current
+```
+
 ## Help in the terminal
 
 ```bash

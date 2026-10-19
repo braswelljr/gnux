@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/printf"
 )
 
 // Name is the command name, used as the prefix of every diagnostic and prompt.
@@ -28,6 +29,9 @@ type Options struct {
 	NoTargetDirectory bool   // -T: always treat LINK_NAME as a normal file
 	Logical           bool   // -L: hard link to the referent of a symlink TARGET
 	Physical          bool   // -P: hard link to a symlink TARGET itself (the default)
+	// Backup (--backup, -b, -S) renames an existing LINK_NAME to a backup
+	// name before the link takes its place, as if -f were given.
+	Backup core.Backup
 }
 
 // Ln is the link engine. Construct it with New.
@@ -140,7 +144,7 @@ func (l *Ln) link(target, dst string) {
 			return
 		}
 		if ti.IsDir() {
-			l.diag.Errorf("'%s': hard link not allowed for directory", target)
+			l.diag.Errorf("%s: hard link not allowed for directory", printf.ShellQuote(target))
 			return
 		}
 		if l.Logical {
@@ -153,15 +157,18 @@ func (l *Ln) link(target, dst string) {
 	}
 
 	replace := false
-	if di, err := os.Lstat(dst); err == nil && (l.Force || l.Interactive) {
+	backingUp := l.Backup.Control != core.NoBackup
+	if di, err := os.Lstat(dst); err == nil && (l.Force || l.Interactive || backingUp) {
 		if di.IsDir() {
-			l.diag.Errorf("'%s': cannot overwrite directory", dst)
+			l.diag.Errorf("%s: cannot overwrite directory", printf.ShellQuote(dst))
 			return
 		}
 		if ti == nil {
 			ti, _ = os.Stat(target)
 		}
-		if ti != nil && os.SameFile(ti, di) {
+		// A backup keeps a symbolic link's old destination, so only a hard
+		// link is checked then, as in GNU.
+		if ti != nil && os.SameFile(ti, di) && (!backingUp || !l.Symbolic) {
 			// Replacing an entry with a link to itself would destroy the
 			// only name the data has.
 			if sameEntry(target, dst) {
@@ -170,7 +177,7 @@ func (l *Ln) link(target, dst string) {
 			}
 			// A different name for the same file is the hard link that was
 			// asked for; re-running "ln -f a b" must stay a no-op.
-			if !l.Symbolic {
+			if !l.Symbolic && !backingUp {
 				if l.Verbose {
 					l.diag.Printf("'%s' => '%s'", dst, target)
 				}
@@ -194,6 +201,16 @@ func (l *Ln) link(target, dst string) {
 		return os.Link(source, name)
 	}
 
+	backup := ""
+	if replace && backingUp {
+		name, err := l.Backup.MakeBackup(dst)
+		if err != nil {
+			l.diag.Errorf("cannot backup '%s': %s", dst, core.ErrText(err))
+			return
+		}
+		backup, replace = name, false
+	}
+
 	var err error
 	if replace {
 		err = replaceWith(dst, create)
@@ -202,6 +219,11 @@ func (l *Ln) link(target, dst string) {
 	}
 	if err != nil {
 		l.reportFailure(target, dst, err)
+		if backup != "" {
+			if err := os.Rename(backup, dst); err != nil {
+				l.diag.Errorf("cannot un-backup '%s': %s", dst, core.ErrText(err))
+			}
+		}
 		return
 	}
 
@@ -210,7 +232,11 @@ func (l *Ln) link(target, dst string) {
 		if l.Symbolic {
 			arrow = "->"
 		}
-		l.diag.Printf("'%s' %s '%s'", dst, arrow, value)
+		if backup != "" {
+			l.diag.Printf("'%s' ~ '%s' %s '%s'", backup, dst, arrow, value)
+		} else {
+			l.diag.Printf("'%s' %s '%s'", dst, arrow, value)
+		}
 	}
 }
 

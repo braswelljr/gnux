@@ -472,3 +472,77 @@ func TestNoCopy(t *testing.T) {
 	}
 	wantContent(t, dst, "data")
 }
+
+func TestBackup(t *testing.T) {
+	dir := t.TempDir()
+	a, b := filepath.Join(dir, "a"), filepath.Join(dir, "b")
+	simple := core.Backup{Control: core.SimpleBackup}
+
+	write(t, a, "A")
+	write(t, b, "B")
+	m, out, errb := newEngine(mv.Options{Backup: simple, Verbose: true})
+	if err := m.Run([]string{a, b}); err != nil {
+		t.Fatalf("Run: %v (stderr: %s)", err, errb.String())
+	}
+	if want := "renamed '" + a + "' -> '" + b + "' (backup: '" + b + "~')\n"; out.String() != want {
+		t.Fatalf("stdout = %q, want %q", out.String(), want)
+	}
+	wantContent(t, b, "A")
+	wantContent(t, b+"~", "B")
+	wantMissing(t, a)
+
+	// A directory is backed up too, and one kind may replace the other.
+	src, e := mkdir(t, filepath.Join(dir, "src")), mkdir(t, filepath.Join(dir, "e"))
+	write(t, filepath.Join(e, "keep"), "K")
+	m, _, errb = newEngine(mv.Options{Backup: simple, NoTargetDirectory: true})
+	if err := m.Run([]string{src, e}); err != nil {
+		t.Fatalf("Run: %v (stderr: %s)", err, errb.String())
+	}
+	wantContent(t, filepath.Join(e+"~", "keep"), "K")
+	write(t, a, "A2")
+	m, _, errb = newEngine(mv.Options{Backup: core.Backup{Control: core.NumberedBackup}, NoTargetDirectory: true})
+	if err := m.Run([]string{a, e}); err != nil {
+		t.Fatalf("Run: %v (stderr: %s)", err, errb.String())
+	}
+	wantContent(t, e, "A2")
+	if info, err := os.Stat(e + ".~1~"); err != nil || !info.IsDir() {
+		t.Fatalf("numbered backup of the directory: %v", err)
+	}
+
+	// Moving a file's simple backup onto it would destroy the source.
+	m, _, errb = newEngine(mv.Options{Backup: simple})
+	if err := m.Run([]string{b + "~", b}); !errors.Is(err, core.ErrFailed) {
+		t.Fatalf("err = %v", err)
+	}
+	if want := "mvx: backing up '" + b + "' might destroy source;  '" + b + "~' not moved\n"; errb.String() != want {
+		t.Fatalf("stderr = %q, want %q", errb.String(), want)
+	}
+
+	// The same name is still refused; -n cannot be combined.
+	m, _, errb = newEngine(mv.Options{Backup: simple})
+	if err := m.Run([]string{b, b}); !errors.Is(err, core.ErrFailed) || !strings.Contains(errb.String(), "are the same file") {
+		t.Fatalf("err = %v, stderr = %q", err, errb.String())
+	}
+	m, _, _ = newEngine(mv.Options{Backup: simple, NoClobber: true})
+	var usage *core.UsageError
+	if err := m.Run([]string{a, b}); !errors.As(err, &usage) {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestBackupAcrossDevices(t *testing.T) {
+	dir := t.TempDir()
+	src, dst := filepath.Join(dir, "src"), filepath.Join(dir, "dst")
+	write(t, src, "new")
+	write(t, dst, "old")
+	m, out, errb := newEngine(mv.Options{Backup: core.Backup{Control: core.SimpleBackup}, Verbose: true})
+	m.RenameFn = crossDevice
+	if err := m.Run([]string{src, dst}); err != nil {
+		t.Fatalf("Run: %v (stderr: %s)", err, errb.String())
+	}
+	want := "copied '" + src + "' -> '" + dst + "' (backup: '" + dst + "~')\nremoved '" + src + "'\n"
+	if out.String() != want {
+		t.Fatalf("stdout = %q, want %q", out.String(), want)
+	}
+	wantContent(t, dst, "new")
+}

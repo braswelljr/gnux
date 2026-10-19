@@ -295,3 +295,31 @@ func TestUsageErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestBackup(t *testing.T) {
+	dir := t.TempDir()
+	src := write(t, filepath.Join(dir, "src"), "new")
+	dest := write(t, filepath.Join(dir, "dest"), "old")
+
+	out, errs, err := run(install.Options{Backup: core.Backup{Control: core.SimpleBackup, Suffix: ".old"}, Verbose: true}, src, dest)
+	if err != nil {
+		t.Fatalf("err = %v, stderr = %q", err, errs)
+	}
+	if want := "'" + src + "' -> '" + dest + "' (backup: '" + dest + ".old')\n"; out != want {
+		t.Fatalf("stdout = %q, want %q", out, want)
+	}
+	for path, want := range map[string]string{dest: "new", dest + ".old": "old"} {
+		if data, _ := os.ReadFile(path); string(data) != want {
+			t.Fatalf("%s holds %q, want %q", path, data, want)
+		}
+	}
+
+	// Nothing to replace, nothing to back up.
+	fresh := filepath.Join(dir, "fresh")
+	if _, _, err := run(install.Options{Backup: core.Backup{Control: core.NumberedBackup}}, src, fresh); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Lstat(fresh + ".~1~"); !os.IsNotExist(err) {
+		t.Fatal("a backup was made of nothing")
+	}
+}

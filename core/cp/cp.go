@@ -63,6 +63,10 @@ type Options struct {
 	Parents              bool     // --parents: recreate the source path under the directory
 	StripTrailingSlashes bool     // --strip-trailing-slashes: trim '/' from each source
 	RemoveDestination    bool     // --remove-destination: remove an existing destination before opening it
+	// Backup (--backup, -b, -S) renames each existing destination file to
+	// a backup name before it is replaced. Directories are merged into, not
+	// backed up, as in GNU cp.
+	Backup core.Backup
 }
 
 // Cp is the copy engine. Construct it with New.
@@ -116,6 +120,8 @@ func (c *Cp) Run(args []string) error {
 		return core.Usagef("cannot make both hard and symbolic links")
 	case c.TargetDirectory != "" && c.NoTargetDirectory:
 		return core.Usagef("cannot combine --target-directory (-t) and --no-target-directory (-T)")
+	case c.backingUp() && c.NoClobber:
+		return core.Usagef("--backup is mutually exclusive with -n or --update=none-fail")
 	case len(args) == 0:
 		return core.Usagef("missing file operand")
 	}
@@ -161,6 +167,16 @@ func (c *Cp) Run(args []string) error {
 			src = StripTrailingSlashes(src)
 		}
 		dst := dest
+		if !into && c.Force && c.backingUp() && src == dest {
+			// GNU's special case: "cp -fb f f" copies f to its backup name.
+			if info, err := os.Stat(dest); err == nil && info.Mode().IsRegular() {
+				backup := c.Backup
+				c.Backup = core.Backup{}
+				c.copyOperand(src, backup.BackupName(dest))
+				c.Backup = backup
+				continue
+			}
+		}
 		if into {
 			if c.Parents {
 				var ok bool
@@ -187,7 +203,8 @@ func (c *Cp) Copy(src, dst string) bool {
 // earlier operand of the same invocation produced (cp a/f b/f dir).
 func (c *Cp) copyOperand(src, dst string) {
 	key := filepath.Clean(dst)
-	if _, dup := c.created[key]; dup {
+	// A numbered backup keeps the earlier copy, so nothing is lost.
+	if _, dup := c.created[key]; dup && c.Backup.Control != core.NumberedBackup {
 		// Directories are exempt: same-named source directories merge.
 		if info, err := os.Lstat(dst); err == nil && !info.IsDir() {
 			c.diag.Errorf("will not overwrite just-created '%s' with '%s'", dst, src)
@@ -226,12 +243,16 @@ func (c *Cp) copyEntry(src, dst string, top bool, parent os.FileInfo, ancestors 
 				// Already the link that was asked for.
 				return true
 			}
-			c.diag.Errorf("'%s' and '%s' are the same file", src, dst)
-			return false
+			// With a backup the destination is moved aside first, so only
+			// the very same name is refused.
+			if !c.backingUp() || sameEntry(src, dst) {
+				c.diag.Errorf("'%s' and '%s' are the same file", src, dst)
+				return false
+			}
 		}
 		switch {
 		case si.IsDir():
-			if !di.IsDir() {
+			if !di.IsDir() && !c.backingUp() {
 				c.diag.Errorf("cannot overwrite non-directory '%s' with directory '%s'", dst, src)
 				return false
 			}
@@ -247,6 +268,28 @@ func (c *Cp) copyEntry(src, dst string, top bool, parent os.FileInfo, ancestors 
 		}
 	}
 
+	backup := ""
+	if exists && c.backingUp() && !di.IsDir() && !dotOrDotDot(src) {
+		if c.Backup.BackupWouldDestroy(src, si, dst) {
+			c.diag.Errorf("backing up '%s' might destroy source;  '%s' not copied", dst, src)
+			return false
+		}
+		name, err := c.Backup.MakeBackup(dst)
+		if err != nil {
+			c.diag.Errorf("cannot backup '%s': %s", dst, core.ErrText(err))
+			return false
+		}
+		backup, exists = name, false
+	}
+	done := c.write(src, dst, si, exists, top, follow, parent, ancestors, backup)
+	if !done && backup != "" {
+		c.unBackup(backup, dst)
+	}
+	return done
+}
+
+// write creates dst from src once any backup has been made.
+func (c *Cp) write(src, dst string, si os.FileInfo, exists, top, follow bool, parent os.FileInfo, ancestors []os.FileInfo, backup string) bool {
 	if si.IsDir() {
 		return c.copyDir(src, dst, si, exists, top, parent, ancestors)
 	}
@@ -263,7 +306,11 @@ func (c *Cp) copyEntry(src, dst string, top bool, parent os.FileInfo, ancestors 
 	}
 
 	if c.Verbose {
-		c.diag.Printf("'%s' -> '%s'", src, dst)
+		if backup != "" {
+			c.diag.Printf("'%s' -> '%s' (backup: '%s')", src, dst, backup)
+		} else {
+			c.diag.Printf("'%s' -> '%s'", src, dst)
+		}
 	}
 
 	switch {
@@ -303,6 +350,47 @@ func (c *Cp) copyEntry(src, dst string, top bool, parent os.FileInfo, ancestors 
 	return done
 }
 
+// backingUp reports whether existing destinations are backed up.
+func (c *Cp) backingUp() bool {
+	return c.Backup.Control != core.NoBackup
+}
+
+// unBackup puts a backup back in place of a destination that could not be
+// created, as GNU does.
+func (c *Cp) unBackup(backup, dst string) {
+	if _, err := os.Lstat(dst); err == nil {
+		return
+	}
+	if err := os.Rename(backup, dst); err != nil {
+		c.diag.Errorf("cannot un-backup '%s': %s", dst, core.ErrText(err))
+		return
+	}
+	if c.Verbose {
+		c.diag.Printf("'%s' -> '%s' (unbackup)", backup, dst)
+	}
+}
+
+// dotOrDotDot reports whether the last component of path is "." or "..",
+// whose destination is never backed up.
+func dotOrDotDot(path string) bool {
+	base := filepath.Base(path)
+	return base == "." || base == ".."
+}
+
+// sameEntry reports whether a and b are the same name in the same directory,
+// as opposed to two hard links to one file.
+func sameEntry(a, b string) bool {
+	if filepath.Base(a) != filepath.Base(b) {
+		return false
+	}
+	da, err := os.Stat(filepath.Dir(a))
+	if err != nil {
+		return false
+	}
+	db, err := os.Stat(filepath.Dir(b))
+	return err == nil && os.SameFile(da, db)
+}
+
 // follows reports whether a symbolic link at the current position is
 // dereferenced.
 func (c *Cp) follows(top bool) bool {
@@ -325,7 +413,7 @@ func (c *Cp) follows(top bool) bool {
 // the link itself, as does --remove-destination. ok is false when a
 // diagnostic has been issued.
 func (c *Cp) statDest(dst string, si os.FileInfo) (di os.FileInfo, exists, ok bool) {
-	through := si.Mode().IsRegular() && !c.Link && !c.SymbolicLink && !c.RemoveDestination
+	through := si.Mode().IsRegular() && !c.Link && !c.SymbolicLink && !c.RemoveDestination && !c.backingUp()
 	di, err := stat(dst, through)
 	switch {
 	case err == nil:

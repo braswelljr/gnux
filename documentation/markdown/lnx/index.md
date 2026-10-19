@@ -17,7 +17,7 @@ lnx [OPTION]... TARGET... [LINK_NAME|DIRECTORY]
 
 ### Description
 
-`lnx` creates a `link` to TARGET. It accepts `ln`'s four forms: TARGET LINK_NAME; TARGET alone (a `link` of the same name in the current directory); TARGET... DIRECTORY; and `-t` DIRECTORY TARGET.... Links are hard links by default and symbolic with `-s`; a symbolic `link` stores TARGET exactly as written unless `-r` rewrites it relative to the `link`'s own location. An existing destination is an error unless `-f` (replace it) or `-i` (ask first) is given, and the replacement is atomic, so the old entry survives a failure. `-n` treats a LINK_NAME that is a symbolic `link` to a directory as the entry to replace rather than a directory to `link` into, and `-T` always treats LINK_NAME as a plain file. For hard links, `-L` links to what a symbolic `link` TARGET points at and `-P` (the default) to the `link` itself. GNU `ln` lets the last of conflicting options win; `lnx` cannot see option order, so it prefers the most cautious (`-i` over `-f`) and `-L` over `-P`.
+`lnx` creates a `link` to TARGET. It accepts `ln`'s four forms: TARGET LINK_NAME; TARGET alone (a `link` of the same name in the current directory); TARGET... DIRECTORY; and `-t` DIRECTORY TARGET.... Links are hard links by default and symbolic with `-s`; a symbolic `link` stores TARGET exactly as written unless `-r` rewrites it relative to the `link`'s own location. An existing destination is an error unless `-f` (replace it) or `-i` (ask first) is given, and the replacement is atomic, so the old entry survives a failure. `-n` treats a LINK_NAME that is a symbolic `link` to a directory as the entry to replace rather than a directory to `link` into, and `-T` always treats LINK_NAME as a plain file. `--backup`[=CONTROL] (or `-b`) first renames each existing destination to a backup: CONTROL simple (or never) appends a suffix, numbered (t) appends .~N~ with N one past the highest already there, existing (nil, the default) numbers the backup only when numbered backups already exist, and none (off) makes none; without a CONTROL the VERSION_CONTROL variable chooses. The suffix is ~, or SUFFIX with `-S` (which asks for backups by itself), or the SIMPLE_BACKUP_SUFFIX variable. A backup replaces the destination as `-f` would, and `-v` reports it as 'BACKUP' ~ 'LINK' => 'TARGET'. For hard links, `-L` links to what a symbolic `link` TARGET points at and `-P` (the default) to the `link` itself. GNU `ln` lets the last of conflicting options win; `lnx` cannot see option order, so it prefers the most cautious (`-i` over `-f`) and `-L` over `-P`.
 
 ### Permissions
 
@@ -37,18 +37,21 @@ Creating a `link` needs write and search permission on the directory that will h
 ### Flags
 
 ```text
-  -f, --force                     remove existing destination files
-      --help                      display this help and exit
-  -i, --interactive               prompt whether to remove destinations
-  -L, --logical                   dereference TARGETs that are symbolic links
-  -n, --no-dereference            treat LINK_NAME as a normal file if it is a symbolic link to a directory
-  -T, --no-target-directory       treat LINK_NAME as a normal file always
-  -P, --physical                  make hard links directly to symbolic links (default)
-  -r, --relative                  with -s, create links relative to link location
-  -s, --symbolic                  make symbolic links instead of hard links
-  -t, --target-directory string   specify the DIRECTORY in which to create the links
-  -v, --verbose                   print name of each linked file
-      --version                   output version information and exit
+      --backup CONTROL[="$VERSION_CONTROL"]   make a backup of each existing destination file; CONTROL is none (off), simple (never), existing (nil) or numbered (t)
+  -b, --backup-default                        like --backup but does not accept an argument
+  -f, --force                                 remove existing destination files
+      --help                                  display this help and exit
+  -i, --interactive                           prompt whether to remove destinations
+  -L, --logical                               dereference TARGETs that are symbolic links
+  -n, --no-dereference                        treat LINK_NAME as a normal file if it is a symbolic link to a directory
+  -T, --no-target-directory                   treat LINK_NAME as a normal file always
+  -P, --physical                              make hard links directly to symbolic links (default)
+  -r, --relative                              with -s, create links relative to link location
+  -S, --suffix SUFFIX                         override the usual backup suffix, '~', with SUFFIX
+  -s, --symbolic                              make symbolic links instead of hard links
+  -t, --target-directory string               specify the DIRECTORY in which to create the links
+  -v, --verbose                               print name of each linked file
+      --version                               output version information and exit
 ```
 
 ### Examples
@@ -191,6 +194,16 @@ gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
 
 ```powershell
 gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
+```
+
+Repoint a symbolic `link`, keeping the old one as current~ in case you need to roll back:
+
+```bash
+lnx -sbv releases/v5 current
+```
+
+```powershell
+lnx -sbv releases\v5 current
 ```
 
 ### Exit status

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -845,5 +846,117 @@ func TestRemoveDestination(t *testing.T) {
 	// The source itself is still refused.
 	if got := fail(t, cp.Options{RemoveDestination: true}, src, src); !strings.Contains(got, "are the same file") {
 		t.Fatalf("stderr = %q", got)
+	}
+}
+
+func TestBackup(t *testing.T) {
+	dir := t.TempDir()
+	a, b := filepath.Join(dir, "a"), filepath.Join(dir, "b")
+	reset := func() {
+		t.Helper()
+		entries, _ := os.ReadDir(dir)
+		for _, e := range entries {
+			_ = os.RemoveAll(filepath.Join(dir, e.Name()))
+		}
+		write(t, a, "A")
+		write(t, b, "B")
+	}
+	simple := core.Backup{Control: core.SimpleBackup}
+
+	reset()
+	out := run(t, cp.Options{Backup: simple, Verbose: true}, b, a)
+	if want := "'" + b + "' -> '" + a + "' (backup: '" + a + "~')\n"; out != want {
+		t.Fatalf("stdout = %q, want %q", out, want)
+	}
+	wantContent(t, a, "B")
+	wantContent(t, a+"~", "A")
+
+	// Numbered backups count up; "existing" follows them once they exist.
+	reset()
+	numbered := core.Backup{Control: core.NumberedBackup}
+	run(t, cp.Options{Backup: numbered}, b, a)
+	run(t, cp.Options{Backup: core.Backup{Control: core.ExistingBackup}}, b, a)
+	wantContent(t, a+".~1~", "A")
+	wantContent(t, a+".~2~", "B")
+	wantMissing(t, a+"~")
+
+	// No destination, no backup.
+	reset()
+	run(t, cp.Options{Backup: simple}, b, filepath.Join(dir, "new"))
+	wantMissing(t, filepath.Join(dir, "new~"))
+
+	// A destination symbolic link is backed up itself, not written through.
+	reset()
+	link := filepath.Join(dir, "link")
+	symlink(t, a, link)
+	run(t, cp.Options{Backup: simple}, b, link)
+	if isSymlink(t, link) || !isSymlink(t, link+"~") {
+		t.Fatal("the link was written through")
+	}
+	wantContent(t, a, "A")
+
+	// -f -b with the same name copies the file to its backup name.
+	reset()
+	out = run(t, cp.Options{Backup: simple, Force: true, Verbose: true}, a, a)
+	if want := "'" + a + "' -> '" + a + "~'\n"; out != want {
+		t.Fatalf("stdout = %q, want %q", out, want)
+	}
+	wantContent(t, a+"~", "A")
+	if got := fail(t, cp.Options{Backup: simple}, a, a); !strings.Contains(got, "are the same file") {
+		t.Fatalf("stderr = %q", got)
+	}
+
+	// Copying a file's simple backup onto it would destroy the source.
+	reset()
+	run(t, cp.Options{Backup: simple}, b, a)
+	got := fail(t, cp.Options{Backup: simple}, a+"~", a)
+	if want := "cpx: backing up '" + a + "' might destroy source;  '" + a + "~' not copied\n"; got != want {
+		t.Fatalf("stderr = %q, want %q", got, want)
+	}
+
+	// A directory may replace a file that is backed up; directories
+	// themselves are merged, not backed up.
+	reset()
+	src := mkdir(t, filepath.Join(dir, "src"))
+	write(t, filepath.Join(src, "f"), "new")
+	run(t, cp.Options{Backup: simple, Recursive: true}, src, a)
+	wantContent(t, a+"~", "A")
+	wantContent(t, filepath.Join(a, "f"), "new")
+	run(t, cp.Options{Backup: simple, Recursive: true, NoTargetDirectory: true}, src, a)
+	wantMissing(t, a+"~~")
+	wantContent(t, filepath.Join(a, "f~"), "new")
+}
+
+func TestBackupUsage(t *testing.T) {
+	c, _, _ := newEngine(cp.Options{Backup: core.Backup{Control: core.SimpleBackup}, NoClobber: true})
+	var usage *core.UsageError
+	if err := c.Run([]string{"a", "b"}); !errors.As(err, &usage) || usage.Msg != "--backup is mutually exclusive with -n or --update=none-fail" {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestBackupRestoredOnFailure(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("permission bits do not stop a read on Windows")
+	}
+	dir := t.TempDir()
+	a, unreadable := filepath.Join(dir, "a"), filepath.Join(dir, "unreadable")
+	write(t, a, "A")
+	write(t, unreadable, "secret")
+	if err := os.Chmod(unreadable, 0); err != nil {
+		t.Fatal(err)
+	}
+	if f, err := os.Open(unreadable); err == nil {
+		f.Close()
+		t.Skip("running as root")
+	}
+	c, out, errb := newEngine(cp.Options{Backup: core.Backup{Control: core.SimpleBackup}, Verbose: true})
+	if err := c.Run([]string{unreadable, a}); !errors.Is(err, core.ErrFailed) {
+		t.Fatalf("err = %v", err)
+	}
+	wantContent(t, a, "A")
+	wantMissing(t, a+"~")
+	if !strings.Contains(out.String(), "'"+a+"~' -> '"+a+"' (unbackup)") || !strings.Contains(errb.String(), "cannot open") {
+		t.Fatalf("stdout = %q, stderr = %q", out.String(), errb.String())
 	}
 }
