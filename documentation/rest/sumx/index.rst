@@ -1,0 +1,78 @@
+.. _sumx:
+
+sumx
+----
+
+Print the checksum and block count of each FILE.
+
+Synopsis
+~~~~~~~~
+
+
+sumx prints a 16-bit checksum of each FILE and the number of blocks it takes up, followed by its name when FILE operands are given, as GNU sum 9 does. With no FILE, or when FILE is -, it reads standard input. By default (and with -r) it computes the BSD checksum, printed with five digits, and counts 1024-byte blocks; -s (--sysv) computes the System V checksum and counts 512-byte blocks. Both are the checksums cksumx prints with -a bsd and -a sysv. They exist to compare with old systems' output and catch accidental corruption only: use sha256sumx to verify a download. GNU lets the last of -r and -s win; gnux cannot see their order, so -s wins whenever it is given. A FILE that cannot be read is reported and the rest are still summed.
+
+EXIT STATUS.
+  0  success: every operand was processed
+  1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+HELP. sumx --help shows the options and the first examples; gnux help sumx prints the full manual, and gnux help sumx OPTION explains one option.
+
+SEE ALSO. cksumx, md5sumx, sha256sumx, b2sumx.
+
+PERMISSIONS. Needs read permission on each FILE. Writes nothing.
+
+USE CASES.
+  - Comparing a file with a checksum published by an old Unix system or a legacy manual.
+  - Quickly spotting that two copies of a file differ.
+  - Reproducing the output of sum in a script that expects it.
+  - Checking System V checksums with -s.
+  - Getting a file's size in kilobyte blocks along with its checksum.
+
+::
+
+  sumx [OPTION]... [FILE]...
+
+Examples
+~~~~~~~~
+
+::
+
+    # Print the BSD checksum and 1K-block count of a file
+    sumx README.md
+
+    # Print the System V checksum and 512-byte block count
+    sumx -s README.md
+
+    # Checksum several files at once
+    sumx *.txt
+
+    # Checksum standard input
+    printfx 'hello\n' | sumx
+
+    # Compare two copies of a file
+    [ "$(sumx < a.bin)" = "$(sumx < b.bin)" ] && echox same
+
+    # Ask for the BSD algorithm explicitly
+    sumx -r archive.tar
+
+    # Mix standard input with files
+    catx header.txt | sumx - body.txt
+
+    # Keep a checksum list for later comparison
+    sumx -s *.cfg > sums.txt
+
+    # Get the same checksum through cksumx
+    cksumx -a bsd README.md
+
+    # Checksum every file under a directory in the portable gnux shell
+    gnux shell -c 'findx . -type f | xargsx sumx'
+
+Options
+~~~~~~~
+
+::
+
+      --help      display this help and exit
+  -s, --sysv      use the System V sum algorithm, use 512-byte blocks
+      --version   output version information and exit
+

@@ -49,6 +49,7 @@ Options
 SEE ALSO
 ~~~~~~~~
 
+* `gnux archx <archx/index.rst>`_ 	 - Print machine architecture.
 * `gnux b2sumx <b2sumx/index.rst>`_ 	 - Print or check BLAKE2b (512-bit) checksums.
 * `gnux base32x <base32x/index.rst>`_ 	 - Encode or decode data in base32.
 * `gnux base64x <base64x/index.rst>`_ 	 - Encode or decode data in base64.
@@ -71,6 +72,7 @@ SEE ALSO
 * `gnux envx <envx/index.rst>`_ 	 - Run a program in a modified environment, or print the environment.
 * `gnux expandx <expandx/index.rst>`_ 	 - Convert tabs to spaces.
 * `gnux exprx <exprx/index.rst>`_ 	 - Evaluate an expression and print its value.
+* `gnux factorx <factorx/index.rst>`_ 	 - Print the prime factors of each specified integer NUMBER.
 * `gnux falsex <falsex/index.rst>`_ 	 - Do nothing, unsuccessfully.
 * `gnux findx <findx/index.rst>`_ 	 - Search for files in a directory hierarchy.
 * `gnux fmtx <fmtx/index.rst>`_ 	 - Reformat each paragraph of text.
@@ -115,6 +117,7 @@ SEE ALSO
 * `gnux sortx <sortx/index.rst>`_ 	 - Sort lines of text files.
 * `gnux splitx <splitx/index.rst>`_ 	 - Split a file into pieces.
 * `gnux statx <statx/index.rst>`_ 	 - Display file or file system status.
+* `gnux sumx <sumx/index.rst>`_ 	 - Print the checksum and block count of each FILE.
 * `gnux tacx <tacx/index.rst>`_ 	 - Concatenate and print files in reverse.
 * `gnux tailx <tailx/index.rst>`_ 	 - Print the last part of each file, optionally following it as it grows.
 * `gnux teex <teex/index.rst>`_ 	 - Copy standard input to each FILE, and also to standard output.
@@ -124,6 +127,7 @@ SEE ALSO
 * `gnux truex <truex/index.rst>`_ 	 - Do nothing, successfully.
 * `gnux truncatex <truncatex/index.rst>`_ 	 - Shrink or extend the size of each FILE to the specified size.
 * `gnux trx <trx/index.rst>`_ 	 - Translate, squeeze, and/or delete characters from standard input.
+* `gnux tsortx <tsortx/index.rst>`_ 	 - Write a totally ordered list consistent with the partial ordering in FILE.
 * `gnux ttyx <ttyx/index.rst>`_ 	 - Print the file name of the terminal connected to standard input.
 * `gnux unamex <unamex/index.rst>`_ 	 - Print system information.
 * `gnux unexpandx <unexpandx/index.rst>`_ 	 - Convert spaces to tabs.

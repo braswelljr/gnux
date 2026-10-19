@@ -38,6 +38,8 @@ entry ([adding-a-tool](../workflows/adding-a-tool.md)).
 - [x] `tacx` (FR-137)
 - [x] `splitx` (FR-135), `csplitx` (FR-104)
 - [x] `commx` (FR-103)
+- [x] `tsortx` (FR-159)
+- [x] `factorx` (FR-157)
 - [x] `shufx` (FR-134)
 - [x] `odx` (FR-125)
 
@@ -45,7 +47,7 @@ entry ([adding-a-tool](../workflows/adding-a-tool.md)).
 
 - [x] `md5sumx` (FR-119), `sha1sumx` (FR-129), `sha224sumx` (FR-130), `sha256sumx` (FR-131),
   `sha384sumx` (FR-132), `sha512sumx` (FR-133), `b2sumx` (FR-96)
-- [x] `cksumx` (FR-102)
+- [x] `cksumx` (FR-102), `sumx` (FR-158)
 - [x] `base32x` (FR-97), `base64x` (FR-98)
 
 ### File attributes
@@ -62,8 +64,8 @@ entry ([adding-a-tool](../workflows/adding-a-tool.md)).
 ### System
 
 - [x] `datex` (FR-105)
-- [x] `unamex` (FR-142), `whoamix` (FR-146), `idx` (FR-114), `hostnamex` (FR-113), `nprocx` (FR-124),
-  `printenvx` (FR-127), `ttyx` (FR-141), `whox` (FR-147), `uptimex` (FR-145)
+- [x] `unamex` (FR-142), `archx` (FR-156), `whoamix` (FR-146), `idx` (FR-114), `hostnamex` (FR-113),
+  `nprocx` (FR-124), `printenvx` (FR-127), `ttyx` (FR-141), `whox` (FR-147), `uptimex` (FR-145)
 - [x] `timeoutx` (FR-139), `nicex` (FR-121), `nohupx` (FR-123), `killx` (FR-117)
 - [x] `testx` (FR-138), `exprx` (FR-110)
 - [ ] `[` as another name for `testx`, requiring the closing `]`

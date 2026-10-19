@@ -89,16 +89,16 @@ gnux/
 
 ## Tools
 
-`b2sumx`, `base32x`, `base64x`, `basenamex`, `catx`, `chgrpx`, `chmodx`, `chownx`, `cksumx`,
-`commx`, `cpx`, `csplitx`, `cutx`, `datex`, `ddx`, `dfx`, `dirnamex`, `dux`, `echox`, `envx`,
-`expandx`, `exprx`, `falsex`, `findx`, `fmtx`, `foldx`, `grepx`, `headx`, `hostnamex`, `idx`,
-`installx`, `joinx`, `killx`, `linkx`, `lnx`, `lsx`, `md5sumx`, `mkdirx`, `mktempx`, `mvx`, `nicex`,
-`nlx`, `nohupx`, `nprocx`, `odx`, `pastex`, `printenvx`, `printfx`, `pwdx`, `readlinkx`,
-`realpathx`, `rmdirx`, `rmx`, `sedx`, `seqx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`,
-`sha512sumx`, `shufx`, `sleepx`, `sortx`, `splitx`, `statx`, `tacx`, `tailx`, `teex`, `testx`,
-`timeoutx`, `touchx`, `truex`, `truncatex`, `trx`, `ttyx`, `unamex`, `unexpandx`, `uniqx`,
-`unlinkx`, `uptimex`, `wcx`, `whoamix`, `whox`, `xargsx`, `yesx`. The README's roadmap lists what is
-not implemented yet.
+`archx`, `b2sumx`, `base32x`, `base64x`, `basenamex`, `catx`, `chgrpx`, `chmodx`, `chownx`,
+`cksumx`, `commx`, `cpx`, `csplitx`, `cutx`, `datex`, `ddx`, `dfx`, `dirnamex`, `dux`, `echox`,
+`envx`, `expandx`, `exprx`, `factorx`, `falsex`, `findx`, `fmtx`, `foldx`, `grepx`, `headx`,
+`hostnamex`, `idx`, `installx`, `joinx`, `killx`, `linkx`, `lnx`, `lsx`, `md5sumx`, `mkdirx`,
+`mktempx`, `mvx`, `nicex`, `nlx`, `nohupx`, `nprocx`, `odx`, `pastex`, `printenvx`, `printfx`,
+`pwdx`, `readlinkx`, `realpathx`, `rmdirx`, `rmx`, `sedx`, `seqx`, `sha1sumx`, `sha224sumx`,
+`sha256sumx`, `sha384sumx`, `sha512sumx`, `shufx`, `sleepx`, `sortx`, `splitx`, `statx`, `sumx`,
+`tacx`, `tailx`, `teex`, `testx`, `timeoutx`, `touchx`, `truex`, `truncatex`, `trx`, `tsortx`,
+`ttyx`, `unamex`, `unexpandx`, `uniqx`, `unlinkx`, `uptimex`, `wcx`, `whoamix`, `whox`, `xargsx`,
+`yesx`. The README's roadmap lists what is not implemented yet.
 
 `grepx`, `sedx`, `findx` and `xargsx` mirror GNU grep, GNU sed and GNU findutils, not coreutils:
 they are the tools a build script reaches for next. `xargsx` and `findx -exec` run a command

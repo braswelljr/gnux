@@ -5,6 +5,16 @@ description: "Every notable change to gnux, release by release, newest first. Th
 
 ## [Unreleased]
 
+### Added
+
+- Four more coreutils tools. `archx` prints the machine architecture, as `unamex -m` does.
+  `factorx` prints the prime factors of each number, with no size limit, and `-h`
+  (`--exponents`) writes repeated factors as `p^e`. `sumx` prints the BSD checksum (or, with
+  `-s`, the System V one) and block count of each file. `tsortx` sorts pairs of strings
+  topologically, in GNU's order, and names the strings of any loop it finds.
+- For Go callers: `cksum.BSD` and `cksum.SysV`, the two legacy checksums on any `io.Reader`, and
+  `uname.System`, the system information `unamex` prints.
+
 ## [1.0.0] - 2026-10-14
 
 gnux 1.0.0 is the first stable release. From here on the command-line interface of every tool

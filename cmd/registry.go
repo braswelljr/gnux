@@ -3,6 +3,7 @@ package cmd
 import (
 	"sync"
 
+	"github.com/braswelljr/gnux/cmd/archx"
 	"github.com/braswelljr/gnux/cmd/b2sumx"
 	"github.com/braswelljr/gnux/cmd/base32x"
 	"github.com/braswelljr/gnux/cmd/base64x"
@@ -25,6 +26,7 @@ import (
 	"github.com/braswelljr/gnux/cmd/envx"
 	"github.com/braswelljr/gnux/cmd/expandx"
 	"github.com/braswelljr/gnux/cmd/exprx"
+	"github.com/braswelljr/gnux/cmd/factorx"
 	"github.com/braswelljr/gnux/cmd/falsex"
 	"github.com/braswelljr/gnux/cmd/findx"
 	"github.com/braswelljr/gnux/cmd/fmtx"
@@ -68,6 +70,7 @@ import (
 	"github.com/braswelljr/gnux/cmd/sortx"
 	"github.com/braswelljr/gnux/cmd/splitx"
 	"github.com/braswelljr/gnux/cmd/statx"
+	"github.com/braswelljr/gnux/cmd/sumx"
 	"github.com/braswelljr/gnux/cmd/tacx"
 	"github.com/braswelljr/gnux/cmd/tailx"
 	"github.com/braswelljr/gnux/cmd/teex"
@@ -77,6 +80,7 @@ import (
 	"github.com/braswelljr/gnux/cmd/truex"
 	"github.com/braswelljr/gnux/cmd/truncatex"
 	"github.com/braswelljr/gnux/cmd/trx"
+	"github.com/braswelljr/gnux/cmd/tsortx"
 	"github.com/braswelljr/gnux/cmd/ttyx"
 	"github.com/braswelljr/gnux/cmd/unamex"
 	"github.com/braswelljr/gnux/cmd/unexpandx"
@@ -100,6 +104,7 @@ func init() {
 // a subcommand, as an argv[0] name, and in the generated reference.
 func Tools() []tool.Spec {
 	return []tool.Spec{
+		archx.Spec(),
 		b2sumx.Spec(),
 		base32x.Spec(),
 		base64x.Spec(),
@@ -122,6 +127,7 @@ func Tools() []tool.Spec {
 		envx.Spec(),
 		expandx.Spec(),
 		exprx.Spec(),
+		factorx.Spec(),
 		falsex.Spec(),
 		findx.Spec(),
 		fmtx.Spec(),
@@ -165,6 +171,7 @@ func Tools() []tool.Spec {
 		sortx.Spec(),
 		splitx.Spec(),
 		statx.Spec(),
+		sumx.Spec(),
 		tacx.Spec(),
 		tailx.Spec(),
 		teex.Spec(),
@@ -174,6 +181,7 @@ func Tools() []tool.Spec {
 		truex.Spec(),
 		truncatex.Spec(),
 		trx.Spec(),
+		tsortx.Spec(),
 		ttyx.Spec(),
 		unamex.Spec(),
 		unexpandx.Spec(),

@@ -38,6 +38,7 @@ against an in-memory filesystem.
 
 | Tool         | GNU         | What it does |
 |--------------|-------------|--------------|
+| `archx`      | `arch`      | Print machine architecture |
 | `b2sumx`     | `b2sum`     | Print or check BLAKE2b (512-bit) checksums |
 | `base32x`    | `base32`    | Encode or decode data in base32 |
 | `base64x`    | `base64`    | Encode or decode data in base64 |
@@ -60,6 +61,7 @@ against an in-memory filesystem.
 | `envx`       | `env`       | Run a program in a modified environment, or print the environment |
 | `expandx`    | `expand`    | Convert tabs to spaces |
 | `exprx`      | `expr`      | Evaluate an expression and print its value |
+| `factorx`    | `factor`    | Print the prime factors of each number |
 | `falsex`     | `false`     | Do nothing, unsuccessfully |
 | `findx`      | `find`      | Search for files in a directory hierarchy |
 | `fmtx`       | `fmt`       | Reformat each paragraph of text |
@@ -103,6 +105,7 @@ against an in-memory filesystem.
 | `sortx`      | `sort`      | Sort lines of text files |
 | `splitx`     | `split`     | Split a file into pieces |
 | `statx`      | `stat`      | Display file or file system status |
+| `sumx`       | `sum`       | Print the checksum and block count of each file |
 | `tacx`       | `tac`       | Concatenate and print files in reverse |
 | `tailx`      | `tail`      | Print the last part of each file, optionally following it as it grows |
 | `teex`       | `tee`       | Copy standard input to each FILE, and also to standard output |
@@ -112,6 +115,7 @@ against an in-memory filesystem.
 | `truex`      | `true`      | Do nothing, successfully |
 | `truncatex`  | `truncate`  | Shrink or extend the size of each FILE to the specified size |
 | `trx`        | `tr`        | Translate, squeeze, and/or delete characters from standard input |
+| `tsortx`     | `tsort`     | Perform a topological sort |
 | `ttyx`       | `tty`       | Print the file name of the terminal connected to standard input |
 | `unamex`     | `uname`     | Print system information |
 | `unexpandx`  | `unexpand`  | Convert spaces to tabs |
@@ -509,9 +513,9 @@ Not yet implemented, roughly in priority order. The full list of planned tools, 
 channels and integrations, ticked off as they land, is
 [`docs/requirements/checklist.md`](docs/requirements/checklist.md).
 
-- **Tools:** `[` (as another name for `testx`), `basenc`, `numfmt`, `pr`, `tsort`, `factor`,
-  `sum`, `mkfifo`, `mknod`, `pathchk`, `logname`, `groups`, `users`, `pinky`, `stdbuf`, `sync`,
-  `shred`, `dircolors`, `dir`, `vdir`, `arch`, `hostid`, `ptx`, `stty`
+- **Tools:** `[` (as another name for `testx`), `basenc`, `numfmt`, `pr`, `mkfifo`, `mknod`,
+  `pathchk`, `logname`, `groups`, `users`, `pinky`, `stdbuf`, `sync`, `shred`, `dircolors`, `dir`,
+  `vdir`, `hostid`, `ptx`, `stty`
 - **Out of scope by design:** `chroot`, `chcon` and `runcon`, which change system-wide state
   that gnux leaves to the system's own tools
 
