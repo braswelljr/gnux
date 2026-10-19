@@ -1,6 +1,7 @@
 package ls
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -21,7 +22,7 @@ func (l *Ls) newFrills(entries []*entry, pad bool) frills {
 	if !pad {
 		return f
 	}
-	for _, e := range entries {
+	for _, e := range slices.Concat(entries, l.measureAlso) {
 		if l.Inode {
 			f.inode = max(f.inode, len(inodeString(e)))
 		}

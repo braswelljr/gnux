@@ -81,10 +81,14 @@ func TestConfinement(t *testing.T) {
 
 	cmd := exec.Command(os.Args[0], "-test.run=^$")
 	cmd.Env = append(os.Environ(), helperEnv+"="+inside, helperEnv+"_OUTSIDE="+outside)
-	out, err := cmd.CombinedOutput()
+	// Standard output only: a test binary built for coverage writes its data
+	// as it exits, which the sandbox refuses, on standard error.
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
+	out, err := cmd.Output()
 	got := string(out)
 	if err != nil {
-		t.Fatalf("helper: %v\n%s", err, got)
+		t.Fatalf("helper: %v\n%s%s", err, got, stderr.String())
 	}
 	if strings.HasPrefix(got, "unsupported:") {
 		// Linux may lack Landlock (or have cgo); macOS, Windows and FreeBSD

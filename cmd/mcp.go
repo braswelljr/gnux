@@ -65,7 +65,7 @@ func MCPSpec() tool.Spec {
 				"meant to work on, not a directory above it.",
 			UseCases: []string{
 				"Letting an AI agent list, search, copy, move and remove files in one project, and nowhere else.",
-				"The same file tools for an agent on Linux and macOS, with GNU's flags and messages.",
+				"The same file tools for an agent on Linux, macOS, Windows and FreeBSD, with GNU's flags and messages.",
 				"Giving an agent read-only access to reference material next to a writable project.",
 			},
 			Examples: []docmeta.Example{

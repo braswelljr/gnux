@@ -2,6 +2,7 @@ package ls
 
 import (
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -29,9 +30,12 @@ func (l *Ls) printLong(entries []*entry) {
 	now := l.Now()
 	unknownTime := padLeft("?", len(l.style.format(now, now, l.Location)))
 
-	rows := make([]longRow, len(entries))
+	// The columns are as wide as the widest of entries and of measureAlso,
+	// the directory operands GNU measures before it sets them aside.
+	measured := slices.Concat(entries, l.measureAlso)
+	rows := make([]longRow, len(measured))
 	var linksW, ownerW, groupW, sizeW, majorW, minorW int
-	for i, e := range entries {
+	for i, e := range measured {
 		r := longRow{frills: l.frillsOf(e, f), mode: modeString(e), links: "?", size: "?", time: unknownTime}
 		r.owner, r.ownerNumeric = l.ownerOf(e)
 		r.group, r.groupNumeric = l.groupOf(e)

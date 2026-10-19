@@ -83,10 +83,11 @@ func (s Spec) Name() string {
 // Command builds the cobra command for the tool, wired to the given streams.
 func (s Spec) Command(streams core.Streams) *cobra.Command {
 	c := &cobra.Command{
-		Use:                s.Meta.Use,
-		Short:              s.Meta.Short,
-		Long:               s.Meta.Long,
-		Example:            docmeta.ExampleBlock(s.Meta.Examples),
+		Use:   s.Meta.Use,
+		Short: s.Meta.Short,
+		Long:  s.Meta.Long,
+		// No Example: the help screen and the manual render s.Meta.Examples
+		// themselves, and rendering them here cost every run of a tool.
 		SilenceUsage:       true,
 		SilenceErrors:      true,
 		DisableFlagParsing: s.RawArgs,

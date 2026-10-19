@@ -33,6 +33,10 @@ Every notable change to gnux, release by release, newest first. The format follo
   reach nothing outside it, each call with a time limit and an output limit. The Sandbox and AI
   agents guide covers both.
 
+### Fixed
+
+- `lsx -l` with files and directories as operands sizes the files' columns to fit the directories too, as GNU does: `ls -l a.txt dir` padded the size column to the file alone.
+
 ## [1.1.0] - 2026-10-19
 
 gnux 1.1.0 adds nine tools and closes most of the gap with GNU's option surface: backups in

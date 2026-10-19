@@ -40,7 +40,7 @@ The shell itself needs only read access to SCRIPT. Each command it runs needs wh
   -e, --errexit            exit at the first command that fails
       --help               display this help and exit
   -u, --nounset            treat expanding an unset variable as an error
-      --sandbox DIR        confine the shell, its commands and the programs they start to DIR, which they may read and write, and the system's own directories, which they may only read; may be repeated (Linux and macOS)
+      --sandbox DIR        confine the shell, its commands and the programs they start to DIR, which they may read and write, and the system's own directories, which they may only read; may be repeated
       --sandbox-read DIR   with --sandbox, also let them read DIR; may be repeated
       --version            output version information and exit
 ```

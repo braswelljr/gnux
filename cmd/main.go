@@ -38,9 +38,11 @@ func Main(argv []string, s core.Streams) int {
 		}
 		// The shell is not a tool (no program name selects it), but a
 		// script should not wait for every tool's command to be built.
-		for _, spec := range []tool.Spec{ShellSpec(), MCPSpec()} {
-			if args[0] == spec.Name() {
-				return runCommand(spec.Command(s), args[1:], s)
+		// Match the name before building a spec: building one writes out
+		// its documentation, which a script run should not pay for.
+		for name, spec := range map[string]func() tool.Spec{"shell": ShellSpec, "mcp": MCPSpec} {
+			if args[0] == name {
+				return runCommand(spec().Command(s), args[1:], s)
 			}
 		}
 	}

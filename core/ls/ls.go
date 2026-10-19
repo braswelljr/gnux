@@ -82,7 +82,9 @@ func (l *Ls) Run(args []string) error {
 	}
 
 	if len(files) > 0 {
+		l.measureAlso = dirs
 		l.printEntries(files)
+		l.measureAlso = nil
 		l.printed = true
 	}
 

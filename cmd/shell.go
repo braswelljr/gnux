@@ -159,7 +159,7 @@ func ShellSpec() tool.Spec {
 			fs.StringP("command", "c", "", "run the commands in `STRING` instead of reading a script")
 			fs.BoolP("errexit", "e", false, "exit at the first command that fails")
 			fs.BoolP("nounset", "u", false, "treat expanding an unset variable as an error")
-			fs.StringArray("sandbox", nil, "confine the shell, its commands and the programs they start to `DIR`, which they may read and write, and the system's own directories, which they may only read; may be repeated (Linux and macOS)")
+			fs.StringArray("sandbox", nil, "confine the shell, its commands and the programs they start to `DIR`, which they may read and write, and the system's own directories, which they may only read; may be repeated")
 			fs.StringArray("sandbox-read", nil, "with --sandbox, also let them read `DIR`; may be repeated")
 		},
 		Run: runShell,

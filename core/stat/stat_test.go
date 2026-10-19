@@ -141,7 +141,7 @@ func TestDefaultAndTerse(t *testing.T) {
 		t.Fatal(err)
 	}
 	lines := strings.Split(strings.TrimSuffix(out, "\n"), "\n")
-	if len(lines) != 8 || lines[0] != "  File: "+quoteIfNeeded(f) ||
+	if len(lines) != 8 || lines[0] != "  File: "+f || // the default format names the file as it is, as GNU does
 		!strings.HasPrefix(lines[1], "  Size: 5         \tBlocks: ") ||
 		!strings.HasSuffix(lines[1], " regular file") ||
 		!strings.HasPrefix(lines[2], "Device: ") ||
@@ -153,13 +153,6 @@ func TestDefaultAndTerse(t *testing.T) {
 	if fields := strings.Fields(out); len(fields) != 16 || fields[1] != "5" || fields[12] != "1700000000" {
 		t.Fatalf("terse: %q", out)
 	}
-}
-
-func quoteIfNeeded(s string) string {
-	if strings.ContainsAny(s, " \\") {
-		return "'" + s + "'"
-	}
-	return s
 }
 
 func TestFileSystem(t *testing.T) {

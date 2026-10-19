@@ -244,9 +244,14 @@ type Ls struct {
 	hyperlink  bool
 	host       string
 	dired      bool
-	pos        int64   // bytes written, for --dired
-	diredPos   []int64 // start and end of each name
-	subdired   []int64 // start and end of each directory header
+	// measureAlso are entries the columns of a listing are as wide as,
+	// without being listed in it: the directory operands, for the listing of
+	// the other operands, as GNU measures every operand before setting the
+	// directories aside.
+	measureAlso []*entry
+	pos         int64   // bytes written, for --dired
+	diredPos    []int64 // start and end of each name
+	subdired    []int64 // start and end of each directory header
 }
 
 // New builds a listing engine writing to s.

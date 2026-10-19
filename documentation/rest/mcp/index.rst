@@ -28,7 +28,7 @@ PERMISSIONS. The commands can do in each DIR whatever the user running the serve
 
 USE CASES.
   - Letting an AI agent list, search, copy, move and remove files in one project, and nowhere else.
-  - The same file tools for an agent on Linux and macOS, with GNU's flags and messages.
+  - The same file tools for an agent on Linux, macOS, Windows and FreeBSD, with GNU's flags and messages.
   - Giving an agent read-only access to reference material next to a writable project.
 
 ::

@@ -49,7 +49,9 @@ func TestRootedReachesOnlyItsRoots(t *testing.T) {
 			t.Errorf("ReadFile(%q) = %q, %v; want %q", name, data, err, want)
 		}
 	}
-	for _, name := range []string{filepath.Join(out, "f"), "../out/f", "/"} {
+	// The top of the disk: "/" is relative on Windows, so name its volume.
+	top := filepath.VolumeName(rw) + string(filepath.Separator)
+	for _, name := range []string{filepath.Join(out, "f"), "../out/f", top} {
 		if _, err := f.ReadFile(name); !denied(err) {
 			t.Errorf("ReadFile(%q) err = %v, want permission denied", name, err)
 		}

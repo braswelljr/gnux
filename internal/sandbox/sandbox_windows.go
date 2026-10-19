@@ -76,11 +76,16 @@ func enter(p Policy) error {
 	if real, err := filepath.EvalSymlinks(exe); err == nil {
 		exe = real
 	}
-	id := policyID(p, exe)
-	if os.Getenv(marker) == id {
+	// Inside the container its paths cannot be looked up any more (it cannot
+	// read C:\Users), so the policy's identifier could not be worked out
+	// again to compare: the marker says this is the run inside, and Enter's
+	// check then proves the confinement (or refuses, should someone have set
+	// the marker by hand outside it).
+	if os.Getenv(marker) != "" {
 		_ = os.Unsetenv(marker)
 		return nil
 	}
+	id := policyID(p, exe)
 
 	sid, err := containerSID("gnux.sandbox." + id)
 	if err != nil {

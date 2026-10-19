@@ -156,3 +156,9 @@ QUOTING_STYLE=sh stat -c %N 'space name.txt'
 QUOTING_STYLE=bogus stat -c %N a.txt
 QUOTING_STYLE=c stat a.txt | head -1
 QUOTING_STYLE=sh ls a.txt; echo $?
+
+# The columns of the file operands are as wide as the directory operands'
+# too: GNU measures every operand before setting the directories aside.
+mkdir big && touch big/f0 big/f1 big/f2 big/f3 big/f4 big/f5 big/f6 big/f7 big/f8 big/f9 big/fa big/fb big/fc big/fd big/fe && ls -l a.txt big | head -1
+mkdir big && touch big/f0 big/f1 big/f2 big/f3 big/f4 big/f5 big/f6 big/f7 big/f8 big/f9 big/fa big/fb big/fc big/fd big/fe && ls -ls a.txt big | head -2
+mkdir big && touch big/f0 big/f1 big/f2 big/f3 big/f4 big/f5 big/f6 big/f7 big/f8 big/f9 big/fa big/fb big/fc big/fd big/fe && ls -l -d a.txt big

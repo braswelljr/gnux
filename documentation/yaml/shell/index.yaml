@@ -50,7 +50,7 @@ options:
     - name: sandbox
       default_value: '[]'
       usage: |
-        confine the shell, its commands and the programs they start to `DIR`, which they may read and write, and the system's own directories, which they may only read; may be repeated (Linux and macOS)
+        confine the shell, its commands and the programs they start to `DIR`, which they may read and write, and the system's own directories, which they may only read; may be repeated
     - name: sandbox-read
       default_value: '[]'
       usage: with --sandbox, also let them read `DIR`; may be repeated

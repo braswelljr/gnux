@@ -67,7 +67,12 @@ func (p Policy) resolve() (Policy, error) {
 				return Policy{}, err
 			}
 			real, err := filepath.EvalSymlinks(abs)
-			if err != nil {
+			switch {
+			case errors.Is(err, fs.ErrPermission):
+				// Already confined (the run inside an AppContainer cannot
+				// look its paths up): the path as given.
+				real = filepath.Clean(abs)
+			case err != nil:
 				return Policy{}, fmt.Errorf("sandbox: %s: %w", path, err)
 			}
 			if !slices.Contains(*list.out, real) {
