@@ -5,6 +5,8 @@ package sort
 
 import (
 	"bytes"
+	"crypto/md5"
+	"crypto/rand"
 	"errors"
 	"io"
 	"math"
@@ -59,6 +61,13 @@ type Options struct {
 	Numeric bool
 	// Version (-V) compares version numbers within text.
 	Version bool
+	// Random (-R) orders by a random hash of each key: a shuffle in which
+	// equal keys stay together.
+	Random bool
+	// RandomSource (--random-source=FILE) takes the 16 bytes that choose
+	// the hash from FILE instead of the system's random source, so that the
+	// same FILE gives the same order as GNU sort's.
+	RandomSource string
 
 	// Reverse (-r) reverses the result of comparisons.
 	Reverse bool
@@ -110,13 +119,14 @@ type key struct {
 	translate                bool
 	numeric, general, human  bool
 	month, version, reverse  bool
+	random                   bool
 }
 
 // hasOrdering reports whether k carries any option of its own, the test GNU
 // uses to decide whether a key inherits the global options.
 func (k *key) hasOrdering() bool {
 	return k.ignore != ignoreNone || k.translate || k.skipsblanks || k.skipeblanks ||
-		k.numeric || k.general || k.human || k.month || k.version
+		k.numeric || k.general || k.human || k.month || k.version || k.random
 }
 
 // letters spells the key's options the way GNU does in its "incompatible"
@@ -134,6 +144,7 @@ func (k *key) letters() string {
 		{k.ignore == ignoreNonprinting, 'i'},
 		{k.month, 'M'},
 		{k.numeric, 'n'},
+		{k.random, 'R'},
 		{k.version, 'V'},
 	} {
 		if o.on {
@@ -146,7 +157,7 @@ func (k *key) letters() string {
 // incompatible reports whether k asks for more than one way of ordering.
 func (k *key) incompatible() bool {
 	n := 0
-	for _, on := range []bool{k.numeric, k.general, k.human, k.month, k.version || k.ignore != ignoreNone} {
+	for _, on := range []bool{k.numeric, k.general, k.human, k.month, k.version || k.random || k.ignore != ignoreNone} {
 		if on {
 			n++
 		}
@@ -165,7 +176,8 @@ type Sort struct {
 	tab     int // separator byte, or -1 for blank transitions
 	delim   byte
 	blanks  [256]bool
-	reverse bool // global -r, applied to the last-resort comparison
+	reverse bool           // global -r, applied to the last-resort comparison
+	seed    [md5.Size]byte // chooses the hash -R orders by
 }
 
 // New builds a sort engine reading from and writing to s.
@@ -311,6 +323,7 @@ func (s *Sort) setup() error {
 		human:       s.HumanNumeric,
 		month:       s.Month,
 		version:     s.Version,
+		random:      s.Random,
 		reverse:     s.Reverse,
 		eword:       -1,
 	}
@@ -340,12 +353,56 @@ func (s *Sort) setup() error {
 		s.keys = []*key{global}
 	}
 
+	random := false
 	for _, k := range s.keys {
 		if k.incompatible() {
 			return s.die("options '-%s' are incompatible", k.letters())
 		}
+		random = random || k.random
+	}
+	if random {
+		return s.seedRandom()
 	}
 	return nil
+}
+
+// seedRandom reads the bytes that choose -R's hash, as GNU's
+// random_md5_state_init does: the first 16 bytes of --random-source, or of
+// the system's random source.
+func (s *Sort) seedRandom() error {
+	if s.RandomSource == "" {
+		if _, err := rand.Read(s.seed[:]); err != nil {
+			return s.die("open failed: getrandom: %s", core.ErrText(err))
+		}
+		return nil
+	}
+	f, err := os.Open(s.RandomSource)
+	if err != nil {
+		return s.die("open failed: %s: %s", s.RandomSource, core.ErrText(err))
+	}
+	defer f.Close()
+	switch _, err := io.ReadFull(f, s.seed[:]); {
+	case errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF):
+		return s.die("'%s': end of file", s.RandomSource)
+	case err != nil:
+		return s.die("'%s': read error: %s", s.RandomSource, core.ErrText(err))
+	}
+	return nil
+}
+
+// randomCompare orders two keys by the MD5 of the seed followed by the key,
+// which is GNU's compare_random in the C locale; a collision falls back to
+// byte order.
+func (s *Sort) randomCompare(a, b []byte) int {
+	ha, hb := md5.New(), md5.New()
+	ha.Write(s.seed[:])
+	ha.Write(a)
+	hb.Write(s.seed[:])
+	hb.Write(b)
+	if d := bytes.Compare(ha.Sum(nil), hb.Sum(nil)); d != 0 {
+		return d
+	}
+	return bytes.Compare(a, b)
 }
 
 // parseKey parses a KEYDEF: POS1[,POS2], where POS is F[.C][OPTS]. The error
@@ -442,6 +499,8 @@ func (k *key) ordering(s string, start bool) string {
 			k.numeric = true
 		case 'r':
 			k.reverse = true
+		case 'R':
+			k.random = true
 		case 'V':
 			k.version = true
 		default:
@@ -633,6 +692,11 @@ func (s *Sort) keyCompare(a, b []byte) int {
 			d = s.month(ta) - s.month(tb)
 		case k.version:
 			d = verCompare(ta, tb)
+		case k.random:
+			if k.ignore != ignoreNone || k.translate {
+				ta, tb = filtered(ta, k.ignore, k.translate), filtered(tb, k.ignore, k.translate)
+			}
+			d = s.randomCompare(ta, tb)
 		default:
 			d = textCompare(ta, tb, k.ignore, k.translate)
 		}
@@ -902,6 +966,23 @@ func floatChar(c byte) bool {
 
 // textCompare compares a and b byte by byte, after leaving out what -d or -i
 // ignore and folding case for -f.
+// filtered is b without the characters ignore leaves out and, with fold, in
+// upper case: the key -R hashes once -d, -i or -f has applied.
+func filtered(b []byte, ignore ignoreMode, fold bool) []byte {
+	out := make([]byte, 0, len(b))
+	for _, c := range b {
+		switch {
+		case ignore == ignoreNondictionary && c != ' ' && c != '\t' && !isAlnum(c),
+			ignore == ignoreNonprinting && (c < 0x20 || c > 0x7e):
+			continue
+		case fold:
+			c = upper(c)
+		}
+		out = append(out, c)
+	}
+	return out
+}
+
 func textCompare(a, b []byte, ignore ignoreMode, fold bool) int {
 	if ignore == ignoreNone && !fold {
 		return bytes.Compare(a, b)

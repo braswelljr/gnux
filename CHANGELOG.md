@@ -38,6 +38,14 @@ Every notable change to gnux, release by release, newest first. The format follo
   in `cmd/testdata/conformance/` through the GNU tools and through gnux and compares output,
   errors and exit status; CI runs it on every change.
 - Fuzz targets for the parsers of `printfx`, `seqx`, `trx` and `cutx`.
+- GNU options that were missing: `chgrpx --from=CURRENT_OWNER:CURRENT_GROUP`; `chmodx -h`
+  (`--no-dereference`) and `--dereference`, from GNU chmod 9.6 (a link that is not followed has
+  its own mode changed where links have one, and is reported as unchanged on Linux);
+  `datex --resolution`, and `%-N` printing as many digits as the clock's resolution needs;
+  `cpx --remove-destination`; `mvx --no-copy`; `tailx --max-unchanged-stats` (validated; tailx
+  already checks a followed name on every poll); and `sortx -R` (`--random-sort`,
+  `--sort=random`) with `--random-source=FILE`, which orders exactly as GNU sort does for the
+  same FILE. Each has GNU conformance cases in `cmd/testdata/conformance/gnu-options.txt`.
 
 ### Changed
 
@@ -46,6 +54,8 @@ Every notable change to gnux, release by release, newest first. The format follo
   doesn't allow an argument`.
 - `findx` reports a mistake in its expression without the `Try 'findx --help'` line, as GNU find
   does; the status is still 1.
+- `chmodx -P` answers to `--physical` instead of `--no-dereference`, which is GNU's long name
+  for `-h` and now means that.
 - `mktempx -p` answers to `--base-dir` instead of `--dir`, which is GNU's abbreviation of
   `--directory` and now means that.
 - Building gnux needs Go 1.26, which `go.mod` has required since `golang.org/x/crypto` 0.57;
@@ -61,6 +71,9 @@ Every notable change to gnux, release by release, newest first. The format follo
 - `rmx .` without `-r` reports `Is a directory`, and `rmx -d .` tries and fails, as in GNU;
   only `-r` refuses `.` and `..` by name.
 - `grepx '['` reports `Invalid regular expression`, as GNU grep 3.11 does.
+- `chownx -R --dereference` and `chgrpx -R --dereference` without `-H` or `-L` no longer add a
+  `Try '... --help'` line to the error, as GNU does not.
+- `chmodx -v` reports `'FILE' could not be accessed` for a file it cannot reach, as GNU does.
 - The Docker image builds again: it used Go 1.25, older than `go.mod` requires.
 
 ## [1.0.0] - 2026-10-14

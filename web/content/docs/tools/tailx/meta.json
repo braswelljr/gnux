@@ -5,6 +5,7 @@
     "follow",
     "follow-retry",
     "lines",
+    "max-unchanged-stats",
     "pid",
     "quiet",
     "retry",

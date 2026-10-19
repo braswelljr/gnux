@@ -46,6 +46,7 @@ func TestBuildOptions(t *testing.T) {
 		{"target directory long", []string{"--target-directory=dir"}, mv.Options{TargetDirectory: "dir"}},
 		{"no target directory", []string{"-T"}, mv.Options{NoTargetDirectory: true}},
 		{"strip trailing slashes", []string{"--strip-trailing-slashes"}, mv.Options{StripTrailingSlashes: true}},
+		{"no copy", []string{"--no-copy"}, mv.Options{NoCopy: true}},
 		{"combined -uv keeps the default WHEN", []string{"-uv"}, mv.Options{Update: true, Verbose: true}},
 
 		// Precedence: the most cautious option wins, whatever the order.

@@ -814,3 +814,36 @@ func TestPathHelpers(t *testing.T) {
 		}
 	}
 }
+
+func TestRemoveDestination(t *testing.T) {
+	dir := t.TempDir()
+	src, target, link := filepath.Join(dir, "src"), filepath.Join(dir, "target"), filepath.Join(dir, "link")
+	write(t, src, "new")
+	write(t, target, "old")
+	symlink(t, target, link)
+
+	// The link is replaced by a copy; what it pointed to is untouched.
+	run(t, cp.Options{RemoveDestination: true}, src, link)
+	if isSymlink(t, link) {
+		t.Fatal("the destination link was written through")
+	}
+	wantContent(t, link, "new")
+	wantContent(t, target, "old")
+
+	// A file shared by a hard link is replaced, not rewritten in place.
+	shared := filepath.Join(dir, "shared")
+	if err := os.Link(target, shared); err != nil {
+		t.Skipf("hard links unavailable: %v", err)
+	}
+	out := run(t, cp.Options{RemoveDestination: true, Verbose: true}, src, shared)
+	if want := "removed '" + shared + "'\n'" + src + "' -> '" + shared + "'\n"; out != want {
+		t.Fatalf("stdout = %q, want %q", out, want)
+	}
+	wantContent(t, shared, "new")
+	wantContent(t, target, "old")
+
+	// The source itself is still refused.
+	if got := fail(t, cp.Options{RemoveDestination: true}, src, src); !strings.Contains(got, "are the same file") {
+		t.Fatalf("stderr = %q", got)
+	}
+}

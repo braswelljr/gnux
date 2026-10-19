@@ -46,6 +46,11 @@ func TestParseArgs(t *testing.T) {
 		{"-P beats -L", []string{"-RLP", "u+w", "d"}, chmod.Options{Recursive: true, Traversal: chmod.TraversePhysical}, []string{"u+w", "d"}},
 		{"-P beats -L in any order", []string{"-RPL", "u+w", "d"}, chmod.Options{Recursive: true, Traversal: chmod.TraversePhysical}, []string{"u+w", "d"}},
 		{"-H beats -L", []string{"-RLH", "u+w", "d"}, chmod.Options{Recursive: true, Traversal: chmod.TraverseCommandLine}, []string{"u+w", "d"}},
+		{"-h", []string{"-h", "600", "l"}, chmod.Options{NoDereference: true}, []string{"600", "l"}},
+		{"--no-dereference", []string{"--no-dereference", "600", "l"}, chmod.Options{NoDereference: true}, []string{"600", "l"}},
+		{"--dereference", []string{"--dereference", "600", "l"}, chmod.Options{Dereference: true}, []string{"600", "l"}},
+		{"-h beats --dereference", []string{"--dereference", "-h", "600", "l"}, chmod.Options{NoDereference: true}, []string{"600", "l"}},
+		{"-h beats --dereference before", []string{"-h", "--dereference", "600", "l"}, chmod.Options{NoDereference: true}, []string{"600", "l"}},
 		{"no-preserve-root", []string{"--no-preserve-root", "-R", "u+w", "/"}, chmod.Options{Recursive: true, NoPreserveRoot: true}, []string{"u+w", "/"}},
 		{"preserve-root wins", []string{"--no-preserve-root", "--preserve-root", "u+w", "/"}, chmod.Options{}, []string{"u+w", "/"}},
 	}

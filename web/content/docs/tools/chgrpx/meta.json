@@ -5,6 +5,7 @@
     "dereference",
     "dereference-all",
     "dereference-args",
+    "from",
     "no-dereference",
     "no-preserve-root",
     "physical",

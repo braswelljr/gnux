@@ -386,6 +386,7 @@ chgrpx [OPTION]... GROUP FILE...
 | `--dereference`            | Affect the referent of each symbolic link (this is the default), rather than the symbolic link itself |
 | `-L`, `--dereference-all`  | With -R, traverse every symbolic link to a directory encountered |
 | `-H`, `--dereference-args` | With -R, follow symbolic links to directories given on the command line |
+| `--from`                   | Change the group of each file only if its current owner and/or group match those specified here; either may be omitted (CURRENT_OWNER:CURRENT_GROUP) |
 | `-h`, `--no-dereference`   | Affect symbolic links instead of any referenced file |
 | `--no-preserve-root`       | Do not treat '/' specially |
 | `-P`, `--physical`         | With -R, do not traverse any symbolic links (default) |
@@ -398,15 +399,16 @@ chgrpx [OPTION]... GROUP FILE...
 
 - **Behavior.** chgrpx changes the group of each FILE to GROUP, a group name or numeric ID. An
   empty GROUP changes nothing but still checks that each FILE exists. --reference=RFILE takes the
-  group from RFILE instead, and then every operand is a FILE. A symbolic link given as a FILE is
-  followed, and its referent changed, unless -h is given; when both -h and --dereference are
-  given, -h wins. -R changes directory trees, following no symbolic link by default (-P); -H
-  follows the ones given on the command line and -L every one, and when several are given the most
-  cautious wins (-P, then -H, then -L). -c reports each change, -v every file, and -f suppresses
-  most error messages. Unlike GNU chgrp, which leaves the safeguard off unless --preserve-root is
-  given, chgrpx refuses to work recursively on '/' unless --no-preserve-root is given; when both
-  are given, --preserve-root wins. On Windows, which has no Unix groups, every change fails with
-  'Operation not supported'.
+  group from RFILE instead, and then every operand is a FILE. --from=CURRENT_OWNER:CURRENT_GROUP
+  changes only the files whose current owner and group match; either part may be omitted, as in
+  --from=alice or --from=:staff. A symbolic link given as a FILE is followed, and its referent
+  changed, unless -h is given; when both -h and --dereference are given, -h wins. -R changes
+  directory trees, following no symbolic link by default (-P); -H follows the ones given on the
+  command line and -L every one, and when several are given the most cautious wins (-P, then -H,
+  then -L). -c reports each change, -v every file, and -f suppresses most error messages. Unlike
+  GNU chgrp, which leaves the safeguard off unless --preserve-root is given, chgrpx refuses to work
+  recursively on '/' unless --no-preserve-root is given; when both are given, --preserve-root wins.
+  On Windows, which has no Unix groups, every change fails with 'Operation not supported'.
 - **Verified by.** `core/chgrp/chgrp_test.go`, `cmd/chgrpx/chgrpx_test.go`.
 
 ### FR-100: chmodx
@@ -420,10 +422,12 @@ chmodx [OPTION]... MODE[,MODE]... FILE...
 | Option                     | Meaning |
 |----------------------------|---------|
 | `-c`, `--changes`          | Like verbose but report only when a change is made |
+| `--dereference`            | Affect the referent of each symbolic link, rather than the symbolic link itself |
 | `-L`, `--dereference-all`  | With -R, follow every symbolic link to a directory |
 | `-H`, `--dereference-args` | With -R, follow symbolic links given on the command line (the default) |
-| `-P`, `--no-dereference`   | With -R, do not follow any symbolic links |
+| `-h`, `--no-dereference`   | Affect each symbolic link, rather than the referent |
 | `--no-preserve-root`       | Do not treat '/' specially |
+| `-P`, `--physical`         | With -R, do not follow any symbolic links |
 | `--preserve-root`          | Fail to operate recursively on '/' (the default) |
 | `--quiet`                  | Same as --silent |
 | `-R`, `--recursive`        | Change files and directories recursively |
@@ -432,23 +436,25 @@ chmodx [OPTION]... MODE[,MODE]... FILE...
 | `-v`, `--verbose`          | Output a diagnostic for every file processed |
 
 - **Behavior.** chmodx changes the permission bits of each FILE to MODE, which is either an octal
-  number (755, 0644, 4755) or a comma-separated list of symbolic changes. Each change names who
-  (u, g, o or a for user, group, others or all), an operator (+ adds, - removes, = sets exactly)
-  and permissions: r, w, x, X (execute only on directories and on files already executable by
-  someone), s (setuid/setgid) and t (sticky), or u, g or o to copy another class's bits. A
-  symbolic change without a who honors the umask. --reference=RFILE copies RFILE's mode instead,
-  and then every operand is a FILE. -R changes directory trees; -H (the default) follows symbolic
-  links given on the command line, -L follows every symbolic link and -P none, and when several
-  are given the most cautious wins (-P, then -H, then -L). Symbolic links met while recursing are
-  never changed. -c reports each change, -v every file, and -f suppresses most error messages. A
-  mode may also be written as an option, as in 'chmodx -w FILE'; several such options combine as
-  if joined with commas, and then, as in GNU, a file left with bits the mode would have cleared
-  but for the umask is reported ('new permissions are ..., not ...') and counts as a failure.
-  Unlike GNU chmod, which leaves the safeguard off unless --preserve-root is given, chmodx refuses
-  to work recursively on '/' unless --no-preserve-root is given; when both are given,
-  --preserve-root wins. GNU chmod 9.6's -h and --dereference are not implemented. On Windows only
-  the owner's write bit maps onto the file system (the read-only attribute), so the other bits are
-  accepted but have no effect.
+  number (755, 0644, 4755) or a comma-separated list of symbolic changes. Each change names who (u,
+  g, o or a for user, group, others or all), an operator (+ adds, - removes, = sets exactly) and
+  permissions: r, w, x, X (execute only on directories and on files already executable by someone),
+  s (setuid/setgid) and t (sticky), or u, g or o to copy another class's bits. A symbolic change
+  without a who honors the umask. --reference=RFILE copies RFILE's mode instead, and then every
+  operand is a FILE. -R changes directory trees; -H (the default) follows symbolic links given on
+  the command line, -L follows every symbolic link and -P none, and when several are given the most
+  cautious wins (-P, then -H, then -L). A symbolic link given as a FILE is followed unless -h is
+  given, and one met while recursing is not, unless --dereference is given (which changes its
+  referent without descending into it) or -L; when both -h and --dereference are given, -h wins. A
+  link that is not followed has its own mode changed where the system gives links one (macOS, the
+  BSDs); on Linux it is reported as unchanged. -c reports each change, -v every file, and -f
+  suppresses most error messages. A mode may also be written as an option, as in 'chmodx -w FILE';
+  several such options combine as if joined with commas, and then, as in GNU, a file left with bits
+  the mode would have cleared but for the umask is reported ('new permissions are ..., not ...')
+  and counts as a failure. Unlike GNU chmod, which leaves the safeguard off unless --preserve-root
+  is given, chmodx refuses to work recursively on '/' unless --no-preserve-root is given; when both
+  are given, --preserve-root wins. On Windows only the owner's write bit maps onto the file system
+  (the read-only attribute), so the other bits are accepted but have no effect.
 - **Verified by.** `core/chmod/chmod_test.go`, `cmd/chmodx/chmodx_test.go`.
 
 ### FR-101: chownx
@@ -588,6 +594,7 @@ cpx [OPTION]... SOURCE... DIRECTORY
 | `--no-preserve=LIST`            | Do not preserve the listed attributes                                    |
 | `--parents`                     | Use the full source file name under DIRECTORY                            |
 | `-r`, `-R`, `--recursive`       | Copy directories recursively                                             |
+| `--remove-destination`        | Remove each existing destination before opening it (contrast with `--force`) |
 | `-s`, `--symbolic-link`         | Make symbolic links instead of copying                                   |
 | `--strip-trailing-slashes`      | Remove any trailing slashes from each SOURCE                             |
 | `-t`, `--target-directory=DIRECTORY` | Copy all SOURCE arguments into DIRECTORY                            |
@@ -601,13 +608,16 @@ cpx [OPTION]... SOURCE... DIRECTORY
   source's permission bits filtered by the umask. Symbolic links are followed unless copying
   recursively. Hard links between copied sources are kept when links are preserved. A
   destination written for an earlier operand is not silently replaced by a later one with the
-  same base name. `-l` with `-s`, and `-t` with `-T`, are usage errors.
+  same base name. `--remove-destination` removes an existing destination before writing it, so
+  a destination symbolic link is replaced rather than written through and a file shared by hard
+  links is not changed under its other names; with `-v` it reports `removed 'DEST'`. `-l` with
+  `-s`, and `-t` with `-T`, are usage errors.
 - **Deviations.** Option order is not visible, so `-n` overrides `-i`, and an explicit `-P` or
   `-d` overrides `-H`, which overrides `-L`. `-d`, `-H` and `-p` also answer to the long names
   `--no-dereference-links`, `--dereference-args` and `--preserve-default`. On Windows only the
   read-only attribute and the modification time are carried over. Not implemented: `--backup`
   and `-b`, `--suffix` and `-S`, `--reflink`, `--sparse`, `--attributes-only`,
-  `--remove-destination`, `--copy-contents`, `--keep-directory-symlink`, `-Z` and `--context`,
+  `--copy-contents`, `--keep-directory-symlink`, `-Z` and `--context`,
   `--debug`.
 - **Verified by.** `core/cp/cp_test.go`, `cmd/cpx/cpx_test.go`.
 
@@ -692,6 +702,7 @@ datex [OPTION]... [+FORMAT]
 | `-f`, `--file`      | Like --date; once for each line of DATEFILE |
 | `-I`, `--iso-8601`  | Output date/time in ISO 8601 format. FMT='date' for date only (the default), 'hours', 'minutes', 'seconds', or 'ns' |
 | `-r`, `--reference` | Display the last modification time of FILE |
+| `--resolution`      | Output the available resolution of timestamps |
 | `--rfc-3339`        | Output date/time in RFC 3339 format. FMT='date', 'seconds', or 'ns' |
 | `-R`, `--rfc-email` | Output date and time in RFC 5322 format |
 | `-s`, `--set`       | Set time described by STRING (not supported) |
@@ -711,10 +722,13 @@ datex [OPTION]... [+FORMAT]
   2006', '2 Jan 2006', times of day (14:30, 2:30pm, noon, midnight) with UTC, Z or a numeric
   offset, weekdays ('next friday', 'last monday') and relative items ('3 days ago', '+2 hours',
   'next month', 'fortnight'), combined as in '2026-01-31 +1 month' or 'tomorrow 09:00'. Anything
-  else is reported as an invalid date, where GNU's grammar is larger still. -f FILE prints one
-  date per line of FILE (- for standard input) and -r FILE the last modification time of FILE.
-  gnux never changes system settings, so -s and a MMDDhhmm[[CC]YY][.ss] operand fail with 'cannot
-  set date: Operation not supported'. --debug and --resolution are not implemented.
+  else is reported as an invalid date, where GNU's grammar is larger still. -f FILE prints one date
+  per line of FILE (- for standard input) and -r FILE the last modification time of FILE. gnux
+  never changes system settings, so -s and a MMDDhhmm[[CC]YY][.ss] operand fail with 'cannot set
+  date: Operation not supported'. --resolution prints the resolution of the system clock, measured
+  as GNU measures it, as a time that many seconds after the epoch (0.000000001 for a nanosecond
+  clock), and in any format '%-N' prints as many digits of nanoseconds as that resolution needs.
+  --debug is not implemented.
 - **Verified by.** `core/date/date_test.go`, `cmd/datex/datex_test.go`.
 
 ### FR-106: ddx
@@ -1621,6 +1635,7 @@ mvx [OPTION]... SOURCE... DIRECTORY
 | `-f`, `--force`                    | Do not prompt before overwriting                                        |
 | `-i`, `--interactive`              | Prompt before overwrite                                                 |
 | `-n`, `--no-clobber`               | Do not overwrite an existing file                                       |
+| `--no-copy`                        | Do not copy if renaming fails                                           |
 | `--strip-trailing-slashes`         | Remove any trailing slashes from each SOURCE                            |
 | `-t`, `--target-directory=DIRECTORY` | Move all SOURCE arguments into DIRECTORY                              |
 | `-T`, `--no-target-directory`      | Treat DEST as a normal file                                             |
@@ -1632,9 +1647,10 @@ mvx [OPTION]... SOURCE... DIRECTORY
   original only after the copy has fully succeeded (FR-16). A directory is never moved into
   itself, and a directory only replaces an empty directory. A symbolic link is replaced, never
   its target. On a terminal, replacing a write-protected destination asks for confirmation
-  unless `-f` is given.
+  unless `-f` is given. `--no-copy` refuses a move across filesystems with `cannot move 'SOURCE'
+  to 'DEST': Invalid cross-device link` instead of copying, and leaves the source in place.
 - **Deviations.** Option order is not visible, so `-n` overrides `-i`, which overrides `-f`.
-  Not implemented: `--backup` and `-b`, `--suffix` and `-S`, `-Z` and `--context`, `--no-copy`,
+  Not implemented: `--backup` and `-b`, `--suffix` and `-S`, `-Z` and `--context`,
   `--exchange`, `--debug`.
 - **Verified by.** `core/mv/mv_test.go`, `cmd/mvx/mvx_test.go`.
 
@@ -2314,8 +2330,10 @@ sortx [OPTION]... [FILE]...
 | `-M`, `--month-sort`            | Compare (unknown) < JAN < ... < DEC                                            |
 | `-h`, `--human-numeric-sort`    | Compare human readable numbers (2K, 1G)                                        |
 | `-n`, `--numeric-sort`          | Compare according to string numerical value                                    |
+| `-R`, `--random-sort`           | Shuffle, but group identical keys                                              |
+| `--random-source=FILE`          | Get random bytes from FILE                                                     |
 | `-r`, `--reverse`               | Reverse the result of comparisons                                              |
-| `--sort=WORD`                   | general-numeric, human-numeric, month, numeric or version                      |
+| `--sort=WORD`                   | general-numeric, human-numeric, month, numeric, random or version              |
 | `-V`, `--version-sort`          | Natural sort of (version) numbers within text                                  |
 | `-c`, `--check[=WHEN]`          | Check for sorted input and report the first disorder; WHEN: diagnose-first, quiet, silent |
 | `-C`                            | Check for sorted input without reporting                                       |
@@ -2339,12 +2357,14 @@ sortx [OPTION]... [FILE]...
   is silent. Every input is checked to be readable before `-o` opens its file, and the file is
   emptied only after all input is read, so `-o` may name an input. Unlike most tools, trouble
   with any input or the output stops the run with status 2, as in GNU `sort`; a command-line
-  mistake is also status 2.
+  mistake is also status 2. `-R` orders by the MD5 of 16 random bytes followed by the key, as GNU
+  `sort` does, so equal keys stay together; `--random-source=FILE` takes those bytes from FILE,
+  and the same FILE gives the same order as GNU `sort`. A FILE shorter than 16 bytes is reported
+  as `'FILE': end of file`. Without `-R` the source is never read.
 - **Deviations.** Comparison always uses the C locale (byte order, ASCII case folding and month
   names, `.` as the decimal point). `-S`, `-T`, `--parallel`, `--batch-size` and
   `--compress-program` are accepted and ignored; sorting is done in memory. When `-c` and `-C`
-  are both given, `-c` wins in either order. Not implemented: `-R`, `--random-sort`,
-  `--random-source`, `--debug`.
+  are both given, `-c` wins in either order. Not implemented: `--debug`.
 - **Verified by.** `core/sort/sort_test.go`, `cmd/sortx/sortx_test.go`.
 
 ### FR-135: splitx
@@ -2488,6 +2508,7 @@ tailx [OPTION]... [FILE]...
 | `-f`, `--follow[=HOW]`      | Output appended data as the file grows; HOW is `name` or `descriptor` (default) |
 | `-F`                        | Same as `--follow=name --retry`                                                |
 | `-n`, `--lines=NUM`         | Output the last NUM lines instead of 10; `+NUM` starts output at line NUM      |
+| `--max-unchanged-stats=N`   | With `--follow=name`, reopen a FILE unchanged for N polls (default 5)          |
 | `--pid=PID`                 | With `-f`, terminate after process PID dies                                    |
 | `-q`, `--quiet`, `--silent` | Never output headers giving file names                                         |
 | `--retry`                   | Keep trying to open a file if it is inaccessible                               |
@@ -2502,7 +2523,9 @@ tailx [OPTION]... [FILE]...
   file `tailx` seeks to the end and reads backward, so its cost does not depend on the file's
   size. A negative sleep interval or PID, or an unknown `--follow` value, is a usage error.
 - **Deviations.** Following is done by polling at the sleep interval. `-F` also answers to the
-  long name `--follow-retry`. Not implemented: `--max-unchanged-stats`.
+  long name `--follow-retry`. `--follow=name` checks the name on every poll, where GNU waits for
+  `--max-unchanged-stats` polls without growth, so a rotation is noticed at once; N is validated
+  (`invalid maximum number of unchanged stats between opens`) but changes nothing.
 - **Verified by.** `core/tail/tail_test.go`, `cmd/tailx/tailx_test.go`.
 
 ### FR-92: teex

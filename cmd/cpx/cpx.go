@@ -41,7 +41,10 @@ func Meta() docmeta.Meta {
 			"-L follows them everywhere and -H only on the command line. -l and -s create hard " +
 			"or symbolic links instead of copying data. Existing destinations are overwritten " +
 			"unless -n (never), -u (only when the source is newer) or -i (ask first) says " +
-			"otherwise; -f removes a destination that cannot be opened and tries again. GNU cp " +
+			"otherwise; -f removes a destination that cannot be opened and tries again, and " +
+			"--remove-destination removes every existing destination before writing it, so a " +
+			"destination symbolic link is replaced rather than written through and a file " +
+			"that other names share is not changed under them. GNU cp " +
 			"lets the last of conflicting options win; cpx cannot see option order, so it " +
 			"prefers the most cautious instead: -n overrides -i, and an explicit -P/-d overrides " +
 			"-H, which overrides -L.",
@@ -60,6 +63,7 @@ func Meta() docmeta.Meta {
 			"Building a tree of hard links (-al) or symlinks (-s) instead of duplicating data.",
 			"Recreating selected files under a backup directory with their paths intact (--parents).",
 			"Replacing a read-only destination in a deployment step with -f.",
+			"Deploying over a file a running program has open, or one hard-linked elsewhere, with --remove-destination.",
 			"Collecting build artifacts into a directory named up front with -t.",
 		},
 		Examples: []docmeta.Example{
@@ -163,6 +167,11 @@ func Meta() docmeta.Meta {
 				Bash:        "gnux shell -c 'mkdirx -p confbak && cpx -v *.conf confbak/'",
 				PowerShell:  "gnux shell -c 'mkdirx -p confbak && cpx -v *.conf confbak/'",
 			},
+			{
+				Description: "Replace a symbolic link with a real copy instead of writing through it:",
+				Bash:        "cpx --remove-destination config/base.conf current.conf",
+				PowerShell:  "cpx --remove-destination config\\base.conf current.conf",
+			},
 		},
 	}
 }
@@ -184,6 +193,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.String("no-preserve", "", "don't preserve the listed attributes")
 	fs.Bool("parents", false, "use the full source file name under DIRECTORY")
 	fs.BoolP("recursive", "r", false, "copy directories recursively")
+	fs.Bool("remove-destination", false, "remove each existing destination file before attempting to open it (contrast with --force)")
 	// -R is the spelling GNU documents first; it is hidden so --help lists
 	// the option once.
 	fs.BoolP("recursive-upper", "R", false, "equivalent to -r")
@@ -225,6 +235,7 @@ func buildOptions(fs *pflag.FlagSet) (cp.Options, error) {
 		OneFileSystem:        flag("one-file-system"),
 		Parents:              flag("parents"),
 		StripTrailingSlashes: flag("strip-trailing-slashes"),
+		RemoveDestination:    flag("remove-destination"),
 	}
 	o.TargetDirectory, _ = fs.GetString("target-directory")
 

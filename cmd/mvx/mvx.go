@@ -31,7 +31,8 @@ func Meta() docmeta.Meta {
 			"selectable with -t; -T forces the two-operand form). Within one filesystem a move " +
 			"is an atomic rename. Across filesystems mvx copies the source with all of its " +
 			"attributes, symbolic links and hard links intact and removes the original only " +
-			"after the copy has fully succeeded. An existing destination is replaced unless -n " +
+			"after the copy has fully succeeded; --no-copy refuses such a move instead ('Invalid " +
+			"cross-device link'), so a move is always a rename. An existing destination is replaced unless -n " +
 			"(never), -u (only when the source is newer) or -i (ask first) says otherwise; a " +
 			"directory is never moved into itself, and a directory only replaces an empty " +
 			"directory. GNU mv lets the last of -f, -i and -n win; mvx cannot see option order, " +
@@ -48,6 +49,7 @@ func Meta() docmeta.Meta {
 			"Relocating a tree to another disk without losing modes, times or links.",
 			"Protecting existing files in scripts with -n, or reviewing overwrites with -i.",
 			"Promoting a staged file over the live one only when it is newer (-u).",
+			"Publishing a file atomically, never by a slow copy, with --no-copy.",
 			"Atomically swapping a freshly written file into place after it is complete.",
 			"Replacing a directory's name with -T instead of moving into it.",
 			"Logging every move in a cleanup script with -v.",
@@ -123,6 +125,11 @@ func Meta() docmeta.Meta {
 				Bash:        "gnux shell -c 'mkdirx -p archive/2024 && mvx -v *.txt archive/2024/'",
 				PowerShell:  "gnux shell -c 'mkdirx -p archive/2024 && mvx -v *.txt archive/2024/'",
 			},
+			{
+				Description: "Publish a finished build atomically, or fail if it is on another disk:",
+				Bash:        "mvx --no-copy build/site.new www/site",
+				PowerShell:  "mvx --no-copy build\\site.new www\\site",
+			},
 		},
 	}
 }
@@ -133,6 +140,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("interactive", "i", false, "prompt before overwrite")
 	fs.BoolP("no-clobber", "n", false, "do not overwrite an existing file")
 	fs.Bool("strip-trailing-slashes", false, "remove any trailing slashes from each SOURCE argument")
+	fs.Bool("no-copy", false, "do not copy if renaming fails")
 	fs.StringP("target-directory", "t", "", "move all SOURCE arguments into DIRECTORY")
 	fs.BoolP("no-target-directory", "T", false, "treat DEST as a normal file")
 	fs.StringP("update", "u", "", "control which existing files are updated: all, none, or older (the default for -u)")
@@ -156,6 +164,7 @@ func buildOptions(fs *pflag.FlagSet) (mv.Options, error) {
 		Verbose:              flag("verbose"),
 		NoTargetDirectory:    flag("no-target-directory"),
 		StripTrailingSlashes: flag("strip-trailing-slashes"),
+		NoCopy:               flag("no-copy"),
 	}
 	o.TargetDirectory, _ = fs.GetString("target-directory")
 

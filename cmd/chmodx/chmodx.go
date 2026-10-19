@@ -43,15 +43,18 @@ func Meta() docmeta.Meta {
 			"every operand is a FILE. -R changes directory trees; -H (the default) follows " +
 			"symbolic links given on the command line, -L follows every symbolic link and -P " +
 			"none, and when several are given the most cautious wins (-P, then -H, then -L). " +
-			"Symbolic links met while recursing are never changed. -c reports each change, -v " +
+			"A symbolic link given as a FILE is followed unless -h is given, and one met while " +
+			"recursing is not, unless --dereference is given (which changes its referent " +
+			"without descending into it) or -L; when both -h and --dereference are given, -h " +
+			"wins. A link that is not followed has its own mode changed where the system " +
+			"gives links one (macOS, the BSDs); on Linux it is reported as unchanged. -c reports each change, -v " +
 			"every file, and -f suppresses most error messages. A mode may also be written as " +
 			"an option, as in 'chmodx -w FILE'; several such options combine as if joined " +
 			"with commas, and then, as in GNU, a file left with bits the mode would have " +
 			"cleared but for the umask is reported ('new permissions are ..., not ...') and " +
 			"counts as a failure. Unlike GNU chmod, which leaves the safeguard off unless " +
 			"--preserve-root is given, chmodx refuses to work recursively on '/' unless " +
-			"--no-preserve-root is given; when both are given, --preserve-root wins. GNU " +
-			"chmod 9.6's -h and --dereference are not implemented. On Windows only the " +
+			"--no-preserve-root is given; when both are given, --preserve-root wins. On Windows only the " +
 			"owner's write bit maps onto the file system (the read-only attribute), so the " +
 			"other bits are accepted but have no effect.",
 		Permissions: "Changing a file's mode requires owning it, or running as root (or with " +
@@ -141,10 +144,12 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("recursive", "R", false, "change files and directories recursively")
 	fs.BoolP("dereference-args", "H", false, "with -R, follow symbolic links given on the command line (the default)")
 	fs.BoolP("dereference-all", "L", false, "with -R, follow every symbolic link to a directory")
-	fs.BoolP("no-dereference", "P", false, "with -R, do not follow any symbolic links")
+	fs.BoolP("physical", "P", false, "with -R, do not follow any symbolic links")
+	fs.Bool("dereference", false, "affect the referent of each symbolic link, rather than the symbolic link itself")
+	fs.BoolP("no-dereference", "h", false, "affect each symbolic link, rather than the referent")
 
 	// Long names GNU does not have: accepted, never an abbreviation.
-	tool.OwnNames(fs, "dereference-all", "dereference-args")
+	tool.OwnNames(fs, "dereference-all", "dereference-args", "physical")
 }
 
 // parsed is a command line split into its parts.
@@ -197,12 +202,14 @@ func parseArgs(fs *pflag.FlagSet, args []string) (parsed, error) {
 		Silent:         on("silent") || on("quiet"),
 		Verbose:        on("verbose"),
 		Recursive:      on("recursive"),
+		NoDereference:  on("no-dereference"),
+		Dereference:    on("dereference") && !on("no-dereference"),
 		NoPreserveRoot: on("no-preserve-root") && !on("preserve-root"),
 	}
 	p.opts.Reference, _ = fs.GetString("reference")
 	// The most cautious traversal wins, whatever the order.
 	switch {
-	case on("no-dereference"):
+	case on("physical"):
 		p.opts.Traversal = chmod.TraversePhysical
 	case on("dereference-args"):
 		p.opts.Traversal = chmod.TraverseCommandLine

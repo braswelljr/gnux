@@ -27,6 +27,7 @@ type Options struct {
 	TargetDirectory      string // -t: move every source into this directory
 	NoTargetDirectory    bool   // -T: treat the destination as a normal file
 	StripTrailingSlashes bool   // --strip-trailing-slashes: trim '/' from each source
+	NoCopy               bool   // --no-copy: fail rather than copy when the rename crosses file systems
 }
 
 // Mv is the move engine. Construct it with New.
@@ -209,6 +210,10 @@ func (m *Mv) move(src, dst string) bool {
 			m.diag.Printf("renamed '%s' -> '%s'", src, dst)
 		}
 		return true
+	case isCrossDevice(err) && m.NoCopy:
+		// Spelled out so it reads the same on every platform.
+		m.diag.Errorf("cannot move '%s' to '%s': Invalid cross-device link", src, dst)
+		return false
 	case isCrossDevice(err):
 		return m.moveAcross(src, dst, exists)
 	default:

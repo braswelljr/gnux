@@ -65,6 +65,10 @@ type Options struct {
 	RFC3339 string
 	// RFC5322 (-R) prints RFC 5322 (email) format.
 	RFC5322 bool
+	// Resolution (--resolution) prints the resolution of the system clock
+	// instead of a date: the time it shows is that many seconds after the
+	// epoch, by default in the format "%s.%N".
+	Resolution bool
 }
 
 // Date is the engine. Construct it with New.
@@ -78,6 +82,9 @@ type Date struct {
 	Location *time.Location
 	// Getenv reads TZ; it defaults to os.Getenv.
 	Getenv func(string) string
+	// ClockResolution returns the resolution of the system clock in
+	// nanoseconds, for --resolution and "%-N"; it defaults to measuring it.
+	ClockResolution func() int64
 
 	streams core.Streams
 	diag    *core.Diag
@@ -86,11 +93,12 @@ type Date struct {
 // New builds a date engine reading from and writing to s.
 func New(opts Options, s core.Streams) *Date {
 	return &Date{
-		Options: opts,
-		Now:     time.Now,
-		Getenv:  os.Getenv,
-		streams: s,
-		diag:    core.NewDiag(Name, s),
+		Options:         opts,
+		Now:             time.Now,
+		Getenv:          os.Getenv,
+		ClockResolution: clockResolution,
+		streams:         s,
+		diag:            core.NewDiag(Name, s),
 	}
 }
 
@@ -106,6 +114,7 @@ func (d *Date) Run(args []string) (err error) {
 		return d.diag.Result()
 	}
 
+	format = d.adjustResolution(format)
 	loc := d.location()
 	now := d.Now().In(loc)
 	out := core.NewWriter(d.streams.Out)
@@ -121,6 +130,8 @@ func (d *Date) Run(args []string) (err error) {
 			break
 		}
 		fmt.Fprintln(out, Format(format, info.ModTime().In(loc)))
+	case d.Resolution:
+		fmt.Fprintln(out, Format(format, time.Unix(0, d.ClockResolution()).In(loc)))
 	case d.HasDate:
 		t, err := Parse(d.Date, now)
 		if err != nil {
@@ -140,20 +151,23 @@ func (d *Date) format(args []string) (string, error) {
 		return "", core.Usagef("extra operand '%s'", args[1])
 	}
 	sources := 0
-	for _, given := range []bool{d.HasDate, d.File != "", d.HasSet, d.Reference != ""} {
+	for _, given := range []bool{d.HasDate, d.File != "", d.Reference != "", d.Resolution} {
 		if given {
 			sources++
 		}
 	}
 	if sources > 1 {
-		if d.HasSet && (d.File != "" || d.Reference != "") {
-			return "", core.Usagef("the options to print and set the time may not be used together")
-		}
 		return "", core.Usagef("the options to specify dates for printing are mutually exclusive")
+	}
+	if d.HasSet && sources > 0 {
+		return "", core.Usagef("the options to print and set the time may not be used together")
 	}
 
 	formats := 0
 	format := DefaultFormat
+	if d.Resolution {
+		format = "%s.%N"
+	}
 	if d.ISO8601 != "" {
 		f, ok := ISO8601Formats[d.ISO8601]
 		if !ok {
@@ -178,7 +192,7 @@ func (d *Date) format(args []string) (string, error) {
 		if op := args[0]; strings.HasPrefix(op, "+") {
 			format = op[1:]
 			formats++
-		} else if d.HasDate || d.File != "" || d.Reference != "" || d.HasSet {
+		} else if sources > 0 || d.HasSet {
 			return "", core.Usagef("the argument '%s' lacks a leading '+';\n"+
 				"when using an option to specify date(s), any non-option\n"+
 				"argument must be a format string beginning with '+'", op)
@@ -188,6 +202,75 @@ func (d *Date) format(args []string) (string, error) {
 		return "", core.Usagef("multiple output formats specified")
 	}
 	return format, nil
+}
+
+// adjustResolution rewrites each "%-N" in format as the number of digits
+// the clock's resolution needs ("%9N" for nanoseconds, "%6N" for
+// microseconds), as GNU date does.
+func (d *Date) adjustResolution(format string) string {
+	var b strings.Builder
+	digits := byte(0)
+	for i := 0; i < len(format); i++ {
+		if format[i] != '%' || i+1 == len(format) {
+			b.WriteByte(format[i])
+			continue
+		}
+		if strings.HasPrefix(format[i+1:], "-N") {
+			if digits == 0 {
+				digits = '0' + byte(resolutionWidth(d.ClockResolution()))
+			}
+			b.WriteByte('%')
+			b.WriteByte(digits)
+			b.WriteByte('N')
+			i += 2
+			continue
+		}
+		b.WriteByte('%')
+		if format[i+1] == '%' {
+			b.WriteByte('%')
+			i++
+		}
+	}
+	return b.String()
+}
+
+// resolutionWidth is the number of decimal digits a time with resolution
+// res nanoseconds needs to lose nothing.
+func resolutionWidth(res int64) int {
+	w := 9
+	for r := int64(10); r <= res && w > 0; r *= 10 {
+		w--
+	}
+	return w
+}
+
+// clockResolution measures the resolution of the system clock in
+// nanoseconds, as gnulib's gettime_res does: the greatest common divisor of
+// the sub-second parts of up to 32 distinct timestamps.
+func clockResolution() int64 {
+	r := int64(time.Second)
+	earlier := time.Time{}
+	for i := 0; r > 1 && i < 32; i++ {
+		now := time.Now()
+		// Successive equal timestamps say little; wait for a different one,
+		// then stop sampling after it.
+		for now.Equal(earlier) {
+			i = 32
+			now = time.Now()
+		}
+		earlier = now
+		if ns := int64(now.Nanosecond()); ns > 0 {
+			r = gcd(r, ns)
+		}
+	}
+	return r
+}
+
+func gcd(a, b int64) int64 {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return a
 }
 
 // location is the zone dates are displayed in.

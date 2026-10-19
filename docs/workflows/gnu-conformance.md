@@ -14,7 +14,7 @@ The test is behind the `conformance` build tag, so `go test ./...` never runs it
 
 ## What one case is
 
-A line of a `.txt` file in `cmd/testdata/conformance/` is a command for `sh -c`; `#` starts a comment line, and a line ending in `\` continues on the next. The file name groups the cases (`text`, `files`, `checksums`, `misc`, `grep-sed-find`) and is the first part of the subtest's name.
+A line of a `.txt` file in `cmd/testdata/conformance/` is a command for `sh -c`; `#` starts a comment line, and a line ending in `\` continues on the next. The file name groups the cases (`text`, `files`, `checksums`, `misc`, `grep-sed-find`, `options`, `gnu-options`) and is the first part of the subtest's name.
 
 For each case the harness:
 

@@ -40,6 +40,9 @@ type Options struct {
 	// Reference (--reference=RFILE) takes the group from RFILE instead of a
 	// GROUP operand.
 	Reference string
+	// From (--from=CURRENT_OWNER:CURRENT_GROUP) changes only the files
+	// currently owned as stated; either part may be omitted.
+	From string
 	// NoPreserveRoot (--no-preserve-root) allows a recursive run on '/'.
 	NoPreserveRoot bool
 }
@@ -76,6 +79,14 @@ func (c *Chgrp) Run(args []string) error {
 	diag := c.eng.Diag()
 
 	req := ownership.Request{UID: ownership.Unset, FromUID: ownership.Unset, FromGID: ownership.Unset}
+	if c.From != "" {
+		uid, gid, _, err := ownership.ParseSpec(c.From)
+		if err != nil {
+			diag.Errorf("%s: '%s'", err, c.From)
+			return core.ErrFailed
+		}
+		req.FromUID, req.FromGID = uid, gid
+	}
 	if c.Reference != "" {
 		// As GNU does, a missing FILE is reported before the reference is read.
 		if len(args) == 0 {

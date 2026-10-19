@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-mvx renames SOURCE to DEST, or moves several SOURCEs into DIRECTORY (also selectable with -t; -T forces the two-operand form). Within one filesystem a move is an atomic rename. Across filesystems mvx copies the source with all of its attributes, symbolic links and hard links intact and removes the original only after the copy has fully succeeded. An existing destination is replaced unless -n (never), -u (only when the source is newer) or -i (ask first) says otherwise; a directory is never moved into itself, and a directory only replaces an empty directory. GNU mv lets the last of -f, -i and -n win; mvx cannot see option order, so it prefers the most cautious instead: -n over -i over -f.
+mvx renames SOURCE to DEST, or moves several SOURCEs into DIRECTORY (also selectable with -t; -T forces the two-operand form). Within one filesystem a move is an atomic rename. Across filesystems mvx copies the source with all of its attributes, symbolic links and hard links intact and removes the original only after the copy has fully succeeded; --no-copy refuses such a move instead ('Invalid cross-device link'), so a move is always a rename. An existing destination is replaced unless -n (never), -u (only when the source is newer) or -i (ask first) says otherwise; a directory is never moved into itself, and a directory only replaces an empty directory. GNU mv lets the last of -f, -i and -n win; mvx cannot see option order, so it prefers the most cautious instead: -n over -i over -f.
 
 EXIT STATUS.
   0  success: every operand was processed
@@ -27,6 +27,7 @@ USE CASES.
   - Relocating a tree to another disk without losing modes, times or links.
   - Protecting existing files in scripts with -n, or reviewing overwrites with -i.
   - Promoting a staged file over the live one only when it is newer (-u).
+  - Publishing a file atomically, never by a slow copy, with --no-copy.
   - Atomically swapping a freshly written file into place after it is complete.
   - Replacing a directory's name with -T instead of moving into it.
   - Logging every move in a cleanup script with -v.
@@ -82,6 +83,9 @@ Examples
     # Archive text files into a dated directory with the gnux shell
     gnux shell -c 'mkdirx -p archive/2024 && mvx -v *.txt archive/2024/'
 
+    # Publish a finished build atomically, or fail if it is on another disk
+    mvx --no-copy build/site.new www/site
+
 Options
 ~~~~~~~
 
@@ -91,6 +95,7 @@ Options
       --help                      display this help and exit
   -i, --interactive               prompt before overwrite
   -n, --no-clobber                do not overwrite an existing file
+      --no-copy                   do not copy if renaming fails
   -T, --no-target-directory       treat DEST as a normal file
       --strip-trailing-slashes    remove any trailing slashes from each SOURCE argument
   -t, --target-directory string   move all SOURCE arguments into DIRECTORY

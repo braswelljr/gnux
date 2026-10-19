@@ -62,6 +62,7 @@ type Options struct {
 	OneFileSystem        bool     // -x: stay on the source's filesystem
 	Parents              bool     // --parents: recreate the source path under the directory
 	StripTrailingSlashes bool     // --strip-trailing-slashes: trim '/' from each source
+	RemoveDestination    bool     // --remove-destination: remove an existing destination before opening it
 }
 
 // Cp is the copy engine. Construct it with New.
@@ -250,6 +251,17 @@ func (c *Cp) copyEntry(src, dst string, top bool, parent os.FileInfo, ancestors 
 		return c.copyDir(src, dst, si, exists, top, parent, ancestors)
 	}
 
+	if exists && c.RemoveDestination {
+		if err := os.Remove(dst); err != nil && !os.IsNotExist(err) {
+			c.diag.Errorf("cannot remove '%s': %s", dst, core.ErrText(err))
+			return false
+		}
+		exists = false
+		if c.Verbose {
+			c.diag.Printf("removed '%s'", dst)
+		}
+	}
+
 	if c.Verbose {
 		c.diag.Printf("'%s' -> '%s'", src, dst)
 	}
@@ -310,9 +322,10 @@ func (c *Cp) follows(top bool) bool {
 
 // statDest examines the destination. A regular source is written through a
 // destination symlink, so that case follows links; everything else replaces
-// the link itself. ok is false when a diagnostic has been issued.
+// the link itself, as does --remove-destination. ok is false when a
+// diagnostic has been issued.
 func (c *Cp) statDest(dst string, si os.FileInfo) (di os.FileInfo, exists, ok bool) {
-	through := si.Mode().IsRegular() && !c.Link && !c.SymbolicLink
+	through := si.Mode().IsRegular() && !c.Link && !c.SymbolicLink && !c.RemoveDestination
 	di, err := stat(dst, through)
 	switch {
 	case err == nil:

@@ -43,7 +43,10 @@ func Meta() docmeta.Meta {
 			"data as it is appended, polling every -s seconds; --follow=name tracks the file " +
 			"name rather than the open file, so it survives log rotation, and --retry keeps " +
 			"waiting for a file that is missing. -F is shorthand for --follow=name --retry. " +
-			"--pid ends following when the given process exits. On a regular file tailx seeks " +
+			"--pid ends following when the given process exits. GNU tail, polling, checks " +
+			"whether a followed name has been rotated only after --max-unchanged-stats=N " +
+			"polls without growth (5 by default); tailx checks it on every poll, so it " +
+			"notices a rotation at once, and N is validated but changes nothing. On a regular file tailx seeks " +
 			"to the end and reads backward, so its cost does not depend on the file's size.",
 		Permissions: "Needs read permission on each FILE and search permission on the " +
 			"directories leading to it. Nothing is ever modified. With --follow=name the file " +
@@ -164,6 +167,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("follow-retry", "F", false, "same as --follow=name --retry")
 	fs.VarP(&countValue{ord: ord}, "lines", "n",
 		"output the last NUM lines, instead of the last 10; or use -n +NUM to output starting with line NUM")
+	fs.String("max-unchanged-stats", "5", "with --follow=name, reopen a FILE which has not changed size after `N` (default 5) iterations to see if it has been unlinked or renamed")
 	fs.Int("pid", 0, "with -f, terminate after process ID, `PID`, dies")
 	fs.BoolP("quiet", "q", false, "never output headers giving file names")
 	fs.Bool("silent", false, "same as --quiet")
@@ -332,10 +336,25 @@ func parseCount(text, unit string) (n int64, fromStart bool, err error) {
 	return n, fromStart, nil
 }
 
+// validStatCount reports whether s is an unsigned decimal number, as GNU's
+// xnumtoumax reads one: leading blanks and a '+' are allowed, and a number
+// too large for the type is accepted (it saturates).
+func validStatCount(s string) bool {
+	s = strings.TrimLeft(s, " \t\n\v\f\r")
+	s = strings.TrimPrefix(s, "+")
+	return s != "" && strings.Trim(s, "0123456789") == ""
+}
+
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	opts, err := buildOptions(fs)
 	if err != nil {
 		return err
+	}
+	// tailx checks a followed name on every poll, so the count is only
+	// validated: there is never a run of unchanged stats to wait out.
+	if n, _ := fs.GetString("max-unchanged-stats"); !validStatCount(n) {
+		core.NewDiag(tail.Name, s).Errorf("invalid maximum number of unchanged stats between opens: '%s'", n)
+		return core.ErrFailed
 	}
 	return tail.New(opts, s).Run(args)
 }

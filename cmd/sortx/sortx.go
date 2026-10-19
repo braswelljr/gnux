@@ -42,7 +42,7 @@ func Meta() docmeta.Meta {
 			"-d, -f and -i ignore leading blanks, keep only blanks and alphanumerics, fold case " +
 			"and keep only printable characters; -r reverses the result. -k POS1[,POS2] sorts " +
 			"on a key, where each POS is F[.C][OPTS]: field F, character C, and any of the " +
-			"ordering letters bdfghiMnrV, which then apply to that key alone. A key with no " +
+			"ordering letters bdfghiMnRrV, which then apply to that key alone. A key with no " +
 			"letters inherits the global options. Fields are separated by -t SEP, or else by " +
 			"the change from a non-blank to a blank character, so a field keeps its leading " +
 			"blanks. When all keys compare equal, the whole lines are compared as a last " +
@@ -50,10 +50,13 @@ func Meta() docmeta.Meta {
 			"equal lines) is given. -c and -C check whether the input is already sorted, -m " +
 			"merges inputs that already are, -o FILE writes the result to FILE (which may be " +
 			"one of the inputs), and -z makes NUL the line delimiter. Ordering options that " +
-			"contradict each other, such as -n with -g, are refused. Differences from GNU " +
+			"contradict each other, such as -n with -g, are refused. -R shuffles the lines but " +
+			"keeps equal keys together, by ordering on a hash of each key chosen by 16 random " +
+			"bytes; --random-source=FILE takes those bytes from FILE instead, which makes the " +
+			"order repeatable and the same as GNU sort's for the same FILE. Differences from GNU " +
 			"sort: comparison always follows the C locale (byte order, ASCII case folding and " +
 			"month names, '.' as the decimal point, no thousands separator) whatever LANG and " +
-			"LC_ALL say; -R, --random-sort, --random-source and --debug are not implemented; " +
+			"LC_ALL say; --debug is not implemented; " +
 			"-S, -T, --parallel, --batch-size and --compress-program are accepted and ignored, " +
 			"because sortx sorts in memory; when -c and -C are both given, the diagnosing -c " +
 			"wins whatever their order, so disorder is never hidden.",
@@ -68,6 +71,7 @@ func Meta() docmeta.Meta {
 			"Sorting a CSV-like or colon-separated file on one column with -t and -k.",
 			"Removing duplicate lines in one step with -u.",
 			"Sorting release tags or file names that contain version numbers with -V.",
+			"Shuffling a playlist or a test order with -R, repeatably with --random-source.",
 			"Finding the largest entries of a listing with -rn and headx.",
 			"Merging several already sorted files cheaply with -m.",
 			"Verifying in a script that a file is sorted with -c or -C.",
@@ -160,6 +164,11 @@ func Meta() docmeta.Meta {
 				Bash:        "gnux shell -c 'lsx -1 | sortx -r'",
 				PowerShell:  "gnux shell -c 'lsx -1 | sortx -r'",
 			},
+			{
+				Description: "Run the test files in a shuffled order that a seed file makes repeatable:",
+				Bash:        "lsx tests/*.sh | sortx -R --random-source=ci-seed.bin",
+				PowerShell:  "lsx tests | sortx -R --random-source=ci-seed.bin",
+			},
 		},
 	}
 }
@@ -175,9 +184,11 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("month-sort", "M", false, "compare (unknown) < 'JAN' < ... < 'DEC'")
 	fs.BoolP("human-numeric-sort", "h", false, "compare human readable numbers (e.g., 2K 1G)")
 	fs.BoolP("numeric-sort", "n", false, "compare according to string numerical value")
+	fs.BoolP("random-sort", "R", false, "shuffle, but group identical keys")
+	fs.String("random-source", "", "get random bytes from `FILE`")
 	fs.BoolP("reverse", "r", false, "reverse the result of comparisons")
 	fs.String("sort", "",
-		"sort according to `WORD`: general-numeric -g, human-numeric -h, month -M, numeric -n, version -V")
+		"sort according to `WORD`: general-numeric -g, human-numeric -h, month -M, numeric -n, random -R, version -V")
 	fs.BoolP("version-sort", "V", false, "natural sort of (version) numbers within text")
 
 	// Other options.
@@ -233,6 +244,7 @@ func buildOptions(fs *pflag.FlagSet) (sort.Options, error) {
 		Month:               on("month-sort"),
 		Numeric:             on("numeric-sort"),
 		Version:             on("version-sort"),
+		Random:              on("random-sort"),
 		Reverse:             on("reverse"),
 		Merge:               on("merge"),
 		Stable:              on("stable"),
@@ -243,6 +255,7 @@ func buildOptions(fs *pflag.FlagSet) (sort.Options, error) {
 		o.Keys = keys
 	}
 	o.Output, _ = fs.GetString("output")
+	o.RandomSource, _ = fs.GetString("random-source")
 	o.Files0From, _ = fs.GetString("files0-from")
 	o.FieldSeparator, _ = fs.GetString("field-separator")
 	if fs.Changed("field-separator") && o.FieldSeparator == "" {
@@ -259,6 +272,8 @@ func buildOptions(fs *pflag.FlagSet) (sort.Options, error) {
 			o.Month = true
 		case "numeric":
 			o.Numeric = true
+		case "random":
+			o.Random = true
 		case "version":
 			o.Version = true
 		default:

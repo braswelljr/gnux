@@ -17,6 +17,7 @@
     "preserve",
     "preserve-default",
     "recursive",
+    "remove-destination",
     "strip-trailing-slashes",
     "symbolic-link",
     "target-directory",

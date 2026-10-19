@@ -317,6 +317,10 @@ func TestUsageErrors(t *testing.T) {
 		{date.Options{HasDate: true, File: "f"}, nil, "the options to specify dates for printing are mutually exclusive"},
 		{date.Options{HasDate: true, Reference: "f"}, nil, "the options to specify dates for printing are mutually exclusive"},
 		{date.Options{HasSet: true, Reference: "f"}, nil, "the options to print and set the time may not be used together"},
+		{date.Options{HasSet: true, HasDate: true}, nil, "the options to print and set the time may not be used together"},
+		{date.Options{Resolution: true, HasDate: true}, nil, "the options to specify dates for printing are mutually exclusive"},
+		{date.Options{Resolution: true, Reference: "f"}, nil, "the options to specify dates for printing are mutually exclusive"},
+		{date.Options{Resolution: true, HasSet: true}, nil, "the options to print and set the time may not be used together"},
 		{date.Options{ISO8601: "date", RFC5322: true}, nil, "multiple output formats specified"},
 		{date.Options{RFC3339: "ns"}, []string{"+%F"}, "multiple output formats specified"},
 		{date.Options{ISO8601: "weeks"}, nil, "invalid argument 'weeks' for '--iso-8601'"},
@@ -329,5 +333,42 @@ func TestUsageErrors(t *testing.T) {
 		if !errors.As(err, &usage) || usage.Msg != tt.want {
 			t.Errorf("%+v %v: err = %v, want usage error %q", tt.opts, tt.args, err, tt.want)
 		}
+	}
+}
+
+func TestResolution(t *testing.T) {
+	tests := []struct {
+		opts date.Options
+		res  int64
+		args []string
+		want string
+	}{
+		{date.Options{Resolution: true}, 1, nil, "0.000000001\n"},
+		{date.Options{Resolution: true}, 1000, nil, "0.000001000\n"},
+		{date.Options{Resolution: true, UTC: true}, 1, []string{"+%s %Y"}, "0 1970\n"},
+		{date.Options{Resolution: true, UTC: true}, 1, []string{"+%-N"}, "000000001\n"},
+		{date.Options{HasDate: true, Date: "@1.123456789", UTC: true}, 1000, []string{"+%s.%-N %%-N"}, "1.123456 %-N\n"},
+		{date.Options{HasDate: true, Date: "@1.5", UTC: true}, int64(time.Second), []string{"+[%-N]"}, "[500000000]\n"}, // "%0N": 0 is a flag, as in GNU
+	}
+	for _, tt := range tests {
+		var out, errb bytes.Buffer
+		d := date.New(tt.opts, core.Streams{In: strings.NewReader(""), Out: &out, Err: &errb})
+		d.ClockResolution = func() int64 { return tt.res }
+		if err := d.Run(tt.args); err != nil || out.String() != tt.want {
+			t.Errorf("%+v %v: out = %q, want %q (err %v, stderr %q)", tt.opts, tt.args, out.String(), tt.want, err, errb.String())
+		}
+	}
+}
+
+func TestClockResolutionIsMeasured(t *testing.T) {
+	var out bytes.Buffer
+	d := date.New(date.Options{Resolution: true}, core.Streams{In: strings.NewReader(""), Out: &out, Err: &out})
+	if err := d.Run(nil); err != nil {
+		t.Fatal(err)
+	}
+	// Some power of ten of a nanosecond, at most a second.
+	got := strings.TrimSpace(out.String())
+	if !strings.HasPrefix(got, "0.") && got != "1.000000000" {
+		t.Fatalf("resolution = %q", got)
 	}
 }

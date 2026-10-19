@@ -4,6 +4,7 @@
     "force",
     "interactive",
     "no-clobber",
+    "no-copy",
     "no-target-directory",
     "strip-trailing-slashes",
     "target-directory",

@@ -448,3 +448,27 @@ func TestCrossDeviceKeepsSourceWhenCopyFails(t *testing.T) {
 	}
 	wantContent(t, src, "data")
 }
+
+func TestNoCopy(t *testing.T) {
+	dir := t.TempDir()
+	src, dst := filepath.Join(dir, "src"), filepath.Join(dir, "dst")
+	write(t, src, "data")
+
+	m, out, errb := newEngine(mv.Options{NoCopy: true, Verbose: true})
+	m.RenameFn = crossDevice
+	if err := m.Run([]string{src, dst}); !errors.Is(err, core.ErrFailed) {
+		t.Fatalf("err = %v, want ErrFailed", err)
+	}
+	if want := "mvx: cannot move '" + src + "' to '" + dst + "': Invalid cross-device link\n"; errb.String() != want || out.Len() != 0 {
+		t.Fatalf("stderr = %q, stdout = %q", errb.String(), out.String())
+	}
+	wantContent(t, src, "data")
+	wantMissing(t, dst)
+
+	// On one file system it is an ordinary rename.
+	m, _, errb = newEngine(mv.Options{NoCopy: true})
+	if err := m.Run([]string{src, dst}); err != nil {
+		t.Fatalf("Run: %v (stderr: %s)", err, errb.String())
+	}
+	wantContent(t, dst, "data")
+}

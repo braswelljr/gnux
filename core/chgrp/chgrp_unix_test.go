@@ -105,3 +105,28 @@ func TestPreserveRoot(t *testing.T) {
 		t.Fatalf("stderr = %q, want %q", errb, want)
 	}
 }
+
+func TestFrom(t *testing.T) {
+	dir := t.TempDir()
+	f := filepath.Join(dir, "f")
+	if err := os.WriteFile(f, nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	mine := strconv.Itoa(os.Getgid())
+
+	// A file in another group is left alone, silently.
+	calls, out, _, err := run(t, chgrp.Options{From: ":" + strconv.Itoa(nobody), Changes: true}, mine, f)
+	if err != nil || len(calls) != 0 || out != "" {
+		t.Fatalf("calls = %+v, stdout = %q, err = %v", calls, out, err)
+	}
+	// A file that matches is changed.
+	calls, _, _, err = run(t, chgrp.Options{From: strconv.Itoa(os.Getuid()) + ":" + mine}, strconv.Itoa(nobody), f)
+	if err != nil || len(calls) != 1 || calls[0].gid != nobody {
+		t.Fatalf("calls = %+v, err = %v", calls, err)
+	}
+	// An unknown name is refused before anything changes.
+	calls, _, errs, err := run(t, chgrp.Options{From: ":no-such-group-gnux"}, mine, f)
+	if err == nil || len(calls) != 0 || errs != "chgrpx: invalid group: ':no-such-group-gnux'\n" {
+		t.Fatalf("calls = %+v, stderr = %q, err = %v", calls, errs, err)
+	}
+}

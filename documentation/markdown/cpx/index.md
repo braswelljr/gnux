@@ -17,7 +17,7 @@ cpx [OPTION]... SOURCE... DIRECTORY
 
 ### Description
 
-`cpx` copies SOURCE to DEST, or several SOURCEs into DIRECTORY (also selectable with `-t`; `-T` forces the two-operand form). Directories are copied only with `-r`, and a directory is never copied into itself. A new file receives the source's permission bits filtered by the umask; `-p` or `--preserve`[=LIST] carries over mode, ownership, timestamps and hard links, and `-a` is shorthand for `-dR --preserve`=all. Symbolic links are followed unless copying recursively; `-P`/`-d` keep them as links, `-L` follows them everywhere and `-H` only on the command line. `-l` and `-s` create hard or symbolic links instead of copying data. Existing destinations are overwritten unless `-n` (never), `-u` (only when the source is newer) or `-i` (ask first) says otherwise; `-f` removes a destination that cannot be opened and tries again. GNU `cp` lets the last of conflicting options win; `cpx` cannot see option order, so it prefers the most cautious instead: `-n` overrides `-i`, and an explicit `-P`/`-d` overrides `-H`, which overrides `-L`.
+`cpx` copies SOURCE to DEST, or several SOURCEs into DIRECTORY (also selectable with `-t`; `-T` forces the two-operand form). Directories are copied only with `-r`, and a directory is never copied into itself. A new file receives the source's permission bits filtered by the umask; `-p` or `--preserve`[=LIST] carries over mode, ownership, timestamps and hard links, and `-a` is shorthand for `-dR --preserve`=all. Symbolic links are followed unless copying recursively; `-P`/`-d` keep them as links, `-L` follows them everywhere and `-H` only on the command line. `-l` and `-s` create hard or symbolic links instead of copying data. Existing destinations are overwritten unless `-n` (never), `-u` (only when the source is newer) or `-i` (ask first) says otherwise; `-f` removes a destination that cannot be opened and tries again, and `--remove-destination` removes every existing destination before writing it, so a destination symbolic `link` is replaced rather than written through and a file that other names share is not changed under them. GNU `cp` lets the last of conflicting options win; `cpx` cannot see option order, so it prefers the most cautious instead: `-n` overrides `-i`, and an explicit `-P`/`-d` overrides `-H`, which overrides `-L`.
 
 ### Permissions
 
@@ -33,6 +33,7 @@ Copying needs read permission on each source and write and search permission on 
 - Building a tree of hard links (`-al`) or symlinks (`-s`) instead of duplicating data.
 - Recreating selected files under a backup directory with their paths intact (`--parents`).
 - Replacing a read-only destination in a deployment step with `-f`.
+- Deploying over a file a running program has open, or one hard-linked elsewhere, with `--remove-destination`.
 - Collecting build artifacts into a directory named up front with `-t`.
 
 ### Flags
@@ -55,6 +56,7 @@ Copying needs read permission on each source and write and search permission on 
       --preserve string[="mode,ownership,timestamps"]   preserve the listed attributes: mode, ownership, timestamps, links, all
   -p, --preserve-default                                same as --preserve=mode,ownership,timestamps
   -r, --recursive                                       copy directories recursively
+      --remove-destination                              remove each existing destination file before attempting to open it (contrast with --force)
       --strip-trailing-slashes                          remove any trailing slashes from each SOURCE argument
   -s, --symbolic-link                                   make symbolic links instead of copying
   -t, --target-directory string                         copy all SOURCE arguments into DIRECTORY
@@ -263,6 +265,16 @@ gnux shell -c 'mkdirx -p confbak && cpx -v *.conf confbak/'
 
 ```powershell
 gnux shell -c 'mkdirx -p confbak && cpx -v *.conf confbak/'
+```
+
+Replace a symbolic `link` with a real copy instead of writing through it:
+
+```bash
+cpx --remove-destination config/base.conf current.conf
+```
+
+```powershell
+cpx --remove-destination config\base.conf current.conf
 ```
 
 ### Exit status

@@ -69,6 +69,7 @@ func TestBuildOptions(t *testing.T) {
 		{"one file system", []string{"-x"}, cp.Options{OneFileSystem: true}},
 		{"parents", []string{"--parents"}, cp.Options{Parents: true}},
 		{"strip trailing slashes", []string{"--strip-trailing-slashes"}, cp.Options{StripTrailingSlashes: true}},
+		{"remove destination", []string{"--remove-destination"}, cp.Options{RemoveDestination: true}},
 		{"combined -rvf", []string{"-rvf"}, cp.Options{Recursive: true, Verbose: true, Force: true}},
 		{"combined -uv keeps the default WHEN", []string{"-uv"}, cp.Options{Update: true, Verbose: true}},
 

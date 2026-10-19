@@ -20,15 +20,15 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `base64` | `base64x` | `-d`, `-i`, `-w COLS` | [base64x](../markdown/base64x/index.md) |
 | `basename` | `basenamex` | `-a`, `-s SUFFIX`, `-z` | [basenamex](../markdown/basenamex/index.md) |
 | `cat` | `catx` | `-A`, `-b`, `-e`, `-E`, `-n`, `-s`, `-t`, `-T`, `-u`, `-v` | [catx](../markdown/catx/index.md) |
-| `chgrp` | `chgrpx` | `-c`, `--dereference`, `-L`, `-H`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chgrpx](../markdown/chgrpx/index.md) |
-| `chmod` | `chmodx` | `-c`, `-L`, `-H`, `-P`, `--no-preserve-root`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chmodx](../markdown/chmodx/index.md) |
+| `chgrp` | `chgrpx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chgrpx](../markdown/chgrpx/index.md) |
+| `chmod` | `chmodx` | `-c`, `--dereference`, `-L`, `-H`, `-h`, `-P`, `--no-preserve-root`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chmodx](../markdown/chmodx/index.md) |
 | `chown` | `chownx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chownx](../markdown/chownx/index.md) |
 | `cksum` | `cksumx` | `-a TYPE`, `--base64`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--raw`, `--status`, `--strict`, `--tag`, `--untagged`, `-w`, `-z` | [cksumx](../markdown/cksumx/index.md) |
 | `comm` | `commx` | `--check-order`, `--nocheck-order`, `--output-delimiter=STR`, `-3`, `-1`, `-2`, `--total`, `-z` | [commx](../markdown/commx/index.md) |
-| `cp` | `cpx` | `-a`, `-d`, `-f`, `-H`, `-i`, `-l`, `-L`, `-n`, `-p`, `-P`, `-r`/`-R`, `-s`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `-x`, `--parents`, `--preserve[=LIST]`, `--no-preserve=LIST`, `--strip-trailing-slashes` | [cpx](../markdown/cpx/index.md) |
+| `cp` | `cpx` | `-a`, `-d`, `-f`, `-H`, `-i`, `-l`, `-L`, `-n`, `-p`, `-P`, `-r`/`-R`, `-s`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `-x`, `--parents`, `--preserve[=LIST]`, `--no-preserve=LIST`, `--remove-destination`, `--strip-trailing-slashes` | [cpx](../markdown/cpx/index.md) |
 | `csplit` | `csplitx` | `-n DIGITS`, `-z`, `-k`, `-f PREFIX`, `-s`, `-q`, `-b FORMAT`, `--suppress-matched` | [csplitx](../markdown/csplitx/index.md) |
 | `cut` | `cutx` | `-b LIST`, `-c LIST`, `-d DELIM`, `-f LIST`, `-n`, `-s`, `-z`, `--complement`, `--output-delimiter=STRING` | [cutx](../markdown/cutx/index.md) |
-| `date` | `datex` | `-d STRING`, `-f DATEFILE`, `-I[=FMT]`, `-r FILE`, `--rfc-3339=FMT`, `-R`, `-s STRING`, `--universal`, `-u` | [datex](../markdown/datex/index.md) |
+| `date` | `datex` | `-d STRING`, `-f DATEFILE`, `-I[=FMT]`, `-r FILE`, `--resolution`, `--rfc-3339=FMT`, `-R`, `-s STRING`, `--universal`, `-u` | [datex](../markdown/datex/index.md) |
 | `dd` | `ddx` | operands `if=`, `of=`, `bs=`, `ibs=`, `obs=`, `cbs=`, `skip=`/`iseek=`, `seek=`/`oseek=`, `count=`, `conv=`, `iflag=`, `oflag=`, `status=` | [ddx](../markdown/ddx/index.md) |
 | `df` | `dfx` | `-a`, `-B SIZE`, `-x TYPE`, `-h`, `-i`, `-k`, `-l`, `--no-sync`, `--output[=FIELD_LIST]`, `-P`, `-T`, `-H`, `--sync`, `-v`, `--total`, `-t TYPE` | [dfx](../markdown/dfx/index.md) |
 | `dir` | `dirx` | every `lsx` option | [dirx](../markdown/dirx/index.md) |
@@ -58,7 +58,7 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `md5sum` | `md5sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [md5sumx](../markdown/md5sumx/index.md) |
 | `mkdir` | `mkdirx` | `-m MODE`, `-p`, `-v` | [mkdirx](../markdown/mkdirx/index.md) |
 | `mktemp` | `mktempx` | `-p DIR`, `-d`, `-u`, `-t`, `-q`, `--suffix=SUFF`, `--tmpdir[=DIR]` | [mktempx](../markdown/mktempx/index.md) |
-| `mv` | `mvx` | `-f`, `-i`, `-n`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `--strip-trailing-slashes` | [mvx](../markdown/mvx/index.md) |
+| `mv` | `mvx` | `-f`, `-i`, `-n`, `--no-copy`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `--strip-trailing-slashes` | [mvx](../markdown/mvx/index.md) |
 | `nice` | `nicex` | `-n N` | [nicex](../markdown/nicex/index.md) |
 | `nl` | `nlx` | `-b STYLE`, `-f STYLE`, `-h STYLE`, `-l NUMBER`, `-i STRING`, `-p`, `-n FORMAT`, `-s STRING`, `-w NUMBER`, `-d CC`, `-v STRING` | [nlx](../markdown/nlx/index.md) |
 | `nohup` | `nohupx` | none | [nohupx](../markdown/nohupx/index.md) |
@@ -81,12 +81,12 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `sha512sum` | `sha512sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha512sumx](../markdown/sha512sumx/index.md) |
 | `shuf` | `shufx` | `-e`, `-n COUNT`, `-i LO-HI`, `-o FILE`, `--random-source=FILE`, `-r`, `-z` | [shufx](../markdown/shufx/index.md) |
 | `sleep` | `sleepx` | NUMBER with `s`, `m`, `h`, `d`; fractions, exponents, hex floats, `infinity` | [sleepx](../markdown/sleepx/index.md) |
-| `sort` | `sortx` | `-b`, `-c`/`--check[=WHEN]`, `-C`, `-d`, `-f`, `-g`, `-h`, `-i`, `-k KEYDEF`, `-m`, `-M`, `-n`, `-o FILE`, `-r`, `-s`, `-t SEP`, `-u`, `-V`, `-z`, `--files0-from=F`, `--sort=WORD`; `-S`, `-T`, `--parallel`, `--batch-size`, `--compress-program` accepted and ignored | [sortx](../markdown/sortx/index.md) |
+| `sort` | `sortx` | `-b`, `-c`/`--check[=WHEN]`, `-C`, `-d`, `-f`, `-g`, `-h`, `-i`, `-k KEYDEF`, `-m`, `-M`, `-n`, `-o FILE`, `-r`, `-R`, `-s`, `-t SEP`, `-u`, `-V`, `-z`, `--files0-from=F`, `--random-source=FILE`, `--sort=WORD`; `-S`, `-T`, `--parallel`, `--batch-size`, `--compress-program` accepted and ignored | [sortx](../markdown/sortx/index.md) |
 | `split` | `splitx` | `--additional-suffix=SUFFIX`, `-b SIZE`, `-e`, `-x[=FROM]`, `-C SIZE`, `-l NUMBER`, `-n CHUNKS`, `-d[=FROM]`, `-t SEP`, `-a N`, `-u`, `--verbose` | [splitx](../markdown/splitx/index.md) |
 | `stat` | `statx` | `--cached=STRING`, `-L`, `-f`, `-c FORMAT`, `--printf=FORMAT`, `-t` | [statx](../markdown/statx/index.md) |
 | `sum` | `sumx` | `-r`, `-s` | [sumx](../markdown/sumx/index.md) |
 | `tac` | `tacx` | `-b`, `-r`, `-s STRING` | [tacx](../markdown/tacx/index.md) |
-| `tail` | `tailx` | `-c [+]NUM`, `-f[=HOW]`, `-F`, `-n [+]NUM`, `-q`, `-s N`, `-v`, `-z`, `--pid`, `--retry`, size suffixes | [tailx](../markdown/tailx/index.md) |
+| `tail` | `tailx` | `-c [+]NUM`, `-f[=HOW]`, `-F`, `-n [+]NUM`, `-q`, `-s N`, `-v`, `-z`, `--max-unchanged-stats=N`, `--pid`, `--retry`, size suffixes | [tailx](../markdown/tailx/index.md) |
 | `tee` | `teex` | `-a`, `-i`, `-p`, `--output-error[=MODE]` | [teex](../markdown/teex/index.md) |
 | `test`, `[` | `testx`, `[` | EXPRESSION: string, integer and file tests, `-l STRING`, `-nt`/`-ot`/`-ef`, `!`, `-a`, `-o`, parentheses | [testx](../markdown/testx/index.md) |
 | `timeout` | `timeoutx` | `--foreground`, `-k DURATION`, `--preserve-status`, `-s SIGNAL`, `-v` | [timeoutx](../markdown/timeoutx/index.md) |
@@ -128,7 +128,7 @@ GNU lets the last of conflicting options win. The command-line framework gnux us
 | `pwdx` | `-L` over `-P` | `pwdx -PL` and `pwdx -LP` both print `$PWD` when it is valid |
 | `realpathx` | `-e` over `-m` | |
 | `readlinkx` | `-e` > `-f` > `-m`; `-v` over `-q`/`-s` | `readlinkx -m -e x` requires every component to exist |
-| `chmodx` | `-P` > `-H` > `-L`; `--preserve-root` over `--no-preserve-root` | `chmodx -RLP g+w d` follows no symbolic link |
+| `chmodx` | `-P` > `-H` > `-L`; `-h` over `--dereference`; `--preserve-root` over `--no-preserve-root` | `chmodx -RLP g+w d` follows no symbolic link |
 | `chownx`, `chgrpx` | `-P` > `-H` > `-L`; `-h` over `--dereference`; `--preserve-root` over `--no-preserve-root` | `chownx -h --dereference u l` changes the link itself |
 | `dux` | `-P` > `-H`/`-D` > `-L` | `dux -LP` follows no symbolic link |
 | `grepx` | `-F` > `-E` > `-G`; `-H` > `-h`; `--no-ignore-case` > `-i`; `-A`/`-B` > `-C` > `-NUM`; `-I` > `-a` > `--binary-files`; `-R` > `-r` > `-d`; `-l` > `-L` | `grepx -hH x a` prints the file name |
@@ -161,16 +161,16 @@ The rule is in the project's [rules](../../docs/rules/README.md) as "conflicts r
 | `rmx` | Option precedence as above. `-i` and `-I` also answer to `--prompt-each` and `--prompt-once`. Off Unix, `--one-file-system` has no effect (no device numbers). Independent arguments are removed concurrently when nothing is prompted or printed |
 | `seqx` | `-f` values are formatted from double precision, not long double. An infinite FIRST or INCREMENT is refused as an invalid argument |
 | `sortx` | Comparison follows the C locale (byte order) whatever `LANG` says. `-S`, `-T`, `--parallel`, `--batch-size` and `--compress-program` are accepted and ignored. `-c` wins over `-C` when both are given |
-| `tailx` | Following is done by polling at the `-s` interval (no inotify). `-F` also answers to `--follow-retry` |
+| `tailx` | Following is done by polling at the `-s` interval (no inotify). `-F` also answers to `--follow-retry`. `--follow=name` checks the name on every poll, so `--max-unchanged-stats` is validated but changes nothing |
 | `teex` | `-i` is accepted but has no effect (tools run in-process). An explicit `--output-error=MODE` wins over `-p` in either order. A closed pipe without `--output-error` ends quietly with status 0 instead of SIGPIPE |
 | `touchx` | `-d` accepts `YYYY-MM-DD`, `YYYY-MM-DD hh:mm[:ss]`, RFC 3339, `@SECONDS` and `now`, not GNU's free-form date phrases such as `yesterday` or `next tuesday`. `-h` works only on Linux; elsewhere the link is reported rather than its target touched. `-a`, `-m` and `-t` also answer to `--access-time`, `--modification-time` and `--stamp` |
 | `uniqx` | `-s` and `-w` count bytes and `-i` folds ASCII letters only (GNU's C locale) |
-| `chmodx` | Refuses to work recursively on `/` unless `--no-preserve-root`, where GNU chmod leaves that safeguard off by default. A mode written as an option (`chmodx -w f`) is diagnosed for umask surprises exactly as in GNU. GNU 9.6's `-h` and `--dereference` are not implemented. On Windows only the owner's write bit has an effect |
+| `chmodx` | Refuses to work recursively on `/` unless `--no-preserve-root`, where GNU chmod leaves that safeguard off by default. A mode written as an option (`chmodx -w f`) is diagnosed for umask surprises exactly as in GNU. Where links have no mode of their own (Linux), `-h` reports a link as unchanged, as GNU does; on macOS and the BSDs it changes the link. On Windows only the owner's write bit has an effect |
 | `chownx`, `chgrpx` | Refuse to work recursively on `/` unless `--no-preserve-root` (GNU's default is the opposite). On Windows, which has no Unix owners, every change fails with "Operation not supported" |
 | `cksumx` | `-a` accepts unambiguous abbreviations, as GNU's argmatch does; `--tag` wins over `--untagged` |
 | `commx`, `joinx` | Lines compare byte by byte (the C locale). `-1`, `-2`, `-3` of commx also answer to `--suppress-file1`, `--suppress-file2`, `--suppress-common`. joinx refuses the obsolescent `-j1 FIELD` and `-j2 FIELD` |
 | `csplitx`, `nlx` | Regular expressions are POSIX basic ones translated to Go's RE2, so back references (`\1`) are refused |
-| `datex` | `-d` understands the common forms (ISO dates, `@SECONDS`, `yesterday`, `next friday`, `3 days ago`, `tomorrow 09:00`) but not all of GNU's grammar. It never sets the clock: `-s` and a `MMDDhhmm` operand fail with "Operation not supported". `--debug` and `--resolution` are not implemented |
+| `datex` | `-d` understands the common forms (ISO dates, `@SECONDS`, `yesterday`, `next friday`, `3 days ago`, `tomorrow 09:00`) but not all of GNU's grammar. It never sets the clock: `-s` and a `MMDDhhmm` operand fail with "Operation not supported". `--debug` is not implemented |
 | `ddx` | See its reference page: `status=progress` prints only the final statistics; some conversions and flags (`ascii`, `ebcdic`, `sparse`, `direct`, ...) are refused |
 | `dfx` | On Windows, lists every drive with the same columns, and skips a card reader or DVD drive with no medium. `--sync` is accepted and has no effect |
 | `dux` | Reads directories in parallel and lists entries in name order, so the output and which path a hard-linked file is counted under are the same on every run (GNU lists them in file-system order) |
@@ -211,21 +211,19 @@ These GNU options are refused with `unrecognized option` (or `invalid option` fo
 
 | Tool | Not implemented |
 |------|-----------------|
-| `cpx` | `--backup`, `-b`, `--suffix`, `-S`, `--reflink`, `--sparse`, `--attributes-only`, `--remove-destination`, `--copy-contents`, `--keep-directory-symlink`, `-Z`, `--context`, `--debug` |
+| `cpx` | `--backup`, `-b`, `--suffix`, `-S`, `--reflink`, `--sparse`, `--attributes-only`, `--copy-contents`, `--keep-directory-symlink`, `-Z`, `--context`, `--debug` |
 | `envx` | `--block-signal`, `--default-signal`, `--ignore-signal`, `--list-signal-handling` |
 | `lnx` | `--backup`, `-b`, `--suffix`, `-S`, `-d`, `-F`, `--directory` |
 | `lsx` | `--author`, `--block-size`, `-D`, `--dired`, `-f`, `--format`, `--hyperlink`, `--indicator-style`, `-k`, `--kibibytes`, `-N`, `--literal`, `--quoting-style`, `--show-control-chars`, `-Z`, `--context`, `--zero` |
 | `mkdirx` | `-Z`, `--context` |
-| `mvx` | `--backup`, `-b`, `--suffix`, `-S`, `-Z`, `--context`, `--no-copy`, `--exchange`, `--debug` |
+| `mvx` | `--backup`, `-b`, `--suffix`, `-S`, `-Z`, `--context`, `--exchange`, `--debug` |
 | `realpathx` | `-E`, `--canonicalize` (the default behavior anyway) |
 | `rmx` | `--preserve-root=all` |
-| `sortx` | `-R`, `--random-sort`, `--random-source`, `--debug` |
-| `tailx` | `--max-unchanged-stats` |
+| `sortx` | `--debug` |
 | `touchx` | `-f` (GNU accepts and ignores it) |
 | `uniqx` | the obsolete `-N` and `+N` forms of `-f` and `-s` |
 | `wcx` | `--debug` |
-| `chmodx` | `-h`, `--dereference` (GNU 9.6) |
-| `datex` | `--debug`, `--resolution` |
+| `datex` | `--debug` |
 | `splitx` | `--filter`, `--io-blksize` |
 | `odx` | `--traditional` and the `[+]OFFSET[.][b]` operand |
 

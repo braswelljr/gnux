@@ -92,7 +92,9 @@ func (e *Engine) Diag() *core.Diag {
 // CheckOptions refuses the combinations GNU refuses.
 func (e *Engine) CheckOptions() error {
 	if e.Recursive && e.Traversal == TraversePhysical && e.Dereference && !e.NoDereference {
-		return core.Usagef("-R --dereference requires either -H or -L")
+		// GNU reports this without the --help hint of a usage error.
+		e.diag.Errorf("-R --dereference requires either -H or -L")
+		return core.ErrFailed
 	}
 	return nil
 }

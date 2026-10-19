@@ -17,7 +17,7 @@ tailx [OPTION]... [FILE]...
 
 ### Description
 
-`tailx` prints the last 10 lines of each FILE to standard output. With no FILE, or when FILE is -, it reads standard input. `-n` NUM changes the number of lines and `-c` NUM switches to bytes; a leading '+' on NUM starts output at line or byte NUM instead of counting from the end. NUM accepts a multiplier suffix: b is 512, K, M, G, T, P and E are powers of 1024 (also written KiB, MiB, ...), and KB, MB, ... are powers of 1000. With more than one FILE each is preceded by a '==> name <==' header; `-q` suppresses the headers and `-v` forces them. `-f` keeps running and prints data as it is appended, polling every `-s` seconds; `--follow`=name tracks the file name rather than the open file, so it survives log rotation, and `--retry` keeps waiting for a file that is missing. `-F` is shorthand for `--follow`=name `--retry`. `--pid` ends following when the given process exits. On a regular file `tailx` seeks to the end and reads backward, so its cost does not depend on the file's size.
+`tailx` prints the last 10 lines of each FILE to standard output. With no FILE, or when FILE is -, it reads standard input. `-n` NUM changes the number of lines and `-c` NUM switches to bytes; a leading '+' on NUM starts output at line or byte NUM instead of counting from the end. NUM accepts a multiplier suffix: b is 512, K, M, G, T, P and E are powers of 1024 (also written KiB, MiB, ...), and KB, MB, ... are powers of 1000. With more than one FILE each is preceded by a '==> name <==' header; `-q` suppresses the headers and `-v` forces them. `-f` keeps running and prints data as it is appended, polling every `-s` seconds; `--follow`=name tracks the file name rather than the open file, so it survives log rotation, and `--retry` keeps waiting for a file that is missing. `-F` is shorthand for `--follow`=name `--retry`. `--pid` ends following when the given process exits. GNU tail, polling, checks whether a followed name has been rotated only after `--max-unchanged-stats`=N polls without growth (5 by default); `tailx` checks it on every poll, so it notices a rotation at once, and N is validated but changes nothing. On a regular file `tailx` seeks to the end and reads backward, so its cost does not depend on the file's size.
 
 ### Permissions
 
@@ -43,6 +43,7 @@ Needs read permission on each FILE and search permission on the directories lead
   -F, --follow-retry                same as --follow=name --retry
       --help                        display this help and exit
   -n, --lines [+]NUM                output the last NUM lines, instead of the last 10; or use -n +NUM to output starting with line NUM
+      --max-unchanged-stats N       with --follow=name, reopen a FILE which has not changed size after N (default 5) iterations to see if it has been unlinked or renamed (default "5")
       --pid PID                     with -f, terminate after process ID, PID, dies
   -q, --quiet                       never output headers giving file names
       --retry                       keep trying to open a file if it is inaccessible
