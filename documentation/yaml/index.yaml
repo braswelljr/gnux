@@ -32,6 +32,7 @@ example: |4-
       gnux help rmx
       gnux help rmx --force
 see_also:
+    - gnux archx - Print machine architecture.
     - gnux b2sumx - Print or check BLAKE2b (512-bit) checksums.
     - gnux base32x - Encode or decode data in base32.
     - gnux base64x - Encode or decode data in base64.
@@ -54,6 +55,7 @@ see_also:
     - gnux envx - Run a program in a modified environment, or print the environment.
     - gnux expandx - Convert tabs to spaces.
     - gnux exprx - Evaluate an expression and print its value.
+    - gnux factorx - Print the prime factors of each specified integer NUMBER.
     - gnux falsex - Do nothing, unsuccessfully.
     - gnux findx - Search for files in a directory hierarchy.
     - gnux fmtx - Reformat each paragraph of text.
@@ -98,6 +100,7 @@ see_also:
     - gnux sortx - Sort lines of text files.
     - gnux splitx - Split a file into pieces.
     - gnux statx - Display file or file system status.
+    - gnux sumx - Print the checksum and block count of each FILE.
     - gnux tacx - Concatenate and print files in reverse.
     - gnux tailx - Print the last part of each file, optionally following it as it grows.
     - gnux teex - Copy standard input to each FILE, and also to standard output.
@@ -107,6 +110,7 @@ see_also:
     - gnux truex - Do nothing, successfully.
     - gnux truncatex - Shrink or extend the size of each FILE to the specified size.
     - gnux trx - Translate, squeeze, and/or delete characters from standard input.
+    - gnux tsortx - Write a totally ordered list consistent with the partial ordering in FILE.
     - gnux ttyx - Print the file name of the terminal connected to standard input.
     - gnux unamex - Print system information.
     - gnux unexpandx - Convert spaces to tabs.

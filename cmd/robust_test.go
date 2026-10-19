@@ -51,7 +51,7 @@ var streaming = []string{
 	"grep fox", "grep -c lazy", "grep -v zebra", "grep -n -E 0{3}9", "grep -F -o brown",
 	"sed s/quick/slow/", "sed -n $p", "sed -E s/(fox|dog)/[\\1]/g", "sed y/abc/xyz/",
 	"cut -c1-10", "cut -f2", "tr a-z A-Z", "tr -d o", "uniq", "uniq -c", "nl", "expand", "unexpand -a",
-	"fold -w 20", "fmt", "paste - -", "od", "od -c", "base64", "base32", "cksum", "md5sum", "sha256sum", "b2sum",
+	"fold -w 20", "fmt", "paste - -", "od", "od -c", "base64", "base32", "cksum", "sum", "sum -s", "md5sum", "sha256sum", "b2sum",
 	"dd status=none", "xargs -n 50 true", "xargs true",
 }
 
@@ -179,7 +179,13 @@ func settledGoroutines() int {
 var lineFilters = []string{
 	"cat", "cat -n", "cat -A", "tee", "nl", "cut -c1-3", "cut -f1", "tr a-z A-Z", "expand", "unexpand -a",
 	"fold -w 40", "paste -", "head -n 5", "grep line", "grep -n -v zebra", "sed s/line/LINE/", "sed -n p",
-	"xargs -n 1 echo", "xargs -I {} echo {}",
+	"xargs -n 1 echo", "xargs -I {} echo {}", "factor",
+}
+
+// lineInput is the line a filter in lineFilters is given when "line one"
+// is not something it accepts.
+var lineInput = map[string]string{
+	"factor": "12\n",
 }
 
 // watched is an output a test can wait on.
@@ -214,7 +220,11 @@ func TestLineFiltersAnswerEachLine(t *testing.T) {
 				done <- status
 			}()
 
-			if _, err := feed.Write([]byte("line one\n")); err != nil {
+			input, ok := lineInput[line]
+			if !ok {
+				input = "line one\n"
+			}
+			if _, err := feed.Write([]byte(input)); err != nil {
 				t.Fatal(err)
 			}
 			select {

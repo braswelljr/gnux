@@ -76,7 +76,7 @@ packages, and an interpreter that runs a script using nothing but that binary.
 
 **In scope.**
 
-- The 85 tools listed in the README: nearly all of GNU coreutils, and the four tools a build
+- The 89 tools listed in the README: nearly all of GNU coreutils, and the four tools a build
   or CI script uses beside them, `grepx` (GNU grep), `sedx` (GNU sed), and `findx` and `xargsx`
   (GNU findutils). They are in scope because a script that leaves gnux for the system's `find`
   or `sed` is no longer portable; other GNU packages are not.

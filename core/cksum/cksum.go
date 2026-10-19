@@ -158,9 +158,9 @@ func (c *Cksum) legacy(out *bufio.Writer, alg, name string, named bool) {
 	var err error
 	switch alg {
 	case "sysv":
-		sum, n, err = sysv(r)
+		sum, n, err = SysV(r)
 	case "bsd":
-		sum, n, err = bsd(r)
+		sum, n, err = BSD(r)
 	case "crc32b":
 		sum, n, err = crc32b(r)
 	default:
@@ -258,8 +258,9 @@ func crc32b(r io.Reader) (sum, n uint64, err error) {
 	return uint64(crc), n, err
 }
 
-// sysv is the System V sum: the byte total folded to 16 bits.
-func sysv(r io.Reader) (sum, n uint64, err error) {
+// SysV is the System V sum (sum -s, cksum -a sysv): the byte total folded
+// to 16 bits. It returns the checksum and the number of bytes read.
+func SysV(r io.Reader) (sum, n uint64, err error) {
 	var s uint64
 	err = each(r, func(b []byte) {
 		for _, c := range b {
@@ -271,8 +272,9 @@ func sysv(r io.Reader) (sum, n uint64, err error) {
 	return (v & 0xffff) + v>>16, n, err
 }
 
-// bsd is the BSD sum: a 16-bit checksum rotated right before each byte.
-func bsd(r io.Reader) (sum, n uint64, err error) {
+// BSD is the BSD sum (sum, cksum -a bsd): a 16-bit checksum rotated right
+// before each byte. It returns the checksum and the number of bytes read.
+func BSD(r io.Reader) (sum, n uint64, err error) {
 	var s uint32
 	err = each(r, func(b []byte) {
 		for _, c := range b {

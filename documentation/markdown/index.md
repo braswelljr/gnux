@@ -41,6 +41,7 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 
 ### SEE ALSO
 
+* [gnux archx](archx/index.md)	 - Print machine architecture.
 * [gnux b2sumx](b2sumx/index.md)	 - Print or check BLAKE2b (512-bit) checksums.
 * [gnux base32x](base32x/index.md)	 - Encode or decode data in `base32`.
 * [gnux base64x](base64x/index.md)	 - Encode or decode data in `base64`.
@@ -63,6 +64,7 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux envx](envx/index.md)	 - Run a program in a modified environment, or print the environment.
 * [gnux expandx](expandx/index.md)	 - Convert tabs to spaces.
 * [gnux exprx](exprx/index.md)	 - Evaluate an expression and print its value.
+* [gnux factorx](factorx/index.md)	 - Print the prime factors of each specified integer NUMBER.
 * [gnux falsex](falsex/index.md)	 - Do nothing, unsuccessfully.
 * [gnux findx](findx/index.md)	 - Search for files in a directory hierarchy.
 * [gnux fmtx](fmtx/index.md)	 - Reformat each paragraph of text.
@@ -107,6 +109,7 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux sortx](sortx/index.md)	 - Sort lines of text files.
 * [gnux splitx](splitx/index.md)	 - Split a file into pieces.
 * [gnux statx](statx/index.md)	 - Display file or file system status.
+* [gnux sumx](sumx/index.md)	 - Print the checksum and block count of each FILE.
 * [gnux tacx](tacx/index.md)	 - Concatenate and print files in reverse.
 * [gnux tailx](tailx/index.md)	 - Print the last part of each file, optionally following it as it grows.
 * [gnux teex](teex/index.md)	 - Copy standard input to each FILE, and also to standard output.
@@ -116,6 +119,7 @@ gnux [OPTION]... [TOOL [ARGUMENT]...]
 * [gnux truex](truex/index.md)	 - Do nothing, successfully.
 * [gnux truncatex](truncatex/index.md)	 - Shrink or extend the size of each FILE to the specified size.
 * [gnux trx](trx/index.md)	 - Translate, squeeze, and/or delete characters from standard input.
+* [gnux tsortx](tsortx/index.md)	 - Write a totally ordered list consistent with the partial ordering in FILE.
 * [gnux ttyx](ttyx/index.md)	 - Print the file name of the terminal connected to standard input.
 * [gnux unamex](unamex/index.md)	 - Print system information.
 * [gnux unexpandx](unexpandx/index.md)	 - Convert spaces to tabs.

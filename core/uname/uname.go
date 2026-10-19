@@ -103,6 +103,13 @@ func (u *Uname) Run(args []string) error {
 	return nil
 }
 
+// System reads the system information from the platform's own source:
+// uname(2) on Linux, sysctl on macOS and FreeBSD, the registry on Windows. It
+// is the default of Uname.System, and what archx reads the machine name from.
+func System() (Info, error) {
+	return system()
+}
+
 func orUnknown(s string) string {
 	if s == "" {
 		return unknown

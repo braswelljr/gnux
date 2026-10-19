@@ -1,6 +1,6 @@
 ---
 title: "Adoption"
-description: "How to adopt gnux next to the GNU coreutils you already know. gnux does not replace them: it brings the same interface to the places they are missing (Windows, containers without coreutils, the browser, Go programs), so the GNU tools stay where they are and gnux is added where it helps. This guide sets the two side by side: how each of the 85 gnux tools maps onto its GNU counterpart, which flags it supports, every documented deviation (the places where gnux must choose differently because it cannot see option order, or because Windows cannot express a feature), the GNU options that are not implemented yet, the places where gnux deliberately does better than GNU, and the few coreutils tools still on the roadmap. If a behavior is not listed here as a difference, gnux aims to match GNU exactly, down to the wording of its diagnostics and its exit statuses."
+description: "How to adopt gnux next to the GNU coreutils you already know. gnux does not replace them: it brings the same interface to the places they are missing (Windows, containers without coreutils, the browser, Go programs), so the GNU tools stay where they are and gnux is added where it helps. This guide sets the two side by side: how each of the 89 gnux tools maps onto its GNU counterpart, which flags it supports, every documented deviation (the places where gnux must choose differently because it cannot see option order, or because Windows cannot express a feature), the GNU options that are not implemented yet, the places where gnux deliberately does better than GNU, and the few coreutils tools still on the roadmap. If a behavior is not listed here as a difference, gnux aims to match GNU exactly, down to the wording of its diagnostics and its exit statuses."
 ---
 
 ## The short version
@@ -15,6 +15,7 @@ description: "How to adopt gnux next to the GNU coreutils you already know. gnux
 
 | GNU | gnux | Supported options | Reference |
 |-----|------|-------------------|-----------|
+| `arch` | `archx` | none | [archx](/docs/tools/archx) |
 | `b2sum` | `b2sumx` | `-b`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [b2sumx](/docs/tools/b2sumx) |
 | `base32` | `base32x` | `-d`, `-i`, `-w COLS` | [base32x](/docs/tools/base32x) |
 | `base64` | `base64x` | `-d`, `-i`, `-w COLS` | [base64x](/docs/tools/base64x) |
@@ -37,6 +38,7 @@ description: "How to adopt gnux next to the GNU coreutils you already know. gnux
 | `env` | `envx` | `-0`, `-a ARG`, `-C DIR`, `-i`/`-`, `-S STRING`, `-u NAME`, `-v` | [envx](/docs/tools/envx) |
 | `expand` | `expandx` | `-i`, `-t N, LIST` | [expandx](/docs/tools/expandx) |
 | `expr` | `exprx` | EXPRESSION: `\|`, `&`, comparisons, `+ - * / %`, `:`, `match`, `substr`, `index`, `length`, `+ TOKEN`, parentheses | [exprx](/docs/tools/exprx) |
+| `factor` | `factorx` | `-h` | [factorx](/docs/tools/factorx) |
 | `false` | `falsex` | none (arguments ignored) | [falsex](/docs/tools/falsex) |
 | `find` (findutils) | `findx` | An expression, not options: `-H`, `-L`, `-P`; `( )`, `!`, `-a`, `-o`, `,`; tests such as `-name`, `-path`, `-regex`, `-type`, `-size`, `-newer`, `-mtime`, `-perm`, `-user`, `-empty`; `-maxdepth`, `-mindepth`, `-depth`, `-xdev`; actions `-print`, `-print0`, `-printf`, `-ls`, `-delete`, `-prune`, `-quit`, `-exec`, `-execdir`, `-ok` | [findx](/docs/tools/findx) |
 | `fmt` | `fmtx` | `-c`, `-g STRING`, `-p STRING`, `-s`, `-t`, `-u`, `-w WIDTH` | [fmtx](/docs/tools/fmtx) |
@@ -80,6 +82,7 @@ description: "How to adopt gnux next to the GNU coreutils you already know. gnux
 | `sort` | `sortx` | `-b`, `-c`/`--check[=WHEN]`, `-C`, `-d`, `-f`, `-g`, `-h`, `-i`, `-k KEYDEF`, `-m`, `-M`, `-n`, `-o FILE`, `-r`, `-s`, `-t SEP`, `-u`, `-V`, `-z`, `--files0-from=F`, `--sort=WORD`; `-S`, `-T`, `--parallel`, `--batch-size`, `--compress-program` accepted and ignored | [sortx](/docs/tools/sortx) |
 | `split` | `splitx` | `--additional-suffix=SUFFIX`, `-b SIZE`, `-e`, `-x[=FROM]`, `-C SIZE`, `-l NUMBER`, `-n CHUNKS`, `-d[=FROM]`, `-t SEP`, `-a N`, `-u`, `--verbose` | [splitx](/docs/tools/splitx) |
 | `stat` | `statx` | `--cached=STRING`, `-L`, `-f`, `-c FORMAT`, `--printf=FORMAT`, `-t` | [statx](/docs/tools/statx) |
+| `sum` | `sumx` | `-r`, `-s` | [sumx](/docs/tools/sumx) |
 | `tac` | `tacx` | `-b`, `-r`, `-s STRING` | [tacx](/docs/tools/tacx) |
 | `tail` | `tailx` | `-c [+]NUM`, `-f[=HOW]`, `-F`, `-n [+]NUM`, `-q`, `-s N`, `-v`, `-z`, `--pid`, `--retry`, size suffixes | [tailx](/docs/tools/tailx) |
 | `tee` | `teex` | `-a`, `-i`, `-p`, `--output-error[=MODE]` | [teex](/docs/tools/teex) |
@@ -89,6 +92,7 @@ description: "How to adopt gnux next to the GNU coreutils you already know. gnux
 | `tr` | `trx` | `-c`/`-C`, `-d`, `-s`, `-t`; SET ranges, escapes, `[:CLASS:]`, `[=C=]`, `[C*N]`, `[C*]` | [trx](/docs/tools/trx) |
 | `true` | `truex` | none (arguments ignored) | [truex](/docs/tools/truex) |
 | `truncate` | `truncatex` | `-o`, `-c`, `-r RFILE`, `-s SIZE` | [truncatex](/docs/tools/truncatex) |
+| `tsort` | `tsortx` | none | [tsortx](/docs/tools/tsortx) |
 | `tty` | `ttyx` | `--quiet`, `-s` | [ttyx](/docs/tools/ttyx) |
 | `uname` | `unamex` | `-a`, `-i`, `-s`, `-r`, `-v`, `-m`, `-n`, `-o`, `-p` | [unamex](/docs/tools/unamex) |
 | `unexpand` | `unexpandx` | `-a`, `--first-only`, `-t N, LIST` | [unexpandx](/docs/tools/unexpandx) |
@@ -127,6 +131,7 @@ GNU lets the last of conflicting options win. The command-line framework gnux us
 | `xargsx` | `-I`/`-i` > `-L`/`-l` > `-n`; `-0` > `-d` | `xargsx -n 2 -I {} echo {}` runs one command per line and warns that `-n` is ignored |
 | `commx`, `joinx` | `--check-order` over `--nocheck-order` | |
 | `cksumx` | `--tag` over `--untagged` | |
+| `sumx` | `-s` over `-r` | `sumx -s -r f` prints the System V checksum |
 | digest tools (`md5sumx`, `sha*sumx`, `b2sumx`) | `-t` (text) over `-b` (binary) | `sha256sumx -bt f` prints the text-mode mark |
 
 `lsx`, `headx` and `tailx` do track order: `lsx -lC` is columns, `lsx -Cl` is long, exactly as in GNU. So do the unit options of `dux` and `dfx` (`-h`, `-k`, `-m`, `-B`, `--si`), `splitx -d`/`-x`, `statx -c`/`--printf`, and the `-NUM` forms of `foldx`, `fmtx` and `splitx`.
@@ -238,9 +243,9 @@ If a script uses one, the fix is usually simple: drop `--backup` and copy first 
 
 ## What is not in gnux yet
 
-gnux covers 85 tools today: nearly all of coreutils, plus `grepx`, `sedx`, `findx` and `xargsx` from GNU grep, GNU sed and GNU findutils. Still on the [roadmap in the README](https://github.com/braswelljr/gnux/blob/main/README.md#roadmap): `[` (as another name for `testx`), `basenc`, `numfmt`, `pr`, `tsort`, `factor`, `sum`, `mkfifo`, `mknod`, `pathchk`, `logname`, `groups`, `users`, `pinky`, `stdbuf`, `sync`, `shred`, `dircolors`, `dir`, `vdir`, `arch`, `hostid`, `ptx` and `stty`. `chroot`, `chcon` and `runcon` are out of scope by design: they change system-wide state that gnux leaves to the system's own tools.
+gnux covers 89 tools today: nearly all of coreutils, plus `grepx`, `sedx`, `findx` and `xargsx` from GNU grep, GNU sed and GNU findutils. Still on the [roadmap in the README](https://github.com/braswelljr/gnux/blob/main/README.md#roadmap): `[` (as another name for `testx`), `basenc`, `numfmt`, `pr`, `mkfifo`, `mknod`, `pathchk`, `logname`, `groups`, `users`, `pinky`, `stdbuf`, `sync`, `shred`, `dircolors`, `dir`, `vdir`, `hostid`, `ptx` and `stty`. `chroot`, `chcon` and `runcon` are out of scope by design: they change system-wide state that gnux leaves to the system's own tools.
 
-Until then, `idx -Gn` covers `groups`, `whoamix` covers `logname`, `whox -q` covers `users`, `unamex -m` covers `arch`, `lsx -C` and `lsx -l` cover `dir` and `vdir`, and `cksumx -a bsd` covers `sum`.
+Until then, `idx -Gn` covers `groups`, `whoamix` covers `logname`, `whox -q` covers `users`, and `lsx -C` and `lsx -l` cover `dir` and `vdir`.
 
 ## See also
 

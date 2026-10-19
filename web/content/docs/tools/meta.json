@@ -1,6 +1,7 @@
 {
   "title": "Tools",
   "pages": [
+    "archx",
     "b2sumx",
     "base32x",
     "base64x",
@@ -23,6 +24,7 @@
     "envx",
     "expandx",
     "exprx",
+    "factorx",
     "falsex",
     "findx",
     "fmtx",
@@ -66,6 +68,7 @@
     "sortx",
     "splitx",
     "statx",
+    "sumx",
     "tacx",
     "tailx",
     "teex",
@@ -75,6 +78,7 @@
     "truex",
     "truncatex",
     "trx",
+    "tsortx",
     "ttyx",
     "unamex",
     "unexpandx",

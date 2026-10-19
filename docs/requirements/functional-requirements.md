@@ -1,7 +1,7 @@
 # Functional Requirements
 
 Functional requirements define what gnux must do: the behavior every tool shares, the options
-each of the 85 tools must support, the safeguards on destructive operations, how a tool is
+each of the 89 tools must support, the safeguards on destructive operations, how a tool is
 invoked, the portable shell, the Go library, installation, the generated documentation, the
 website, the playground and its discoverability. Each requirement has a stable identifier
 (`FR-n`), a rationale, acceptance criteria and the check that verifies it.
@@ -19,7 +19,8 @@ reason not to, **may** is optional.
 - **Identifiers are stable, not sequential.** `FR-1` to `FR-50` come from the first draft of
   this register and keep their numbers. `FR-51` to `FR-72` are the first 22 tools, in alphabetical
   order, `FR-88` to `FR-94` the text tools added after them, and `FR-96` to `FR-147` the
-  remaining coreutils tools, in alphabetical order. `FR-73` onward are the other
+  remaining coreutils tools, in alphabetical order, and `FR-156` to `FR-159` the tools added
+  after the first release (`archx`, `factorx`, `sumx`, `tsortx`). `FR-73` onward are the other
   requirements added since. The document is ordered by area, so the
   numbers do not run in order down the page.
 - **"Verified by" names something that exists.** A test file, a CI workflow, or the word
@@ -189,6 +190,21 @@ behavior that must hold, and the documented deviations from the GNU tool. `--hel
 Several GNU options exist only as a single letter. The command-line framework requires a long
 name for every option, so those letters also answer to a long name of gnux's own, which is
 shown in the tables and noted as a deviation.
+
+### FR-156: archx
+
+`archx` must print the machine architecture, as GNU `arch` does.
+
+```text
+archx [OPTION]...
+```
+
+archx has no options of its own.
+
+- **Behavior.** archx prints the machine hardware name, exactly as unamex -m does, and takes no
+  operands. The name comes from the operating system; on Windows and in the playground, gnux
+  names the architecture it was built for the way Linux does (x86_64, aarch64, wasm32).
+- **Verified by.** `core/arch/arch_test.go`, `cmd/archx/archx_test.go`.
 
 ### FR-96: b2sumx
 
@@ -930,6 +946,29 @@ exprx EXPRESSION
   (the C locale), and back references (\1) and the [= =] and [. .] bracket forms are not supported
   in a REGEX.
 - **Verified by.** `core/expr/expr_test.go`.
+
+### FR-157: factorx
+
+`factorx` must print the prime factors of each number, as GNU `factor` does.
+
+```text
+factorx [OPTION] [NUMBER]...
+```
+
+| Option              | Meaning |
+|---------------------|---------|
+| `-h`, `--exponents` | Print repeated factors in form p^e unless e is 1 |
+
+- **Behavior.** factorx prints each NUMBER, a colon and its prime factors in ascending order,
+  a repeated factor as many times as it divides the number; 0 and 1 print just the colon. With
+  no NUMBER it reads numbers separated by spaces, tabs and newlines from standard input and
+  answers each line as it is read. A NUMBER may have leading spaces and one '+', and must
+  otherwise be decimal digits; anything else is reported as 'is not a valid positive integer',
+  the rest are still factored, and the exit status is 1. A NUMBER has no size limit: below
+  2^64 it is factored with trial division, Miller-Rabin and Pollard's rho, above with
+  arbitrary-precision arithmetic.
+- **Verified by.** `core/factor/factor_test.go`, `cmd/factorx/factorx_test.go`,
+  `cmd/robust_test.go` (it answers each line).
 
 ### FR-57: falsex
 
@@ -2303,6 +2342,28 @@ statx [OPTION]... FILE...
   accepted for compatibility and has no effect.
 - **Verified by.** `core/stat/stat_test.go`, `cmd/statx/statx_test.go`.
 
+### FR-158: sumx
+
+`sumx` must print the checksum and block count of each file, as GNU `sum` does.
+
+```text
+sumx [OPTION]... [FILE]...
+```
+
+| Option         | Meaning |
+|----------------|---------|
+| `-r`           | Use the BSD sum algorithm (the default), use 1K blocks |
+| `-s`, `--sysv` | Use the System V sum algorithm, use 512-byte blocks |
+
+- **Behavior.** sumx prints a 16-bit checksum of each FILE and its size in blocks, followed by
+  the name when FILE operands are given, as GNU sum 9 does. With no FILE, or when FILE is -, it
+  reads standard input. By default it computes the BSD checksum (five digits, 1024-byte
+  blocks); -s computes the System V checksum (512-byte blocks). They are the checksums of
+  cksumx -a bsd and -a sysv. -s wins over -r in any order. A FILE that cannot be read is
+  reported and the rest are still summed.
+- **Verified by.** `core/sum/sum_test.go`, `cmd/sumx/sumx_test.go`, `cmd/robust_test.go`
+  (bounded memory).
+
 ### FR-137: tacx
 
 `tacx` must concatenate and print files in reverse, as GNU `tac` does.
@@ -2546,6 +2607,25 @@ trx [OPTION]... STRING1 [STRING2]
 - **Deviations.** None known in the options listed. Like GNU `tr`, it is byte-oriented: a
   multibyte UTF-8 character is several bytes and the classes are the C locale's (ASCII).
 - **Verified by.** `core/tr/tr_test.go`, `cmd/trx/trx_test.go`.
+
+### FR-159: tsortx
+
+`tsortx` must perform a topological sort, as GNU `tsort` does.
+
+```text
+tsortx [OPTION] [FILE]
+```
+
+tsortx has no options of its own.
+
+- **Behavior.** tsortx reads pairs of strings separated by spaces, tabs and newlines from FILE
+  (standard input when there is none, or for -); a pair 'A B' puts A before B, and a pair of one
+  string twice names it. It prints every string once, after every string paired before it, in
+  GNU's order (its algorithm: the strings nothing precedes in byte order, then each as it is
+  freed). A loop is reported as 'input contains a loop:' and its strings on standard error, one
+  of its pairs is dropped and sorting carries on, and the exit status is 1. An odd number of
+  strings is an error and prints nothing. More than one FILE is a usage error.
+- **Verified by.** `core/tsort/tsort_test.go`, `cmd/tsortx/tsortx_test.go`.
 
 ### FR-141: ttyx
 
