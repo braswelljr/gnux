@@ -120,6 +120,7 @@ inside that sandbox, a WASI build, and documentation for each release on the web
 
 ### Fixed
 
+- `tailx -F` on Windows keeps following a file that another process briefly holds without sharing it (an editor saving it, a rename over it): it used to report the file inaccessible and, without `--retry`, stop.
 - `lsx -l` with files and directories as operands sizes the files' columns to fit the directories too, as GNU does: `ls -l a.txt dir` padded the size column to the file alone.
 - `nicex` no longer races with the command it runs over a shared error stream that is not a
   file (a `gnux shell` pipeline, the playground, an embedding program): its warning and the

@@ -542,6 +542,9 @@ func (t *Tail) pollName(tg *target) {
 		info, err = f.Stat()
 	}
 	if err != nil {
+		if busy(err) && !tg.missing {
+			return // held by another process for now: look again next poll
+		}
 		if !tg.missing {
 			t.diag.Warnf("'%s' has become inaccessible: %s", tg.name, core.ErrText(err))
 			tg.missing = true
