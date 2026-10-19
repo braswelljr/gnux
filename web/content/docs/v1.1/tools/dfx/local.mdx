@@ -1,0 +1,52 @@
+---
+title: "-l, --local"
+description: "Limit listing to local file systems."
+---
+
+An option of [dfx](/docs/v1.1/tools/dfx).
+
+## Usage
+
+```bash
+dfx -l [FILE]...
+dfx --local [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-l` | `--local` | none |  | limit listing to local file systems |
+
+## Examples
+
+### Show only real local disks, with their file system types
+
+```bash tab="bash" tab-group="shell"
+dfx -hlT
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dfx -hlT
+```
+
+```text title="Output"
+Filesystem     Type  Size  Used Avail Use% Mounted on
+/dev/nvme0n1p2 ext4  469G  301G  145G  68% /
+```
+
+### Total the space across all local disks
+
+```bash tab="bash" tab-group="shell"
+dfx -hl --total
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dfx -hl --total
+```
+
+## Help in the terminal
+
+```bash
+gnux help dfx --local
+```

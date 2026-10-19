@@ -1,0 +1,37 @@
+---
+title: "-e, --show-nonprinting-ends"
+description: "Equivalent to -vE."
+---
+
+An option of [catx](/docs/v1.1/tools/catx).
+
+## Usage
+
+```bash
+catx -e [FILE]...
+catx --show-nonprinting-ends [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-e` | `--show-nonprinting-ends` | none |  | equivalent to `-vE` |
+
+## Examples
+
+### Find trailing spaces and Windows line endings (shown as ^M$)
+
+```bash tab="bash" tab-group="shell"
+catx -e config.ini
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+catx -e config.ini
+```
+
+## Help in the terminal
+
+```bash
+gnux help catx --show-nonprinting-ends
+```

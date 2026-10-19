@@ -1,0 +1,24 @@
+---
+title: "--from"
+description: "Change the ownership of each file only if its current owner and/or group match those specified here; either may be omitted (CURRENT_OWNER:CURRENT_GROUP)."
+---
+
+An option of [chownx](/docs/v1.1/tools/chownx).
+
+## Usage
+
+```bash
+chownx --from=CURRENT_OWNER:CURRENT_GROUP [OWNER][:[GROUP]] FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--from` | `CURRENT_OWNER:CURRENT_GROUP` |  | change the ownership of each file only if its current owner and/or group match those specified here; either may be omitted (CURRENT_OWNER:CURRENT_GROUP) |
+
+## Help in the terminal
+
+```bash
+gnux help chownx --from
+```

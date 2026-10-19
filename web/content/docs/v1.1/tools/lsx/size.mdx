@@ -1,0 +1,37 @@
+---
+title: "-s, --size"
+description: "Print the allocated size of each file, in blocks."
+---
+
+An option of [lsx](/docs/v1.1/tools/lsx).
+
+## Usage
+
+```bash
+lsx -s [FILE]...
+lsx --size [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-s` | `--size` | none |  | print the allocated size of each file, in blocks |
+
+## Examples
+
+### Show inode numbers and allocated blocks, with directories marked by a slash
+
+```bash tab="bash" tab-group="shell"
+lsx -isp
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -isp
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --size
+```

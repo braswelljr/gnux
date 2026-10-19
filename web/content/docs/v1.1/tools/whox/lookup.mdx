@@ -1,0 +1,36 @@
+---
+title: "--lookup"
+description: "Attempt to canonicalize hostnames via DNS."
+---
+
+An option of [whox](/docs/v1.1/tools/whox).
+
+## Usage
+
+```bash
+whox --lookup [ FILE | ARG1 ARG2 ]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--lookup` | none |  | attempt to canonicalize hostnames via DNS |
+
+## Examples
+
+### Show the remote hosts by name instead of address
+
+```bash tab="bash" tab-group="shell"
+whox --lookup
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox --lookup
+```
+
+## Help in the terminal
+
+```bash
+gnux help whox --lookup
+```

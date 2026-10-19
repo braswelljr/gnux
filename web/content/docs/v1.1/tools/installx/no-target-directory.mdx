@@ -1,0 +1,37 @@
+---
+title: "-T, --no-target-directory"
+description: "Treat DEST as a normal file."
+---
+
+An option of [installx](/docs/v1.1/tools/installx).
+
+## Usage
+
+```bash
+installx -T SOURCE... DEST
+installx --no-target-directory SOURCE... DEST
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-T` | `--no-target-directory` | none |  | treat DEST as a normal file |
+
+## Examples
+
+### Install to a file name even if a directory of that name exists (an error then)
+
+```bash tab="bash" tab-group="shell"
+installx -T build/app dist/app
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+installx -T build\app.exe dist\app.exe
+```
+
+## Help in the terminal
+
+```bash
+gnux help installx --no-target-directory
+```

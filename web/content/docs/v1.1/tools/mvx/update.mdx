@@ -1,0 +1,47 @@
+---
+title: "-u, --update"
+description: "Control which existing files are updated: all, none, or older (the default for -u)."
+---
+
+An option of [mvx](/docs/v1.1/tools/mvx).
+
+## Usage
+
+```bash
+mvx -u SOURCE... DIRECTORY
+mvx --update[=string] SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-u` | `--update` | `string` (optional) |  | control which existing files are updated: all, none, or older (the default for `-u`) |
+
+## Examples
+
+### Replace the destination only when the source is newer
+
+```bash tab="bash" tab-group="shell"
+mvx -u staging/index.html public/index.html
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+mvx -u staging\index.html public\index.html
+```
+
+### Skip files that already exist at the destination, using --update
+
+```bash tab="bash" tab-group="shell"
+mvx --update=none -v incoming/*.csv data/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+mvx --update=none -v (Get-ChildItem incoming\*.csv).FullName data
+```
+
+## Help in the terminal
+
+```bash
+gnux help mvx --update
+```

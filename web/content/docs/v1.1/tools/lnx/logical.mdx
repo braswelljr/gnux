@@ -1,0 +1,37 @@
+---
+title: "-L, --logical"
+description: "Dereference TARGETs that are symbolic links."
+---
+
+An option of [lnx](/docs/v1.1/tools/lnx).
+
+## Usage
+
+```bash
+lnx -L TARGET... [LINK_NAME|DIRECTORY]
+lnx --logical TARGET... [LINK_NAME|DIRECTORY]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-L` | `--logical` | none |  | dereference TARGETs that are symbolic links |
+
+## Examples
+
+### Hard-link the file a symlink points to, instead of the symlink itself
+
+```bash tab="bash" tab-group="shell"
+lnx -L current.log saved.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -L current.log saved.log
+```
+
+## Help in the terminal
+
+```bash
+gnux help lnx --logical
+```

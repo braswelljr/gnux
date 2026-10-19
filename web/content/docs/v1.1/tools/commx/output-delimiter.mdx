@@ -1,0 +1,36 @@
+---
+title: "--output-delimiter"
+description: "Separate columns with STR."
+---
+
+An option of [commx](/docs/v1.1/tools/commx).
+
+## Usage
+
+```bash
+commx --output-delimiter=STR FILE1 FILE2
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--output-delimiter` | `STR` |  | separate columns with STR |
+
+## Examples
+
+### Separate the columns with a comma
+
+```bash tab="bash" tab-group="shell"
+commx --output-delimiter=, old.txt new.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+commx --output-delimiter=, old.txt new.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help commx --output-delimiter
+```

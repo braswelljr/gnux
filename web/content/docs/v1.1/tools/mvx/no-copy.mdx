@@ -1,0 +1,36 @@
+---
+title: "--no-copy"
+description: "Do not copy if renaming fails."
+---
+
+An option of [mvx](/docs/v1.1/tools/mvx).
+
+## Usage
+
+```bash
+mvx --no-copy SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--no-copy` | none |  | do not copy if renaming fails |
+
+## Examples
+
+### Publish a finished build atomically, or fail if it is on another disk
+
+```bash tab="bash" tab-group="shell"
+mvx --no-copy build/site.new www/site
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+mvx --no-copy build\site.new www\site
+```
+
+## Help in the terminal
+
+```bash
+gnux help mvx --no-copy
+```

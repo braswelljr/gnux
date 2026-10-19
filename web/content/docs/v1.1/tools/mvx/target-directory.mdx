@@ -1,0 +1,37 @@
+---
+title: "-t, --target-directory"
+description: "Move all SOURCE arguments into DIRECTORY."
+---
+
+An option of [mvx](/docs/v1.1/tools/mvx).
+
+## Usage
+
+```bash
+mvx -t string SOURCE... DIRECTORY
+mvx --target-directory=string SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-t` | `--target-directory` | `string` |  | move all SOURCE arguments into DIRECTORY |
+
+## Examples
+
+### Name the destination directory first (handy with xargs)
+
+```bash tab="bash" tab-group="shell"
+mvx -t build/out lib.a lib.so
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+mvx -t build\out lib.a lib.so
+```
+
+## Help in the terminal
+
+```bash
+gnux help mvx --target-directory
+```

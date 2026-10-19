@@ -1,0 +1,47 @@
+---
+title: "-t, --stamp"
+description: "Use [[CC]YY]MMDDhhmm[.ss] STAMP instead of current time."
+---
+
+An option of [touchx](/docs/v1.1/tools/touchx).
+
+## Usage
+
+```bash
+touchx -t STAMP FILE...
+touchx --stamp=STAMP FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-t` | `--stamp` | `STAMP` |  | use [[CC]YY]MMDDhhmm[.ss] STAMP instead of current time |
+
+## Examples
+
+### Use a [[CC]YY]MMDDhhmm[.ss] stamp
+
+```bash tab="bash" tab-group="shell"
+touchx -t 202401021504.05 report.pdf
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+touchx -t 202401021504.05 report.pdf
+```
+
+### Backdate only the access time with a stamp
+
+```bash tab="bash" tab-group="shell"
+touchx -a -t 202001010000 app.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+touchx -a -t 202001010000 app.log
+```
+
+## Help in the terminal
+
+```bash
+gnux help touchx --stamp
+```

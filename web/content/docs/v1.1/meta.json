@@ -1,0 +1,25 @@
+{
+  "pages": [
+    "index",
+    "guide",
+    "shell",
+    "mcp",
+    "library",
+    "changelog",
+    "---Guides---",
+    "guides/adoption",
+    "guides/ci-and-containers",
+    "guides/cookbook",
+    "guides/getting-started",
+    "guides/go-library",
+    "guides/node-and-npm",
+    "guides/portable-scripting",
+    "guides/sandbox-and-ai-agents",
+    "guides/troubleshooting",
+    "guides/windows-and-powershell",
+    "---Tools---",
+    "...tools"
+  ],
+  "root": true,
+  "title": "v1.1"
+}

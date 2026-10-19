@@ -1,0 +1,40 @@
+---
+title: "--ignore-missing"
+description: "Don't fail or report status for missing files."
+---
+
+An option of [sha256sumx](/docs/v1.1/tools/sha256sumx).
+
+## Usage
+
+```bash
+sha256sumx --ignore-missing [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--ignore-missing` | none |  | don't fail or report status for missing files |
+
+## Examples
+
+### Verify the download against the publisher's checksum file, which lists other files too
+
+```bash tab="bash" tab-group="shell"
+sha256sumx -c --ignore-missing sha256.sums
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sha256sumx -c --ignore-missing sha256.sums
+```
+
+```text title="Output"
+ubuntu-24.04-desktop-amd64.iso: OK
+```
+
+## Help in the terminal
+
+```bash
+gnux help sha256sumx --ignore-missing
+```

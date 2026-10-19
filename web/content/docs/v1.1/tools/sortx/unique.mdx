@@ -1,0 +1,37 @@
+---
+title: "-u, --unique"
+description: "Output only the first of an equal run."
+---
+
+An option of [sortx](/docs/v1.1/tools/sortx).
+
+## Usage
+
+```bash
+sortx -u [FILE]...
+sortx --unique [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-u` | `--unique` | none |  | output only the first of an equal run |
+
+## Examples
+
+### Sort and drop duplicate lines
+
+```bash tab="bash" tab-group="shell"
+sortx -u words.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sortx -u words.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help sortx --unique
+```

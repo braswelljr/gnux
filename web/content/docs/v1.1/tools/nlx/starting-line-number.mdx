@@ -1,0 +1,47 @@
+---
+title: "-v, --starting-line-number"
+description: "First line number for each section (default 1)."
+---
+
+An option of [nlx](/docs/v1.1/tools/nlx).
+
+## Usage
+
+```bash
+nlx -v string [FILE]...
+nlx --starting-line-number=string [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-v` | `--starting-line-number` | `string` |  | first line number for each section (default 1) |
+
+## Examples
+
+### Continue numbering where yesterday's log left off
+
+```bash tab="bash" tab-group="shell"
+nlx -v 1043 today.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+nlx -v 1043 today.log
+```
+
+### Number in steps of 10, leaving room to insert lines later
+
+```bash tab="bash" tab-group="shell"
+nlx -i 10 -v 10 program.bas
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+nlx -i 10 -v 10 program.bas
+```
+
+## Help in the terminal
+
+```bash
+gnux help nlx --starting-line-number
+```

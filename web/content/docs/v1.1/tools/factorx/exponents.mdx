@@ -1,0 +1,41 @@
+---
+title: "-h, --exponents"
+description: "Print repeated factors in form p^e unless e is 1."
+---
+
+An option of [factorx](/docs/v1.1/tools/factorx).
+
+## Usage
+
+```bash
+factorx -h [OPTION] [NUMBER]...
+factorx --exponents [OPTION] [NUMBER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-h` | `--exponents` | none |  | print repeated factors in form p^e unless e is 1 |
+
+## Examples
+
+### Show repeated factors as powers
+
+```bash tab="bash" tab-group="shell"
+factorx -h 360
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+factorx -h 360
+```
+
+```text title="Output"
+360: 2^3 3^2 5
+```
+
+## Help in the terminal
+
+```bash
+gnux help factorx --exponents
+```

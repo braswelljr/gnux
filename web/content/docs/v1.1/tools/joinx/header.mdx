@@ -1,0 +1,36 @@
+---
+title: "--header"
+description: "Treat the first line in each file as field headers, print them without trying to pair them."
+---
+
+An option of [joinx](/docs/v1.1/tools/joinx).
+
+## Usage
+
+```bash
+joinx --header FILE1 FILE2
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--header` | none |  | treat the first line in each file as field headers, print them without trying to pair them |
+
+## Examples
+
+### Join two CSV exports that each start with a header row
+
+```bash tab="bash" tab-group="shell"
+joinx --header -t, users.csv orders.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+joinx --header -t, users.csv orders.csv
+```
+
+## Help in the terminal
+
+```bash
+gnux help joinx --header
+```

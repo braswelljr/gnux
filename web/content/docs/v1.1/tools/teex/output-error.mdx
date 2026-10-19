@@ -1,0 +1,46 @@
+---
+title: "--output-error"
+description: "Set behavior on write error; MODE can be: warn, warn-nopipe, exit, exit-nopipe."
+---
+
+An option of [teex](/docs/v1.1/tools/teex).
+
+## Usage
+
+```bash
+teex --output-error[=MODE] [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--output-error` | `MODE` (optional) |  | set behavior on write error; MODE can be: warn, warn-nopipe, exit, exit-nopipe |
+
+## Examples
+
+### Report a closed pipe as an error and stop
+
+```bash tab="bash" tab-group="shell"
+yesx | teex --output-error=exit copy.txt | headx -n 1
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+yesx | teex --output-error=exit copy.txt | headx -n 1
+```
+
+### Carry on to the other files when one cannot be written
+
+```bash tab="bash" tab-group="shell"
+echox data | teex --output-error=warn a.txt missing/b.txt c.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+'data' | teex --output-error=warn a.txt missing/b.txt c.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help teex --output-error
+```

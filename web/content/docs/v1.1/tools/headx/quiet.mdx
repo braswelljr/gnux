@@ -1,0 +1,37 @@
+---
+title: "-q, --quiet"
+description: "Never print headers giving file names."
+---
+
+An option of [headx](/docs/v1.1/tools/headx).
+
+## Usage
+
+```bash
+headx -q [FILE]...
+headx --quiet [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-q` | `--quiet` | none |  | never print headers giving file names |
+
+## Examples
+
+### Print the first line of every CSV file without the file name headers
+
+```bash tab="bash" tab-group="shell"
+headx -q -n 1 *.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+headx -q -n 1 (Get-ChildItem *.csv -Name)
+```
+
+## Help in the terminal
+
+```bash
+gnux help headx --quiet
+```

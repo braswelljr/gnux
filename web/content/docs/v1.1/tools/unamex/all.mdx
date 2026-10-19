@@ -1,0 +1,47 @@
+---
+title: "-a, --all"
+description: "Print all information, in the following order, except omit -p and -i if unknown."
+---
+
+An option of [unamex](/docs/v1.1/tools/unamex).
+
+## Usage
+
+```bash
+unamex -a
+unamex --all
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-a` | `--all` | none |  | print all information, in the following order, except omit `-p` and `-i` if unknown |
+
+## Examples
+
+### Print everything
+
+```bash tab="bash" tab-group="shell"
+unamex -a
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+unamex -a
+```
+
+### Record the platform in a log
+
+```bash tab="bash" tab-group="shell"
+unamex -a >> build.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+unamex -a >> build.log
+```
+
+## Help in the terminal
+
+```bash
+gnux help unamex --all
+```

@@ -1,0 +1,25 @@
+---
+title: "-o, --open-tty"
+description: "Reopen stdin as /dev/tty in the child process before executing\nthe command (not supported)."
+---
+
+An option of [xargsx](/docs/v1.1/tools/xargsx).
+
+## Usage
+
+```bash
+xargsx -o [COMMAND [INITIAL-ARGUMENT]...]
+xargsx --open-tty [COMMAND [INITIAL-ARGUMENT]...]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-o` | `--open-tty` | none |  | reopen stdin as /dev/`tty` in the child process before executing the command (not supported) |
+
+## Help in the terminal
+
+```bash
+gnux help xargsx --open-tty
+```

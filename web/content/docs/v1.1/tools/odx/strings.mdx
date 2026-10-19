@@ -1,0 +1,37 @@
+---
+title: "-S, --strings"
+description: "Show only NUL terminated strings of at least BYTES printable characters."
+---
+
+An option of [odx](/docs/v1.1/tools/odx).
+
+## Usage
+
+```bash
+odx -S BYTES [FILE]...
+odx --strings=BYTES [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-S` | `--strings` | `BYTES` |  | show only NUL terminated strings of at least BYTES printable characters |
+
+## Examples
+
+### List the printable strings of at least 6 characters in a binary
+
+```bash tab="bash" tab-group="shell"
+odx -S 6 program.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -S 6 program.exe
+```
+
+## Help in the terminal
+
+```bash
+gnux help odx --strings
+```

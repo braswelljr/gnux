@@ -1,0 +1,37 @@
+---
+title: "-c, --changes"
+description: "Like verbose but report only when a change is made."
+---
+
+An option of [chgrpx](/docs/v1.1/tools/chgrpx).
+
+## Usage
+
+```bash
+chgrpx -c GROUP FILE...
+chgrpx --changes GROUP FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-c` | `--changes` | none |  | like verbose but report only when a change is made |
+
+## Examples
+
+### Report only the files that changed
+
+```bash tab="bash" tab-group="shell"
+chgrpx -c -R staff shared/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chgrpx -c -R staff shared\
+```
+
+## Help in the terminal
+
+```bash
+gnux help chgrpx --changes
+```

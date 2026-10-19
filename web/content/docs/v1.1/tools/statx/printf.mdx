@@ -1,0 +1,41 @@
+---
+title: "--printf"
+description: "Like --format, but interpret backslash escapes, and do not output a mandatory trailing newline."
+---
+
+An option of [statx](/docs/v1.1/tools/statx).
+
+## Usage
+
+```bash
+statx --printf=FORMAT FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--printf` | `FORMAT` |  | like `--format`, but interpret backslash escapes, and do not output a mandatory trailing newline |
+
+## Examples
+
+### Print modification times with millisecond precision, tab-separated
+
+```bash tab="bash" tab-group="shell"
+statx --printf '%n\t%.3Y\n' *.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+statx --printf '%n\t%.3Y\n' (Get-ChildItem *.csv -Name)
+```
+
+```text title="Output"
+jan.csv	1767225600.123
+feb.csv	1769904000.456
+```
+
+## Help in the terminal
+
+```bash
+gnux help statx --printf
+```

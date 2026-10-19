@@ -1,0 +1,216 @@
+---
+title: "chmodx"
+description: "Change file mode bits."
+---
+
+Mirrors GNU `chmod`. Run it as `chmodx`, or as `gnux chmodx`.
+
+## Synopsis
+
+```bash
+chmodx [OPTION]... MODE[,MODE]... FILE...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: chmod invocation](https://www.gnu.org/software/coreutils/manual/html_node/chmod-invocation.html)
+- [Source: src/chmod.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/chmod.c)
+
+## Description
+
+`chmodx` changes the permission bits of each FILE to MODE, which is either an octal number (755, 0644, 4755) or a comma-separated list of symbolic changes. Each change names `who` (u, g, o or a for user, group, others or all), an operator (+ adds, - removes, = sets exactly) and permissions: r, w, x, X (execute only on directories and on files already executable by someone), s (setuid/setgid) and t (sticky), or u, g or o to copy another class's bits. A symbolic change without a `who` honors the umask. `--reference`=RFILE copies RFILE's mode instead, and then every operand is a FILE. `-R` changes directory trees; `-H` (the default) follows symbolic links given on the command line, `-L` follows every symbolic `link` and `-P` none, and when several are given the most cautious wins (`-P`, then `-H`, then `-L`). A symbolic `link` given as a FILE is followed unless `-h` is given, and one met while recursing is not, unless `--dereference` is given (which changes its referent without descending into it) or `-L`; when both `-h` and `--dereference` are given, `-h` wins. A `link` that is not followed has its own mode changed where the system gives links one (macOS, the BSDs); on Linux it is reported as unchanged. `-c` reports each change, `-v` every file, and `-f` suppresses most error messages. A mode may also be written as an option, as in '`chmodx -w` FILE'; several such options combine as if joined with commas, and then, as in GNU, a file left with bits the mode would have cleared but for the umask is reported ('new permissions are ..., not ...') and counts as a failure. Unlike GNU `chmod`, which leaves the safeguard off unless `--preserve-root` is given, `chmodx` refuses to work recursively on '/' unless `--no-preserve-root` is given; when both are given, `--preserve-root` wins. On Windows only the owner's write bit maps onto the file system (the read-only attribute), so the other bits are accepted but have no effect.
+
+## Permissions
+
+Changing a file's mode requires owning it, or running as root (or with CAP_FOWNER). Search permission is needed on the directories leading to each FILE, and with `-R` read and search permission on every directory in the tree.
+
+## Use cases
+
+- Making a script executable with +x.
+- Locking down a private key or config file with 600.
+- Giving a group write access to a shared directory tree with `-R` g+w.
+- Making directories, but not files, searchable with `-R` a+X.
+- Copying the permissions of one file onto others with `--reference`.
+
+## Flags
+
+```text
+  -c, --changes            like verbose but report only when a change is made
+      --dereference        affect the referent of each symbolic link, rather than the symbolic link itself
+  -L, --dereference-all    with -R, follow every symbolic link to a directory
+  -H, --dereference-args   with -R, follow symbolic links given on the command line (the default)
+      --help               display this help and exit
+  -h, --no-dereference     affect each symbolic link, rather than the referent
+      --no-preserve-root   do not treat '/' specially
+  -P, --physical           with -R, do not follow any symbolic links
+      --preserve-root      fail to operate recursively on '/' (the default)
+      --quiet              same as --silent
+  -R, --recursive          change files and directories recursively
+      --reference RFILE    use RFILE's mode instead of specifying MODE values
+  -f, --silent             suppress most error messages
+  -v, --verbose            output a diagnostic for every file processed
+      --version            output version information and exit
+```
+
+## Examples
+
+### You wrote deploy.sh and the shell says 'Permission denied': make it executable
+
+```bash tab="bash" tab-group="shell"
+chmodx +x deploy.sh
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chmodx +x deploy.sh
+```
+
+### ssh refuses your key because it is readable by others: make it private
+
+```bash tab="bash" tab-group="shell"
+chmodx 600 ~/.ssh/id_ed25519
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chmodx 600 $HOME\.ssh\id_ed25519
+```
+
+### Stop other users changing a shared file
+
+```bash tab="bash" tab-group="shell"
+chmodx go-w shared.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chmodx go-w shared.txt
+```
+
+### Give an app full access for its owner, read for its group, none for others
+
+```bash tab="bash" tab-group="shell"
+chmodx u=rwx,g=rx,o= app
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chmodx u=rwx,g=rx,o= app
+```
+
+### Let your team edit everything in a project directory
+
+```bash tab="bash" tab-group="shell"
+chmodx -R g+w project/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chmodx -R g+w project\
+```
+
+### Make a website folder browsable without making every file executable
+
+```bash tab="bash" tab-group="shell"
+chmodx -R a+X public/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chmodx -R a+X public\
+```
+
+### Normalize text file permissions and see which ones were different
+
+```bash tab="bash" tab-group="shell"
+chmodx -c 644 *.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chmodx -c 644 (Get-ChildItem *.txt -Name)
+```
+
+### Give a new script the same permissions as an existing one
+
+```bash tab="bash" tab-group="shell"
+chmodx --reference=template.sh new.sh
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chmodx --reference=template.sh new.sh
+```
+
+### Make a file read-only the way old scripts write it
+
+```bash tab="bash" tab-group="shell"
+chmodx -w notes.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chmodx -w notes.txt
+```
+
+### Make a shared drop folder where people cannot delete each other's files
+
+```bash tab="bash" tab-group="shell"
+chmodx 1777 /srv/drop
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chmodx 1777 C:\srv\drop
+```
+
+### Fix permissions on your docs and see every file processed
+
+```bash tab="bash" tab-group="shell"
+chmodx -v -R u+rw docs/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chmodx -v -R u+rw docs\
+```
+
+### Make scripts executable in the portable gnux shell, the same on every OS
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'chmodx +x bin/* && lsx -l bin'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'chmodx +x bin/* && lsx -l bin'
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-c, --changes](/docs/v1.1/tools/chmodx/changes): Like verbose but report only when a change is made.
+- [--dereference](/docs/v1.1/tools/chmodx/dereference): Affect the referent of each symbolic `link`, rather than the symbolic `link` itself.
+- [-L, --dereference-all](/docs/v1.1/tools/chmodx/dereference-all): With `-R`, follow every symbolic `link` to a directory.
+- [-H, --dereference-args](/docs/v1.1/tools/chmodx/dereference-args): With `-R`, follow symbolic links given on the command line (the default).
+- [-h, --no-dereference](/docs/v1.1/tools/chmodx/no-dereference): Affect each symbolic `link`, rather than the referent.
+- [--no-preserve-root](/docs/v1.1/tools/chmodx/no-preserve-root): Do not treat '/' specially.
+- [-P, --physical](/docs/v1.1/tools/chmodx/physical): With `-R`, do not follow any symbolic links.
+- [--preserve-root](/docs/v1.1/tools/chmodx/preserve-root): Fail to operate recursively on '/' (the default).
+- [--quiet](/docs/v1.1/tools/chmodx/quiet): Same as `--silent`.
+- [-R, --recursive](/docs/v1.1/tools/chmodx/recursive): Change files and directories recursively.
+- [--reference](/docs/v1.1/tools/chmodx/reference): Use RFILE's mode instead of specifying MODE values.
+- [-f, --silent](/docs/v1.1/tools/chmodx/silent): Suppress most error messages.
+- [-v, --verbose](/docs/v1.1/tools/chmodx/verbose): Output a diagnostic for every file processed.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+chmodx --help                # options, first examples, exit status
+gnux help chmodx             # this page: the full manual
+gnux help chmodx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [chownx](/docs/v1.1/tools/chownx)
+- [chgrpx](/docs/v1.1/tools/chgrpx)
+- [lsx](/docs/v1.1/tools/lsx)
+- [statx](/docs/v1.1/tools/statx)
+- [installx](/docs/v1.1/tools/installx)

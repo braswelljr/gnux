@@ -1,0 +1,67 @@
+---
+title: "-d, --date"
+description: "Display time described by STRING, not 'now'."
+---
+
+An option of [datex](/docs/v1.1/tools/datex).
+
+## Usage
+
+```bash
+datex -d STRING [+FORMAT]
+datex --date=STRING [+FORMAT]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-d` | `--date` | `STRING` |  | display time described by STRING, not 'now' |
+
+## Examples
+
+### Stamp a log line with a precise, sortable time
+
+```bash tab="bash" tab-group="shell"
+datex -Iseconds
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+datex -Iseconds
+```
+
+### Read a Unix timestamp you found in a log or a database
+
+```bash tab="bash" tab-group="shell"
+datex -u -d @1700000000
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+datex -u -d '@1700000000'
+```
+
+### Find the date three days ago, to clean up older files
+
+```bash tab="bash" tab-group="shell"
+datex -d '3 days ago' +%F
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+datex -d '3 days ago' +%F
+```
+
+### Find the date of next Friday for a deadline
+
+```bash tab="bash" tab-group="shell"
+datex -d 'next friday' +%A,%F
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+datex -d 'next friday' +%A,%F
+```
+
+## Help in the terminal
+
+```bash
+gnux help datex --date
+```

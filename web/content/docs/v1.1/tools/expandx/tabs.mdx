@@ -1,0 +1,87 @@
+---
+title: "-t, --tabs"
+description: "Have tabs N characters apart, not 8, or use comma separated list of explicit tab positions."
+---
+
+An option of [expandx](/docs/v1.1/tools/expandx).
+
+## Usage
+
+```bash
+expandx -t N, LIST [FILE]...
+expandx --tabs=N, LIST [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-t` | `--tabs` | `N, LIST` |  | have tabs N characters apart, not 8, or use comma separated list of explicit tab positions |
+
+## Examples
+
+### Convert a Go file to 4-space indentation for a code review tool
+
+```bash tab="bash" tab-group="shell"
+expandx -t 4 main.go
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+expandx -t 4 main.go
+```
+
+### Line a tab-separated report up in fixed columns for printing
+
+```bash tab="bash" tab-group="shell"
+expandx -t 10,20,40 table.tsv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+expandx -t 10,20,40 table.tsv
+```
+
+### Indent the first level by 4 and the rest by 8
+
+```bash tab="bash" tab-group="shell"
+expandx -t 4,/8 data.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+expandx -t 4,/8 data.txt
+```
+
+### Fix YAML indentation (tabs are invalid there) without touching tabs inside values
+
+```bash tab="bash" tab-group="shell"
+expandx -i -t 2 config.yml
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+expandx -i -t 2 config.yml
+```
+
+### Convert a Python file that mixes tabs and spaces
+
+```bash tab="bash" tab-group="shell"
+expandx -t 4 tabs.py > spaces.py
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+expandx -t 4 tabs.py > spaces.py
+```
+
+### Preview a TSV file with readable columns
+
+```bash tab="bash" tab-group="shell"
+expandx -t 16 report.tsv | headx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+expandx -t 16 report.tsv | headx
+```
+
+## Help in the terminal
+
+```bash
+gnux help expandx --tabs
+```

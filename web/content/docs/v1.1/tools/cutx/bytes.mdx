@@ -1,0 +1,37 @@
+---
+title: "-b, --bytes"
+description: "Select only these bytes."
+---
+
+An option of [cutx](/docs/v1.1/tools/cutx).
+
+## Usage
+
+```bash
+cutx -b string OPTION... [FILE]...
+cutx --bytes=string OPTION... [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-b` | `--bytes` | `string` |  | select only these bytes |
+
+## Examples
+
+### Print the first 10 bytes of each line
+
+```bash tab="bash" tab-group="shell"
+cutx -b 1-10 app.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cutx -b 1-10 app.log
+```
+
+## Help in the terminal
+
+```bash
+gnux help cutx --bytes
+```

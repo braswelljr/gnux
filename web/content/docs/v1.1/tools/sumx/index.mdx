@@ -1,0 +1,179 @@
+---
+title: "sumx"
+description: "Print the checksum and block count of each FILE."
+---
+
+Mirrors GNU `sum`. Run it as `sumx`, or as `gnux sumx`.
+
+## Synopsis
+
+```bash
+sumx [OPTION]... [FILE]...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: sum invocation](https://www.gnu.org/software/coreutils/manual/html_node/sum-invocation.html)
+- [Source: src/sum.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/sum.c)
+
+## Description
+
+`sumx` prints a 16-bit checksum of each FILE and the number of blocks it takes up, followed by its name when FILE operands are given, as GNU sum 9 does. With no FILE, or when FILE is -, it reads standard input. By default (and with `-r`) it computes the BSD checksum, printed with five digits, and counts 1024-byte blocks; `-s` (`--sysv`) computes the System V checksum and counts 512-byte blocks. Both are the checksums `cksumx` prints with `-a` bsd and `-a` sysv. They exist to compare with old systems' output and catch accidental corruption only: use `sha256sumx` to verify a download. GNU lets the last of `-r` and `-s` win; `gnux` cannot see their order, so `-s` wins whenever it is given. A FILE that cannot be read is reported and the rest are still summed.
+
+## Permissions
+
+Needs read permission on each FILE. Writes nothing.
+
+## Use cases
+
+- Comparing a file with a checksum published by an old Unix system or a legacy manual.
+- Quickly spotting that two copies of a file differ.
+- Reproducing the output of sum in a script that expects it.
+- Checking System V checksums with `-s`.
+- Getting a file's size in kilobyte blocks along with its checksum.
+
+## Flags
+
+```text
+      --help      display this help and exit
+  -s, --sysv      use the System V sum algorithm, use 512-byte blocks
+      --version   output version information and exit
+```
+
+## Examples
+
+### Print the BSD checksum and 1K-block count of a file
+
+```bash tab="bash" tab-group="shell"
+sumx README.md
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sumx README.md
+```
+
+```text title="Output"
+36979     1 README.md
+```
+
+### Print the System V checksum and 512-byte block count
+
+```bash tab="bash" tab-group="shell"
+sumx -s README.md
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sumx -s README.md
+```
+
+### Checksum several files at once
+
+```bash tab="bash" tab-group="shell"
+sumx *.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sumx (Get-ChildItem *.txt).Name
+```
+
+### Checksum standard input
+
+```bash tab="bash" tab-group="shell"
+printfx 'hello\n' | sumx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+printfx 'hello\n' | sumx
+```
+
+```text title="Output"
+36979     1
+```
+
+### Compare two copies of a file
+
+```bash tab="bash" tab-group="shell"
+[ "$(sumx < a.bin)" = "$(sumx < b.bin)" ] && echox same
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+if ((Get-Content a.bin -Raw | sumx) -eq (Get-Content b.bin -Raw | sumx)) { 'same' }
+```
+
+### Ask for the BSD algorithm explicitly
+
+```bash tab="bash" tab-group="shell"
+sumx -r archive.tar
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sumx -r archive.tar
+```
+
+### Mix standard input with files
+
+```bash tab="bash" tab-group="shell"
+catx header.txt | sumx - body.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+catx header.txt | sumx - body.txt
+```
+
+### Keep a checksum list for later comparison
+
+```bash tab="bash" tab-group="shell"
+sumx -s *.cfg > sums.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sumx -s (Get-ChildItem *.cfg).Name > sums.txt
+```
+
+### Get the same checksum through cksumx
+
+```bash tab="bash" tab-group="shell"
+cksumx -a bsd README.md
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cksumx -a bsd README.md
+```
+
+### Checksum every file under a directory in the portable gnux shell
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'findx . -type f | xargsx sumx'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'findx . -type f | xargsx sumx'
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-s, --sysv](/docs/v1.1/tools/sumx/sysv): Use the System V sum algorithm, use 512-byte blocks.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+sumx --help                # options, first examples, exit status
+gnux help sumx             # this page: the full manual
+gnux help sumx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [cksumx](/docs/v1.1/tools/cksumx)
+- [md5sumx](/docs/v1.1/tools/md5sumx)
+- [sha256sumx](/docs/v1.1/tools/sha256sumx)
+- [b2sumx](/docs/v1.1/tools/b2sumx)

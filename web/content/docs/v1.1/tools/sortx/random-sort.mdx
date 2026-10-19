@@ -1,0 +1,37 @@
+---
+title: "-R, --random-sort"
+description: "Shuffle, but group identical keys."
+---
+
+An option of [sortx](/docs/v1.1/tools/sortx).
+
+## Usage
+
+```bash
+sortx -R [FILE]...
+sortx --random-sort [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-R` | `--random-sort` | none |  | shuffle, but group identical keys |
+
+## Examples
+
+### Run the test files in a shuffled order that a seed file makes repeatable
+
+```bash tab="bash" tab-group="shell"
+lsx tests/*.sh | sortx -R --random-source=ci-seed.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx tests | sortx -R --random-source=ci-seed.bin
+```
+
+## Help in the terminal
+
+```bash
+gnux help sortx --random-sort
+```

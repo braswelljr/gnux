@@ -1,0 +1,67 @@
+---
+title: "-R, --recursive"
+description: "Operate on files and directories recursively."
+---
+
+An option of [chgrpx](/docs/v1.1/tools/chgrpx).
+
+## Usage
+
+```bash
+chgrpx -R GROUP FILE...
+chgrpx --recursive GROUP FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-R` | `--recursive` | none |  | operate on files and directories recursively |
+
+## Examples
+
+### Change a whole directory tree
+
+```bash tab="bash" tab-group="shell"
+chgrpx -R developers project/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chgrpx -R developers project\
+```
+
+### Follow symbolic links met while recursing
+
+```bash tab="bash" tab-group="shell"
+chgrpx -R -L developers project/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chgrpx -R -L developers project\
+```
+
+### Move only the files still in the old team's group
+
+```bash tab="bash" tab-group="shell"
+chgrpx -R --from=:oldteam newteam shared/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chgrpx -R --from=:oldteam newteam shared\
+```
+
+### Report only the files that changed
+
+```bash tab="bash" tab-group="shell"
+chgrpx -c -R staff shared/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+chgrpx -c -R staff shared\
+```
+
+## Help in the terminal
+
+```bash
+gnux help chgrpx --recursive
+```

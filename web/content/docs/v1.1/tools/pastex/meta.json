@@ -1,0 +1,8 @@
+{
+  "title": "pastex",
+  "pages": [
+    "delimiters",
+    "serial",
+    "zero-terminated"
+  ]
+}

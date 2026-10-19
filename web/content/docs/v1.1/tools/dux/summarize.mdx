@@ -1,0 +1,82 @@
+---
+title: "-s, --summarize"
+description: "Display only a total for each argument."
+---
+
+An option of [dux](/docs/v1.1/tools/dux).
+
+## Usage
+
+```bash
+dux -s [FILE]...
+dux --summarize [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-s` | `--summarize` | none |  | display only a total for each argument |
+
+## Examples
+
+### Show the total size of a project, in human-readable units
+
+```bash tab="bash" tab-group="shell"
+dux -sh ~/projects/website
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dux -sh $HOME\projects\website
+```
+
+```text title="Output"
+1.2G	/home/alice/projects/website
+```
+
+### See how much node_modules folders take across all your projects
+
+```bash tab="bash" tab-group="shell"
+dux -sch ~/projects/*/node_modules
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dux -sch (Get-ChildItem $HOME\projects\*\node_modules -Directory).FullName
+```
+
+```text title="Output"
+412M	/home/alice/projects/api/node_modules
+388M	/home/alice/projects/web/node_modules
+800M	total
+```
+
+### Measure a repository without its .git history
+
+```bash tab="bash" tab-group="shell"
+dux -sh --exclude=.git ~/projects/website
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dux -sh --exclude=.git $HOME\projects\website
+```
+
+### See which log directories changed most recently
+
+```bash tab="bash" tab-group="shell"
+dux -sh --time /var/log/*
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dux -sh --time (Get-ChildItem C:\logs -Directory).FullName
+```
+
+```text title="Output"
+1.3M	2026-10-12 09:41	/var/log/apt
+96M	2026-10-12 10:02	/var/log/journal
+```
+
+## Help in the terminal
+
+```bash
+gnux help dux --summarize
+```

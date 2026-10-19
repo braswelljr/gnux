@@ -1,0 +1,37 @@
+---
+title: "-P, --physical"
+description: "Resolve symlinks as encountered (default)."
+---
+
+An option of [realpathx](/docs/v1.1/tools/realpathx).
+
+## Usage
+
+```bash
+realpathx -P FILE...
+realpathx --physical FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-P` | `--physical` | none |  | resolve symlinks as encountered (default) |
+
+## Examples
+
+### Read '..' after a link logically (-L) rather than physically (-P, the default)
+
+```bash tab="bash" tab-group="shell"
+realpathx -L src/tools/.. && realpathx -P src/tools/..
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+realpathx -L src\tools\..; realpathx -P src\tools\..
+```
+
+## Help in the terminal
+
+```bash
+gnux help realpathx --physical
+```

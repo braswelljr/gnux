@@ -1,0 +1,37 @@
+---
+title: "-f, --file"
+description: "Take PATTERNS from FILE."
+---
+
+An option of [grepx](/docs/v1.1/tools/grepx).
+
+## Usage
+
+```bash
+grepx -f FILE PATTERNS [FILE]...
+grepx --file=FILE PATTERNS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-f` | `--file` | `FILE` |  | take PATTERNS from FILE |
+
+## Examples
+
+### Take the patterns from a file, one to a line, as fixed strings
+
+```bash tab="bash" tab-group="shell"
+grepx -F -f blocklist.txt users.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -F -f blocklist.txt users.csv
+```
+
+## Help in the terminal
+
+```bash
+gnux help grepx --file
+```

@@ -1,0 +1,37 @@
+---
+title: "-P, --physical"
+description: "Make hard links directly to symbolic links (default)."
+---
+
+An option of [lnx](/docs/v1.1/tools/lnx).
+
+## Usage
+
+```bash
+lnx -P TARGET... [LINK_NAME|DIRECTORY]
+lnx --physical TARGET... [LINK_NAME|DIRECTORY]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-P` | `--physical` | none |  | make hard links directly to symbolic links (default) |
+
+## Examples
+
+### Hard-link the symlink itself (the default, spelled out)
+
+```bash tab="bash" tab-group="shell"
+lnx -P current.log current-link.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -P current.log current-link.log
+```
+
+## Help in the terminal
+
+```bash
+gnux help lnx --physical
+```

@@ -1,0 +1,36 @@
+---
+title: "--block-size"
+description: "With -l, scale sizes by SIZE when printing them; e.g., '--block-size=M'."
+---
+
+An option of [lsx](/docs/v1.1/tools/lsx).
+
+## Usage
+
+```bash
+lsx --block-size=SIZE [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--block-size` | `SIZE` |  | with `-l`, scale sizes by SIZE when printing them; e.g., '`--block-size`=M' |
+
+## Examples
+
+### Show the size of each video in megabytes
+
+```bash tab="bash" tab-group="shell"
+lsx -l --block-size=M videos
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -l --block-size=M videos
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --block-size
+```

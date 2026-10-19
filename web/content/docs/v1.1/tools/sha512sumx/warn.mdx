@@ -1,0 +1,37 @@
+---
+title: "-w, --warn"
+description: "Warn about improperly formatted checksum lines."
+---
+
+An option of [sha512sumx](/docs/v1.1/tools/sha512sumx).
+
+## Usage
+
+```bash
+sha512sumx -w [FILE]...
+sha512sumx --warn [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-w` | `--warn` | none |  | warn about improperly formatted checksum lines |
+
+## Examples
+
+### Refuse a checksum list with malformed lines instead of skipping them
+
+```bash tab="bash" tab-group="shell"
+sha512sumx -c --strict -w sha512.sums
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sha512sumx -c --strict -w sha512.sums
+```
+
+## Help in the terminal
+
+```bash
+gnux help sha512sumx --warn
+```

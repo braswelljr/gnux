@@ -1,0 +1,37 @@
+---
+title: "-v, --verbose"
+description: "Always output headers giving file names."
+---
+
+An option of [tailx](/docs/v1.1/tools/tailx).
+
+## Usage
+
+```bash
+tailx -v [FILE]...
+tailx --verbose [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-v` | `--verbose` | none |  | always output headers giving file names |
+
+## Examples
+
+### Force the header for a single file (--silent is the long spelling of -q)
+
+```bash tab="bash" tab-group="shell"
+tailx -v -n 5 app.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tailx -v -n 5 app.log
+```
+
+## Help in the terminal
+
+```bash
+gnux help tailx --verbose
+```

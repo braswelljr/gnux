@@ -1,0 +1,47 @@
+---
+title: "-v, --verbose"
+description: "Print a message for each created directory."
+---
+
+An option of [mkdirx](/docs/v1.1/tools/mkdirx).
+
+## Usage
+
+```bash
+mkdirx -v DIRECTORY...
+mkdirx --verbose DIRECTORY...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-v` | `--verbose` | none |  | print a message for each created directory |
+
+## Examples
+
+### Create a nested tree, reporting each level
+
+```bash tab="bash" tab-group="shell"
+mkdirx -pv out/reports/2024
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+mkdirx -pv out\reports\2024
+```
+
+### Scaffold a project layout, reporting every directory made
+
+```bash tab="bash" tab-group="shell"
+mkdirx -pv project/src project/tests project/docs
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+mkdirx -pv project\src project\tests project\docs
+```
+
+## Help in the terminal
+
+```bash
+gnux help mkdirx --verbose
+```

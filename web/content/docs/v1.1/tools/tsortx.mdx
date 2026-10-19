@@ -1,0 +1,187 @@
+---
+title: "tsortx"
+description: "Write a totally ordered list consistent with the partial ordering in FILE."
+---
+
+Mirrors GNU `tsort`. Run it as `tsortx`, or as `gnux tsortx`.
+
+## Synopsis
+
+```bash
+tsortx [OPTION] [FILE]
+```
+
+## GNU reference
+
+- [GNU coreutils manual: tsort invocation](https://www.gnu.org/software/coreutils/manual/html_node/tsort-invocation.html)
+- [Source: src/tsort.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/tsort.c)
+
+## Description
+
+`tsortx` reads pairs of strings, separated by spaces, tabs and newlines, from FILE (standard input when there is none, or when FILE is -). Each pair 'A B' says that A comes before B; a pair of the same string twice just names that string. It prints every string once, each after every string it was paired before. It follows GNU's algorithm, so the order is GNU's: the strings that nothing comes before are taken in byte order, then strings in the order the ones before them are printed. When the pairs contain a loop, `tsortx` reports 'input contains a loop:' and the strings of the loop on standard error, drops one pair of it and carries on, so every string is still printed, and exits 1. An odd number of strings is an error and prints nothing.
+
+## Permissions
+
+Needs read permission on FILE. Writes nothing.
+
+## Use cases
+
+- Ordering build steps, packages or modules so each comes after what it depends on.
+- Finding a dependency loop: `tsortx` names the strings in it.
+- Ordering database migrations or initialization scripts by their prerequisites.
+- Scheduling tasks from a list of 'before after' pairs.
+- Ordering object files for a linker from their symbol dependencies.
+
+## Flags
+
+```text
+      --help      display this help and exit
+      --version   output version information and exit
+```
+
+## Examples
+
+### Order tasks from 'before after' pairs
+
+```bash tab="bash" tab-group="shell"
+printfx 'fetch build\nbuild test\nbuild package\n' | tsortx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+printfx 'fetch build\nbuild test\nbuild package\n' | tsortx
+```
+
+```text title="Output"
+fetch
+build
+package
+test
+```
+
+### Order the pairs listed in a file
+
+```bash tab="bash" tab-group="shell"
+tsortx deps.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tsortx deps.txt
+```
+
+### Put several pairs on one line
+
+```bash tab="bash" tab-group="shell"
+echox 'a b b c c d' | tsortx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+echox 'a b b c c d' | tsortx
+```
+
+```text title="Output"
+a
+b
+c
+d
+```
+
+### Name a string that has no relations by pairing it with itself
+
+```bash tab="bash" tab-group="shell"
+printfx 'a b\nlonely lonely\n' | tsortx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+printfx 'a b\nlonely lonely\n' | tsortx
+```
+
+### Find a dependency loop
+
+```bash tab="bash" tab-group="shell"
+printfx 'a b\nb c\nc a\n' | tsortx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+printfx 'a b\nb c\nc a\n' | tsortx
+```
+
+```text title="Output"
+tsortx: -: input contains a loop:
+tsortx: a
+tsortx: b
+tsortx: c
+a
+b
+c
+```
+
+### Fail a build script when the dependencies contain a loop
+
+```bash tab="bash" tab-group="shell"
+tsortx deps.txt > order.txt || echox 'dependency loop' >&2
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tsortx deps.txt > order.txt; if ($LASTEXITCODE -ne 0) { 'dependency loop' }
+```
+
+### Print the order reversed, dependents first
+
+```bash tab="bash" tab-group="shell"
+tsortx deps.txt | tacx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tsortx deps.txt | tacx
+```
+
+### Number the steps of the order
+
+```bash tab="bash" tab-group="shell"
+tsortx deps.txt | nlx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tsortx deps.txt | nlx
+```
+
+### Read the pairs from standard input given as -
+
+```bash tab="bash" tab-group="shell"
+catx deps.txt | tsortx -
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+catx deps.txt | tsortx -
+```
+
+### Run steps in dependency order in the portable gnux shell
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'for step in $(tsortx deps.txt); do echox "running $step"; done'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'for step in $(tsortx deps.txt); do echox "running $step"; done'
+```
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | every string was printed in an order consistent with every pair |
+| 1 | the input contains a loop (every string is still printed), an odd number of strings, or FILE cannot be read |
+
+## Help in the terminal
+
+```bash
+tsortx --help                # options, first examples, exit status
+gnux help tsortx             # this page: the full manual
+gnux help tsortx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [sortx](/docs/v1.1/tools/sortx)
+- [uniqx](/docs/v1.1/tools/uniqx)
+- [joinx](/docs/v1.1/tools/joinx)

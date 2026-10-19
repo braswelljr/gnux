@@ -1,0 +1,137 @@
+---
+title: "-s, --symbolic"
+description: "Make symbolic links instead of hard links."
+---
+
+An option of [lnx](/docs/v1.1/tools/lnx).
+
+## Usage
+
+```bash
+lnx -s TARGET... [LINK_NAME|DIRECTORY]
+lnx --symbolic TARGET... [LINK_NAME|DIRECTORY]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-s` | `--symbolic` | none |  | make symbolic links instead of hard links |
+
+## Examples
+
+### Create a symbolic link
+
+```bash tab="bash" tab-group="shell"
+lnx -s /opt/app/releases/v2 current
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -s C:\app\releases\v2 current
+```
+
+### Repoint an existing symlink to a directory, in one atomic step
+
+```bash tab="bash" tab-group="shell"
+lnx -sfn releases/v3 current
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -sfn releases\v3 current
+```
+
+### Link several files into a directory with relative symlinks
+
+```bash tab="bash" tab-group="shell"
+lnx -sr -t ~/bin tools/build tools/deploy
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -sr -t $HOME\bin tools\build tools\deploy
+```
+
+### Create a link with the same name in the current directory
+
+```bash tab="bash" tab-group="shell"
+lnx -s ../shared/config.yml
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -s ..\shared\config.yml
+```
+
+### Link several targets into an existing directory
+
+```bash tab="bash" tab-group="shell"
+lnx -sv ../dotfiles/.vimrc ../dotfiles/.gitconfig home/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -sv ..\dotfiles\.vimrc ..\dotfiles\.gitconfig home
+```
+
+### Ask before replacing an existing link
+
+```bash tab="bash" tab-group="shell"
+lnx -si settings.prod.json settings.json
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -si settings.prod.json settings.json
+```
+
+### Replace an existing file with a link
+
+```bash tab="bash" tab-group="shell"
+lnx -sf app-v2.conf app.conf
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -sf app-v2.conf app.conf
+```
+
+### Treat the link name as a plain file, never as a directory to link into
+
+```bash tab="bash" tab-group="shell"
+lnx -sT releases/v3 current-release
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -sT releases\v3 current-release
+```
+
+### Report whether linking succeeded
+
+```bash tab="bash" tab-group="shell"
+lnx -s target.txt link.txt && echox linked || echox "link exists already"
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -s target.txt link.txt; if ($LASTEXITCODE -eq 0) { echox linked } else { echox "link exists already" }
+```
+
+### Create a release directory and point current at it with the gnux shell
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'mkdirx -p releases/v4 && lnx -sfnv releases/v4 current'
+```
+
+### Repoint a symbolic link, keeping the old one as current~ in case you need to roll back
+
+```bash tab="bash" tab-group="shell"
+lnx -sbv releases/v5 current
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lnx -sbv releases\v5 current
+```
+
+## Help in the terminal
+
+```bash
+gnux help lnx --symbolic
+```

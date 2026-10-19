@@ -1,0 +1,37 @@
+---
+title: "-t, --threshold"
+description: "Exclude entries smaller than SIZE if positive, or entries greater than SIZE if negative."
+---
+
+An option of [dux](/docs/v1.1/tools/dux).
+
+## Usage
+
+```bash
+dux -t SIZE [FILE]...
+dux --threshold=SIZE [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-t` | `--threshold` | `SIZE` |  | exclude entries smaller than SIZE if positive, or entries greater than SIZE if negative |
+
+## Examples
+
+### Find files over 100 MB to clean up
+
+```bash tab="bash" tab-group="shell"
+dux -a -t 100M -h ~/Downloads
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dux -a -t 100M -h $HOME\Downloads
+```
+
+## Help in the terminal
+
+```bash
+gnux help dux --threshold
+```

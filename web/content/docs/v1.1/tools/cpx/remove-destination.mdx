@@ -1,0 +1,36 @@
+---
+title: "--remove-destination"
+description: "Remove each existing destination file before attempting to open it (contrast with --force)."
+---
+
+An option of [cpx](/docs/v1.1/tools/cpx).
+
+## Usage
+
+```bash
+cpx --remove-destination SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--remove-destination` | none |  | remove each existing destination file before attempting to open it (contrast with `--force`) |
+
+## Examples
+
+### Replace a symbolic link with a real copy instead of writing through it
+
+```bash tab="bash" tab-group="shell"
+cpx --remove-destination config/base.conf current.conf
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cpx --remove-destination config\base.conf current.conf
+```
+
+## Help in the terminal
+
+```bash
+gnux help cpx --remove-destination
+```

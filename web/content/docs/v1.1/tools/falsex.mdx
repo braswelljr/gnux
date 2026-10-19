@@ -1,0 +1,132 @@
+---
+title: "falsex"
+description: "Do nothing, unsuccessfully."
+---
+
+Mirrors GNU `false`. Run it as `falsex`, or as `gnux falsex`.
+
+## Synopsis
+
+```bash
+falsex [ignored command line arguments]
+```
+
+## GNU reference
+
+- [GNU coreutils manual: false invocation](https://www.gnu.org/software/coreutils/manual/html_node/false-invocation.html)
+- [Source: src/true.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/true.c)
+
+## Description
+
+`falsex` exits with status 1 and does nothing else: it reads no input, writes no output and ignores every argument it is given. The only exceptions are `--help` and `--version`, which are honored when they are the sole argument. It exists so scripts have a portable command whose result is always failure.
+
+## Permissions
+
+Needs no permissions; it touches nothing.
+
+## Use cases
+
+- Testing how a script or CI step reacts to a failing command.
+- Disabling a hook or account shell by pointing it at a command that always fails.
+- Terminating an until loop condition: until `falsex`; do ...; done never stops on its own.
+- Checking that '`gnux shell -e`' aborts a script at the first failure.
+- Exercising the else branch of a conditional or the right side of ||.
+- Standing in for a command that is expected to fail in examples and tests.
+
+## Flags
+
+```text
+      --help      display this help and exit
+      --version   output version information and exit
+```
+
+## Examples
+
+### Exit with status 1
+
+```bash tab="bash" tab-group="shell"
+falsex
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+falsex
+```
+
+### Show the exit status
+
+```bash tab="bash" tab-group="shell"
+falsex; echox $?
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+falsex; echox $LASTEXITCODE
+```
+
+### Run a fallback when a command fails
+
+```bash tab="bash" tab-group="shell"
+falsex || echox 'fallback ran'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+falsex; if ($LASTEXITCODE -ne 0) { echox 'fallback ran' }
+```
+
+### Skip the command after &&
+
+```bash tab="bash" tab-group="shell"
+falsex && echox never; echox "status: $?"
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+falsex; if ($LASTEXITCODE -eq 0) { echox never }; echox "status: $LASTEXITCODE"
+```
+
+### Take the else branch of a conditional
+
+```bash tab="bash" tab-group="shell"
+if falsex; then echox yes; else echox no; fi
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+falsex; if ($LASTEXITCODE -eq 0) { echox yes } else { echox no }
+```
+
+### See gnux shell -e stop at the first failure
+
+```bash tab="bash" tab-group="shell"
+gnux shell -e -c 'echox before; falsex; echox after'; echox "shell exited $?"
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -e -c 'echox before; falsex; echox after'; echox "shell exited $LASTEXITCODE"
+```
+
+### Pass the status through envx, which exits with the command's status
+
+```bash tab="bash" tab-group="shell"
+envx falsex; echox $?
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+envx falsex; echox $LASTEXITCODE
+```
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 1 | always, whatever the arguments |
+
+## Help in the terminal
+
+```bash
+falsex --help                # options, first examples, exit status
+gnux help falsex             # this page: the full manual
+gnux help falsex --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [truex](/docs/v1.1/tools/truex)
+- [gnux shell](/docs/v1.1/shell)

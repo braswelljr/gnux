@@ -1,0 +1,57 @@
+---
+title: "-i, --ignore-environment"
+description: "Start with an empty environment."
+---
+
+An option of [envx](/docs/v1.1/tools/envx).
+
+## Usage
+
+```bash
+envx -i [-] [NAME=VALUE]... [COMMAND [ARG]...]
+envx --ignore-environment [-] [NAME=VALUE]... [COMMAND [ARG]...]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-i` | `--ignore-environment` | none |  | start with an empty environment |
+
+## Examples
+
+### Run a command with nothing but the variables given
+
+```bash tab="bash" tab-group="shell"
+envx -i PATH=/usr/bin HOME=/tmp make test
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+envx -i "PATH=$env:PATH" "TEMP=$env:TEMP" make test
+```
+
+### Print an empty environment plus a single variable
+
+```bash tab="bash" tab-group="shell"
+envx -i LANG=C.UTF-8
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+envx -i LANG=C.UTF-8
+```
+
+### Print the environment NUL-separated, with the NULs made visible
+
+```bash tab="bash" tab-group="shell"
+envx -0 -i A=1 B=2 | catx -v
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+envx -0 -i A=1 B=2 | catx -v
+```
+
+## Help in the terminal
+
+```bash
+gnux help envx --ignore-environment
+```

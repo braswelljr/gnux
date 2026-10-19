@@ -1,0 +1,37 @@
+---
+title: "-x, --one-file-system"
+description: "Stay on this file system."
+---
+
+An option of [cpx](/docs/v1.1/tools/cpx).
+
+## Usage
+
+```bash
+cpx -x SOURCE... DIRECTORY
+cpx --one-file-system SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-x` | `--one-file-system` | none |  | stay on this file system |
+
+## Examples
+
+### Back up a tree without crossing into other mounted file systems
+
+```bash tab="bash" tab-group="shell"
+cpx -ax --strip-trailing-slashes data/ /mnt/backup/data
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cpx -ax --strip-trailing-slashes data\ D:\backup\data
+```
+
+## Help in the terminal
+
+```bash
+gnux help cpx --one-file-system
+```

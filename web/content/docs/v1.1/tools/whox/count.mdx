@@ -1,0 +1,42 @@
+---
+title: "-q, --count"
+description: "All login names and number of users logged on."
+---
+
+An option of [whox](/docs/v1.1/tools/whox).
+
+## Usage
+
+```bash
+whox -q [ FILE | ARG1 ARG2 ]
+whox --count [ FILE | ARG1 ARG2 ]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-q` | `--count` | none |  | all login names and number of users logged on |
+
+## Examples
+
+### Count the logged-in users for a monitoring check
+
+```bash tab="bash" tab-group="shell"
+whox -q
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+whox -q
+```
+
+```text title="Output"
+alice bob
+# users=2
+```
+
+## Help in the terminal
+
+```bash
+gnux help whox --count
+```

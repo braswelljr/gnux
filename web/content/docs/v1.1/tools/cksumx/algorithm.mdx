@@ -1,0 +1,107 @@
+---
+title: "-a, --algorithm"
+description: "Select the digest TYPE to use: sysv, bsd, crc, crc32b, md5, sha1, sha224, sha256, sha384, sha512, blake2b."
+---
+
+An option of [cksumx](/docs/v1.1/tools/cksumx).
+
+## Usage
+
+```bash
+cksumx -a TYPE [FILE]...
+cksumx --algorithm=TYPE [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-a` | `--algorithm` | `TYPE` |  | select the digest TYPE to use: sysv, bsd, crc, crc32b, md5, sha1, sha224, sha256, sha384, sha512, blake2b |
+
+## Examples
+
+### Print a SHA-256 digest as a tagged line
+
+```bash tab="bash" tab-group="shell"
+cksumx -a sha256 file.iso
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cksumx -a sha256 file.iso
+```
+
+### Print it in the sha256sumx style
+
+```bash tab="bash" tab-group="shell"
+cksumx -a sha256 --untagged file.iso
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cksumx -a sha256 --untagged file.iso
+```
+
+### Print a digest in base64 (as SRI hashes use)
+
+```bash tab="bash" tab-group="shell"
+cksumx -a sha384 --base64 app.js
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cksumx -a sha384 --base64 app.js
+```
+
+### Print a 256-bit BLAKE2b digest
+
+```bash tab="bash" tab-group="shell"
+cksumx -a blake2b -l 256 file.iso
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cksumx -a blake2b -l 256 file.iso
+```
+
+### Print the gzip-compatible CRC-32
+
+```bash tab="bash" tab-group="shell"
+cksumx -a crc32b data.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cksumx -a crc32b data.bin
+```
+
+### Print the legacy BSD sum checksum
+
+```bash tab="bash" tab-group="shell"
+cksumx -a bsd file.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cksumx -a bsd file.txt
+```
+
+### Save tagged digests and check them later
+
+```bash tab="bash" tab-group="shell"
+cksumx -a sha256 *.iso > SUMS && cksumx -c SUMS
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cksumx -a sha256 (Get-ChildItem *.iso -Name) > SUMS; cksumx -c SUMS
+```
+
+### Write the raw binary digest of one file
+
+```bash tab="bash" tab-group="shell"
+cksumx -a sha256 --raw file.iso > file.sha256.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cksumx -a sha256 --raw file.iso > file.sha256.bin
+```
+
+## Help in the terminal
+
+```bash
+gnux help cksumx --algorithm
+```

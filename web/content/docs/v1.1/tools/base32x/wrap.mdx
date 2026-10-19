@@ -1,0 +1,47 @@
+---
+title: "-w, --wrap"
+description: "Wrap encoded lines after COLS character (default 76); use 0 to disable line wrapping."
+---
+
+An option of [base32x](/docs/v1.1/tools/base32x).
+
+## Usage
+
+```bash
+base32x -w COLS [FILE]
+base32x --wrap=COLS [FILE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-w` | `--wrap` | `COLS` |  | wrap encoded lines after COLS character (default 76); use 0 to disable line wrapping |
+
+## Examples
+
+### Store a binary key in a CI secret, which only takes one line of text
+
+```bash tab="bash" tab-group="shell"
+base32x -w 0 deploy-key.bin > deploy-key.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+base32x -w 0 deploy-key.bin > deploy-key.txt
+```
+
+### Wrap at 64 characters, as PEM certificates are
+
+```bash tab="bash" tab-group="shell"
+base32x -w 64 cert.der
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+base32x -w 64 cert.der
+```
+
+## Help in the terminal
+
+```bash
+gnux help base32x --wrap
+```

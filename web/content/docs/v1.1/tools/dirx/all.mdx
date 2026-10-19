@@ -1,0 +1,37 @@
+---
+title: "-a, --all"
+description: "Do not ignore entries starting with ."
+---
+
+An option of [dirx](/docs/v1.1/tools/dirx).
+
+## Usage
+
+```bash
+dirx -a [FILE]...
+dirx --all [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-a` | `--all` | none |  | do not ignore entries starting with . |
+
+## Examples
+
+### Include hidden entries
+
+```bash tab="bash" tab-group="shell"
+dirx -a
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dirx -a
+```
+
+## Help in the terminal
+
+```bash
+gnux help dirx --all
+```

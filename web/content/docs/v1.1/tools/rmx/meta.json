@@ -1,0 +1,13 @@
+{
+  "title": "rmx",
+  "pages": [
+    "force",
+    "interactive",
+    "recursive",
+    "directory",
+    "verbose",
+    "onefilesystem",
+    "preserveroot",
+    "version"
+  ]
+}

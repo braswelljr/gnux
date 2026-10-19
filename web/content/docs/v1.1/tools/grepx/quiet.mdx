@@ -1,0 +1,37 @@
+---
+title: "-q, --quiet"
+description: "Suppress all normal output; stop at the first selected line."
+---
+
+An option of [grepx](/docs/v1.1/tools/grepx).
+
+## Usage
+
+```bash
+grepx -q PATTERNS [FILE]...
+grepx --quiet PATTERNS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-q` | `--quiet` | none |  | suppress all normal output; stop at the first selected line |
+
+## Examples
+
+### Test in a script whether a file contains a line, printing nothing
+
+```bash tab="bash" tab-group="shell"
+grepx -q '^version = ' config.toml && echo found
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -q '^version = ' config.toml; if ($?) { 'found' }
+```
+
+## Help in the terminal
+
+```bash
+gnux help grepx --quiet
+```

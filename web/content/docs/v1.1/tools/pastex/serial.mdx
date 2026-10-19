@@ -1,0 +1,57 @@
+---
+title: "-s, --serial"
+description: "Paste one file at a time instead of in parallel."
+---
+
+An option of [pastex](/docs/v1.1/tools/pastex).
+
+## Usage
+
+```bash
+pastex -s [FILE]...
+pastex --serial [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-s` | `--serial` | none |  | `paste` one file at a time instead of in parallel |
+
+## Examples
+
+### Join all the lines of a file into one comma-separated line
+
+```bash tab="bash" tab-group="shell"
+pastex -s -d , hosts.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pastex -s -d , hosts.txt
+```
+
+### Show each file as one TAB-separated line
+
+```bash tab="bash" tab-group="shell"
+pastex -s a.txt b.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pastex -s a.txt b.txt
+```
+
+### Turn a column of numbers into one sum expression (1+2+3+4+5)
+
+```bash tab="bash" tab-group="shell"
+seqx 5 | pastex -s -d +
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+seqx 5 | pastex -s -d +
+```
+
+## Help in the terminal
+
+```bash
+gnux help pastex --serial
+```

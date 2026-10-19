@@ -1,0 +1,36 @@
+---
+title: "--hide"
+description: "Do not list implied entries matching shell PATTERN (overridden by -a or -A)."
+---
+
+An option of [lsx](/docs/v1.1/tools/lsx).
+
+## Usage
+
+```bash
+lsx --hide=PATTERN [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--hide` | `PATTERN` |  | do not list implied entries matching shell PATTERN (overridden by `-a` or `-A`) |
+
+## Examples
+
+### Hide temporary and backup files, unless -a or -A is also given
+
+```bash tab="bash" tab-group="shell"
+lsx -B --hide='*.tmp' work/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -B --hide='*.tmp' work
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --hide
+```

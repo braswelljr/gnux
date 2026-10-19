@@ -1,0 +1,12 @@
+{
+  "title": "shufx",
+  "pages": [
+    "echo",
+    "head-count",
+    "input-range",
+    "output",
+    "random-source",
+    "repeat",
+    "zero-terminated"
+  ]
+}

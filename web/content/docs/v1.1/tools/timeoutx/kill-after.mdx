@@ -1,0 +1,37 @@
+---
+title: "-k, --kill-after"
+description: "Also send a KILL signal if COMMAND is still running this long after the initial signal was sent (DURATION)."
+---
+
+An option of [timeoutx](/docs/v1.1/tools/timeoutx).
+
+## Usage
+
+```bash
+timeoutx -k DURATION [OPTION] DURATION COMMAND [ARG]...
+timeoutx --kill-after=DURATION [OPTION] DURATION COMMAND [ARG]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-k` | `--kill-after` | `DURATION` |  | also send a KILL signal if COMMAND is still running this long after the initial signal was sent (DURATION) |
+
+## Examples
+
+### Kill a server that ignores TERM 10 seconds after asking it to stop
+
+```bash tab="bash" tab-group="shell"
+timeoutx -k 10s 1h ./server
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+timeoutx -k 10s 1h .\server.exe
+```
+
+## Help in the terminal
+
+```bash
+gnux help timeoutx --kill-after
+```

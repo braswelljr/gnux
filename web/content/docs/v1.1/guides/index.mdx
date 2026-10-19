@@ -1,0 +1,42 @@
+---
+title: "Guides"
+description: "Task-oriented guides for gnux, a portable, GNU-compatible implementation of the GNU core utilities' interface in Go: one statically linked binary that carries 94 tools, a Go library with an importable engine for every tool, and a portable shell that runs the same script on Linux, macOS and Windows. The reference pages describe each tool's flags one by one; these guides show how to put the tools to work, with hundreds of runnable examples, complete scripts, CI configurations and Go programs. The gnux command lines and shell scripts were run against a real gnux build, the outputs shown are captured from it, and every Go program was compiled and run."
+---
+
+## Pick a guide
+
+| Guide | For | What you get |
+|-------|-----|--------------|
+| [Getting started](/docs/v1.1/guides/getting-started) | Everyone | Every way to install, linking the tool names, the two invocation forms, GNU-name aliases, `--help`, `--version` and `--list` |
+| [Cookbook](/docs/v1.1/guides/cookbook) | Command-line users | Over 90 recipes grouped by task: inspecting files, copying and linking, safe deletion, backups, logs, paths, environment, timestamps, generated data and pipelines |
+| [Portable scripting](/docs/v1.1/guides/portable-scripting) | Script and build authors | The `gnux shell` language in depth and four complete scripts (scaffold, clean, log rotation, release staging) that behave identically on every platform |
+| [Windows and PowerShell](/docs/v1.1/guides/windows-and-powershell) | Windows users | Installing on Windows, links versus copies of `gnux.exe`, PowerShell's colliding aliases, quoting, and what degrades on NTFS |
+| [Sandbox and AI agents](/docs/v1.1/guides/sandbox-and-ai-agents) | Anyone running scripts or agents they do not fully trust | `gnux shell --sandbox`, `gnux mcp` for Claude Code, Claude Desktop, Cursor and VS Code, what is reachable on each platform, and the limits |
+| [Node and npm](/docs/v1.1/guides/node-and-npm) | JavaScript and TypeScript developers | Installing from npm, replacing rimraf, mkdirp, cpy-cli, shx and cross-env in package scripts, globs on Windows, and the JavaScript API |
+| [CI and containers](/docs/v1.1/guides/ci-and-containers) | CI and DevOps engineers | GitHub Actions, GitLab CI and Docker recipes, and one `gnux shell` script as a cross-OS build step |
+| [Go library](/docs/v1.1/guides/go-library) | Go developers | Embedding the engines: options, streams, captured output, injected prompts and clocks, errors, `cmd.RunTool`, `cmd.NewShell`, and seventeen complete programs |
+| [Adoption](/docs/v1.1/guides/adoption) | Users of GNU coreutils | All 94 tools side by side with their GNU counterparts, supported flags, every documented deviation and what is not implemented yet |
+| [Troubleshooting](/docs/v1.1/guides/troubleshooting) | Everyone | What each error and exit status means, prompts you did not expect, refusals, and a FAQ |
+
+## By task
+
+| I want to... | Read |
+|--------------|------|
+| Install gnux and run my first command | [Getting started](/docs/v1.1/guides/getting-started) |
+| Use `rmx`, `cpx` and `lsx` on Windows | [Windows and PowerShell](/docs/v1.1/guides/windows-and-powershell) |
+| Find the right flags for an everyday job | [Cookbook](/docs/v1.1/guides/cookbook) |
+| Replace a pile of `.sh` and `.ps1` files with one script | [Portable scripting](/docs/v1.1/guides/portable-scripting) |
+| Replace rimraf, mkdirp and shx in my package scripts | [Node and npm](/docs/v1.1/guides/node-and-npm) |
+| Let an AI agent manage files in one project and nowhere else | [Sandbox and AI agents](/docs/v1.1/guides/sandbox-and-ai-agents) |
+| Run the same build step on Linux, macOS and Windows runners | [CI and containers](/docs/v1.1/guides/ci-and-containers) |
+| Delete, copy or list files from a Go program without spawning a process | [Go library](/docs/v1.1/guides/go-library) |
+| Adopt gnux next to the GNU tools I already use, and know where it differs | [Adoption](/docs/v1.1/guides/adoption) |
+| Understand an error message or an exit status | [Troubleshooting](/docs/v1.1/guides/troubleshooting) |
+
+## Elsewhere in the documentation
+
+- [The reference](/docs/v1.1): one page per tool, with every flag, the permissions it needs, use cases and examples in bash and PowerShell.
+- [The shell reference](/docs/v1.1/shell) and the [installation and usage guide](/docs/v1.1/guide).
+- [Requirements](https://github.com/braswelljr/gnux/blob/main/docs/requirements/functional-requirements.md): what each tool must do, and the [user workflows](https://github.com/braswelljr/gnux/blob/main/docs/requirements/srs-workflows.md) step by step.
+- [Workflows](https://github.com/braswelljr/gnux/blob/main/docs/workflows/README.md): how the same processes work inside the code.
+- [Rules](https://github.com/braswelljr/gnux/blob/main/docs/rules/README.md): the conventions every tool follows.

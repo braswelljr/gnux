@@ -1,0 +1,37 @@
+---
+title: "-l, --link"
+description: "Hard link files instead of copying."
+---
+
+An option of [cpx](/docs/v1.1/tools/cpx).
+
+## Usage
+
+```bash
+cpx -l SOURCE... DIRECTORY
+cpx --link SOURCE... DIRECTORY
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-l` | `--link` | none |  | hard `link` files instead of copying |
+
+## Examples
+
+### Make a new release tree of hard links that share the old one's data
+
+```bash tab="bash" tab-group="shell"
+cpx -al releases/v1 releases/v2
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cpx -al releases\v1 releases\v2
+```
+
+## Help in the terminal
+
+```bash
+gnux help cpx --link
+```

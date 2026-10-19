@@ -1,0 +1,24 @@
+---
+title: "--max-unchanged-stats"
+description: "With --follow=name, reopen a FILE which has not changed size after N (default 5) iterations to see if it has been unlinked or renamed."
+---
+
+An option of [tailx](/docs/v1.1/tools/tailx).
+
+## Usage
+
+```bash
+tailx --max-unchanged-stats=N [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--max-unchanged-stats` | `N` | `5` | with `--follow`=name, reopen a FILE which has not changed size after N (default 5) iterations to see if it has been unlinked or renamed |
+
+## Help in the terminal
+
+```bash
+gnux help tailx --max-unchanged-stats
+```

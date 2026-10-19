@@ -1,0 +1,37 @@
+---
+title: "-L, --max-line-length"
+description: "Print the maximum display width."
+---
+
+An option of [wcx](/docs/v1.1/tools/wcx).
+
+## Usage
+
+```bash
+wcx -L [FILE]...
+wcx --max-line-length [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-L` | `--max-line-length` | none |  | print the maximum display width |
+
+## Examples
+
+### Find the display width of the longest line
+
+```bash tab="bash" tab-group="shell"
+wcx -L README.md
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+wcx -L README.md
+```
+
+## Help in the terminal
+
+```bash
+gnux help wcx --max-line-length
+```

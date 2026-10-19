@@ -1,0 +1,163 @@
+---
+title: "pwdx"
+description: "Print the full name of the current working directory."
+---
+
+Mirrors GNU `pwd`. Run it as `pwdx`, or as `gnux pwdx`.
+
+## Synopsis
+
+```bash
+pwdx [OPTION]...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: pwd invocation](https://www.gnu.org/software/coreutils/manual/html_node/pwd-invocation.html)
+- [Source: src/pwd.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/pwd.c)
+
+## Description
+
+`pwdx` prints the absolute path of the current working directory. With `-P` (the default) every symbolic `link` in the path is resolved; with `-L` it prints the value of the PWD environment variable when that names the current directory, preserving the symlinks the shell walked through. If both are given, the last one wins in GNU `pwd`; `pwdx` prefers `-L`.
+
+## Permissions
+
+Needs search permission on every directory leading to the current one to resolve it physically.
+
+## Use cases
+
+- Capturing the working directory in a script.
+- Finding the real location behind a symlinked directory with `-P`.
+- Keeping the symlinked path the user navigated through with `-L`, for messages or relative links.
+- Detecting whether the current directory is reached through a symlink by comparing `-L` and `-P`.
+- Deriving the project name or parent directory with `basenamex` and `dirnamex`.
+- Checking where a cd or `envx -C` actually landed in a script.
+
+## Flags
+
+```text
+      --help       display this help and exit
+  -L, --logical    use PWD from the environment, even if it contains symlinks
+  -P, --physical   resolve all symlinks (default)
+      --version    output version information and exit
+```
+
+## Examples
+
+### Print the physical working directory
+
+```bash tab="bash" tab-group="shell"
+pwdx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pwdx
+```
+
+### Keep symlinks as the shell sees them
+
+```bash tab="bash" tab-group="shell"
+pwdx -L
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pwdx -L
+```
+
+### Resolve every symlink explicitly
+
+```bash tab="bash" tab-group="shell"
+cd link && pwdx -P
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+Set-Location link; pwdx -P
+```
+
+### Save the directory in a variable
+
+```bash tab="bash" tab-group="shell"
+here=$(pwdx); echox "working in $here"
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+$here = pwdx; echox "working in $here"
+```
+
+### Print only the current directory's name
+
+```bash tab="bash" tab-group="shell"
+basenamex "$(pwdx)"
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+basenamex (pwdx)
+```
+
+### Print the parent directory
+
+```bash tab="bash" tab-group="shell"
+dirnamex "$(pwdx)"
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dirnamex (pwdx)
+```
+
+### Tell whether the current directory is reached through a symlink
+
+```bash tab="bash" tab-group="shell"
+[ "$(pwdx -L)" != "$(pwdx -P)" ] && echox 'inside a symlinked directory'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+if ((pwdx -L) -ne (pwdx -P)) { echox 'inside a symlinked directory' }
+```
+
+### Print the directory a command would run in
+
+```bash tab="bash" tab-group="shell"
+envx -C build pwdx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+envx -C build pwdx
+```
+
+### Show where cd leads inside the gnux shell
+
+```bash tab="bash" tab-group="shell"
+gnux shell -c 'cd docs; pwdx'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+gnux shell -c 'cd docs; pwdx'
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-L, --logical](/docs/v1.1/tools/pwdx/logical): Use PWD from the environment, even if it contains symlinks.
+- [-P, --physical](/docs/v1.1/tools/pwdx/physical): Resolve all symlinks (default).
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+pwdx --help                # options, first examples, exit status
+gnux help pwdx             # this page: the full manual
+gnux help pwdx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [realpathx](/docs/v1.1/tools/realpathx)
+- [dirnamex](/docs/v1.1/tools/dirnamex)
+- [gnux shell](/docs/v1.1/shell)

@@ -1,0 +1,37 @@
+---
+title: "-S, --split-string"
+description: "Process and split S into separate arguments;\nused to pass multiple arguments on shebang lines."
+---
+
+An option of [envx](/docs/v1.1/tools/envx).
+
+## Usage
+
+```bash
+envx -S S [-] [NAME=VALUE]... [COMMAND [ARG]...]
+envx --split-string=S [-] [NAME=VALUE]... [COMMAND [ARG]...]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-S` | `--split-string` | `S` |  | process and `split` S into separate arguments; used to pass multiple arguments on shebang lines |
+
+## Examples
+
+### Split one string into a command and its arguments, as on a '#!' line
+
+```bash tab="bash" tab-group="shell"
+envx -S 'gnux shell -e' build.sh
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+envx -S 'gnux shell -e' build.sh
+```
+
+## Help in the terminal
+
+```bash
+gnux help envx --split-string
+```
