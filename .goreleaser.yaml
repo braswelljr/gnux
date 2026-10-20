@@ -243,14 +243,19 @@ homebrew_casks:
       Every tool also runs as a command of its own (rmx, cpx, lsx, ...) when
       linked to gnux under that name:
         for t in $(gnux --list); do ln -sf "$(brew --prefix)/bin/gnux" "$(brew --prefix)/bin/$t"; done
-    hooks:
-      post:
-        # The binary is not notarized; clear the quarantine flag Gatekeeper
-        # would otherwise refuse it with.
-        install: |
-          if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/gnux"]
-          end
+    # The binary is not notarized; clear the quarantine flag Gatekeeper would
+    # otherwise refuse it with. Homebrew deprecated the Ruby `postflight` block
+    # that `hooks.post.install` writes for Homebrew's declarative
+    # `postflight_steps`. GoReleaser writes those from `hooks.post.install_steps`
+    # only from v2.19, so until that is stable the stanza goes in as a custom
+    # block. GoReleaser templates the whole cask, so Homebrew's own
+    # `{{staged_path}}` token is escaped here.
+    custom_block: |
+      postflight_steps do
+        on_macos do
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/gnux"], must_succeed: false
+        end
+      end
 
 scoops:
   - name: gnux

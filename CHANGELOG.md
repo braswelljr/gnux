@@ -4,6 +4,11 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+### Fixed
+
+- The Homebrew cask clears the quarantine flag with Homebrew's declarative `postflight_steps`
+  instead of the deprecated `postflight` block, so `brew` no longer warns about the tap.
+
 ## [1.1.0] - 2026-10-19
 
 gnux 1.1.0 adds nine tools and closes most of the gap with GNU's option surface: backups in
