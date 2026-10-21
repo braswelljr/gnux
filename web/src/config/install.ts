@@ -66,7 +66,7 @@ brew install --cask braswelljr/gnux/gnux`
         code: checkUnix
       }
     ],
-    note: 'The cask always installs the newest release. For one particular version, use Go (go install github.com/braswelljr/gnux@v0.0.2) or a release archive.'
+    note: 'The cask always installs the newest release. For one particular version, use Go (go install github.com/braswelljr/gnux@v1.2.0) or a release archive.'
   },
   {
     id: 'windows',
@@ -91,7 +91,7 @@ scoop install gnux/gnux`
 lsx -la`
       }
     ],
-    note: 'Hard links need neither Developer Mode nor elevation. Copying gnux.exe to each name also works, at the cost of disk space; rerun either loop after an upgrade. For one particular version: winget install braswelljr.gnux --version 0.0.2, or scoop install gnux/gnux@0.0.2.'
+    note: 'Hard links need neither Developer Mode nor elevation. Copying gnux.exe to each name also works, at the cost of disk space; rerun either loop after an upgrade. For one particular version: winget install braswelljr.gnux --version 1.2.0, or scoop install gnux/gnux@1.2.0.'
   },
   {
     id: 'linux',
@@ -104,7 +104,7 @@ lsx -la`
         detail:
           'Pick the archive for your platform from the releases page; the checksum file proves it arrived intact.',
         shell: 'Shell',
-        code: `v=v0.0.2
+        code: `v=v1.2.0
 curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/gnux-$v-linux-amd64.tar.gz"
 curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/checksums.txt"
 sha256sum --check --ignore-missing checksums.txt`
@@ -130,7 +130,7 @@ sudo mv "gnux-$v-linux-amd64/gnux" /usr/local/bin/`
     id: 'go',
     name: 'Any platform, with Go',
     summary:
-      'Builds the latest version from source with the Go toolchain, 1.26 or newer; name a tag instead of latest (@v0.0.2) for that version.',
+      'Builds the latest version from source with the Go toolchain, 1.26 or newer; name a tag instead of latest (@v1.2.0) for that version.',
     steps: [
       {
         title: 'Install',

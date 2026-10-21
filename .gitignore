@@ -37,6 +37,7 @@ pnpmfile.js
 bin/
 dist/
 completions/
+docs-archive/
 
 # The binary belongs in bin/ (make build) and is run from there. A bare
 # `go build` at the root drops it here instead; it must never be committed.
@@ -49,13 +50,12 @@ web/public/wasm_exec.js
 
 # The generated reference (make docs, go generate ./...): rebuilt from the
 # tool registry whenever it is needed, never committed. The man pages are
-# generated for the release archives, the MDX before every website build.
-# Only the hand-written guides (documentation/guides) and the snapshots of
-# released docs (web/content/docs/vX.Y, written by tools/docsnap) are kept.
+# generated for the release archives, the MDX before every website build, and
+# the docs of each release (web/content/docs/vX.Y) are downloaded from that
+# release by the website build. Only the hand-written guides are kept.
 /documentation/man/
 /documentation/markdown/
 /documentation/rest/
 /documentation/yaml/
-/web/content/docs/*
-!/web/content/docs/v[0-9]*/
+/web/content/docs/
 /web/public/reference/

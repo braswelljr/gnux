@@ -15,6 +15,11 @@ before:
     # The man pages ship in the Unix archives. They are generated, not
     # committed.
     - go run ./tools/gendocs documentation man
+    # The website's docs of this release, as it ships them: packed by its own
+    # generator, attached to the release and listed in checksums.txt. The
+    # website's build downloads them for its version picker
+    # (tools/docsnap, web/scripts/gen.mjs); nothing is committed.
+    - sh -c 'rm -rf docs-archive && go run ./tools/docsnap -tag {{ .Tag }} -here -archive docs-archive/gnux-docs-{{ .Tag }}.tar.gz'
     # Shell completion scripts, generated from the command itself, ship in
     # every archive and are installed by the Homebrew cask.
     - sh -c 'mkdir -p completions && for s in bash zsh fish; do go run . completion "$s" > "completions/gnux.$s"; done && go run . completion powershell > completions/gnux.ps1'
@@ -75,6 +80,8 @@ archives:
 checksum:
   name_template: checksums.txt
   algorithm: sha256
+  extra_files:
+    - glob: ./docs-archive/*.tar.gz
 
 # A software bill of materials (SPDX, from syft) beside every archive: the Go
 # modules compiled into the binary, with their versions and licenses. The
@@ -115,6 +122,8 @@ release:
   # interface is what pushed the tag) is completed instead of failing.
   mode: replace
   replace_existing_artifacts: true
+  extra_files:
+    - glob: ./docs-archive/*.tar.gz
 
 # Linux packages, attached to the release beside the archives and listed in
 # checksums.txt: .deb (Debian, Ubuntu), .rpm (Fedora, RHEL, openSUSE) and .apk

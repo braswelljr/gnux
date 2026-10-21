@@ -1,9 +1,12 @@
 package main
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -97,5 +100,67 @@ func TestFlatten(t *testing.T) {
 	}
 	if err := Flatten(t.TempDir()); err != nil {
 		t.Errorf("a tree without tools: %v", err)
+	}
+}
+
+func TestPackIsReproducible(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "v1.2")
+	for rel, content := range map[string]string{"meta.json": `{"title":"v1.2","root":true}`, "index.mdx": "home", "tools/rmx/index.mdx": "rm", "tools/rmx/force.mdx": "force"} {
+		p := filepath.Join(dir, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	out := t.TempDir()
+	a, b := filepath.Join(out, "a.tar.gz"), filepath.Join(out, "b.tar.gz")
+	if err := Pack(dir, a); err != nil {
+		t.Fatal(err)
+	}
+	if err := Pack(dir, b); err != nil {
+		t.Fatal(err)
+	}
+	da, _ := os.ReadFile(a)
+	db, _ := os.ReadFile(b)
+	if len(da) == 0 || string(da) != string(db) {
+		t.Fatal("packing the same pages twice gave different archives")
+	}
+	sum, err := os.ReadFile(a + ".sha256")
+	if err != nil || !strings.HasSuffix(string(sum), "  a.tar.gz\n") || len(sum) != 64+2+len("a.tar.gz")+1 {
+		t.Fatalf("a.tar.gz.sha256 = %q, %v", sum, err)
+	}
+
+	f, err := os.Open(a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	gz, err := gzip.NewReader(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tr := tar.NewReader(gz)
+	var names []string
+	for {
+		h, err := tr.Next()
+		if err != nil {
+			break
+		}
+		names = append(names, h.Name)
+	}
+	want := "v1.2/ v1.2/index.mdx v1.2/meta.json v1.2/tools/ v1.2/tools/rmx/ v1.2/tools/rmx/force.mdx v1.2/tools/rmx/index.mdx"
+	if strings.Join(names, " ") != want {
+		t.Fatalf("entries = %v\nwant      %s", names, want)
+	}
+}
+
+func TestPrereleaseVersion(t *testing.T) {
+	if v, err := prereleaseVersion("v1.3.0-rc.1"); err != nil || v != "v1.3" {
+		t.Fatalf("v1.3.0-rc.1: %q %v", v, err)
+	}
+	if _, err := prereleaseVersion("v1.3.0"); err == nil {
+		t.Fatal("a stable tag passed as a prerelease")
 	}
 }

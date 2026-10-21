@@ -9,8 +9,9 @@
 # back to notes generated from the commits. The archives, checksums, Linux
 # packages (.deb, .rpm, .apk) and package managers (Homebrew, Scoop, winget,
 # the Snap Store, the AUR) are described in .goreleaser.yaml, the npm packages
-# (gnux and one per platform, job npm) in tools/npm, the website's snapshot
-# of the release's docs (job docs) in tools/docsnap, and
+# (gnux and one per platform, job npm) in tools/npm, the release's website
+# docs (gnux-docs-vX.Y.Z.tar.gz, attached to the release and downloaded by the
+# website's build) in tools/docsnap, and
 # docs/workflows/publishing-a-release.md says how to set each one up.
 name: Release
 
@@ -172,62 +173,6 @@ jobs:
           git tag -f "$major" "$TAG^{commit}"
           git push -f origin "refs/tags/$major"
 
-  # The website keeps the docs of every stable release: tools/docsnap runs the
-  # tag's own generator into web/content/docs/vX.Y (a patch release replaces
-  # its minor version's) and the snapshot is committed to main, where the
-  # site's version select finds it. A prerelease keeps none.
-  docs:
-    needs: release
-    if: ${{ !contains(github.ref_name, '-') }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Check out main
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          # The tag's commit, for the worktree the snapshot is generated in.
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: Snapshot the docs
-        env:
-          TAG: ${{ github.ref_name }}
-        run: go run ./tools/docsnap -tag "$TAG"
-
-      - name: Commit the snapshot
-        env:
-          TAG: ${{ github.ref_name }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add web/content/docs
-          if git diff --cached --quiet; then
-            echo "the snapshot is unchanged"
-            exit 0
-          fi
-          git commit -m "docs: snapshot of $TAG"
-          # The release job commits to main too (the Homebrew cask, the Scoop
-          # manifest); rebase onto whatever landed meanwhile.
-          for attempt in 1 2 3; do
-            git pull --rebase origin main && git push origin HEAD:main && exit 0
-            sleep 5
-          done
-          exit 1
-
-  # The npm packages, from the archives the release job published: gnux, the
-  # launcher a project installs, and gnux-<platform>-<arch> for each release
-  # platform, all with the tag's version and npm's provenance statement. The
-  # platform packages go first, so gnux never points at one that is missing;
-  # a version already on npm is left alone, so the job can be re-run. A
-  # prerelease goes to the "next" dist-tag, not "latest". Skipped without the
-  # NPM_TOKEN secret.
   npm:
     needs: release
     runs-on: ubuntu-latest

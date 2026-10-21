@@ -346,7 +346,7 @@ Check each channel that was not skipped. Every line should end with the new vers
 | npm              | `npm view gnux version`, then `npx gnux@0.0.2 --version`                                      | At once                            |
 | Linux package    | `sudo dpkg -i gnux-v0.0.2-linux-amd64.deb && gnux --version`                                  | At once                            |
 | Website          | `/docs/changelog` shows the section                                                           | After the site deploys             |
-| Docs snapshot    | A `docs: snapshot of v0.0.2` commit on `main`, and `/docs/v0.0` in the site's version select | After the site deploys again       |
+| Release docs     | `gnux-docs-v0.0.2.tar.gz` among the release's files and in `checksums.txt`, and `/docs/v0.0` in the site's version select | After the site's next build        |
 
 Then update the two places that name a version in an example, so that copied commands fetch the release just made: the `v=` line under Prebuilt binaries in `README.md` and the one in `web/src/config/install.ts`.
 

@@ -120,7 +120,7 @@ The reference lives in `documentation/` at the repository root, one directory pe
 | `<format>/shell/index.*`              | The gnux shell                                                       |
 
 The same pages are printed in the terminal by `gnux help TOOL`, and the website's copy lives in
-`web/content/docs/`, generated too before every website build; only the snapshots of released
-docs (`web/content/docs/vX.Y`) are committed. A guide links to a reference page by its website
+`web/content/docs/`, generated too before every website build, with the docs of each release
+downloaded from the release itself. None of it is committed. A guide links to a reference page by its website
 URL (`https://gnux.vercel.app/docs/tools/rmx`), which works on GitHub and becomes a path on the
 site itself.

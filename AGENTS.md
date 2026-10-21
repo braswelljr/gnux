@@ -72,10 +72,10 @@ gnux/
   tools/changelog/         # `go run ./tools/changelog vX.Y.Z` - a release's CHANGELOG.md section
   tools/benchcheck/        # `go run ./tools/benchcheck OLD NEW` - fail on a benchmark regression
   tools/npm/               # `go run ./tools/npm -version vX.Y.Z -from DIR -out DIR` - the npm packages
-  tools/docsnap/           # `go run ./tools/docsnap -tag vX.Y.Z` - a release's docs for the website
+  tools/docsnap/           # `go run ./tools/docsnap -tag vX.Y.Z -here -archive F` - a release's website docs, packed
   CHANGELOG.md             # Release history (Keep a Changelog); published as /docs/changelog
   web/                     # Next.js + Fumadocs site and playground (own go.mod: not part of ./...)
-    content/docs/          # Generated MDX (not committed, except the vX.Y release snapshots)
+    content/docs/          # Generated MDX, and vX.Y docs downloaded from the releases (not committed)
     public/                # gnux.wasm + wasm_exec.js land here (`make web/wasm`; not committed)
   documentation/           # The published documentation:
     guides/                # Hand-written usage docs: getting started, cookbook, scripting, library, ...
@@ -400,8 +400,8 @@ rebuilt from scratch on every run. **Generated output is never committed** (`.gi
 website build (`web/scripts/gen.mjs`) generates its MDX and the YAML reference it serves at
 `/reference/yaml/` (listed in `llms.txt`, for AI tools and scripts), GoReleaser generates the man
 pages it ships, and the Docs workflow generates everything and keeps the markdown and man pages as a run
-artifact. Only the hand-written guides and the release snapshots (`web/content/docs/vX.Y`) are
-committed. A hand-written document links to a reference page by its website URL
+artifact. Only the hand-written guides are committed; each release's docs are attached to the
+release (below). A hand-written document links to a reference page by its website URL
 (`https://gnux.vercel.app/docs/tools/rmx`), which the MDX generator turns into a site path. Each
 format holds:
 
@@ -432,13 +432,20 @@ the same change; cite the IDs in commits and PRs where it helps. When it changes
 runs (dispatch, the shell, the generator, CI), update the matching `docs/workflows/` page; when
 it changes a usage example the guides show, update the guide.
 
-**Versions.** The website also serves the docs of each stable release, as it shipped:
-`tools/docsnap -tag vX.Y.Z` (`make docs/snapshot TAG=...`, and the Release workflow's `docs`
-job) runs that tag's own generator in a temporary worktree into `web/content/docs/vX.Y/`,
-rewrites its `/docs` links into `/docs/vX.Y`, and makes its `meta.json` a root folder.
-`GenerateMDX` never deletes those folders (`VersionDir`). A tool with no option pages is a plain page
-(`tools/<tool>.mdx`), a link in the sidebar, never a folder with nothing to open; docsnap's
-`Flatten` lays out older releases' snapshots the same way (`go run ./tools/docsnap -tidy`). On the site, `lib/source.ts`
+**Versions.** The website also serves the docs of each stable release, as it shipped, and none
+of them is committed. Each release carries its own: GoReleaser's `before` hook runs
+`tools/docsnap -tag vX.Y.Z -here -archive docs-archive/gnux-docs-vX.Y.Z.tar.gz` (the tag's own
+generator), which rewrites the `/docs` links into `/docs/vX.Y`, makes `meta.json` a root folder
+and packs `vX.Y/`; the archive is attached to the release and listed in the signed
+`checksums.txt`. The website's build (`web/scripts/docs-versions.mjs`, run by `gen.mjs`) lists the
+releases with one API call (`GITHUB_TOKEN` avoids the shared rate limit), takes the latest patch
+of each minor version, checks its archive against `checksums.txt` (or a `.sha256` asset, for an
+archive uploaded to an older release by hand: `docsnap -pack DIR -archive F`) and unpacks it into
+`web/content/docs/vX.Y/`. On CI and Vercel a failed download or check fails the build; a release
+with no archive is reported and skipped. `GenerateMDX` never deletes those folders
+(`VersionDir`). A tool with no option pages is a plain page (`tools/<tool>.mdx`), a link in the
+sidebar, never a folder with nothing to open; docsnap's `Flatten` lays out every release's docs
+the same way. On the site, `lib/source.ts`
 (`pageVersion`, `docsVersions`, `latestDocs`) tells them apart: the version select in the docs
 sidebar switches between them, an older version's page is noindex with the latest page as its
 canonical, and search, the sitemap and `llms.txt` hold the latest docs only.
