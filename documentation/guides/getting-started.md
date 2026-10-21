@@ -1,6 +1,6 @@
 # Getting started
 
-This guide takes you from nothing to a working gnux installation: installing the binary with `go install`, `make`, `install.sh` or Docker, turning each of the 94 tools into a command of its own by linking its name to the binary, and running your first commands in both invocation forms. It also covers the GNU-name aliases that let scripts written for the GNU tools run unchanged, the `--help`, `--version` and `--list` options every installation has, and how to check that everything is wired up correctly.
+This guide takes you from nothing to a working gnux installation: installing the binary with `go install`, `make`, `install.sh` or Docker, turning each of the 108 tools into a command of its own by linking its name to the binary, and running your first commands in both invocation forms. It also covers the GNU-name aliases that let scripts written for the GNU tools run unchanged, the `--help`, `--version` and `--list` options every installation has, and how to check that everything is wired up correctly.
 
 ## What you are installing
 
@@ -122,7 +122,7 @@ A typical run prints:
 ```text
 Installing github.com/braswelljr/gnux@latest...
 Installed gnux to /home/you/go/bin/gnux
-Linked 94 tools (rmx, cpx, lsx, ...) in /home/you/go/bin
+Linked 108 tools (rmx, cpx, lsx, ...) in /home/you/go/bin
 Ensure /home/you/go/bin is on your PATH, then run: gnux --help
 ```
 
@@ -365,5 +365,5 @@ If `rmx` is not found, the links were not created or their directory is not on `
 
 - The [cookbook](cookbook.md) for everyday recipes.
 - [Portable scripting](portable-scripting.md) for scripts that run on every platform.
-- The [reference](../markdown/index.md) for every flag of every tool.
+- The [reference](https://gnux.vercel.app/docs) for every flag of every tool.
 - The [user workflows](../../docs/requirements/srs-workflows.md) for the install flow and its failure paths, step by step.

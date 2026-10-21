@@ -1,6 +1,6 @@
 # Guides
 
-Task-oriented guides for gnux, a portable, GNU-compatible implementation of the GNU core utilities' interface in Go: one statically linked binary that carries 94 tools, a Go library with an importable engine for every tool, and a portable shell that runs the same script on Linux, macOS and Windows. The reference pages describe each tool's flags one by one; these guides show how to put the tools to work, with hundreds of runnable examples, complete scripts, CI configurations and Go programs. The gnux command lines and shell scripts were run against a real gnux build, the outputs shown are captured from it, and every Go program was compiled and run.
+Task-oriented guides for gnux, a portable, GNU-compatible implementation of the GNU core utilities' interface in Go: one statically linked binary that carries 108 tools, a Go library with an importable engine for every tool, and a portable shell that runs the same script on Linux, macOS and Windows. The reference pages describe each tool's flags one by one; these guides show how to put the tools to work, with hundreds of runnable examples, complete scripts, CI configurations and Go programs. The gnux command lines and shell scripts were run against a real gnux build, the outputs shown are captured from it, and every Go program was compiled and run.
 
 ## Pick a guide
 
@@ -14,7 +14,7 @@ Task-oriented guides for gnux, a portable, GNU-compatible implementation of the 
 | [Node and npm](node-and-npm.md) | JavaScript and TypeScript developers | Installing from npm, replacing rimraf, mkdirp, cpy-cli, shx and cross-env in package scripts, globs on Windows, and the JavaScript API |
 | [CI and containers](ci-and-containers.md) | CI and DevOps engineers | GitHub Actions, GitLab CI and Docker recipes, and one `gnux shell` script as a cross-OS build step |
 | [Go library](go-library.md) | Go developers | Embedding the engines: options, streams, captured output, injected prompts and clocks, errors, `cmd.RunTool`, `cmd.NewShell`, and seventeen complete programs |
-| [Adoption](adoption.md) | Users of GNU coreutils | All 94 tools side by side with their GNU counterparts, supported flags, every documented deviation and what is not implemented yet |
+| [Adoption](adoption.md) | Users of GNU coreutils | All 108 tools side by side with their GNU counterparts, supported flags, every documented deviation and what is not implemented yet |
 | [Troubleshooting](troubleshooting.md) | Everyone | What each error and exit status means, prompts you did not expect, refusals, and a FAQ |
 
 ## By task
@@ -34,8 +34,8 @@ Task-oriented guides for gnux, a portable, GNU-compatible implementation of the 
 
 ## Elsewhere in the documentation
 
-- [The reference](../markdown/index.md): one page per tool, with every flag, the permissions it needs, use cases and examples in bash and PowerShell.
-- [The shell reference](../markdown/shell/index.md) and the [installation and usage guide](../markdown/guide.md).
+- [The reference](https://gnux.vercel.app/docs): one page per tool, with every flag, the permissions it needs, use cases and examples in bash and PowerShell.
+- [The shell reference](https://gnux.vercel.app/docs/shell) and the [installation and usage guide](https://gnux.vercel.app/docs/guide).
 - [Requirements](../../docs/requirements/functional-requirements.md): what each tool must do, and the [user workflows](../../docs/requirements/srs-workflows.md) step by step.
 - [Workflows](../../docs/workflows/README.md): how the same processes work inside the code.
 - [Rules](../../docs/rules/README.md): the conventions every tool follows.

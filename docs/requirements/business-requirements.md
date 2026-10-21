@@ -76,8 +76,8 @@ packages, and an interpreter that runs a script using nothing but that binary.
 
 **In scope.**
 
-- The 94 tools listed in the README: nearly all of GNU coreutils, and the four tools a build
-  or CI script uses beside them, `grepx` (GNU grep), `sedx` (GNU sed), and `findx` and `xargsx`
+- The 108 tools listed in the README: all of GNU coreutils but `chroot`, `chcon` and `runcon`,
+  and the four tools a build or CI script uses beside them, `grepx` (GNU grep), `sedx` (GNU sed), and `findx` and `xargsx`
   (GNU findutils). They are in scope because a script that leaves gnux for the system's `find`
   or `sed` is no longer portable; other GNU packages are not.
 - The multi-call binary `gnux`, including dispatch on the name it was started under.
@@ -244,8 +244,9 @@ The documentation of what gnux does must be derived from the code, and checked.
 - **Rationale.** Reference documentation written beside the code describes the previous
   release. People stop trusting it, and then stop reading it.
 - **Acceptance.** The reference for every tool is generated from the same definitions the
-  program runs on, is committed, and a change whose committed copy is stale fails CI.
-- **Verified by.** The Docs workflow and `make docs/check`; `TestGenerateAllDeterministic`.
+  program runs on, whenever it is needed (the website build, a release, `make docs`), so there
+  is no committed copy to go stale.
+- **Verified by.** The Docs workflow and `make docs`; `TestGenerateAllDeterministic`.
 
 ## Business rules
 
@@ -296,7 +297,7 @@ a file in [rules](../rules/README.md).
 | R-1 | A gnux tool behaves differently from GNU in a way that loses data                 | Safeguards on by default and tested; the most cautious option wins a conflict; deviations are documented     |
 | R-2 | Behavior drifts between platforms                                                 | The suite runs on Linux, macOS and Windows on every push and pull request; platform code is build-tagged     |
 | R-3 | A change breaks the WebAssembly build, and with it the playground                 | The Test workflow compiles `tools/wasm` for `js/wasm`; the Web workflow tests against the real binary        |
-| R-4 | The reference drifts from the code                                                | It is generated from the registry, committed, and checked for freshness in CI                                |
+| R-4 | The reference drifts from the code                                                | It is generated from the registry at the point of use; nothing generated is committed                             |
 | R-5 | The cost of a tool rises as the count grows                                       | One contract for every tool; registry invariants are tests; the reference follows registration               |
 | R-6 | Users assume full GNU coverage and find a missing option in production            | Unimplemented options are listed per tool; an unknown option is a usage error, never silently ignored        |
 | R-7 | A dependency introduces a vulnerability or an incompatible license                | Three direct dependencies; Dependabot keeps them current; no automated license scan exists yet               |

@@ -46,3 +46,16 @@ completions/
 # The playground's WebAssembly build (make web/wasm); rebuilt, never committed
 web/public/gnux.wasm
 web/public/wasm_exec.js
+
+# The generated reference (make docs, go generate ./...): rebuilt from the
+# tool registry whenever it is needed, never committed. The man pages are
+# generated for the release archives, the MDX before every website build.
+# Only the hand-written guides (documentation/guides) and the snapshots of
+# released docs (web/content/docs/vX.Y, written by tools/docsnap) are kept.
+/documentation/man/
+/documentation/markdown/
+/documentation/rest/
+/documentation/yaml/
+/web/content/docs/*
+!/web/content/docs/v[0-9]*/
+/web/public/reference/

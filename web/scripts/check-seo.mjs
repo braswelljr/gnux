@@ -172,6 +172,16 @@ check('llms.txt indexes the docs and llms-full.txt carries them', async () => {
   assert.ok(fullBody.length > indexBody.length * 3, 'llms-full.txt holds the page bodies');
 });
 
+check('llms.txt points at the YAML reference, and it is served as text', async () => {
+  const indexBody = await (await get('/llms.txt')).response.text();
+  for (const path of ['/reference/yaml/index.yaml', '/reference/yaml/rmx/index.yaml'])
+    assert.ok(indexBody.includes(path), `llms.txt is missing ${path}`);
+  const page = await get('/reference/yaml/rmx/index.yaml');
+  assert.equal(page.response.status, 200);
+  assert.match(page.type, /text\/yaml/);
+  assert.match(await page.response.text(), /^name: rmx$/m);
+});
+
 check('a release snapshot is served, not indexed, and points at the latest page', async () => {
   const sample = versionedDocs.find((path) => path.endsWith('/tools/rmx'));
   if (!sample) return; // no snapshot yet

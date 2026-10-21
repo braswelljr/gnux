@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/braswelljr/gnux/core/fsys"
+	filemode "github.com/braswelljr/gnux/core/internal/mode"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -42,7 +43,7 @@ type Mkdir struct {
 func New(opts Options, s core.Streams) *Mkdir {
 	return &Mkdir{
 		Options: opts,
-		Umask:   umask,
+		Umask:   filemode.Umask,
 		diag:    core.NewDiag(Name, s),
 	}
 }

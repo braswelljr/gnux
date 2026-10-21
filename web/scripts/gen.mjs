@@ -1,10 +1,11 @@
 // Runs before `pnpm dev` and `pnpm build`: regenerates what the site takes from
-// the Go project at the repository root: the documentation content and the
+// the Go project at the repository root: the documentation content, the YAML
+// reference for AI tools and scripts (public/reference/yaml) and the
 // WebAssembly build of gnux.
 //
-// The documentation is committed, so a host without Go can still build from
-// it; gnux.wasm is not. When Go is missing and something has to be built (a
-// fresh Vercel build, say), the Go release named in ../go.mod is downloaded
+// Neither is committed (only the docs snapshots of past releases,
+// content/docs/vX.Y, are), so both are built every time. When Go is missing
+// (a fresh Vercel build, say), the Go release named in ../go.mod is downloaded
 // from go.dev, checked against the SHA-256 go.dev publishes, and kept under
 // node_modules/.cache for the next build. A machine with Go uses its own.
 //
@@ -130,6 +131,13 @@ const steps = [
     build: (go, env) => run(go, ['run', './tools/gendocs', 'web/content/docs', 'mdx'], env)
   },
   {
+    // The reference as YAML, one file per page, served under /reference/yaml/
+    // and listed in llms.txt for tools that read the docs as data.
+    name: 'yaml',
+    output: 'public/reference/yaml/index.yaml',
+    build: (go, env) => run(go, ['run', './tools/gendocs', 'web/public/reference', 'yaml'], env)
+  },
+  {
     // The same build as `make web/wasm`, without needing make.
     name: 'wasm',
     output: 'public/gnux.wasm',
@@ -167,7 +175,7 @@ const only = process.argv.slice(2);
 const selected = only.length > 0 ? steps.filter((step) => only.includes(step.name)) : steps;
 
 if (process.env.GNUX_SKIP_GEN === '1') {
-  console.log('gen: GNUX_SKIP_GEN=1, using the committed content/docs and public/gnux.wasm');
+  console.log('gen: GNUX_SKIP_GEN=1, using the existing content/docs and public/gnux.wasm');
 } else {
   let go = has('go') ? 'go' : null;
   // A downloaded Go keeps its build and module caches beside it, so the next
@@ -192,7 +200,7 @@ if (process.env.GNUX_SKIP_GEN === '1') {
   }
 
   if (!go) {
-    console.log('gen: go not found, using the committed content/docs and public/gnux.wasm');
+    console.log('gen: go not found, using the existing content/docs and public/gnux.wasm');
   } else {
     for (const step of selected) {
       console.log(`gen: ${step.name}`);

@@ -304,7 +304,11 @@ func follow(t *testing.T, opts tail.Options, args ...string) *follower {
 	go func() { f.done <- engine.RunContext(ctx, args) }()
 	t.Cleanup(func() {
 		cancel()
-		<-f.done
+		// Wait for the run to end. Its result is the test's to check; here
+		// it is only logged, for a failure that comes after the test's checks.
+		if err := <-f.done; err != nil {
+			t.Logf("tail ended with %v", err)
+		}
 	})
 	return f
 }

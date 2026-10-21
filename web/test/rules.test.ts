@@ -13,7 +13,13 @@ const web = fileURLToPath(new URL('..', import.meta.url));
 
 /** Not ours: dependencies, build output, and what the Go toolchain generates. */
 const SKIP = new Set(['node_modules', '.next', '.source', 'out', 'build', 'coverage']);
-const GENERATED = ['content/docs/', 'public/gnux.wasm', 'public/wasm_exec.js', 'pnpm-lock.yaml'];
+const GENERATED = [
+  'content/docs/',
+  'public/reference/',
+  'public/gnux.wasm',
+  'public/wasm_exec.js',
+  'pnpm-lock.yaml'
+];
 
 function walk(dir: string, found: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

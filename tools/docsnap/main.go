@@ -4,6 +4,7 @@
 // Usage:
 //
 //	go run ./tools/docsnap -tag vX.Y.Z [-out web/content/docs] [-from DIR]
+//	go run ./tools/docsnap -tidy [-out web/content/docs]
 //
 // Without -from it checks the tag out in a temporary git worktree and runs
 // that version's own generator (go run ./tools/gendocs DIR mdx), so the
@@ -14,10 +15,17 @@
 // into the snapshot, and marks the folder as a sidebar root of its own, so
 // the website's version picker can switch to it. `make docs` keeps the
 // snapshots; the Release workflow runs docsnap for every stable release.
+//
+// A tool with no option pages is written as a page of its own, not as a
+// folder holding only its index, so that the sidebar shows it as a link
+// rather than a collapsible entry with nothing under it (Flatten): releases
+// whose generator made such folders are laid out as the latest docs are.
+// -tidy does that to the snapshots already in OUT, without generating any.
 package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -32,9 +40,16 @@ func main() {
 	tag := flag.String("tag", "", "the release tag, as v1.2.3")
 	out := flag.String("out", filepath.Join("web", "content", "docs"), "the website's docs content directory")
 	from := flag.String("from", "", "pages already generated for the tag (default: generate them from the tag)")
+	tidy := flag.Bool("tidy", false, "flatten the tool folders of the snapshots already in -out, and nothing else")
 	flag.Parse()
+	if *tidy && *tag == "" && flag.NArg() == 0 {
+		if err := tidyAll(*out); err != nil {
+			fail(err)
+		}
+		return
+	}
 	if *tag == "" || flag.NArg() > 0 {
-		fmt.Fprintln(os.Stderr, "usage: docsnap -tag vX.Y.Z [-out DIR] [-from DIR]")
+		fmt.Fprintln(os.Stderr, "usage: docsnap -tag vX.Y.Z [-out DIR] [-from DIR] | docsnap -tidy [-out DIR]")
 		os.Exit(2)
 	}
 	version, err := Version(*tag)
@@ -114,7 +129,93 @@ func Snapshot(src, dst, version string) error {
 	if err := os.RemoveAll(dst); err != nil {
 		return err
 	}
-	versionDir := regexp.MustCompile(`^v[0-9]+\.[0-9]+$`)
+	if err := copyPages(src, dst, version); err != nil {
+		return err
+	}
+	return Flatten(dst)
+}
+
+// versionDir matches a snapshot's folder name.
+var versionDir = regexp.MustCompile(`^v[0-9]+\.[0-9]+$`)
+
+// tidyAll flattens every snapshot in out.
+func tidyAll(out string) error {
+	entries, err := os.ReadDir(out)
+	if err != nil {
+		return err
+	}
+	for _, e := range entries {
+		if e.IsDir() && versionDir.MatchString(e.Name()) {
+			if err := Flatten(filepath.Join(out, e.Name())); err != nil {
+				return err
+			}
+			fmt.Printf("docsnap: tidied %s\n", filepath.Join(out, e.Name()))
+		}
+	}
+	return nil
+}
+
+// Flatten turns each tools/<tool>/ folder of a docs tree that holds nothing
+// but its index page (and a meta.json listing no pages) into tools/<tool>.mdx.
+// The page keeps its URL, /docs/.../tools/<tool>, and becomes a link in the
+// sidebar instead of a folder with nothing to open.
+func Flatten(root string) error {
+	tools := filepath.Join(root, "tools")
+	entries, err := os.ReadDir(tools)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		dir := filepath.Join(tools, e.Name())
+		inside, err := os.ReadDir(dir)
+		if err != nil {
+			return err
+		}
+		onlyIndex := true
+		for _, f := range inside {
+			switch {
+			case f.Name() == "index.mdx":
+			case f.Name() == "meta.json":
+				if !emptyMeta(filepath.Join(dir, f.Name())) {
+					onlyIndex = false
+				}
+			default:
+				onlyIndex = false
+			}
+		}
+		if !onlyIndex {
+			continue
+		}
+		if err := os.Rename(filepath.Join(dir, "index.mdx"), filepath.Join(tools, e.Name()+".mdx")); err != nil {
+			return err
+		}
+		if err := os.RemoveAll(dir); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// emptyMeta reports whether a meta.json lists no pages.
+func emptyMeta(path string) bool {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return false
+	}
+	var meta struct {
+		Pages []string `json:"pages"`
+	}
+	return json.Unmarshal(data, &meta) == nil && len(meta.Pages) == 0
+}
+
+// copyPages copies src to dst, rewriting links and the root meta.json.
+func copyPages(src, dst, version string) error {
 	return filepath.WalkDir(src, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err

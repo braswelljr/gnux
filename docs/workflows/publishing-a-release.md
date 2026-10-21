@@ -292,7 +292,7 @@ A release tag with no section, or an empty one, stops the workflow before anythi
 
 ```bash
 make docs                # /docs/changelog on the website is generated from CHANGELOG.md
-make ci                  # vet, lint, test and the docs freshness check
+make ci                  # vet, lint, test and the docs generation
 make release/check       # .goreleaser.yaml is valid
 make release/snapshot    # everything a release builds, into dist/, nothing published
 ```

@@ -1,13 +1,13 @@
-// Package basenc is the engine shared by base64x and base32x: encode a file
-// or standard input in base64 or base32 (RFC 4648), or decode it, as GNU
-// base64 and base32 do. Each tool's own package (core/base64, core/base32)
-// fixes the encoding and the tool name.
+// Package basenc implements the engine behind basencx, a GNU-compatible
+// implementation of the GNU/UNIX basenc command: encode a file or standard
+// input in one of several encodings (RFC 4648 base64, base64url, base32,
+// base32hex and base16, a bit string either way round, and Z85), or decode
+// it. base64x and base32x are this engine with the encoding fixed: their own
+// packages (core/base64, core/base32) set it and the tool name.
 package basenc
 
 import (
 	"bufio"
-	"encoding/base32"
-	"encoding/base64"
 	"errors"
 	"io"
 	"syscall"
@@ -17,22 +17,43 @@ import (
 	"github.com/braswelljr/gnux/core"
 )
 
+// Name is the command name of basencx, used as the prefix of its
+// diagnostics. base64x and base32x pass their own.
+const Name = "basencx"
+
 // Encoding selects the alphabet.
 type Encoding int
 
 const (
-	// Base64 is RFC 4648 base64 with padding.
+	// Base64 is RFC 4648 base64 with padding (--base64).
 	Base64 Encoding = iota
-	// Base32 is RFC 4648 base32 with padding.
+	// Base32 is RFC 4648 base32 with padding (--base32).
 	Base32
+	// Base64URL is RFC 4648's file- and URL-safe base64, with padding
+	// (--base64url).
+	Base64URL
+	// Base32Hex is RFC 4648's base32 with the extended hex alphabet
+	// (--base32hex).
+	Base32Hex
+	// Base16 is upper-case hexadecimal (--base16); decoding takes either case.
+	Base16
+	// Base2MSBF writes each byte as eight '0' and '1' characters, most
+	// significant bit first (--base2msbf).
+	Base2MSBF
+	// Base2LSBF is Base2MSBF with the least significant bit first
+	// (--base2lsbf).
+	Base2LSBF
+	// Z85 is ZeroMQ's Z85 (spec 32/Z85): four bytes to five characters. The
+	// input must be a whole number of groups (--z85).
+	Z85
 )
 
 // DefaultWrap is the line length of encoded output unless Options says
 // otherwise.
 const DefaultWrap = 76
 
-// Options mirrors the GNU base64/base32 flag surface. The zero value encodes,
-// wrapping lines at 76 columns.
+// Options mirrors the GNU basenc/base64/base32 flag surface. The zero value
+// encodes, wrapping lines at 76 columns.
 type Options struct {
 	// Decode (-d) decodes rather than encodes.
 	Decode bool
@@ -59,8 +80,12 @@ func New(prog string, enc Encoding, opts Options, s core.Streams) *Coder {
 	return &Coder{Options: opts, prog: prog, enc: enc, streams: s, diag: core.NewDiag(prog, s)}
 }
 
-// errInvalid is reported as GNU's "invalid input".
-var errInvalid = errors.New("invalid input")
+// errInvalid is reported as GNU's "invalid input", and errZ85Length as the
+// message GNU gives Z85 input that is not a whole number of groups.
+var (
+	errInvalid   = errors.New("invalid input")
+	errZ85Length = errors.New("invalid z85 length")
+)
 
 // Run encodes or decodes its operand, at most one FILE; none or "-" is
 // standard input. It returns core.ErrFailed when the file cannot be read or,
@@ -91,42 +116,32 @@ func (c *Coder) Run(args []string) error {
 
 	out := core.NewWriter(c.streams.Out)
 	var err error
-	if c.Decode {
+	switch {
+	case c.Decode:
 		err = c.decode(r, out)
-	} else {
+	default:
 		err = c.encode(r, out)
 	}
 	_ = out.Flush()
 	switch {
 	case errors.Is(err, errInvalid):
 		c.diag.Errorf("invalid input")
+	case errors.Is(err, errZ85Length):
+		c.diag.Errorf("invalid input (length must be multiple of 4 characters)")
 	case err != nil:
 		c.diag.Errorf("read error: %s", core.ErrText(err))
 	}
 	return c.diag.Result()
 }
 
-func (c *Coder) quantum() (raw, encoded int) {
-	if c.enc == Base32 {
-		return 5, 8
-	}
-	return 3, 4
-}
-
-func (c *Coder) encoder() interface {
-	EncodeToString([]byte) string
-	Decode(dst, src []byte) (int, error)
-	DecodedLen(int) int
-} {
-	if c.enc == Base32 {
-		return base32.StdEncoding
-	}
-	return base64.StdEncoding
-}
+// chunk is how much input is encoded at a time: a whole number of every
+// codec's input group, so that padding only ever comes at the very end.
+const chunk = 3 * 5 * 4 * 4096
 
 func (c *Coder) encode(r io.Reader, out *bufio.Writer) error {
-	// A whole number of quanta per chunk keeps padding to the very end.
-	buf := make([]byte, 3*5*4096)
+	cd := codecs[c.enc]
+	buf := make([]byte, chunk)
+	var text []byte
 	cols := c.Wrap
 	if cols <= 0 {
 		cols = DefaultWrap
@@ -135,13 +150,17 @@ func (c *Coder) encode(r io.Reader, out *bufio.Writer) error {
 	for {
 		n, err := io.ReadFull(r, buf)
 		if n > 0 {
-			s := c.encoder().EncodeToString(buf[:n])
+			if c.enc == Z85 && n%4 != 0 {
+				return errZ85Length
+			}
+			text = cd.encode(text[:0], buf[:n])
 			if c.NoWrap {
-				_, _ = out.WriteString(s)
+				_, _ = out.Write(text)
 			} else {
-				for s != "" {
+				s := text
+				for len(s) > 0 {
 					k := min(cols-col, len(s))
-					_, _ = out.WriteString(s[:k])
+					_, _ = out.Write(s[:k])
 					s, col = s[k:], col+k
 					if col == cols {
 						_ = out.WriteByte('\n')
@@ -163,25 +182,13 @@ func (c *Coder) encode(r io.Reader, out *bufio.Writer) error {
 	return nil
 }
 
-func (c *Coder) inAlphabet(b byte) bool {
-	switch {
-	case b >= 'A' && b <= 'Z', b == '=':
-		return true
-	case c.enc == Base32:
-		return b >= '2' && b <= '7'
-	default:
-		return (b >= 'a' && b <= 'z') || (b >= '0' && b <= '9') || b == '+' || b == '/'
-	}
-}
-
-// decode reads quantum by quantum, so concatenated encodings (each with its
-// own padding) decode as GNU's do. Newlines are always ignored; anything
-// else outside the alphabet is invalid unless IgnoreGarbage is set.
+// decode reads group by group, so concatenated encodings (each with its own
+// padding) decode as GNU's do. Newlines are always ignored; anything else
+// outside the alphabet is invalid unless IgnoreGarbage is set.
 func (c *Coder) decode(r io.Reader, out *bufio.Writer) error {
-	_, size := c.quantum()
-	enc := c.encoder()
-	q := make([]byte, 0, size)
-	dst := make([]byte, enc.DecodedLen(size))
+	cd := codecs[c.enc]
+	q := make([]byte, 0, cd.group)
+	dst := make([]byte, 8)
 	br := core.NewReader(r)
 	for {
 		b, err := br.ReadByte()
@@ -194,19 +201,19 @@ func (c *Coder) decode(r io.Reader, out *bufio.Writer) error {
 		if b == '\n' {
 			continue
 		}
-		if !c.inAlphabet(b) {
+		if !cd.alphabet(b) {
 			if c.IgnoreGarbage {
 				continue
 			}
 			return errInvalid
 		}
 		q = append(q, b)
-		if len(q) < size {
+		if len(q) < cd.group {
 			continue
 		}
-		n, derr := enc.Decode(dst, q)
+		n, ok := cd.decode(dst, q)
 		_, _ = out.Write(dst[:n])
-		if derr != nil {
+		if !ok {
 			return errInvalid
 		}
 		q = q[:0]
@@ -214,14 +221,10 @@ func (c *Coder) decode(r io.Reader, out *bufio.Writer) error {
 	if len(q) == 0 {
 		return nil
 	}
-	// A final quantum without its padding: decode what it holds, then report
-	// the input as invalid, as GNU does.
-	if c.enc == Base32 {
-		n, _ := base32.StdEncoding.WithPadding(base32.NoPadding).Decode(dst, q)
-		_, _ = out.Write(dst[:n])
-	} else {
-		n, _ := base64.RawStdEncoding.Decode(dst, q)
-		_, _ = out.Write(dst[:n])
+	// A final group cut short: base64 and base32 decode what it holds, as
+	// GNU does, and the input is invalid either way.
+	if cd.partial != nil {
+		_, _ = out.Write(dst[:cd.partial(dst, q)])
 	}
 	return errInvalid
 }

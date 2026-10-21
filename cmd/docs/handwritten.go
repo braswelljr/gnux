@@ -23,6 +23,11 @@ type Page struct {
 // repoURL is where a link to a file outside the published documents points.
 const repoURL = "https://github.com/braswelljr/gnux/blob/main/"
 
+// siteURL is the website's address. A hand-written document links to a
+// reference page there, since the reference is generated, not committed;
+// on the website itself such a link becomes a path on the same site.
+const siteURL = "https://gnux.vercel.app"
+
 // HandwrittenPages reads the hand-written documents under dir for publication
 // on the website. repoPath is where dir sits in the repository
 // ("documentation"), which relative links are resolved against. Each of
@@ -248,11 +253,15 @@ func referenceURL(repoPath string) (string, bool) {
 
 // rewriteLinks points the relative links of a document in <repoPath>/<folder> at
 // where their targets live once published: another published document becomes
-// a site URL, anything else in the repository its GitHub page. Absolute URLs
-// and in-page anchors are left alone.
+// a site URL, anything else in the repository its GitHub page. A link to the
+// website's docs becomes a path on the site, so that it stays on the version
+// being read. Other absolute URLs and in-page anchors are left alone.
 func rewriteLinks(md, repoPath, folder string, published map[string]bool) string {
 	return mdLinkRe.ReplaceAllStringFunc(md, func(m string) string {
 		target := mdLinkRe.FindStringSubmatch(m)[1]
+		if p, ok := strings.CutPrefix(target, siteURL); ok && (p == "/docs" || strings.HasPrefix(p, "/docs/") || strings.HasPrefix(p, "/docs#")) {
+			return "](" + p + ")"
+		}
 		if strings.Contains(target, "://") || strings.HasPrefix(target, "#") ||
 			strings.HasPrefix(target, "/") || strings.HasPrefix(target, "mailto:") {
 			return m

@@ -4,6 +4,34 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+### Added
+
+- The last fourteen GNU coreutils tools, so that every coreutils tool but `chroot`, `chcon` and
+  `runcon` (left out by design) is in gnux, 108 tools in all: `basencx` (base64url, base32hex,
+  base16, base2 and Z85 beside base64 and base32), `dircolorsx`, `hostidx`, `mkfifox`,
+  `mknodx`, `numfmtx` (a port of GNU numfmt, with its rounding, padding, fields and
+  `--format`), `pathchkx`, `pinkyx`, `prx` (a port of GNU pr's page layout, columns, merging and
+  numbering), `ptxx` (a port of GNU ptx, with the Emacs regex syntax it uses), `shredx`,
+  `stdbufx`, `sttyx` (termios on Linux, macOS and FreeBSD, with GNU's tables for each) and
+  `syncx`. Each is checked against GNU coreutils 9.7 by new cases in the conformance harness.
+
+### Changed
+
+- The generated reference is no longer committed. `documentation/markdown`, `man`, `yaml` and
+  `rest`, and the website's pages in `web/content/docs` (but for the snapshots of released
+  docs), are built where they are used: the website build generates its pages, GoReleaser the
+  man pages it ships, and the Docs workflow generates everything, tests the generator and keeps
+  the markdown and man reference as a run artifact. `make docs` still writes them all locally.
+  The pre-push hook and `make docs/check`, which compared committed copies, are gone. The
+  hand-written guides link to reference pages by their website address, which works on GitHub
+  and stays on the site when read there.
+- The website serves the reference as YAML, one file per page, at `/reference/yaml/` (for
+  example `/reference/yaml/rmx/index.yaml`), and `llms.txt` lists every file, so AI tools and
+  scripts can read each tool's options and examples as data.
+- In the docs sidebar, a tool with no option pages is a plain link rather than a folder with
+  nothing to open, in the release snapshots too (`tools/docsnap` flattens such folders, and
+  `-tidy` applies that to the snapshots already published).
+
 ### Fixed
 
 - The Homebrew cask clears the quarantine flag with Homebrew's declarative `postflight_steps`

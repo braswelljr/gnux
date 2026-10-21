@@ -1,6 +1,6 @@
 # Adoption
 
-How to adopt gnux next to the GNU coreutils you already know. gnux does not replace them: it brings the same interface to the places they are missing (Windows, containers without coreutils, the browser, Go programs), so the GNU tools stay where they are and gnux is added where it helps. This guide sets the two side by side: how each of the 94 gnux tools maps onto its GNU counterpart, which flags it supports, every documented deviation (the places where gnux must choose differently because it cannot see option order, or because Windows cannot express a feature), the GNU options that are not implemented yet, the places where gnux deliberately does better than GNU, and the few coreutils tools still on the roadmap. If a behavior is not listed here as a difference, gnux aims to match GNU exactly, down to the wording of its diagnostics and its exit statuses.
+How to adopt gnux next to the GNU coreutils you already know. gnux does not replace them: it brings the same interface to the places they are missing (Windows, containers without coreutils, the browser, Go programs), so the GNU tools stay where they are and gnux is added where it helps. This guide sets the two side by side: how each of the 108 gnux tools maps onto its GNU counterpart, which flags it supports, every documented deviation (the places where gnux must choose differently because it cannot see option order, or because Windows cannot express a feature), the GNU options that are not implemented yet, the places where gnux deliberately does better than GNU, and the three coreutils tools left out by design. If a behavior is not listed here as a difference, gnux aims to match GNU exactly, down to the wording of its diagnostics and its exit statuses.
 
 ## The short version
 
@@ -14,100 +14,114 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 
 | GNU | gnux | Supported options | Reference |
 |-----|------|-------------------|-----------|
-| `arch` | `archx` | none | [archx](../markdown/archx/index.md) |
-| `b2sum` | `b2sumx` | `-b`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [b2sumx](../markdown/b2sumx/index.md) |
-| `base32` | `base32x` | `-d`, `-i`, `-w COLS` | [base32x](../markdown/base32x/index.md) |
-| `base64` | `base64x` | `-d`, `-i`, `-w COLS` | [base64x](../markdown/base64x/index.md) |
-| `basename` | `basenamex` | `-a`, `-s SUFFIX`, `-z` | [basenamex](../markdown/basenamex/index.md) |
-| `cat` | `catx` | `-A`, `-b`, `-e`, `-E`, `-n`, `-s`, `-t`, `-T`, `-u`, `-v` | [catx](../markdown/catx/index.md) |
-| `chgrp` | `chgrpx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chgrpx](../markdown/chgrpx/index.md) |
-| `chmod` | `chmodx` | `-c`, `--dereference`, `-L`, `-H`, `-h`, `-P`, `--no-preserve-root`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chmodx](../markdown/chmodx/index.md) |
-| `chown` | `chownx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chownx](../markdown/chownx/index.md) |
-| `cksum` | `cksumx` | `-a TYPE`, `--base64`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--raw`, `--status`, `--strict`, `--tag`, `--untagged`, `-w`, `-z` | [cksumx](../markdown/cksumx/index.md) |
-| `comm` | `commx` | `--check-order`, `--nocheck-order`, `--output-delimiter=STR`, `-3`, `-1`, `-2`, `--total`, `-z` | [commx](../markdown/commx/index.md) |
-| `cp` | `cpx` | `-a`, `--backup[=CONTROL]`, `-b`, `-d`, `-f`, `-H`, `-i`, `-l`, `-L`, `-n`, `-p`, `-P`, `-r`/`-R`, `-s`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `-x`, `--parents`, `--preserve[=LIST]`, `--no-preserve=LIST`, `--remove-destination`, `-S SUFFIX`, `--strip-trailing-slashes` | [cpx](../markdown/cpx/index.md) |
-| `csplit` | `csplitx` | `-n DIGITS`, `-z`, `-k`, `-f PREFIX`, `-s`, `-q`, `-b FORMAT`, `--suppress-matched` | [csplitx](../markdown/csplitx/index.md) |
-| `cut` | `cutx` | `-b LIST`, `-c LIST`, `-d DELIM`, `-f LIST`, `-n`, `-s`, `-z`, `--complement`, `--output-delimiter=STRING` | [cutx](../markdown/cutx/index.md) |
-| `date` | `datex` | `-d STRING`, `-f DATEFILE`, `-I[=FMT]`, `-r FILE`, `--resolution`, `--rfc-3339=FMT`, `-R`, `-s STRING`, `--universal`, `-u` | [datex](../markdown/datex/index.md) |
-| `dd` | `ddx` | operands `if=`, `of=`, `bs=`, `ibs=`, `obs=`, `cbs=`, `skip=`/`iseek=`, `seek=`/`oseek=`, `count=`, `conv=`, `iflag=`, `oflag=`, `status=` | [ddx](../markdown/ddx/index.md) |
-| `df` | `dfx` | `-a`, `-B SIZE`, `-x TYPE`, `-h`, `-i`, `-k`, `-l`, `--no-sync`, `--output[=FIELD_LIST]`, `-P`, `-T`, `-H`, `--sync`, `-v`, `--total`, `-t TYPE` | [dfx](../markdown/dfx/index.md) |
-| `dir` | `dirx` | every `lsx` option | [dirx](../markdown/dirx/index.md) |
-| `dirname` | `dirnamex` | `-z` | [dirnamex](../markdown/dirnamex/index.md) |
-| `du` | `dux` | `-a`, `-A`, `-B SIZE`, `-b`, `-l`, `-L`, `-D`, `--exclude=PATTERN`, `-X FILE`, `--files0-from=F`, `-h`, `--inodes`, `-k`, `-d N`, `-m`, `-P`, `-0`, `-x`, `-S`, `--si`, `-s`, `-t SIZE`, `--time[=WORD]`, `--time-style=STYLE`, `-c` | [dux](../markdown/dux/index.md) |
-| `echo` | `echox` | `-n`, `-e`, `-E` | [echox](../markdown/echox/index.md) |
-| `env` | `envx` | `-0`, `-a ARG`, `-C DIR`, `-i`/`-`, `-S STRING`, `-u NAME`, `-v` | [envx](../markdown/envx/index.md) |
-| `expand` | `expandx` | `-i`, `-t N, LIST` | [expandx](../markdown/expandx/index.md) |
-| `expr` | `exprx` | EXPRESSION: `\|`, `&`, comparisons, `+ - * / %`, `:`, `match`, `substr`, `index`, `length`, `+ TOKEN`, parentheses | [exprx](../markdown/exprx/index.md) |
-| `factor` | `factorx` | `-h` | [factorx](../markdown/factorx/index.md) |
-| `false` | `falsex` | none (arguments ignored) | [falsex](../markdown/falsex/index.md) |
-| `find` (findutils) | `findx` | An expression, not options: `-H`, `-L`, `-P`; `( )`, `!`, `-a`, `-o`, `,`; tests such as `-name`, `-path`, `-regex`, `-type`, `-size`, `-newer`, `-mtime`, `-perm`, `-user`, `-empty`; `-maxdepth`, `-mindepth`, `-depth`, `-xdev`; actions `-print`, `-print0`, `-printf`, `-ls`, `-delete`, `-prune`, `-quit`, `-exec`, `-execdir`, `-ok` | [findx](../markdown/findx/index.md) |
-| `fmt` | `fmtx` | `-c`, `-g STRING`, `-p STRING`, `-s`, `-t`, `-u`, `-w WIDTH` | [fmtx](../markdown/fmtx/index.md) |
-| `fold` | `foldx` | `-b`, `-s`, `-w WIDTH` | [foldx](../markdown/foldx/index.md) |
-| `grep` (GNU grep) | `grepx` | `-E`, `-F`, `-G`, `-e PATTERNS`, `-f FILE`, `-i`, `-v`, `-w`, `-x`, `-c`, `-l`, `-L`, `-m NUM`, `-o`, `-q`, `-s`, `-b`, `-H`, `-h`, `-n`, `-T`, `-Z`, `-z`, `-A NUM`, `-B NUM`, `-C NUM`, `-NUM`, `-r`, `-R`, `-d ACTION`, `-D ACTION`, `-a`, `-I`, `-U`, `--binary-files=TYPE`, `--color[=WHEN]`, `--include=GLOB`, `--exclude=GLOB`, `--exclude-from=FILE`, `--exclude-dir=GLOB`, `--group-separator=SEP`, `--no-group-separator`, `--label=LABEL`, `--line-buffered`, `--no-ignore-case` | [grepx](../markdown/grepx/index.md) |
-| `groups` | `groupsx` | none | [groupsx](../markdown/groupsx/index.md) |
-| `head` | `headx` | `-c [-]NUM`, `-n [-]NUM`, `-NUM`, `-q`, `-v`, `-z`, size suffixes | [headx](../markdown/headx/index.md) |
-| `hostname` | `hostnamex` | none | [hostnamex](../markdown/hostnamex/index.md) |
-| `id` | `idx` | `-a`, `-Z`, `-g`, `-G`, `-n`, `-r`, `-u`, `-z` | [idx](../markdown/idx/index.md) |
-| `install` | `installx` | `--backup[=CONTROL]`, `-b`, `-C`, `-c`, `-D`, `-d`, `-g GROUP`, `-m MODE`, `-T`, `-o OWNER`, `-p`, `-s`, `-S SUFFIX`, `-t DIRECTORY`, `-v` | [installx](../markdown/installx/index.md) |
-| `join` | `joinx` | `--check-order`, `-e EMPTY`, `-1 FIELD`, `-2 FIELD`, `--header`, `-i`, `-j STRINGARRAY`, `--nocheck-order`, `-v STRINGARRAY`, `-o FORMAT`, `-t CHAR`, `-a FILENUM`, `-z` | [joinx](../markdown/joinx/index.md) |
-| `kill` | `killx` | `-l`, `-n NUMBER`, `-s STRING`, `-L` | [killx](../markdown/killx/index.md) |
-| `link` | `linkx` | none | [linkx](../markdown/linkx/index.md) |
-| `ln` | `lnx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-L`, `-n`, `-P`, `-r`, `-s`, `-S SUFFIX`, `-t`, `-T`, `-v` | [lnx](../markdown/lnx/index.md) |
-| `logname` | `lognamex` | none | [lognamex](../markdown/lognamex/index.md) |
-| `ls` | `lsx` | `-1`, `-a`, `-A`, `-B`, `-b`, `-c`, `-C`, `-d`, `-F`, `-g`, `-G`, `-h`, `-H`, `-i`, `-I`, `-l`, `-L`, `-m`, `-n`, `-o`, `-p`, `-q`, `-Q`, `-r`, `-R`, `-s`, `-S`, `-t`, `-T`, `-u`, `-U`, `-v`, `-w`, `-x`, `-X`, `--author`, `--block-size`, `--color`, `-D`/`--dired`, `--file-type`, `--format`, `--full-time`, `--group-directories-first`, `--hide`, `--hyperlink`, `--indicator-style`, `-k`, `-N`, `--quoting-style`, `--show-control-chars`, `--si`, `--sort`, `--time`, `--time-style`, `--zero` | [lsx](../markdown/lsx/index.md) |
-| `md5sum` | `md5sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [md5sumx](../markdown/md5sumx/index.md) |
-| `mkdir` | `mkdirx` | `-m MODE`, `-p`, `-v` | [mkdirx](../markdown/mkdirx/index.md) |
-| `mktemp` | `mktempx` | `-p DIR`, `-d`, `-u`, `-t`, `-q`, `--suffix=SUFF`, `--tmpdir[=DIR]` | [mktempx](../markdown/mktempx/index.md) |
-| `mv` | `mvx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-n`, `--no-copy`, `-S SUFFIX`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `--strip-trailing-slashes` | [mvx](../markdown/mvx/index.md) |
-| `nice` | `nicex` | `-n N` | [nicex](../markdown/nicex/index.md) |
-| `nl` | `nlx` | `-b STYLE`, `-f STYLE`, `-h STYLE`, `-l NUMBER`, `-i STRING`, `-p`, `-n FORMAT`, `-s STRING`, `-w NUMBER`, `-d CC`, `-v STRING` | [nlx](../markdown/nlx/index.md) |
-| `nohup` | `nohupx` | none | [nohupx](../markdown/nohupx/index.md) |
-| `nproc` | `nprocx` | `--all`, `--ignore=N` | [nprocx](../markdown/nprocx/index.md) |
-| `od` | `odx` | `-A RADIX`, `-c[=STRING]`, `-s[=STRING]`, `-i[=STRING]`, `-l[=STRING]`, `--endian=ORDER`, `-f[=STRING]`, `-t TYPE`, `-x[=STRING]`, `-a[=STRING]`, `-o[=STRING]`, `-b[=STRING]`, `-v`, `-N BYTES`, `-j BYTES`, `-S BYTES`, `-d[=STRING]`, `-w BYTES` | [odx](../markdown/odx/index.md) |
-| `paste` | `pastex` | `-d LIST`, `-s`, `-z` | [pastex](../markdown/pastex/index.md) |
-| `printenv` | `printenvx` | `-0` | [printenvx](../markdown/printenvx/index.md) |
-| `printf` | `printfx` | FORMAT [ARGUMENT]... (no options) | [printfx](../markdown/printfx/index.md) |
-| `pwd` | `pwdx` | `-L`, `-P` | [pwdx](../markdown/pwdx/index.md) |
-| `readlink` | `readlinkx` | `-f`, `-e`, `-m`, `-n`, `-q`, `-s`, `-v`, `-z` | [readlinkx](../markdown/readlinkx/index.md) |
-| `realpath` | `realpathx` | `-e`, `-L`, `-m`, `-P`, `-q`, `-s`/`--no-symlinks`, `-z`, `--relative-to`, `--relative-base` | [realpathx](../markdown/realpathx/index.md) |
-| `rm` | `rmx` | `-d`, `-f`, `-i`, `-I`, `-r`/`-R`, `-v`, `--interactive[=WHEN]`, `--one-file-system`, `--preserve-root`, `--no-preserve-root` | [rmx](../markdown/rmx/index.md) |
-| `rmdir` | `rmdirx` | `-p`, `-v`, `--ignore-fail-on-non-empty` | [rmdirx](../markdown/rmdirx/index.md) |
-| `sed` (GNU sed) | `sedx` | `-n`, `-e SCRIPT`, `-f SCRIPT-FILE`, `-E`/`-r`, `-i[SUFFIX]`, `-s`, `-z`, `-u`, `-l N`, `-b`, `--follow-symlinks`, `--posix`, `--sandbox`; the whole script language except the `e` command | [sedx](../markdown/sedx/index.md) |
-| `seq` | `seqx` | `-f FORMAT`, `-s STRING`, `-w` | [seqx](../markdown/seqx/index.md) |
-| `sha1sum` | `sha1sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha1sumx](../markdown/sha1sumx/index.md) |
-| `sha224sum` | `sha224sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha224sumx](../markdown/sha224sumx/index.md) |
-| `sha256sum` | `sha256sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha256sumx](../markdown/sha256sumx/index.md) |
-| `sha384sum` | `sha384sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha384sumx](../markdown/sha384sumx/index.md) |
-| `sha512sum` | `sha512sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha512sumx](../markdown/sha512sumx/index.md) |
-| `shuf` | `shufx` | `-e`, `-n COUNT`, `-i LO-HI`, `-o FILE`, `--random-source=FILE`, `-r`, `-z` | [shufx](../markdown/shufx/index.md) |
-| `sleep` | `sleepx` | NUMBER with `s`, `m`, `h`, `d`; fractions, exponents, hex floats, `infinity` | [sleepx](../markdown/sleepx/index.md) |
-| `sort` | `sortx` | `-b`, `-c`/`--check[=WHEN]`, `-C`, `-d`, `-f`, `-g`, `-h`, `-i`, `-k KEYDEF`, `-m`, `-M`, `-n`, `-o FILE`, `-r`, `-R`, `-s`, `-t SEP`, `-u`, `-V`, `-z`, `--files0-from=F`, `--random-source=FILE`, `--sort=WORD`; `-S`, `-T`, `--parallel`, `--batch-size`, `--compress-program` accepted and ignored | [sortx](../markdown/sortx/index.md) |
-| `split` | `splitx` | `--additional-suffix=SUFFIX`, `-b SIZE`, `-e`, `-x[=FROM]`, `-C SIZE`, `-l NUMBER`, `-n CHUNKS`, `-d[=FROM]`, `-t SEP`, `-a N`, `-u`, `--verbose` | [splitx](../markdown/splitx/index.md) |
-| `stat` | `statx` | `--cached=STRING`, `-L`, `-f`, `-c FORMAT`, `--printf=FORMAT`, `-t` | [statx](../markdown/statx/index.md) |
-| `sum` | `sumx` | `-r`, `-s` | [sumx](../markdown/sumx/index.md) |
-| `tac` | `tacx` | `-b`, `-r`, `-s STRING` | [tacx](../markdown/tacx/index.md) |
-| `tail` | `tailx` | `-c [+]NUM`, `-f[=HOW]`, `-F`, `-n [+]NUM`, `-q`, `-s N`, `-v`, `-z`, `--max-unchanged-stats=N`, `--pid`, `--retry`, size suffixes | [tailx](../markdown/tailx/index.md) |
-| `tee` | `teex` | `-a`, `-i`, `-p`, `--output-error[=MODE]` | [teex](../markdown/teex/index.md) |
-| `test`, `[` | `testx`, `[` | EXPRESSION: string, integer and file tests, `-l STRING`, `-nt`/`-ot`/`-ef`, `!`, `-a`, `-o`, parentheses | [testx](../markdown/testx/index.md) |
-| `timeout` | `timeoutx` | `--foreground`, `-k DURATION`, `--preserve-status`, `-s SIGNAL`, `-v` | [timeoutx](../markdown/timeoutx/index.md) |
-| `touch` | `touchx` | `-a`, `-c`, `-d STRING`, `-h`, `-m`, `-r FILE`, `-t STAMP`, `--time=WORD` | [touchx](../markdown/touchx/index.md) |
-| `tr` | `trx` | `-c`/`-C`, `-d`, `-s`, `-t`; SET ranges, escapes, `[:CLASS:]`, `[=C=]`, `[C*N]`, `[C*]` | [trx](../markdown/trx/index.md) |
-| `true` | `truex` | none (arguments ignored) | [truex](../markdown/truex/index.md) |
-| `truncate` | `truncatex` | `-o`, `-c`, `-r RFILE`, `-s SIZE` | [truncatex](../markdown/truncatex/index.md) |
-| `tsort` | `tsortx` | none | [tsortx](../markdown/tsortx/index.md) |
-| `tty` | `ttyx` | `--quiet`, `-s` | [ttyx](../markdown/ttyx/index.md) |
-| `uname` | `unamex` | `-a`, `-i`, `-s`, `-r`, `-v`, `-m`, `-n`, `-o`, `-p` | [unamex](../markdown/unamex/index.md) |
-| `unexpand` | `unexpandx` | `-a`, `--first-only`, `-t N, LIST` | [unexpandx](../markdown/unexpandx/index.md) |
-| `uniq` | `uniqx` | `-c`, `-d`, `-D`, `-f N`, `-i`, `-s N`, `-u`, `-w N`, `-z`, `--all-repeated[=METHOD]`, `--group[=METHOD]` | [uniqx](../markdown/uniqx/index.md) |
-| `unlink` | `unlinkx` | none | [unlinkx](../markdown/unlinkx/index.md) |
-| `uptime` | `uptimex` | none | [uptimex](../markdown/uptimex/index.md) |
-| `users` | `usersx` | none | [usersx](../markdown/usersx/index.md) |
-| `vdir` | `vdirx` | every `lsx` option | [vdirx](../markdown/vdirx/index.md) |
-| `wc` | `wcx` | `-c`, `-l`, `-L`, `-m`, `-w`, `--files0-from=F`, `--total=WHEN` | [wcx](../markdown/wcx/index.md) |
-| `who` | `whox` | `-a`, `-b`, `-q`, `-d`, `-H`, `-l`, `--lookup`, `-T`, `--message`, `-m`, `-p`, `-r`, `-s`, `-t`, `-u`, `-w` | [whox](../markdown/whox/index.md) |
-| `xargs` (findutils) | `xargsx` | `-0`, `-a FILE`, `-d CHARACTER`, `-E END`, `-e[END]`, `-I R`, `-i[R]`, `-L MAX-LINES`, `-l[MAX-LINES]`, `-n MAX-ARGS`, `-P MAX-PROCS`, `-p`, `-r`, `-s MAX-CHARS`, `-t`, `-x`, `--show-limits` | [xargsx](../markdown/xargsx/index.md) |
-| `whoami` | `whoamix` | none | [whoamix](../markdown/whoamix/index.md) |
-| `yes` | `yesx` | STRING... (no options) | [yesx](../markdown/yesx/index.md) |
+| `arch` | `archx` | none | [archx](https://gnux.vercel.app/docs/tools/archx) |
+| `b2sum` | `b2sumx` | `-b`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [b2sumx](https://gnux.vercel.app/docs/tools/b2sumx) |
+| `base32` | `base32x` | `-d`, `-i`, `-w COLS` | [base32x](https://gnux.vercel.app/docs/tools/base32x) |
+| `base64` | `base64x` | `-d`, `-i`, `-w COLS` | [base64x](https://gnux.vercel.app/docs/tools/base64x) |
+| `basename` | `basenamex` | `-a`, `-s SUFFIX`, `-z` | [basenamex](https://gnux.vercel.app/docs/tools/basenamex) |
+| `basenc` | `basencx` | `--base64`, `--base64url`, `--base32`, `--base32hex`, `--base16`, `--base2msbf`, `--base2lsbf`, `--z85`, `-d`, `-i`, `-w COLS` | [basencx](https://gnux.vercel.app/docs/tools/basencx) |
+| `cat` | `catx` | `-A`, `-b`, `-e`, `-E`, `-n`, `-s`, `-t`, `-T`, `-u`, `-v` | [catx](https://gnux.vercel.app/docs/tools/catx) |
+| `chgrp` | `chgrpx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chgrpx](https://gnux.vercel.app/docs/tools/chgrpx) |
+| `chmod` | `chmodx` | `-c`, `--dereference`, `-L`, `-H`, `-h`, `-P`, `--no-preserve-root`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chmodx](https://gnux.vercel.app/docs/tools/chmodx) |
+| `chown` | `chownx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chownx](https://gnux.vercel.app/docs/tools/chownx) |
+| `cksum` | `cksumx` | `-a TYPE`, `--base64`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--raw`, `--status`, `--strict`, `--tag`, `--untagged`, `-w`, `-z` | [cksumx](https://gnux.vercel.app/docs/tools/cksumx) |
+| `comm` | `commx` | `--check-order`, `--nocheck-order`, `--output-delimiter=STR`, `-3`, `-1`, `-2`, `--total`, `-z` | [commx](https://gnux.vercel.app/docs/tools/commx) |
+| `cp` | `cpx` | `-a`, `--backup[=CONTROL]`, `-b`, `-d`, `-f`, `-H`, `-i`, `-l`, `-L`, `-n`, `-p`, `-P`, `-r`/`-R`, `-s`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `-x`, `--parents`, `--preserve[=LIST]`, `--no-preserve=LIST`, `--remove-destination`, `-S SUFFIX`, `--strip-trailing-slashes` | [cpx](https://gnux.vercel.app/docs/tools/cpx) |
+| `csplit` | `csplitx` | `-n DIGITS`, `-z`, `-k`, `-f PREFIX`, `-s`, `-q`, `-b FORMAT`, `--suppress-matched` | [csplitx](https://gnux.vercel.app/docs/tools/csplitx) |
+| `cut` | `cutx` | `-b LIST`, `-c LIST`, `-d DELIM`, `-f LIST`, `-n`, `-s`, `-z`, `--complement`, `--output-delimiter=STRING` | [cutx](https://gnux.vercel.app/docs/tools/cutx) |
+| `date` | `datex` | `-d STRING`, `-f DATEFILE`, `-I[=FMT]`, `-r FILE`, `--resolution`, `--rfc-3339=FMT`, `-R`, `-s STRING`, `--universal`, `-u` | [datex](https://gnux.vercel.app/docs/tools/datex) |
+| `dd` | `ddx` | operands `if=`, `of=`, `bs=`, `ibs=`, `obs=`, `cbs=`, `skip=`/`iseek=`, `seek=`/`oseek=`, `count=`, `conv=`, `iflag=`, `oflag=`, `status=` | [ddx](https://gnux.vercel.app/docs/tools/ddx) |
+| `df` | `dfx` | `-a`, `-B SIZE`, `-x TYPE`, `-h`, `-i`, `-k`, `-l`, `--no-sync`, `--output[=FIELD_LIST]`, `-P`, `-T`, `-H`, `--sync`, `-v`, `--total`, `-t TYPE` | [dfx](https://gnux.vercel.app/docs/tools/dfx) |
+| `dir` | `dirx` | every `lsx` option | [dirx](https://gnux.vercel.app/docs/tools/dirx) |
+| `dircolors` | `dircolorsx` | `-b`, `-c`, `-p`, `--print-ls-colors` | [dircolorsx](https://gnux.vercel.app/docs/tools/dircolorsx) |
+| `dirname` | `dirnamex` | `-z` | [dirnamex](https://gnux.vercel.app/docs/tools/dirnamex) |
+| `du` | `dux` | `-a`, `-A`, `-B SIZE`, `-b`, `-l`, `-L`, `-D`, `--exclude=PATTERN`, `-X FILE`, `--files0-from=F`, `-h`, `--inodes`, `-k`, `-d N`, `-m`, `-P`, `-0`, `-x`, `-S`, `--si`, `-s`, `-t SIZE`, `--time[=WORD]`, `--time-style=STYLE`, `-c` | [dux](https://gnux.vercel.app/docs/tools/dux) |
+| `echo` | `echox` | `-n`, `-e`, `-E` | [echox](https://gnux.vercel.app/docs/tools/echox) |
+| `env` | `envx` | `-0`, `-a ARG`, `-C DIR`, `-i`/`-`, `-S STRING`, `-u NAME`, `-v` | [envx](https://gnux.vercel.app/docs/tools/envx) |
+| `expand` | `expandx` | `-i`, `-t N, LIST` | [expandx](https://gnux.vercel.app/docs/tools/expandx) |
+| `expr` | `exprx` | EXPRESSION: `\|`, `&`, comparisons, `+ - * / %`, `:`, `match`, `substr`, `index`, `length`, `+ TOKEN`, parentheses | [exprx](https://gnux.vercel.app/docs/tools/exprx) |
+| `factor` | `factorx` | `-h` | [factorx](https://gnux.vercel.app/docs/tools/factorx) |
+| `false` | `falsex` | none (arguments ignored) | [falsex](https://gnux.vercel.app/docs/tools/falsex) |
+| `find` (findutils) | `findx` | An expression, not options: `-H`, `-L`, `-P`; `( )`, `!`, `-a`, `-o`, `,`; tests such as `-name`, `-path`, `-regex`, `-type`, `-size`, `-newer`, `-mtime`, `-perm`, `-user`, `-empty`; `-maxdepth`, `-mindepth`, `-depth`, `-xdev`; actions `-print`, `-print0`, `-printf`, `-ls`, `-delete`, `-prune`, `-quit`, `-exec`, `-execdir`, `-ok` | [findx](https://gnux.vercel.app/docs/tools/findx) |
+| `fmt` | `fmtx` | `-c`, `-g STRING`, `-p STRING`, `-s`, `-t`, `-u`, `-w WIDTH` | [fmtx](https://gnux.vercel.app/docs/tools/fmtx) |
+| `fold` | `foldx` | `-b`, `-s`, `-w WIDTH` | [foldx](https://gnux.vercel.app/docs/tools/foldx) |
+| `grep` (GNU grep) | `grepx` | `-E`, `-F`, `-G`, `-e PATTERNS`, `-f FILE`, `-i`, `-v`, `-w`, `-x`, `-c`, `-l`, `-L`, `-m NUM`, `-o`, `-q`, `-s`, `-b`, `-H`, `-h`, `-n`, `-T`, `-Z`, `-z`, `-A NUM`, `-B NUM`, `-C NUM`, `-NUM`, `-r`, `-R`, `-d ACTION`, `-D ACTION`, `-a`, `-I`, `-U`, `--binary-files=TYPE`, `--color[=WHEN]`, `--include=GLOB`, `--exclude=GLOB`, `--exclude-from=FILE`, `--exclude-dir=GLOB`, `--group-separator=SEP`, `--no-group-separator`, `--label=LABEL`, `--line-buffered`, `--no-ignore-case` | [grepx](https://gnux.vercel.app/docs/tools/grepx) |
+| `groups` | `groupsx` | none | [groupsx](https://gnux.vercel.app/docs/tools/groupsx) |
+| `head` | `headx` | `-c [-]NUM`, `-n [-]NUM`, `-NUM`, `-q`, `-v`, `-z`, size suffixes | [headx](https://gnux.vercel.app/docs/tools/headx) |
+| `hostid` | `hostidx` | none | [hostidx](https://gnux.vercel.app/docs/tools/hostidx) |
+| `hostname` | `hostnamex` | none | [hostnamex](https://gnux.vercel.app/docs/tools/hostnamex) |
+| `id` | `idx` | `-a`, `-Z`, `-g`, `-G`, `-n`, `-r`, `-u`, `-z` | [idx](https://gnux.vercel.app/docs/tools/idx) |
+| `install` | `installx` | `--backup[=CONTROL]`, `-b`, `-C`, `-c`, `-D`, `-d`, `-g GROUP`, `-m MODE`, `-T`, `-o OWNER`, `-p`, `-s`, `-S SUFFIX`, `-t DIRECTORY`, `-v` | [installx](https://gnux.vercel.app/docs/tools/installx) |
+| `join` | `joinx` | `--check-order`, `-e EMPTY`, `-1 FIELD`, `-2 FIELD`, `--header`, `-i`, `-j STRINGARRAY`, `--nocheck-order`, `-v STRINGARRAY`, `-o FORMAT`, `-t CHAR`, `-a FILENUM`, `-z` | [joinx](https://gnux.vercel.app/docs/tools/joinx) |
+| `kill` | `killx` | `-l`, `-n NUMBER`, `-s STRING`, `-L` | [killx](https://gnux.vercel.app/docs/tools/killx) |
+| `link` | `linkx` | none | [linkx](https://gnux.vercel.app/docs/tools/linkx) |
+| `ln` | `lnx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-L`, `-n`, `-P`, `-r`, `-s`, `-S SUFFIX`, `-t`, `-T`, `-v` | [lnx](https://gnux.vercel.app/docs/tools/lnx) |
+| `logname` | `lognamex` | none | [lognamex](https://gnux.vercel.app/docs/tools/lognamex) |
+| `ls` | `lsx` | `-1`, `-a`, `-A`, `-B`, `-b`, `-c`, `-C`, `-d`, `-F`, `-g`, `-G`, `-h`, `-H`, `-i`, `-I`, `-l`, `-L`, `-m`, `-n`, `-o`, `-p`, `-q`, `-Q`, `-r`, `-R`, `-s`, `-S`, `-t`, `-T`, `-u`, `-U`, `-v`, `-w`, `-x`, `-X`, `--author`, `--block-size`, `--color`, `-D`/`--dired`, `--file-type`, `--format`, `--full-time`, `--group-directories-first`, `--hide`, `--hyperlink`, `--indicator-style`, `-k`, `-N`, `--quoting-style`, `--show-control-chars`, `--si`, `--sort`, `--time`, `--time-style`, `--zero` | [lsx](https://gnux.vercel.app/docs/tools/lsx) |
+| `md5sum` | `md5sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [md5sumx](https://gnux.vercel.app/docs/tools/md5sumx) |
+| `mkdir` | `mkdirx` | `-m MODE`, `-p`, `-v` | [mkdirx](https://gnux.vercel.app/docs/tools/mkdirx) |
+| `mkfifo` | `mkfifox` | `-m MODE`, `-Z`, `--context[=CTX]` | [mkfifox](https://gnux.vercel.app/docs/tools/mkfifox) |
+| `mknod` | `mknodx` | `-m MODE`, `-Z`, `--context[=CTX]` | [mknodx](https://gnux.vercel.app/docs/tools/mknodx) |
+| `mktemp` | `mktempx` | `-p DIR`, `-d`, `-u`, `-t`, `-q`, `--suffix=SUFF`, `--tmpdir[=DIR]` | [mktempx](https://gnux.vercel.app/docs/tools/mktempx) |
+| `mv` | `mvx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-n`, `--no-copy`, `-S SUFFIX`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `--strip-trailing-slashes` | [mvx](https://gnux.vercel.app/docs/tools/mvx) |
+| `nice` | `nicex` | `-n N` | [nicex](https://gnux.vercel.app/docs/tools/nicex) |
+| `nl` | `nlx` | `-b STYLE`, `-f STYLE`, `-h STYLE`, `-l NUMBER`, `-i STRING`, `-p`, `-n FORMAT`, `-s STRING`, `-w NUMBER`, `-d CC`, `-v STRING` | [nlx](https://gnux.vercel.app/docs/tools/nlx) |
+| `nohup` | `nohupx` | none | [nohupx](https://gnux.vercel.app/docs/tools/nohupx) |
+| `nproc` | `nprocx` | `--all`, `--ignore=N` | [nprocx](https://gnux.vercel.app/docs/tools/nprocx) |
+| `numfmt` | `numfmtx` | `--debug`, `-d X`, `--field=FIELDS`, `--format=FORMAT`, `--from=UNIT`, `--from-unit=N`, `--grouping`, `--header[=N]`, `--invalid=MODE`, `--padding=N`, `--round=METHOD`, `--suffix=SUFFIX`, `--to=UNIT`, `--to-unit=N`, `-z` | [numfmtx](https://gnux.vercel.app/docs/tools/numfmtx) |
+| `od` | `odx` | `-A RADIX`, `-c[=STRING]`, `-s[=STRING]`, `-i[=STRING]`, `-l[=STRING]`, `--endian=ORDER`, `-f[=STRING]`, `-t TYPE`, `-x[=STRING]`, `-a[=STRING]`, `-o[=STRING]`, `-b[=STRING]`, `-v`, `-N BYTES`, `-j BYTES`, `-S BYTES`, `-d[=STRING]`, `-w BYTES` | [odx](https://gnux.vercel.app/docs/tools/odx) |
+| `paste` | `pastex` | `-d LIST`, `-s`, `-z` | [pastex](https://gnux.vercel.app/docs/tools/pastex) |
+| `pathchk` | `pathchkx` | `-p`, `-P`, `--portability` | [pathchkx](https://gnux.vercel.app/docs/tools/pathchkx) |
+| `pinky` | `pinkyx` | `-l`, `-b`, `-h`, `-p`, `-s`, `-f`, `-w`, `-i`, `-q`, `--lookup` | [pinkyx](https://gnux.vercel.app/docs/tools/pinkyx) |
+| `pr` | `prx` | `+FIRST[:LAST]`, `--pages`, `-COLUMN`, `--columns`, `-a`, `-c`, `-d`, `-D FORMAT`, `-e[CHAR[WIDTH]]`, `-F`/`-f`, `-h HEADER`, `-i[CHAR[WIDTH]]`, `-J`, `-l LENGTH`, `-m`, `-n[SEP[DIGITS]]`, `-N NUMBER`, `-o MARGIN`, `-r`, `-s[CHAR]`, `-S[STRING]`, `-t`, `-T`, `-v`, `-w WIDTH`, `-W WIDTH` | [prx](https://gnux.vercel.app/docs/tools/prx) |
+| `printenv` | `printenvx` | `-0` | [printenvx](https://gnux.vercel.app/docs/tools/printenvx) |
+| `printf` | `printfx` | FORMAT [ARGUMENT]... (no options) | [printfx](https://gnux.vercel.app/docs/tools/printfx) |
+| `ptx` | `ptxx` | `-A`, `-G`, `-F STRING`, `-M STRING`, `-O`, `-R`, `-S REGEXP`, `-T`, `--format=FORMAT`, `-W REGEXP`, `-b FILE`, `-f`, `-g NUMBER`, `-i FILE`, `-o FILE`, `-r`, `-t`, `-w NUMBER` | [ptxx](https://gnux.vercel.app/docs/tools/ptxx) |
+| `pwd` | `pwdx` | `-L`, `-P` | [pwdx](https://gnux.vercel.app/docs/tools/pwdx) |
+| `readlink` | `readlinkx` | `-f`, `-e`, `-m`, `-n`, `-q`, `-s`, `-v`, `-z` | [readlinkx](https://gnux.vercel.app/docs/tools/readlinkx) |
+| `realpath` | `realpathx` | `-e`, `-L`, `-m`, `-P`, `-q`, `-s`/`--no-symlinks`, `-z`, `--relative-to`, `--relative-base` | [realpathx](https://gnux.vercel.app/docs/tools/realpathx) |
+| `rm` | `rmx` | `-d`, `-f`, `-i`, `-I`, `-r`/`-R`, `-v`, `--interactive[=WHEN]`, `--one-file-system`, `--preserve-root`, `--no-preserve-root` | [rmx](https://gnux.vercel.app/docs/tools/rmx) |
+| `rmdir` | `rmdirx` | `-p`, `-v`, `--ignore-fail-on-non-empty` | [rmdirx](https://gnux.vercel.app/docs/tools/rmdirx) |
+| `sed` (GNU sed) | `sedx` | `-n`, `-e SCRIPT`, `-f SCRIPT-FILE`, `-E`/`-r`, `-i[SUFFIX]`, `-s`, `-z`, `-u`, `-l N`, `-b`, `--follow-symlinks`, `--posix`, `--sandbox`; the whole script language except the `e` command | [sedx](https://gnux.vercel.app/docs/tools/sedx) |
+| `seq` | `seqx` | `-f FORMAT`, `-s STRING`, `-w` | [seqx](https://gnux.vercel.app/docs/tools/seqx) |
+| `sha1sum` | `sha1sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha1sumx](https://gnux.vercel.app/docs/tools/sha1sumx) |
+| `sha224sum` | `sha224sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha224sumx](https://gnux.vercel.app/docs/tools/sha224sumx) |
+| `sha256sum` | `sha256sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha256sumx](https://gnux.vercel.app/docs/tools/sha256sumx) |
+| `sha384sum` | `sha384sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha384sumx](https://gnux.vercel.app/docs/tools/sha384sumx) |
+| `sha512sum` | `sha512sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha512sumx](https://gnux.vercel.app/docs/tools/sha512sumx) |
+| `shred` | `shredx` | `-f`, `-n N`, `--random-source=FILE`, `-s N`, `-u`, `--remove[=HOW]`, `-v`, `-x`, `-z` | [shredx](https://gnux.vercel.app/docs/tools/shredx) |
+| `shuf` | `shufx` | `-e`, `-n COUNT`, `-i LO-HI`, `-o FILE`, `--random-source=FILE`, `-r`, `-z` | [shufx](https://gnux.vercel.app/docs/tools/shufx) |
+| `sleep` | `sleepx` | NUMBER with `s`, `m`, `h`, `d`; fractions, exponents, hex floats, `infinity` | [sleepx](https://gnux.vercel.app/docs/tools/sleepx) |
+| `sort` | `sortx` | `-b`, `-c`/`--check[=WHEN]`, `-C`, `-d`, `-f`, `-g`, `-h`, `-i`, `-k KEYDEF`, `-m`, `-M`, `-n`, `-o FILE`, `-r`, `-R`, `-s`, `-t SEP`, `-u`, `-V`, `-z`, `--files0-from=F`, `--random-source=FILE`, `--sort=WORD`; `-S`, `-T`, `--parallel`, `--batch-size`, `--compress-program` accepted and ignored | [sortx](https://gnux.vercel.app/docs/tools/sortx) |
+| `split` | `splitx` | `--additional-suffix=SUFFIX`, `-b SIZE`, `-e`, `-x[=FROM]`, `-C SIZE`, `-l NUMBER`, `-n CHUNKS`, `-d[=FROM]`, `-t SEP`, `-a N`, `-u`, `--verbose` | [splitx](https://gnux.vercel.app/docs/tools/splitx) |
+| `stat` | `statx` | `--cached=STRING`, `-L`, `-f`, `-c FORMAT`, `--printf=FORMAT`, `-t` | [statx](https://gnux.vercel.app/docs/tools/statx) |
+| `stdbuf` | `stdbufx` | `-i MODE`, `-o MODE`, `-e MODE` | [stdbufx](https://gnux.vercel.app/docs/tools/stdbufx) |
+| `stty` | `sttyx` | `-a`, `-g`, `-F DEVICE`, and every setting GNU stty has on the platform | [sttyx](https://gnux.vercel.app/docs/tools/sttyx) |
+| `sum` | `sumx` | `-r`, `-s` | [sumx](https://gnux.vercel.app/docs/tools/sumx) |
+| `sync` | `syncx` | `-d`, `-f` | [syncx](https://gnux.vercel.app/docs/tools/syncx) |
+| `tac` | `tacx` | `-b`, `-r`, `-s STRING` | [tacx](https://gnux.vercel.app/docs/tools/tacx) |
+| `tail` | `tailx` | `-c [+]NUM`, `-f[=HOW]`, `-F`, `-n [+]NUM`, `-q`, `-s N`, `-v`, `-z`, `--max-unchanged-stats=N`, `--pid`, `--retry`, size suffixes | [tailx](https://gnux.vercel.app/docs/tools/tailx) |
+| `tee` | `teex` | `-a`, `-i`, `-p`, `--output-error[=MODE]` | [teex](https://gnux.vercel.app/docs/tools/teex) |
+| `test`, `[` | `testx`, `[` | EXPRESSION: string, integer and file tests, `-l STRING`, `-nt`/`-ot`/`-ef`, `!`, `-a`, `-o`, parentheses | [testx](https://gnux.vercel.app/docs/tools/testx) |
+| `timeout` | `timeoutx` | `--foreground`, `-k DURATION`, `--preserve-status`, `-s SIGNAL`, `-v` | [timeoutx](https://gnux.vercel.app/docs/tools/timeoutx) |
+| `touch` | `touchx` | `-a`, `-c`, `-d STRING`, `-h`, `-m`, `-r FILE`, `-t STAMP`, `--time=WORD` | [touchx](https://gnux.vercel.app/docs/tools/touchx) |
+| `tr` | `trx` | `-c`/`-C`, `-d`, `-s`, `-t`; SET ranges, escapes, `[:CLASS:]`, `[=C=]`, `[C*N]`, `[C*]` | [trx](https://gnux.vercel.app/docs/tools/trx) |
+| `true` | `truex` | none (arguments ignored) | [truex](https://gnux.vercel.app/docs/tools/truex) |
+| `truncate` | `truncatex` | `-o`, `-c`, `-r RFILE`, `-s SIZE` | [truncatex](https://gnux.vercel.app/docs/tools/truncatex) |
+| `tsort` | `tsortx` | none | [tsortx](https://gnux.vercel.app/docs/tools/tsortx) |
+| `tty` | `ttyx` | `--quiet`, `-s` | [ttyx](https://gnux.vercel.app/docs/tools/ttyx) |
+| `uname` | `unamex` | `-a`, `-i`, `-s`, `-r`, `-v`, `-m`, `-n`, `-o`, `-p` | [unamex](https://gnux.vercel.app/docs/tools/unamex) |
+| `unexpand` | `unexpandx` | `-a`, `--first-only`, `-t N, LIST` | [unexpandx](https://gnux.vercel.app/docs/tools/unexpandx) |
+| `uniq` | `uniqx` | `-c`, `-d`, `-D`, `-f N`, `-i`, `-s N`, `-u`, `-w N`, `-z`, `--all-repeated[=METHOD]`, `--group[=METHOD]` | [uniqx](https://gnux.vercel.app/docs/tools/uniqx) |
+| `unlink` | `unlinkx` | none | [unlinkx](https://gnux.vercel.app/docs/tools/unlinkx) |
+| `uptime` | `uptimex` | none | [uptimex](https://gnux.vercel.app/docs/tools/uptimex) |
+| `users` | `usersx` | none | [usersx](https://gnux.vercel.app/docs/tools/usersx) |
+| `vdir` | `vdirx` | every `lsx` option | [vdirx](https://gnux.vercel.app/docs/tools/vdirx) |
+| `wc` | `wcx` | `-c`, `-l`, `-L`, `-m`, `-w`, `--files0-from=F`, `--total=WHEN` | [wcx](https://gnux.vercel.app/docs/tools/wcx) |
+| `who` | `whox` | `-a`, `-b`, `-q`, `-d`, `-H`, `-l`, `--lookup`, `-T`, `--message`, `-m`, `-p`, `-r`, `-s`, `-t`, `-u`, `-w` | [whox](https://gnux.vercel.app/docs/tools/whox) |
+| `whoami` | `whoamix` | none | [whoamix](https://gnux.vercel.app/docs/tools/whoamix) |
+| `xargs` (findutils) | `xargsx` | `-0`, `-a FILE`, `-d CHARACTER`, `-E END`, `-e[END]`, `-I R`, `-i[R]`, `-L MAX-LINES`, `-l[MAX-LINES]`, `-n MAX-ARGS`, `-P MAX-PROCS`, `-p`, `-r`, `-s MAX-CHARS`, `-t`, `-x`, `--show-limits` | [xargsx](https://gnux.vercel.app/docs/tools/xargsx) |
+| `yes` | `yesx` | STRING... (no options) | [yesx](https://gnux.vercel.app/docs/tools/yesx) |
 
 Every tool also takes `--help` and `--version`. For `echox`, `printfx`, `truex`, `falsex`, `yesx`, `seqx`, `exprx`, `testx` and `ddx`, as in GNU, they are honored only as the sole argument.
 
@@ -203,6 +217,19 @@ The rule is in the project's [rules](../../docs/rules/README.md) as "conflicts r
 | `uptimex` | Windows keeps no load average, so that part is left out there |
 | `whox` | Reads Linux utmp, macOS utmpx and FreeBSD utx.active without the C library. On Windows it lists the signed-in console and Remote Desktop sessions; FILE is not supported there |
 | `xargsx` | A command named after a gnux tool runs in-process; anything else is a program on `PATH`. `-P 0` runs at most 128 commands at once. The default size limit is a fixed figure, not asked of the system. A NUL in the input outside `-0` mode is dropped with GNU's warning |
+| `basencx` | Decodes and encodes with the same engine as `base64x` and `base32x`; the last encoding option wins, as in GNU |
+| `dircolorsx` | The built-in database is GNU coreutils 9.7's. `--sh` and `--csh` also answer to `--bourne-shell` and `--c-shell`, as in GNU; the last of `-b` and `-c` wins |
+| `hostidx` | Windows has no `gethostid`: the identifier is derived from the host's IPv4 address, as glibc does when `/etc/hostid` is missing |
+| `mkfifox`, `mknodx` | `-Z` and `--context` are accepted and ignored with GNU's warning, as on a kernel without SELinux. Windows has no special files: every name fails with "Operation not supported" |
+| `numfmtx` | Computes in the 64-bit-mantissa precision of x86-64's long double, so a plain number of more than 18 digits needs `--to` (GNU on arm64 Linux, with a 113-bit long double, allows more). The C locale: `--grouping` adds no separators |
+| `pathchkx` | `-p` and `-P` also answer to `--basic` and `--extra`. On Windows the limits are NTFS's: 255 characters per component, 259 in all |
+| `pinkyx` | The long names of its letter options (`--long`, `--omit-heading`, ...) are gnux's own. The shell in `-l` is read from `/etc/passwd`, so it is blank for users kept elsewhere (macOS directory services, LDAP) and on Windows |
+| `prx` | The header's date is in the C locale's words |
+| `ptxx` | Regular expressions are in GNU ptx's Emacs syntax, run by Go's RE2: back references are refused, and `\<` and `\>` behave as `\b` |
+| `shredx` | The order of the fixed patterns differs from GNU's run for run, as GNU's own does. A bad block is reported and ends the file's shredding, where GNU skips the block. On Windows, a run's directory renames are not flushed one by one |
+| `stdbufx` | A command named after a gnux tool runs in-process, unchanged: gnux tools already write each line as soon as their input runs dry. Any other command needs GNU's `libstdbuf.so`, found beside gnux or where coreutils packages install it, or stdbufx refuses (status 125), as GNU does when it is missing; Windows has none |
+| `sttyx` | On macOS and the BSDs the `PENDIN` flag, which the kernel raises by itself, is left out of the check that every setting was taken. When the Linux kernel quietly ignores a setting (`evenp` on a pseudo-terminal), sttyx says it was unable to perform all requested operations where glibc's `tcsetattr` makes GNU say "Invalid argument". Windows has no termios: every setting is checked, then fails with "Operation not supported" |
+| `syncx` | Off Linux, `-d` flushes as plain `fsync` and `-f` flushes every file system. On Windows a run with no FILE succeeds without flushing anything: there is no unprivileged call that flushes every volume |
 | `basenamex`, `base32x`, `base64x`, `dirnamex`, `echox`, `falsex`, `foldx`, `fmtx`, `headx`, `installx`, `linkx`, `mktempx`, `pastex`, `printenvx`, `readlinkx`, `rmdirx`, `sleepx`, `trx`, `truex`, `truncatex`, `unlinkx`, `wcx`, `whoamix`, `yesx` | None known beyond what their reference pages state |
 
 ## Not implemented yet
@@ -246,7 +273,7 @@ If a script uses one, the fix is usually simple: replace `ls -f` with `lsx -aU`.
 
 ## What is not in gnux yet
 
-gnux covers 94 tools today: nearly all of coreutils, plus `grepx`, `sedx`, `findx` and `xargsx` from GNU grep, GNU sed and GNU findutils. Still on the [roadmap in the README](../../README.md#roadmap): `basenc`, `numfmt`, `pr`, `mkfifo`, `mknod`, `pathchk`, `pinky`, `stdbuf`, `sync`, `shred`, `dircolors`, `hostid`, `ptx` and `stty`. `chroot`, `chcon` and `runcon` are out of scope by design: they change system-wide state that gnux leaves to the system's own tools.
+gnux covers 108 tools today: all of coreutils but three, plus `grepx`, `sedx`, `findx` and `xargsx` from GNU grep, GNU sed and GNU findutils. `chroot`, `chcon` and `runcon` are out of scope by design: they change system-wide state that gnux leaves to the system's own tools.
 
 ## See also
 

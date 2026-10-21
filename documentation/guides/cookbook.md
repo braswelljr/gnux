@@ -9,7 +9,7 @@ A task-oriented recipe book for the gnux command-line tools: over 90 short recip
 - **Redirection** with `>` in Windows PowerShell 5.1 writes UTF-16. Where a recipe writes a file, the PowerShell form uses `gnux shell -c` so the bytes are exactly what the tool printed. PowerShell 7 writes UTF-8 and either form works there.
 - When there is no PowerShell block, the bash command runs unchanged in PowerShell.
 
-The tool reference pages hold every flag: start at the [reference index](../markdown/index.md).
+The tool reference pages hold every flag: start at the [reference index](https://gnux.vercel.app/docs).
 
 ## Contents
 
@@ -1125,4 +1125,4 @@ In the second line the redirection is opened before `lsx` runs, so `count` is co
 - [Portable scripting](portable-scripting.md): turn these recipes into scripts.
 - [Windows and PowerShell](windows-and-powershell.md): more on quoting and globbing in PowerShell.
 - [Troubleshooting](troubleshooting.md): what each error in these recipes means.
-- The tool references: [catx](../markdown/catx/index.md), [cpx](../markdown/cpx/index.md), [headx](../markdown/headx/index.md), [lnx](../markdown/lnx/index.md), [lsx](../markdown/lsx/index.md), [mvx](../markdown/mvx/index.md), [rmx](../markdown/rmx/index.md), [tailx](../markdown/tailx/index.md), [touchx](../markdown/touchx/index.md), [wcx](../markdown/wcx/index.md).
+- The tool references: [catx](https://gnux.vercel.app/docs/tools/catx), [cpx](https://gnux.vercel.app/docs/tools/cpx), [headx](https://gnux.vercel.app/docs/tools/headx), [lnx](https://gnux.vercel.app/docs/tools/lnx), [lsx](https://gnux.vercel.app/docs/tools/lsx), [mvx](https://gnux.vercel.app/docs/tools/mvx), [rmx](https://gnux.vercel.app/docs/tools/rmx), [tailx](https://gnux.vercel.app/docs/tools/tailx), [touchx](https://gnux.vercel.app/docs/tools/touchx), [wcx](https://gnux.vercel.app/docs/tools/wcx).

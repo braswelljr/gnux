@@ -42,13 +42,15 @@ entry ([adding-a-tool](../workflows/adding-a-tool.md)).
 - [X] `factorx` (FR-157)
 - [X] `shufx` (FR-134)
 - [X] `odx` (FR-125)
+- [X] `numfmtx` (FR-175)
+- [X] `prx` (FR-178), `ptxx` (FR-179)
 
 ### Checksums and encoding
 
 - [X] `md5sumx` (FR-119), `sha1sumx` (FR-129), `sha224sumx` (FR-130), `sha256sumx` (FR-131),
   `sha384sumx` (FR-132), `sha512sumx` (FR-133), `b2sumx` (FR-96)
 - [X] `cksumx` (FR-102), `sumx` (FR-158)
-- [X] `base32x` (FR-97), `base64x` (FR-98)
+- [X] `base32x` (FR-97), `base64x` (FR-98), `basencx` (FR-170)
 
 ### File attributes
 
@@ -61,6 +63,9 @@ entry ([adding-a-tool](../workflows/adding-a-tool.md)).
 - [X] `truncatex` (FR-140)
 - [X] `readlinkx` (FR-128)
 - [X] `linkx` (FR-118), `unlinkx` (FR-144)
+- [X] `mkfifox` (FR-173), `mknodx` (FR-174)
+- [X] `pathchkx` (FR-176)
+- [X] `shredx` (FR-180), `syncx` (FR-183)
 
 ### System
 
@@ -72,6 +77,8 @@ entry ([adding-a-tool](../workflows/adding-a-tool.md)).
 - [X] `testx` (FR-138), `exprx` (FR-110)
 - [X] `[` as another name for `testx`, requiring the closing `]` (FR-138)
 - [X] `ddx` (FR-106)
+- [X] `hostidx` (FR-172), `pinkyx` (FR-177)
+- [X] `dircolorsx` (FR-171), `sttyx` (FR-182), `stdbufx` (FR-181)
 
 ### Beyond coreutils
 

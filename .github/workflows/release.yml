@@ -45,13 +45,10 @@ jobs:
       - name: Test
         run: go test -race ./...
 
-      - name: Verify docs are up to date
-        run: |
-          go generate ./...
-          if [ -n "$(git status --porcelain documentation web/content/docs)" ]; then
-            echo "::error::Generated docs are out of date at this tag. Run 'make docs' and commit." >&2
-            exit 1
-          fi
+      # The docs are not committed; this proves they generate at this tag.
+      # GoReleaser generates the man pages it ships itself (.goreleaser.yaml).
+      - name: Generate docs
+        run: go generate ./...
 
       # Checked here, before anything is built: a release without its
       # changelog section stops now. tools/changelog explains what is missing.

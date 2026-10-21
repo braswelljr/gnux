@@ -1,6 +1,6 @@
 # Documentation Generation
 
-How the reference documentation and the website's content are produced from the code: `tools/gendocs` (run by `make docs` and by the `go generate` lines in `main.go`) drives `cmd/docs`, which builds one page per topic from the tool registry and each tool's `docmeta.Meta`, renders it as markdown, man, YAML and reST into `documentation/<format>/`, and separately writes MDX pages plus Fumadocs `meta.json` navigation into `web/content/docs/`, together with the hand-written usage guides in `documentation/guides` (the requirements, workflows and rules are not published). It covers how output is kept byte-for-byte deterministic, how `wrapCode` and `mdxEscape` treat prose, how links in hand-written pages are rewritten for the website, and how the Docs workflow fails a change whose committed copies are stale.
+How the reference documentation and the website's content are produced from the code: `tools/gendocs` (run by `make docs` and by the `go generate` lines in `main.go`) drives `cmd/docs`, which builds one page per topic from the tool registry and each tool's `docmeta.Meta`, renders it as markdown, man, YAML and reST into `documentation/<format>/`, and separately writes MDX pages plus Fumadocs `meta.json` navigation into `web/content/docs/`, together with the hand-written usage guides in `documentation/guides` (the requirements, workflows and rules are not published). It covers how output is kept byte-for-byte deterministic, how `wrapCode` and `mdxEscape` treat prose, how links in hand-written pages are rewritten for the website, and why none of the generated output is committed: the website build, the release and `make docs` each generate it from the code at hand.
 
 ## The path at a glance
 
@@ -260,7 +260,8 @@ a link into `../requirements/` takes the GitHub row, not the site row.
 | `../requirements/functional-requirements.md#fr-1`   | `/docs/requirements/functional-requirements#fr-1`              | a published page; the anchor is kept    |
 | `../../AGENTS.md`                                   | `https://github.com/braswelljr/gnux/blob/main/AGENTS.md`       | not published: link to GitHub           |
 | `../../core/core.go`                                | `https://github.com/braswelljr/gnux/blob/main/core/core.go`    | source code: link to GitHub             |
-| `../../documentation/markdown/index.md`                              | `https://github.com/braswelljr/gnux/blob/main/documentation/markdown/index.md` | a generated folder is not a published section |
+| `https://gnux.vercel.app/docs/tools/rmx#examples`   | `/docs/tools/rmx#examples`                                     | a reference page: stays on the site, and on the version being read |
+| `../../documentation/markdown/rmx/index.md`         | `/docs/tools/rmx`                                              | the same page; prefer the website URL, which also works on GitHub |
 | `https://example.com/x.md`, `#top`, `/x`, `mailto:` | unchanged                                                      | already absolute or in-page             |
 
 Only a `.md` file **directly inside** one of the published folders becomes a site link. These
@@ -270,7 +271,8 @@ balanced parentheses in a target, so a link into a Next.js route group such as
 
 ## Determinism
 
-Committed generated files must not change unless the code did (NFR-29). What keeps them stable:
+Two runs over the same code must give the same files (NFR-29), so that the website and the
+release archives built from one commit carry the same reference. What keeps them stable:
 
 | Source of churn                     | How it is removed                                                    |
 |-------------------------------------|----------------------------------------------------------------------|
@@ -282,34 +284,36 @@ Committed generated files must not change unless the code did (NFR-29). What kee
 
 `TestGenerateAllDeterministic` generates the four formats twice into separate directories and
 compares the trees file by file. The MDX output has no such test; its stability rests on the
-same rules and on the Docs workflow.
+same rules.
 
 `ManDate` is a package variable rather than a constant so release tooling could set it before
 generating; nothing does today, so release man pages carry the pinned date (see
 [ci-and-release](ci-and-release.md)).
 
-## Step 7: the freshness check
+## Step 7: nothing generated is committed
+
+`.gitignore` keeps `documentation/{markdown,man,yaml,rest}/` and `web/content/docs/` out of the
+repository, except the release snapshots `web/content/docs/vX.Y` (`tools/docsnap`). Each
+consumer generates what it needs:
+
+| Consumer                     | Generates                                  | How                                              |
+|------------------------------|--------------------------------------------|--------------------------------------------------|
+| The website (`pnpm dev`, `pnpm build`, Vercel) | `web/content/docs` (MDX), and `web/public/reference/yaml`, served at `/reference/yaml/` and listed in `llms.txt` | `web/scripts/gen.mjs`, downloading Go when the host has none |
+| A release                    | `documentation/man`, shipped in the Unix archives | the `before` hook in `.goreleaser.yaml`  |
+| The Docs workflow            | every format, plus the MDX                 | `go generate ./...`; the markdown and man pages are kept as the run's `reference` artifact |
+| The Web workflow             | the MDX and the YAML reference             | `make web/docs`, before linting and type-checking |
+| A contributor                | every format, plus the MDX                 | `make docs` (part of `make ci`)                  |
 
 `.github/workflows/docs.yml` runs on pushes and pull requests to `main` that touch `**.go`,
-`docs/**`, `web/content/docs/**`, `tools/**` or `go.mod`:
+`documentation/guides/**`, `CHANGELOG.md`, `tools/**` or `go.mod`:
 
 ```bash
+go test ./cmd/docs/... ./tools/gendocs/...
 go generate ./...
-if [ -n "$(git status --porcelain docs web/content/docs)" ]; then
-  echo "::error::Generated docs are out of date. Run 'make docs' and commit the result." >&2
-  git status --porcelain docs web/content/docs
-  git --no-pager diff -- docs web/content/docs
-  exit 1
-fi
 ```
 
-Locally, `make docs/check` runs `make docs` and the same `git status --porcelain` test; `make ci`
-includes it (FR-41, FR-46).
-
-Because the check is `git status --porcelain`, it fails on **any** difference under `docs/` or
-`web/content/docs/`: a modified file, a deleted one, or an untracked new one (`??`), such as the
-pages a new tool adds. Locally it also reports uncommitted edits to hand-written files, since
-those live under `docs/` too. Commit first, then check.
+A hand-written document links to a reference page by its website URL, never into
+`documentation/markdown/`, which exists only where someone ran `make docs` (FR-41, FR-46).
 
 ## Tests that pin this workflow
 
@@ -322,17 +326,16 @@ those live under `docs/` too. Commit first, then check.
 | `TestGenerateMDX`                     | a page per tool, frontmatter, no unescaped MDX characters, extra folders in navigation | FR-46, FR-82 |
 | `TestMDXEscape`, `TestWrapCode`, `TestWrapCodeSkipsFencedBlocks`, `TestFenceLang` | the prose transformations      |             |
 | `TestHandwrittenPages`                | ordering, title and description extraction, link rewriting          | FR-82       |
-| Docs workflow, `make docs/check`      | committed output equals generated output                             | FR-41, FR-46 |
+| Docs workflow, `make docs`            | the reference and the website content generate from the code        | FR-41, FR-46 |
 
 ## Common failures
 
 | Symptom                                                        | Cause                                                       | Fix                                                       |
 |----------------------------------------------------------------|-------------------------------------------------------------|-----------------------------------------------------------|
-| Docs workflow: "Generated docs are out of date"                | Code or a hand-written document changed without `make docs` | `make docs`, commit everything it changed or added        |
 | A hand edit under `documentation/markdown` vanished                     | The format directory is rebuilt from scratch                | Change the tool's `Meta()` or `Register` instead          |
 | A hand-written page breaks on the website after a code block   | An unclosed code fence: `mdxEscape` treats everything after it as code and stops escaping | Close every fence; `TestGenerateMDX` reports "unbalanced code fence" for the pages it generates |
 | A hand-written page's description is cut short or empty        | The first paragraph starts with a list, table or code fence, or there is none | Start with one prose paragraph after the title |
-| A link on the website goes to GitHub instead of the site       | The target is not a `.md` directly inside a published folder | Link to the published document, or accept the GitHub link |
+| A link on the website goes to GitHub instead of the site       | The target is not a `.md` directly inside a published folder, nor a website URL | Link to the published document or the page's website URL, or accept the GitHub link |
 
 ## Related
 

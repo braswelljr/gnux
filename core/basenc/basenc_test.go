@@ -113,3 +113,63 @@ func TestOperands(t *testing.T) {
 		t.Fatalf("missing: err=%v stderr=%q", err, errb)
 	}
 }
+
+// TestEncodings checks each encoding against what GNU basenc 9.7 prints for
+// the same input.
+func TestEncodings(t *testing.T) {
+	tests := []struct {
+		enc     basenc.Encoding
+		in, out string
+	}{
+		{basenc.Base64URL, ">>?", "Pj4_\n"},
+		{basenc.Base32Hex, "hello", "D1IMOR3F\n"},
+		{basenc.Base16, "hello", "68656C6C6F\n"},
+		{basenc.Base2MSBF, "hello", "0110100001100101011011000110110001101111\n"},
+		{basenc.Base2LSBF, "hello", "0001011010100110001101100011011011110110\n"},
+		{basenc.Z85, "hell", "xK#0@\n"},
+		{basenc.Z85, "hellohel", "xK#0@z!JY#\n"},
+	}
+	for _, tt := range tests {
+		out, errb, err := run(tt.enc, basenc.Options{}, tt.in)
+		if err != nil || out != tt.out {
+			t.Fatalf("encoding %d of %q: err=%v stderr=%q stdout=%q, want %q", tt.enc, tt.in, err, errb, out, tt.out)
+		}
+		back, errb, err := run(tt.enc, basenc.Options{Decode: true}, out)
+		if err != nil || back != tt.in {
+			t.Fatalf("decoding %d of %q: err=%v stderr=%q stdout=%q", tt.enc, out, err, errb, back)
+		}
+	}
+}
+
+func TestEncodingMistakes(t *testing.T) {
+	tests := []struct {
+		name     string
+		enc      basenc.Encoding
+		opts     basenc.Options
+		in       string
+		out, err string
+	}{
+		{"z85 needs whole groups", basenc.Z85, basenc.Options{}, "hello", "", "encx: invalid input (length must be multiple of 4 characters)\n"},
+		{"z85 short group", basenc.Z85, basenc.Options{Decode: true}, "xK#0", "", "encx: invalid input\n"},
+		{"base16 either case", basenc.Base16, basenc.Options{Decode: true}, "68656c6C6F", "hello", ""},
+		{"base16 odd length", basenc.Base16, basenc.Options{Decode: true}, "68656C6C6", "hell", "encx: invalid input\n"},
+		{"base16 garbage ignored", basenc.Base16, basenc.Options{Decode: true, IgnoreGarbage: true}, "68 65", "he", ""},
+		{"base2 short byte", basenc.Base2MSBF, basenc.Options{Decode: true}, "0110100001", "h", "encx: invalid input\n"},
+		{"base64url refuses /", basenc.Base64URL, basenc.Options{Decode: true}, "Pj4/", "", "encx: invalid input\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			out, errb, err := run(tt.enc, tt.opts, tt.in)
+			if out != tt.out || errb != tt.err || (err != nil) != (tt.err != "") {
+				t.Fatalf("stdout=%q stderr=%q err=%v; want %q %q", out, errb, err, tt.out, tt.err)
+			}
+		})
+	}
+}
+
+func TestWrapBase2(t *testing.T) {
+	out, _, _ := run(basenc.Base2LSBF, basenc.Options{Wrap: 10}, "abc")
+	if want := "1000011001\n0001101100\n0110\n"; out != want {
+		t.Fatalf("stdout = %q, want %q", out, want)
+	}
+}

@@ -221,5 +221,5 @@ realpathx --relative-to=C:\src C:\src\pkg\file.go
 - [Getting started](getting-started.md) for the other installation routes.
 - [Portable scripting](portable-scripting.md) for scripts that run identically on Windows and Unix.
 - [Troubleshooting](troubleshooting.md), including "command not found" and symbolic link failures.
-- The tool references for [lsx](../markdown/lsx/index.md), [lnx](../markdown/lnx/index.md), [cpx](../markdown/cpx/index.md), [mkdirx](../markdown/mkdirx/index.md) and [touchx](../markdown/touchx/index.md), which note the Windows behavior of each.
+- The tool references for [lsx](https://gnux.vercel.app/docs/tools/lsx), [lnx](https://gnux.vercel.app/docs/tools/lnx), [cpx](https://gnux.vercel.app/docs/tools/cpx), [mkdirx](https://gnux.vercel.app/docs/tools/mkdirx) and [touchx](https://gnux.vercel.app/docs/tools/touchx), which note the Windows behavior of each.
 - [Non-functional requirements](../../docs/requirements/non-functional-requirements.md) for the platform commitments.

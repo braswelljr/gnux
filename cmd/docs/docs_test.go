@@ -325,7 +325,8 @@ func TestHandwrittenPages(t *testing.T) {
 		"[agents](../../AGENTS.md), [code](../../core/core.go), [gen](../markdown/index.md), [web](https://example.com/x.md), [here](#top), "+
 		"[page](../../web/src/app/(home)/page.tsx) (aside), [tool](../../documentation/markdown/rmx/index.md), "+
 		"[flag](../../documentation/markdown/rmx/flags/force.md), [ref](../../documentation/markdown/index.md), "+
-		"[man](../../documentation/man/rmx/index.1).\n")
+		"[man](../../documentation/man/rmx/index.1), [site](https://gnux.vercel.app/docs/tools/rmx#examples), "+
+		"[home](https://gnux.vercel.app/docs), [play](https://gnux.vercel.app/playground).\n")
 	write("requirements/functional-requirements.md", "# Functional requirements\n\nWhat it does.\n")
 	write("rules/notes.txt", "ignored")
 
@@ -364,6 +365,9 @@ func TestHandwrittenPages(t *testing.T) {
 		"[ref](/docs)",
 		"[man](https://github.com/braswelljr/gnux/blob/main/documentation/man/rmx/index.1)",
 		"[web](https://example.com/x.md)",
+		"[site](/docs/tools/rmx#examples)",
+		"[home](/docs)",
+		"[play](https://gnux.vercel.app/playground)",
 		"[here](#top)",
 		"[page](https://github.com/braswelljr/gnux/blob/main/web/src/app/(home)/page.tsx) (aside)",
 	} {

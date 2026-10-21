@@ -1,6 +1,8 @@
-# Requirement enforced: the committed generated documentation - the reference
-# in documentation/ and the website content in web/content/docs/ - matches what the
-# generator produces from the current code.
+# Requirement enforced: the reference generates from the current code - in
+# documentation/ (markdown, man, YAML, reST) and as the website content in
+# web/content/docs/ - and the generator's own tests pass. The generated files
+# are not committed: the website build and the release generate their own.
+# The markdown reference is kept as a downloadable artifact of each run.
 name: Docs
 
 on:
@@ -10,8 +12,6 @@ on:
       - "**.go"
       - "documentation/guides/**"
       - CHANGELOG.md
-      - "documentation/**"
-      - "web/content/docs/**"
       - "tools/**"
       - go.mod
   pull_request:
@@ -20,8 +20,6 @@ on:
       - "**.go"
       - "documentation/guides/**"
       - CHANGELOG.md
-      - "documentation/**"
-      - "web/content/docs/**"
       - "tools/**"
       - go.mod
 
@@ -42,16 +40,19 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: Test the generator
+        run: go test ./cmd/docs/... ./tools/gendocs/...
+
       # Writes the reference (documentation/, four formats) and the website content
       # (web/content/docs, MDX) from the tool registry.
-      - name: Regenerate documentation
+      - name: Generate documentation
         run: go generate ./...
 
-      - name: Verify docs are up to date
-        run: |
-          if [ -n "$(git status --porcelain documentation web/content/docs)" ]; then
-            echo "::error::Generated docs are out of date. Run 'make docs' and commit the result." >&2
-            git status --porcelain documentation web/content/docs
-            git --no-pager diff -- documentation web/content/docs
-            exit 1
-          fi
+      - name: Keep the reference
+        uses: actions/upload-artifact@v7
+        with:
+          name: reference
+          path: |
+            documentation/markdown
+            documentation/man
+          retention-days: 30

@@ -308,12 +308,13 @@ for.
    with a table test of `buildOptions`. Start from `cmd/pwdx`.
 3. **Register it**: add `<gnu>x.Spec()` to `Tools()` in `cmd/registry.go`, keeping the list
    alphabetical.
-4. **Regenerate the documentation**: `make docs`.
+4. **Generate the documentation** to read the new pages: `make docs`. Nothing it writes is
+   committed.
 5. **Tick it off**: add the tool to the README's table and to the list in `AGENTS.md`, add its
    requirement to [functional-requirements](functional-requirements.md), and remove it from the
    roadmap.
 6. **Run the whole check**: `make ci`.
-7. **Commit** the code and the regenerated files together.
+7. **Commit** the code, its tests and the hand-written updates together.
 
 **Outcome.** The tool is a subcommand, a command of its own under both names, a page in every
 reference format and on the website, and a command in the shell and the playground.
@@ -326,12 +327,12 @@ reference format and on the website, and a command in the shell and the playgrou
 | `TestEveryToolAnswersHelpAndVersion`         | The adapter defined `--help` or `--version` itself, or `Run` is missing             |
 | The WebAssembly build in the Test workflow   | Platform-specific code has no fallback that compiles for `js/wasm`                  |
 | The Build workflow, on one platform          | The same, for an operating system                                                   |
-| The Docs workflow                            | The regenerated files were not committed                                            |
+| The Docs workflow                            | The generator fails on the new tool's metadata                                      |
 | The Lint workflow                            | A linter finding, or a misspelling                                                  |
 
 The technical detail of each step is in [adding-a-tool](../workflows/adding-a-tool.md).
 
-## WF-8: regenerate the documentation
+## WF-8: generate the documentation
 
 - **Actors.** A contributor who changed a flag, a tool's metadata, the guide, or a hand-written
   document.
@@ -342,27 +343,24 @@ The technical detail of each step is in [adding-a-tool](../workflows/adding-a-to
 
 1. Make the change at its source: a `Register` function, a `Meta()`, `cmd/docs/guide.go`, or a
    file under `docs/requirements`, `docs/rules` or `docs/workflows`.
-2. Regenerate.
+2. Generate, to read the result.
 
    ```bash
    make docs            # or: go generate ./...
    ```
 
-3. Review the difference. It should contain what the change implies and nothing else.
-4. Commit the source change and the regenerated files together.
+3. Commit the source change only. The generated files are not committed (`.gitignore`).
 
 **Outcome.** `documentation/markdown`, `documentation/man`, `documentation/rest`, `documentation/yaml` and `web/content/docs` match
-the code.
+the code; the website and the next release generate their own copies the same way.
 
 **Failure paths.**
 
 | What happens                                                  | Why                                                                              |
 |---------------------------------------------------------------|----------------------------------------------------------------------------------|
-| The Docs workflow fails with "Generated docs are out of date" | The regenerated files were not committed                                         |
 | An edit to a generated page disappears                        | Each generated directory is rebuilt from scratch. Change the source instead      |
-| `make docs/check` fails locally with uncommitted hand-written edits | It reports any uncommitted change under `docs/`, hand-written files included. Commit, then check |
 | A page on the website shows a brace or an angle bracket oddly | Prose outside code spans is escaped for MDX. Put such characters in a code span  |
-| A link in a hand-written page goes to GitHub, not the site    | Only links to `.md` files directly inside `documentation/guides`, the one published folder, become site links |
+| A link in a hand-written page goes to GitHub, not the site    | Only links to `.md` files directly inside `documentation/guides`, the one published folder, and links to `https://gnux.vercel.app/docs/...`, become site links |
 
 The technical detail is in
 [documentation-generation](../workflows/documentation-generation.md).
@@ -386,7 +384,7 @@ The technical detail is in
    ```
 
 4. The Release workflow runs on the tag:
-   1. **verify** repeats vet, the race-enabled tests and the docs freshness check against the
+   1. **verify** repeats vet, the race-enabled tests and the docs generation against the
       tagged commit, so a tag cannot publish what CI would reject;
    2. **build** cross-compiles `gnux` with `CGO_ENABLED=0` and the tag injected as the version,
       for linux and darwin on amd64 and arm64 and windows on amd64, and packages each with the
@@ -409,7 +407,7 @@ platform, and binaries that report the tag as their version.
 
 | What happens                                                 | Why                                                                         |
 |--------------------------------------------------------------|-----------------------------------------------------------------------------|
-| The release job fails at **verify**                          | The tagged commit fails a test or has stale docs. Fix on `main`, delete the tag, tag again |
+| The release job fails at **verify**                          | The tagged commit fails a test or its docs fail to generate. Fix on `main`, delete the tag, tag again |
 | `gh release create` fails with "already exists"              | The tag was released before. Delete the release, or tag a new version       |
 | The man page date is fixed                                   | `docs.ManDate` is pinned for reproducibility, and nothing sets it per release |
 | No package-manager formula                                   | Out of scope (see [business-requirements](business-requirements.md))        |

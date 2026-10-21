@@ -21,7 +21,15 @@ const nextConfig: NextConfig = {
   // that file is written by hand here, and the block breaks the house rules.
   agentRules: false,
   async headers() {
-    return [{ source: '/:path*', headers: securityHeaders }];
+    return [
+      { source: '/:path*', headers: securityHeaders },
+      // The YAML reference is read by scripts and AI tools, and should show
+      // as text in a browser rather than download.
+      {
+        source: '/reference/yaml/:path*',
+        headers: [{ key: 'Content-Type', value: 'text/yaml; charset=utf-8' }]
+      }
+    ];
   }
 };
 

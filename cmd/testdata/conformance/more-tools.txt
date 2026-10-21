@@ -1,0 +1,156 @@
+# basenc, dircolors, hostid, mkfifo, mknod, numfmt, pathchk, pinky, pr,
+# ptx, shred, stdbuf, stty and sync. Nothing here depends on the clock, a
+# terminal, the CPU (numfmt keeps below 19 digits, where x86-64 and arm64
+# GNU agree) or randomness (shred's patterns beyond three passes).
+
+basenc --base64 a.txt
+basenc --base64url words
+basenc --base32hex a.txt
+basenc --base16 a.txt
+basenc --base16 -d < a.txt; echo $?
+env echo 68656c6c6f | basenc --base16 -d
+basenc --base2msbf -w 20 b.txt
+basenc --base2lsbf b.txt | basenc --base2lsbf -d
+env printf hell | basenc --z85
+env printf hello | basenc --z85
+env printf 'xK#0@' | basenc --z85 -d
+basenc a.txt
+basenc --base64 --base16 a.txt
+basenc --base16 --base64 a.txt
+
+dircolors -p | head -20
+SHELL=/bin/bash TERM=xterm dircolors
+SHELL=/bin/tcsh TERM=xterm-256color dircolors
+TERM=dumb dircolors -b
+COLORTERM=truecolor TERM=dumb dircolors -c
+TERM=xterm dircolors --print-ls-colors | head -5
+env -u SHELL dircolors
+dircolors -b -p
+dircolors -p x
+dircolors a b
+env printf 'TERM *\nDIR 01;34\nBOGUS 1\nLINK\n' > db; dircolors -b db
+env printf '.TAR 01;31\n*it:s= 1\n' | dircolors -b -
+
+hostid
+hostid x
+
+mkfifo p; ls -l p | cut -c1-10
+mkfifo -m 600 p; stat -c %a p
+mkfifo -m u=rw,go=r p; stat -c %a p
+mkfifo -m 1666 p
+mkfifo -m bad p
+mkfifo a.txt
+mkfifo
+mkfifo nodir/p q; stat -c %F q
+mknod p p; stat -c %F p
+mknod p
+mknod p c
+mknod p c 1
+mknod p p 1 2
+mknod p z 1 2
+mknod p c x 2
+mknod -m 600 q pipe; stat -c '%a %F' q
+
+numfmt --to=si 1000 1500000 9999 999999 1 0 -- -1500
+numfmt --to=iec 1024 2047 --to=iec-i 1048576
+numfmt --from=si 1K 1k 0.5K --from=auto 1Ki
+numfmt --from=iec-i 1K
+numfmt 1K
+numfmt --invalid=warn abc 5 --invalid=fail x
+numfmt --round=down --to=si 1999
+numfmt --round=nearest --to=si 1450 -- -1450
+numfmt --format=%010f 1234 --format='pre %.2f post' 3.14159
+numfmt --format=%d 5
+numfmt --padding=-8 42; numfmt --padding=0 5
+numfmt --suffix=B --to=iec 1024 --from-unit=512
+numfmt --header --field=2 --to=si < words
+env printf '  1000 2000\n 300 4\n' | numfmt --to=si
+env printf 'a:1000:b\n' | numfmt -d: --field=2 --to=si
+env printf '1000 2000\n3000 x\n4000\n' | numfmt --to=si --field=1-2
+numfmt --debug 5
+numfmt --to=auto 5
+numfmt --field=0 5
+
+pathchk a.txt dir/new; echo $?
+pathchk -p 'a b/c' abcdefghijklmnop ok
+pathchk -P x/-y ''
+pathchk --portability -a
+pathchk a.txt/x
+pathchk
+pathchk ''
+
+pinky
+pinky -fq
+pinky -l root
+pinky -l nosuchuser
+pinky -l
+
+pr -t a.txt
+pr -3 -t words
+pr -2 -a -t a.txt b.txt
+pr -m -t a.txt b.txt
+pr -m -t -s, a.txt csv
+pr -n -t a.txt
+pr -n:3 -N 9 -t words
+pr -d -o 2 -t b.txt
+pr -l 15 a.txt
+pr -l 12 -h Title -f words
+pr -D %F -l 11 b.txt
+pr +2 -l 11 words
+pr --pages=1:1 -l 11 words
+pr -c -t tabs
+pr -e4 -t tabs
+pr -W 10 -t words
+pr -J -2 -t words
+pr -T a.txt b.txt
+pr -l x a.txt
+pr -2 -m a.txt b.txt
+pr nope a.txt
+pr -r nope a.txt
+
+ptx words
+ptx -w 40 words
+ptx -A a.txt b.txt
+ptx -r words
+ptx -O words
+ptx -T -M entry words
+ptx -G words
+ptx -f -g 5 csv
+ptx -W '[a-z]+' -S '\n' words
+env printf 'the\n' > stop; ptx -i stop words
+env printf 'fox\n' > only; ptx -o only words
+ptx -F '...' -w 30 words
+ptx -g 0 words
+ptx -W '\(' words
+
+shred -n 0 -z -s 0 -v a.txt; cat a.txt
+shred -n 0 -z -x a.txt; od -c a.txt
+shred -v --remove=wipe -n0 a.txt; ls
+shred -u -v -n0 words; ls
+shred nope
+shred -n x a.txt
+shred --remove=bad a.txt
+shred
+mkdir d; shred d
+
+stdbuf -oL echo hi
+stdbuf -iL true
+stdbuf true
+stdbuf -o x true
+stdbuf -oL
+stdbuf -e0 nosuchcommand
+
+stty
+stty -a -g
+stty -a echo
+stty bogus
+stty intr
+stty -echo -bogus
+stty -F nope
+stty min x
+
+sync a.txt; echo $?
+sync nope
+sync -d
+sync -d -f a.txt
+sync -f a.txt b.txt; echo $?

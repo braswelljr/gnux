@@ -16,7 +16,7 @@
     "test:seo": "node scripts/check-seo.mjs",
     "format": "prettier --write \"**/*.{js,mjs,ts,jsx,tsx,md,mdx,css,json}\"",
     "format:check": "prettier --check \"**/*.{js,mjs,ts,jsx,tsx,md,mdx,css,json}\"",
-    "docs:gen": "cd .. && go run ./tools/gendocs web/content/docs mdx",
+    "docs:gen": "cd .. && go run ./tools/gendocs web/content/docs mdx && go run ./tools/gendocs web/public/reference yaml",
     "wasm": "cd .. && make web/wasm",
     "gen": "pnpm docs:gen && pnpm wasm"
   },

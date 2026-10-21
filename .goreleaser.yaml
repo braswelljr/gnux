@@ -12,6 +12,9 @@ project_name: gnux
 
 before:
   hooks:
+    # The man pages ship in the Unix archives. They are generated, not
+    # committed.
+    - go run ./tools/gendocs documentation man
     # Shell completion scripts, generated from the command itself, ship in
     # every archive and are installed by the Homebrew cask.
     - sh -c 'mkdir -p completions && for s in bash zsh fish; do go run . completion "$s" > "completions/gnux.$s"; done && go run . completion powershell > completions/gnux.ps1'

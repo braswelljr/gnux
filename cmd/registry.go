@@ -8,6 +8,7 @@ import (
 	"github.com/braswelljr/gnux/cmd/base32x"
 	"github.com/braswelljr/gnux/cmd/base64x"
 	"github.com/braswelljr/gnux/cmd/basenamex"
+	"github.com/braswelljr/gnux/cmd/basencx"
 	"github.com/braswelljr/gnux/cmd/catx"
 	"github.com/braswelljr/gnux/cmd/chgrpx"
 	"github.com/braswelljr/gnux/cmd/chmodx"
@@ -20,6 +21,7 @@ import (
 	"github.com/braswelljr/gnux/cmd/datex"
 	"github.com/braswelljr/gnux/cmd/ddx"
 	"github.com/braswelljr/gnux/cmd/dfx"
+	"github.com/braswelljr/gnux/cmd/dircolorsx"
 	"github.com/braswelljr/gnux/cmd/dirnamex"
 	"github.com/braswelljr/gnux/cmd/dirx"
 	"github.com/braswelljr/gnux/cmd/dux"
@@ -35,6 +37,7 @@ import (
 	"github.com/braswelljr/gnux/cmd/grepx"
 	"github.com/braswelljr/gnux/cmd/groupsx"
 	"github.com/braswelljr/gnux/cmd/headx"
+	"github.com/braswelljr/gnux/cmd/hostidx"
 	"github.com/braswelljr/gnux/cmd/hostnamex"
 	"github.com/braswelljr/gnux/cmd/idx"
 	"github.com/braswelljr/gnux/cmd/installx"
@@ -46,16 +49,23 @@ import (
 	"github.com/braswelljr/gnux/cmd/lsx"
 	"github.com/braswelljr/gnux/cmd/md5sumx"
 	"github.com/braswelljr/gnux/cmd/mkdirx"
+	"github.com/braswelljr/gnux/cmd/mkfifox"
+	"github.com/braswelljr/gnux/cmd/mknodx"
 	"github.com/braswelljr/gnux/cmd/mktempx"
 	"github.com/braswelljr/gnux/cmd/mvx"
 	"github.com/braswelljr/gnux/cmd/nicex"
 	"github.com/braswelljr/gnux/cmd/nlx"
 	"github.com/braswelljr/gnux/cmd/nohupx"
 	"github.com/braswelljr/gnux/cmd/nprocx"
+	"github.com/braswelljr/gnux/cmd/numfmtx"
 	"github.com/braswelljr/gnux/cmd/odx"
 	"github.com/braswelljr/gnux/cmd/pastex"
+	"github.com/braswelljr/gnux/cmd/pathchkx"
+	"github.com/braswelljr/gnux/cmd/pinkyx"
 	"github.com/braswelljr/gnux/cmd/printenvx"
 	"github.com/braswelljr/gnux/cmd/printfx"
+	"github.com/braswelljr/gnux/cmd/prx"
+	"github.com/braswelljr/gnux/cmd/ptxx"
 	"github.com/braswelljr/gnux/cmd/pwdx"
 	"github.com/braswelljr/gnux/cmd/readlinkx"
 	"github.com/braswelljr/gnux/cmd/realpathx"
@@ -68,12 +78,16 @@ import (
 	"github.com/braswelljr/gnux/cmd/sha256sumx"
 	"github.com/braswelljr/gnux/cmd/sha384sumx"
 	"github.com/braswelljr/gnux/cmd/sha512sumx"
+	"github.com/braswelljr/gnux/cmd/shredx"
 	"github.com/braswelljr/gnux/cmd/shufx"
 	"github.com/braswelljr/gnux/cmd/sleepx"
 	"github.com/braswelljr/gnux/cmd/sortx"
 	"github.com/braswelljr/gnux/cmd/splitx"
 	"github.com/braswelljr/gnux/cmd/statx"
+	"github.com/braswelljr/gnux/cmd/stdbufx"
+	"github.com/braswelljr/gnux/cmd/sttyx"
 	"github.com/braswelljr/gnux/cmd/sumx"
+	"github.com/braswelljr/gnux/cmd/syncx"
 	"github.com/braswelljr/gnux/cmd/tacx"
 	"github.com/braswelljr/gnux/cmd/tailx"
 	"github.com/braswelljr/gnux/cmd/teex"
@@ -114,6 +128,7 @@ func Tools() []tool.Spec {
 		base32x.Spec(),
 		base64x.Spec(),
 		basenamex.Spec(),
+		basencx.Spec(),
 		catx.Spec(),
 		chgrpx.Spec(),
 		chmodx.Spec(),
@@ -126,6 +141,7 @@ func Tools() []tool.Spec {
 		datex.Spec(),
 		ddx.Spec(),
 		dfx.Spec(),
+		dircolorsx.Spec(),
 		dirnamex.Spec(),
 		dirx.Spec(),
 		dux.Spec(),
@@ -141,6 +157,7 @@ func Tools() []tool.Spec {
 		grepx.Spec(),
 		groupsx.Spec(),
 		headx.Spec(),
+		hostidx.Spec(),
 		hostnamex.Spec(),
 		idx.Spec(),
 		installx.Spec(),
@@ -152,16 +169,23 @@ func Tools() []tool.Spec {
 		lsx.Spec(),
 		md5sumx.Spec(),
 		mkdirx.Spec(),
+		mkfifox.Spec(),
+		mknodx.Spec(),
 		mktempx.Spec(),
 		mvx.Spec(),
 		nicex.Spec(),
 		nlx.Spec(),
 		nohupx.Spec(),
 		nprocx.Spec(),
+		numfmtx.Spec(),
 		odx.Spec(),
 		pastex.Spec(),
+		pathchkx.Spec(),
+		pinkyx.Spec(),
 		printenvx.Spec(),
 		printfx.Spec(),
+		prx.Spec(),
+		ptxx.Spec(),
 		pwdx.Spec(),
 		readlinkx.Spec(),
 		realpathx.Spec(),
@@ -174,12 +198,16 @@ func Tools() []tool.Spec {
 		sha256sumx.Spec(),
 		sha384sumx.Spec(),
 		sha512sumx.Spec(),
+		shredx.Spec(),
 		shufx.Spec(),
 		sleepx.Spec(),
 		sortx.Spec(),
 		splitx.Spec(),
 		statx.Spec(),
+		stdbufx.Spec(),
+		sttyx.Spec(),
 		sumx.Spec(),
+		syncx.Spec(),
 		tacx.Spec(),
 		tailx.Spec(),
 		teex.Spec(),
