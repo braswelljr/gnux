@@ -67,8 +67,8 @@ jobs:
       - name: Build gnux for WebAssembly
         run: make web/wasm
 
-      # The docs pages (except the snapshots of past releases) are generated,
-      # not committed; the type-check and the tests read them.
+      # The docs pages are generated, not committed; the type-check and the
+      # tests read them. The releases' docs come with the build, below.
       - name: Generate the docs content
         run: make web/docs
 
@@ -92,8 +92,12 @@ jobs:
         working-directory: web
         run: pnpm test
 
+      # The build also downloads the docs of each release for the version
+      # picker; the token keeps the one API call from the shared rate limit.
       - name: Build
         working-directory: web
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: pnpm build
 
       # Starts the built site and checks robots.txt, the sitemap, llms.txt and

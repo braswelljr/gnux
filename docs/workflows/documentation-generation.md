@@ -293,8 +293,10 @@ generating; nothing does today, so release man pages carry the pinned date (see
 ## Step 7: nothing generated is committed
 
 `.gitignore` keeps `documentation/{markdown,man,yaml,rest}/` and `web/content/docs/` out of the
-repository, except the release snapshots `web/content/docs/vX.Y` (`tools/docsnap`). Each
-consumer generates what it needs:
+repository, the docs of past releases included: each release carries its own as
+`gnux-docs-vX.Y.Z.tar.gz` (`tools/docsnap`, run by GoReleaser), and the website's build
+downloads and unpacks them (`web/scripts/docs-versions.mjs`). Each consumer generates what it
+needs:
 
 | Consumer                     | Generates                                  | How                                              |
 |------------------------------|--------------------------------------------|--------------------------------------------------|

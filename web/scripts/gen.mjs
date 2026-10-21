@@ -12,13 +12,19 @@
 // A failed step is only fatal when the file it would have produced is not
 // there at all.
 //
-// Set GNUX_SKIP_GEN=1 to skip generation, and GNUX_FETCH_GO=0 to never
-// download Go.
+// It also fetches the docs of each stable release for the version picker
+// (docs-versions.mjs): they are attached to the releases, not committed. On CI
+// and Vercel a release whose docs cannot be fetched fails the build; locally it
+// is a warning, and the versions already unpacked stay.
+//
+// Set GNUX_SKIP_GEN=1 to skip generation, GNUX_FETCH_GO=0 to never download
+// Go, and GNUX_DOCS_VERSIONS=0 to skip the releases' docs.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { fetchDocsVersions } from './docs-versions.mjs';
 
 const web = join(dirname(fileURLToPath(import.meta.url)), '..');
 const root = join(web, '..');
@@ -207,6 +213,35 @@ if (process.env.GNUX_SKIP_GEN === '1') {
       if (!step.build(go, env)) {
         console.warn(`gen: ${step.name} failed; continuing with the existing ${step.output}`);
       }
+    }
+  }
+}
+
+if (
+  process.env.GNUX_SKIP_GEN !== '1' &&
+  process.env.GNUX_DOCS_VERSIONS !== '0' &&
+  (only.length === 0 || only.includes('versions'))
+) {
+  const strict = Boolean(process.env.CI || process.env.VERCEL);
+  try {
+    const { unpacked, problems } = await fetchDocsVersions({
+      repo: process.env.GNUX_REPOSITORY || 'braswelljr/gnux',
+      docsDir: join(web, 'content', 'docs'),
+      cacheDir: join(cache, 'docs'),
+      token: process.env.GITHUB_TOKEN || process.env.GH_TOKEN
+    });
+    console.log(`gen: release docs: ${unpacked.length > 0 ? unpacked.join(', ') : 'none'}`);
+    const missingArchive = problems.filter((p) => p.includes(' has no gnux-docs-'));
+    const failures = problems.filter((p) => !missingArchive.includes(p));
+    for (const p of missingArchive) console.log(`gen: release docs: ${p}`);
+    for (const p of failures) console.warn(`gen: release docs: ${p}`);
+    if (failures.length > 0 && strict) process.exit(1);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(`gen: could not list the releases: ${message}`);
+    if (strict) {
+      console.error('gen: set GITHUB_TOKEN if the API rate limit is the cause');
+      process.exit(1);
     }
   }
 }

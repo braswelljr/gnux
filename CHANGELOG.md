@@ -4,36 +4,58 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-21
+
+gnux 1.2.0 completes GNU coreutils: the last fourteen tools arrive, so every coreutils tool is
+in gnux but `chroot`, `chcon` and `runcon`, which stay out by design, 108 tools in all. Each new
+tool is checked against GNU coreutils 9.7 by the conformance harness, 139 new cases. The
+reference is no longer committed but built where it is used, and the website now serves it as
+YAML for AI tools and scripts.
+
 ### Added
 
-- The last fourteen GNU coreutils tools, so that every coreutils tool but `chroot`, `chcon` and
-  `runcon` (left out by design) is in gnux, 108 tools in all: `basencx` (base64url, base32hex,
-  base16, base2 and Z85 beside base64 and base32), `dircolorsx`, `hostidx`, `mkfifox`,
-  `mknodx`, `numfmtx` (a port of GNU numfmt, with its rounding, padding, fields and
-  `--format`), `pathchkx`, `pinkyx`, `prx` (a port of GNU pr's page layout, columns, merging and
-  numbering), `ptxx` (a port of GNU ptx, with the Emacs regex syntax it uses), `shredx`,
-  `stdbufx`, `sttyx` (termios on Linux, macOS and FreeBSD, with GNU's tables for each) and
-  `syncx`. Each is checked against GNU coreutils 9.7 by new cases in the conformance harness.
+- `basencx`: base64, base64url, base32, base32hex, base16, base2 (either bit order) and Z85,
+  encoding and decoding, through the engine `base64x` and `base32x` share.
+- `numfmtx`: GNU numfmt's conversions to and from 1.5k, 2.0Mi and the like, with its rounding
+  methods, padding, field selection, `--format`, `--invalid` modes and diagnostics.
+- `prx`: GNU pr's pages, headers and footers, columns down (balanced) or across, files side by
+  side with `-m`, line numbering, separators, tab handling and page ranges, reading its command
+  line as GNU's getopt does.
+- `ptxx`: GNU ptx's permuted index, in the dumb, roff and TeX formats, with references, word
+  lists, break files and the Emacs regular expressions it uses.
+- `sttyx`: GNU stty on Linux, macOS and FreeBSD, with each system's modes, control characters,
+  speeds, window size, `-a`, and `-g` that reads back.
+- `shredx`: GNU shred's passes, `-u` with its renaming before removal, `-v` progress, `-x`, `-z`,
+  `-s` and `--random-source`.
+- `dircolorsx` (with GNU 9.7's color database), `pinkyx`, `pathchkx`, `syncx`, `mkfifox`,
+  `mknodx`, `hostidx` and `stdbufx` (gnux tools run in-process; other programs get GNU's
+  `libstdbuf.so` when it is installed).
+- Each release carries its own website docs, `gnux-docs-vX.Y.Z.tar.gz`, packed by GoReleaser
+  with the tag's generator and listed in the signed `checksums.txt`. The website's build
+  downloads the archive of the latest patch of every minor version, checks it and unpacks it
+  for the version picker (`web/scripts/docs-versions.mjs`), so the docs of past releases are no
+  longer committed to `main` and the release no longer pushes a snapshot commit there. Set
+  `GITHUB_TOKEN` where the website is built to keep its one API call off the shared rate limit.
+- The reference as YAML on the website, one file per page at `/reference/yaml/` (for example
+  `/reference/yaml/rmx/index.yaml`), all of them listed in `llms.txt`, so AI tools and scripts
+  can read each tool's options and examples as data.
 
 ### Changed
 
 - The generated reference is no longer committed. `documentation/markdown`, `man`, `yaml` and
-  `rest`, and the website's pages in `web/content/docs` (but for the snapshots of released
-  docs), are built where they are used: the website build generates its pages, GoReleaser the
+  `rest`, and the website's pages in `web/content/docs`, are built where they are used: the website build generates its pages, GoReleaser the
   man pages it ships, and the Docs workflow generates everything, tests the generator and keeps
   the markdown and man reference as a run artifact. `make docs` still writes them all locally.
   The pre-push hook and `make docs/check`, which compared committed copies, are gone. The
   hand-written guides link to reference pages by their website address, which works on GitHub
   and stays on the site when read there.
-- The website serves the reference as YAML, one file per page, at `/reference/yaml/` (for
-  example `/reference/yaml/rmx/index.yaml`), and `llms.txt` lists every file, so AI tools and
-  scripts can read each tool's options and examples as data.
-- In the docs sidebar, a tool with no option pages is a plain link rather than a folder with
-  nothing to open, in the release snapshots too (`tools/docsnap` flattens such folders, and
-  `-tidy` applies that to the snapshots already published).
 
 ### Fixed
 
+- In the docs sidebar, a tool with no option pages is a plain link rather than a folder with
+  nothing to open, in the docs of past releases too (`tools/docsnap` flattens such folders).
+- The Git hooks clear a `GOROOT` left over from another Go installation, which made the lint
+  compile with the wrong toolchain.
 - The Homebrew cask clears the quarantine flag with Homebrew's declarative `postflight_steps`
   instead of the deprecated `postflight` block, so `brew` no longer warns about the tap.
 
@@ -346,7 +368,8 @@ reach Homebrew, Scoop, winget, the Snap Store, the AUR and `.deb` / `.rpm` / `.a
 
 - The project is now gnux, a portable implementation of the GNU core utilities. `rmx`, which it started as, was rewritten as one of its tools, with GNU's full `rm` flag surface.
 
-[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/braswelljr/gnux/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/braswelljr/gnux/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/braswelljr/gnux/compare/v0.0.2...v1.0.0
 [0.0.2]: https://github.com/braswelljr/gnux/compare/v0.0.1...v0.0.2

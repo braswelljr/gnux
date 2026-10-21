@@ -56,12 +56,18 @@ release/snapshot: ## Build every release archive and package into dist/ without 
 NPM_PLATFORMS := darwin/amd64 darwin/arm64 freebsd/amd64 freebsd/arm64 linux/amd64 linux/arm64 linux/riscv64 windows/amd64 windows/arm64
 
 # The website's docs of a release (tools/docsnap): that tag's own generator
-# run in a temporary worktree, into web/content/docs/vX.Y. The Release
-# workflow does it for every stable release; `make docs` keeps the snapshots.
+# run in a temporary worktree, into web/content/docs/vX.Y, to look at them
+# locally. Releases carry them as gnux-docs-vX.Y.Z.tar.gz (GoReleaser packs
+# them), and the website's build downloads them; nothing is committed.
 .PHONY: docs/snapshot
-docs/snapshot: ## Snapshot a release's docs for the website's version select (TAG=vX.Y.Z)
+docs/snapshot: ## Unpack a release's docs into web/content/docs/vX.Y, to look at locally (TAG=vX.Y.Z)
 	@test -n "$(TAG)" || { echo "usage: make docs/snapshot TAG=vX.Y.Z"; exit 2; }
 	go run ./tools/docsnap -tag $(TAG)
+
+.PHONY: docs/archive
+docs/archive: ## Pack a release's website docs into dist/ (TAG=vX.Y.Z), as GoReleaser attaches them
+	@test -n "$(TAG)" || { echo "usage: make docs/archive TAG=vX.Y.Z"; exit 2; }
+	go run ./tools/docsnap -tag $(TAG) -archive dist/gnux-docs-$(TAG).tar.gz
 
 .PHONY: npm/pack
 npm/pack: ## Build the npm packages into dist/npm (NPM_VERSION=x.y.z, default from git)

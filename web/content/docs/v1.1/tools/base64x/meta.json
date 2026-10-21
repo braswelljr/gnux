@@ -1,8 +1,0 @@
-{
-  "title": "base64x",
-  "pages": [
-    "decode",
-    "ignore-garbage",
-    "wrap"
-  ]
-}

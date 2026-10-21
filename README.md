@@ -200,7 +200,7 @@ with an archive per platform (`gnux-<version>-<os>-<arch>.tar.gz`, `.zip` for Wi
 `checksums.txt`:
 
 ```bash
-v=v0.0.1
+v=v1.2.0
 curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/gnux-$v-linux-amd64.tar.gz"
 curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/checksums.txt"
 sha256sum --check --ignore-missing checksums.txt
@@ -225,7 +225,7 @@ yay -S gnux-bin                            # Arch Linux, from the AUR
 and carries a `.deb`, an `.rpm` and an `.apk` for amd64, arm64 and riscv64:
 
 ```bash
-v=v0.0.2
+v=v1.2.0
 curl -LO "https://github.com/braswelljr/gnux/releases/download/$v/gnux-$v-linux-amd64.deb"
 sudo dpkg -i "gnux-$v-linux-amd64.deb"                        # Debian, Ubuntu
 sudo rpm -i "gnux-$v-linux-amd64.rpm"                         # Fedora, RHEL, openSUSE
@@ -261,11 +261,11 @@ JavaScript API, CI.
 | With             | Command                                                                  |
 |------------------|--------------------------------------------------------------------------|
 | A release archive or package | set `v=` above to the tag: every release stays available     |
-| `go install`     | `go install github.com/braswelljr/gnux@v0.0.2`                           |
-| winget           | `winget install braswelljr.gnux --version 0.0.2`                         |
-| Scoop            | `scoop install gnux/gnux@0.0.2`                                          |
+| `go install`     | `go install github.com/braswelljr/gnux@v1.2.0`                           |
+| winget           | `winget install braswelljr.gnux --version 1.2.0`                         |
+| Scoop            | `scoop install gnux/gnux@1.2.0`                                          |
 | Snap             | `sudo snap install gnux --channel=edge` for the newest prerelease        |
-| setup-gnux       | `version: v0.0.2`                                                        |
+| setup-gnux       | `version: v1.2.0`                                                        |
 
 Homebrew and the AUR carry the newest version only.
 
@@ -278,7 +278,7 @@ Windows runner, checks it against the release's checksums and puts gnux and ever
 ```yaml
 - uses: braswelljr/gnux@v0
   with:
-    version: latest       # or a tag, such as v0.0.1
+    version: latest       # or a tag, such as v1.2.0
     gnu-names: false      # true also links rm, cp, ls, ... ahead of the runner's own
 - run: rmx -rf build && mkdirx -p build && cpx -r assets build/
 ```

@@ -1,26 +1,28 @@
-// Command docsnap keeps the website's documentation of a release: the docs as
-// that version shipped, in web/content/docs/vX.Y, beside the latest ones.
+// Command docsnap makes the website's documentation of a release: the docs as
+// that version shipped, laid out to sit beside the latest ones under
+// /docs/vX.Y (the tag's major and minor version: a patch release replaces its
+// minor version's docs).
 //
 // Usage:
 //
-//	go run ./tools/docsnap -tag vX.Y.Z [-out web/content/docs] [-from DIR]
-//	go run ./tools/docsnap -tidy [-out web/content/docs]
+//	go run ./tools/docsnap -tag vX.Y.Z -here -archive FILE    the release's docs, packed
+//	go run ./tools/docsnap -tag vX.Y.Z [-from DIR] [-out DIR] the release's docs, unpacked
+//	go run ./tools/docsnap -pack DIR -archive FILE            pack a vX.Y folder already made
+//	go run ./tools/docsnap -tidy [-out DIR]                   flatten the vX.Y folders in OUT
 //
-// Without -from it checks the tag out in a temporary git worktree and runs
-// that version's own generator (go run ./tools/gendocs DIR mdx), so the
-// snapshot says what the release says, whatever has changed since. With
-// -from it takes pages already generated into DIR. Either way it writes them
-// into OUT/vX.Y (the tag's major and minor version: a patch release replaces
-// its minor version's snapshot), rewriting every link into /docs to point
-// into the snapshot, and marks the folder as a sidebar root of its own, so
-// the website's version picker can switch to it. `make docs` keeps the
-// snapshots; the Release workflow runs docsnap for every stable release.
+// A release's docs travel with the release: GoReleaser runs the first form at
+// the tag (-here: this checkout's own generator) and attaches the archive,
+// gnux-docs-vX.Y.Z.tar.gz, to the GitHub release, listed in the signed
+// checksums.txt. The website's build (web/scripts/gen.mjs) downloads the
+// archive of the latest patch of every minor release and unpacks it into
+// web/content/docs, where nothing is committed. Without -here the docs are
+// generated from the tag in a temporary git worktree, or taken from -from.
 //
-// A tool with no option pages is written as a page of its own, not as a
-// folder holding only its index, so that the sidebar shows it as a link
-// rather than a collapsible entry with nothing under it (Flatten): releases
-// whose generator made such folders are laid out as the latest docs are.
-// -tidy does that to the snapshots already in OUT, without generating any.
+// Every link into /docs is rewritten to point into /docs/vX.Y, the root
+// meta.json makes the folder a sidebar root of its own for the version
+// picker, and a tool with no option pages is written as a page of its own, not
+// a folder holding only its index, so that the sidebar shows it as a link
+// rather than a collapsible entry with nothing under it (Flatten).
 package main
 
 import (
@@ -40,36 +42,92 @@ func main() {
 	tag := flag.String("tag", "", "the release tag, as v1.2.3")
 	out := flag.String("out", filepath.Join("web", "content", "docs"), "the website's docs content directory")
 	from := flag.String("from", "", "pages already generated for the tag (default: generate them from the tag)")
-	tidy := flag.Bool("tidy", false, "flatten the tool folders of the snapshots already in -out, and nothing else")
+	here := flag.Bool("here", false, "generate the pages from this checkout, which is the tag")
+	archive := flag.String("archive", "", "pack the docs into this .tar.gz (and FILE.sha256) instead of writing them to -out")
+	pack := flag.String("pack", "", "a vX.Y folder already made, to pack with -archive")
+	tidy := flag.Bool("tidy", false, "flatten the tool folders of the vX.Y folders in -out, and nothing else")
 	flag.Parse()
-	if *tidy && *tag == "" && flag.NArg() == 0 {
+	if flag.NArg() > 0 {
+		usage()
+	}
+	switch {
+	case *tidy && *tag == "" && *pack == "":
 		if err := tidyAll(*out); err != nil {
 			fail(err)
 		}
-		return
-	}
-	if *tag == "" || flag.NArg() > 0 {
-		fmt.Fprintln(os.Stderr, "usage: docsnap -tag vX.Y.Z [-out DIR] [-from DIR] | docsnap -tidy [-out DIR]")
-		os.Exit(2)
-	}
-	version, err := Version(*tag)
-	if err != nil {
-		fail(err)
-	}
-	src := *from
-	if src == "" {
-		dir, cleanup, err := generateAt(*tag)
-		if err != nil {
+	case *pack != "" && *archive != "" && *tag == "":
+		if err := packDir(*pack, *archive); err != nil {
 			fail(err)
+		}
+	case *tag != "":
+		if err := release(*tag, *from, *here, *out, *archive); err != nil {
+			fail(err)
+		}
+	default:
+		usage()
+	}
+}
+
+func usage() {
+	fmt.Fprintln(os.Stderr, "usage: docsnap -tag vX.Y.Z [-here | -from DIR] [-archive FILE | -out DIR]\n"+
+		"       docsnap -pack DIR -archive FILE\n       docsnap -tidy [-out DIR]")
+	os.Exit(2)
+}
+
+// release makes the docs of tag, into out/vX.Y or packed into archive.
+func release(tag, from string, here bool, out, archive string) error {
+	version, err := Version(tag)
+	if err != nil && archive != "" {
+		// A prerelease's archive is made too, so that the release looks the
+		// same; the website takes stable releases only.
+		version, err = prereleaseVersion(tag)
+	}
+	if err != nil {
+		return err
+	}
+	src := from
+	if src == "" {
+		dir, cleanup, err := generate(tag, here)
+		if err != nil {
+			return err
 		}
 		defer cleanup()
 		src = dir
 	}
-	dst := filepath.Join(*out, version)
-	if err := Snapshot(src, dst, version); err != nil {
-		fail(err)
+	if archive == "" {
+		dst := filepath.Join(out, version)
+		if err := Snapshot(src, dst, version); err != nil {
+			return err
+		}
+		fmt.Printf("docsnap: wrote the %s docs to %s\n", version, dst)
+		return nil
 	}
-	fmt.Printf("docsnap: wrote the %s docs to %s\n", version, dst)
+	tmp, err := os.MkdirTemp("", "docsnap-pack-")
+	if err != nil {
+		return err
+	}
+	defer func() { _ = os.RemoveAll(tmp) }()
+	dst := filepath.Join(tmp, version)
+	if err := Snapshot(src, dst, version); err != nil {
+		return err
+	}
+	return packDir(dst, archive)
+}
+
+// packDir packs a vX.Y folder into archive, with the folder at its top, and
+// writes archive.sha256 beside it.
+func packDir(dir, archive string) error {
+	if !versionDir.MatchString(filepath.Base(filepath.Clean(dir))) {
+		return fmt.Errorf("%s is not a vX.Y folder", dir)
+	}
+	if err := Flatten(dir); err != nil {
+		return err
+	}
+	if err := Pack(dir, archive); err != nil {
+		return err
+	}
+	fmt.Printf("docsnap: packed %s into %s\n", dir, archive)
+	return nil
 }
 
 func fail(err error) {
@@ -87,6 +145,38 @@ func Version(tag string) (string, error) {
 		return "", fmt.Errorf("%q is not a stable release tag (vX.Y.Z)", tag)
 	}
 	return "v" + m[1] + "." + m[2], nil
+}
+
+var prereleasePattern = regexp.MustCompile(`^v([0-9]+)\.([0-9]+)\.[0-9]+-[0-9A-Za-z.-]+$`)
+
+// prereleaseVersion is the vX.Y folder of a prerelease tag (v1.3.0-rc.1).
+func prereleaseVersion(tag string) (string, error) {
+	m := prereleasePattern.FindStringSubmatch(tag)
+	if m == nil {
+		return "", fmt.Errorf("%q is not a release tag (vX.Y.Z or vX.Y.Z-PRE)", tag)
+	}
+	return "v" + m[1] + "." + m[2], nil
+}
+
+// generate generates the docs of tag with its own generator: this checkout's
+// when here, or the tag's in a temporary worktree. It returns the directory
+// they are in.
+func generate(tag string, here bool) (string, func(), error) {
+	if !here {
+		return generateAt(tag)
+	}
+	tmp, err := os.MkdirTemp("", "docsnap-")
+	if err != nil {
+		return "", nil, err
+	}
+	cleanup := func() { _ = os.RemoveAll(tmp) }
+	c := exec.Command("go", "run", "./tools/gendocs", tmp, "mdx")
+	c.Stdout, c.Stderr = os.Stderr, os.Stderr
+	if err := c.Run(); err != nil {
+		cleanup()
+		return "", nil, fmt.Errorf("generating the %s docs: %w", tag, err)
+	}
+	return tmp, cleanup, nil
 }
 
 // generateAt generates the docs of tag with its own generator, in a
