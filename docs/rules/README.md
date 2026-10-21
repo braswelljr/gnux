@@ -17,7 +17,7 @@ The cross-cutting rules the gnux code follows, one file each. A rule is a conven
 | [a-failure-is-never-reported-as-success](a-failure-is-never-reported-as-success.md) | Every failure gets a diagnostic and a nonzero status, exactly once; nothing quietly does something else | `TestDiagnostics`; `TestWriteErrors`; `errcheck` |
 | [platform-code-lives-behind-build-tags](platform-code-lives-behind-build-tags.md) | Platform code is in build-tagged files with a fallback that compiles everywhere, including js/wasm; no cgo | Build, Test (three OSes + wasm) and Web workflows |
 | [the-shell-runs-no-external-program-implicitly](the-shell-runs-no-external-program-implicitly.md) | `gnux shell` runs builtins and registered tools only; anything else is `command not found` (127) | `TestDiagnostics` in `core/shell`; `cmd/shell_test.go` |
-| [the-reference-documents-itself-and-it-is-checked](the-reference-documents-itself-and-it-is-checked.md) | The reference is generated from the registry and `Meta()`, never edited by hand, and CI rejects stale copies | Docs workflow; `make docs/check`; `cmd/docs/docs_test.go` |
+| [the-reference-documents-itself-and-it-is-checked](the-reference-documents-itself-and-it-is-checked.md) | The reference is generated from the registry and `Meta()`, never edited by hand or committed, and CI proves it generates | Docs workflow; `make docs`; `cmd/docs/docs_test.go` |
 | [tests-drive-engines-not-terminals](tests-drive-engines-not-terminals.md) | Tests build engines on temp dirs, buffers and injected funcs; the race detector is always on | `go test -race` in the Test workflow and `make test` |
 
 ## Frontend

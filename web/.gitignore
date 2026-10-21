@@ -43,6 +43,6 @@ yarn.lock
 .idea
 .sublime
 
-# Not ignored on purpose: public/gnux.wasm, public/wasm_exec.js and content/docs
-# are produced by `pnpm gen`, and whether they are committed is decided at the
-# repository root.
+# Not ignored here on purpose: public/gnux.wasm, public/wasm_exec.js and
+# content/docs are produced by `pnpm gen`, and the repository root's
+# .gitignore decides what of them is committed (only content/docs/vX.Y).

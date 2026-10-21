@@ -1,7 +1,7 @@
 # Functional Requirements
 
 Functional requirements define what gnux must do: the behavior every tool shares, the options
-each of the 94 tools must support, the safeguards on destructive operations, how a tool is
+each of the 108 tools must support, the safeguards on destructive operations, how a tool is
 invoked, the portable shell, the Go library, installation, the generated documentation, the
 website, the playground and its discoverability. Each requirement has a stable identifier
 (`FR-n`), a rationale, acceptance criteria and the check that verifies it.
@@ -21,7 +21,8 @@ reason not to, **may** is optional.
   order, `FR-88` to `FR-94` the text tools added after them, and `FR-96` to `FR-147` the
   remaining coreutils tools, in alphabetical order, and `FR-156` to `FR-164` the tools added
   after the first release (`archx`, `factorx`, `sumx`, `tsortx`, `dirx`, `groupsx`, `lognamex`,
-  `usersx`, `vdirx`). `FR-73` onward are the other
+  `usersx`, `vdirx`), and `FR-170` to `FR-183` the last of coreutils (`basencx` to `syncx`,
+  alphabetically). `FR-73` onward are the other
   requirements added since. The document is ordered by area, so the
   numbers do not run in order down the page.
 - **"Verified by" names something that exists.** A test file, a CI workflow, or the word
@@ -375,6 +376,39 @@ basenamex [OPTION]... NAME [SUFFIX]
   filesystem is never touched. No operand, or more than two without `-a`, is a usage error.
 - **Deviations.** None known.
 - **Verified by.** `core/basename/basename_test.go`, `cmd/basenamex/basenamex_test.go`.
+
+### FR-170: basencx
+
+`basencx` must encode or decode data in one of several encodings, as GNU `basenc` does.
+
+```text
+basencx [OPTION]... [FILE]
+```
+
+| Option                   | Meaning |
+|--------------------------|---------|
+| `--base64`               | Same as the base64 program (RFC 4648 section 4) |
+| `--base64url`            | File- and URL-safe base64 (section 5) |
+| `--base32`               | Same as the base32 program (section 6) |
+| `--base32hex`            | Extended hex alphabet base32 (section 7) |
+| `--base16`               | Hex encoding (section 8) |
+| `--base2msbf`            | Bit string, most significant bit first |
+| `--base2lsbf`            | Bit string, least significant bit first |
+| `--z85`                  | ZeroMQ Z85; input must be a whole number of groups |
+| `-d`, `--decode`         | Decode data |
+| `-i`, `--ignore-garbage` | When decoding, ignore non-alphabet characters |
+| `-w`, `--wrap=COLS`      | Wrap encoded lines after COLS characters (76); 0 disables wrapping |
+
+- **Behavior.** basencx encodes FILE (or standard input) in the selected encoding, or with -d
+  decodes it, through the engine base64x and base32x share (`core/basenc`). An encoding must be
+  given ("missing encoding type" otherwise), and the last one given wins. Encoded output wraps at 76
+  columns and ends with a newline; -w 0 writes one line without one. Decoding ignores newlines, and
+  -i every other character outside the alphabet; anything else, or a truncated input, ends with
+  "invalid input" and status 1 after writing what was decoded. Z85 refuses input that is not a
+  multiple of 4 bytes with GNU's "invalid input (length must be multiple of 4 characters)".
+- **Deviations.** None known.
+- **Verified by.** `core/basenc/basenc_test.go`, `cmd/basencx/basencx_test.go`, the GNU conformance
+  cases in `cmd/testdata/conformance/more-tools.txt`.
 
 ### FR-52: catx
 
@@ -843,6 +877,32 @@ dfx [OPTION]... [FILE]...
   --sync and --no-sync are accepted and have no effect, and -v is ignored, as in GNU.
 - **Verified by.** `core/df/df_test.go`, `cmd/dfx/dfx_test.go`.
 
+### FR-171: dircolorsx
+
+`dircolorsx` must print commands that set LS_COLORS, as GNU `dircolors` does.
+
+```text
+dircolorsx [OPTION]... [FILE]
+```
+
+| Option                         | Meaning |
+|--------------------------------|---------|
+| `-b`, `--sh`, `--bourne-shell` | Output Bourne shell code to set LS_COLORS |
+| `-c`, `--csh`, `--c-shell`     | Output C shell code to set LS_COLORS |
+| `-p`, `--print-database`       | Output the default database |
+| `--print-ls-colors`            | Output each color, escaped for display |
+
+- **Behavior.** dircolorsx reads FILE (- is standard input) or the built-in database and prints
+  LS_COLORS as `LS_COLORS='...';` and `export LS_COLORS` (-b) or `setenv LS_COLORS '...'` (-c),
+  guessing the syntax from $SHELL (csh and tcsh are C shell) and failing when SHELL is unset. TERM
+  and COLORTERM lines filter what follows by glob against $TERM ("none" when unset) and $COLORTERM.
+  A line without a value is "invalid line;  missing second token", and an unknown keyword after a
+  matching TERM line is "unrecognized keyword"; either prints nothing and exits 1. The built-in
+  database is GNU coreutils 9.7's, as `dircolors -p` prints it.
+- **Deviations.** None known.
+- **Verified by.** `core/dircolors/dircolors_test.go`, `cmd/dircolorsx/dircolorsx_test.go`, the GNU
+  conformance cases in `cmd/testdata/conformance/more-tools.txt`.
+
 ### FR-54: dirnamex
 
 `dirnamex` must strip the last component from file names, as GNU `dirname` does.
@@ -1264,6 +1324,23 @@ headx [OPTION]... [FILE]...
 - **Deviations.** None known.
 - **Verified by.** `core/head/head_test.go`, `cmd/headx/headx_test.go`.
 
+### FR-172: hostidx
+
+`hostidx` must print the numeric identifier of the current host, as GNU `hostid` does.
+
+```text
+hostidx [OPTION]
+```
+
+- **Behavior.** hostidx prints the host identifier as eight hexadecimal digits: on Linux the four
+  bytes of /etc/hostid, or else glibc's derivation from the first IPv4 address of the host name (the
+  address in memory order, its halves swapped); on macOS and the BSDs the kern.hostid sysctl. An
+  operand is "extra operand".
+- **Deviations.** Windows has no gethostid; the identifier is derived from the host's address as
+  glibc does.
+- **Verified by.** `core/hostid/hostid_test.go`, the GNU conformance cases in
+  `cmd/testdata/conformance/more-tools.txt`.
+
 ### FR-113: hostnamex
 
 `hostnamex` must print the name of the current host system, as GNU `hostname` does.
@@ -1664,6 +1741,52 @@ mkdirx [OPTION]... DIRECTORY...
 - **Verified by.** `core/mkdir/mkdir_test.go`, `core/mkdir/mkdir_unix_test.go`,
   `core/mkdir/mode_test.go`, `cmd/mkdirx/mkdirx_test.go`.
 
+### FR-173: mkfifox
+
+`mkfifox` must create named pipes, as GNU `mkfifo` does.
+
+```text
+mkfifox [OPTION]... NAME...
+```
+
+| Option                  | Meaning |
+|-------------------------|---------|
+| `-m`, `--mode=MODE`     | Set file permission bits to MODE, not a=rw - umask |
+| `-Z`, `--context[=CTX]` | Accepted and ignored: gnux does not support SELinux |
+
+- **Behavior.** mkfifox creates a FIFO at each NAME, with mode a=rw less the umask, or exactly MODE
+  (octal or symbolic, applied to a=rw; a mode with bits beyond the permissions is refused with "mode
+  must specify only file permission bits"). A NAME that cannot be created is reported ("cannot
+  create fifo") and the rest are still made. --context=CTX warns as GNU does on a kernel without
+  SELinux.
+- **Deviations.** Windows has no named pipes in its file system: every NAME fails with "Operation
+  not supported".
+- **Verified by.** `core/mkfifo/mkfifo_test.go`, `core/mkfifo/mkfifo_unix_test.go`,
+  `cmd/mkfifox/mkfifox_test.go`, `core/internal/mode/mode_test.go`, the GNU conformance cases in
+  `cmd/testdata/conformance/more-tools.txt`.
+
+### FR-174: mknodx
+
+`mknodx` must create block or character special files, or named pipes, as GNU `mknod` does.
+
+```text
+mknodx [OPTION]... NAME TYPE [MAJOR MINOR]
+```
+
+| Option                  | Meaning |
+|-------------------------|---------|
+| `-m`, `--mode=MODE`     | Set file permission bits to MODE, not a=rw - umask |
+| `-Z`, `--context[=CTX]` | Accepted and ignored: gnux does not support SELinux |
+
+- **Behavior.** mknodx creates NAME as a block device (b), a character device (c or u) with MAJOR
+  and MINOR, or a FIFO (p), judging TYPE by its first letter. Device numbers are decimal, octal with
+  a leading 0, or hexadecimal with 0x, and must fit in 32 bits. Missing and extra operands are usage
+  errors in GNU's words, including its second lines "Special files require major and minor device
+  numbers." and "Fifos do not have major and minor device numbers.".
+- **Deviations.** Windows has no special files: every TYPE fails with "Operation not supported".
+- **Verified by.** `core/mknod/mknod_test.go`, `cmd/mknodx/mknodx_test.go`, the GNU conformance
+  cases in `cmd/testdata/conformance/more-tools.txt`.
+
 ### FR-120: mktempx
 
 `mktempx` must create a temporary file or directory, safely, and print its name, as GNU `mktemp` does.
@@ -1840,6 +1963,43 @@ nprocx [OPTION]...
   and without --all.
 - **Verified by.** `core/nproc/nproc_test.go`, `cmd/nprocx/nprocx_test.go`.
 
+### FR-175: numfmtx
+
+`numfmtx` must convert numbers to and from human-readable strings, as GNU `numfmt` does.
+
+```text
+numfmtx [OPTION]... [NUMBER]...
+```
+
+| Option                    | Meaning |
+|---------------------------|---------|
+| `--debug`                 | Print warnings about invalid input |
+| `-d`, `--delimiter=X`     | Use X instead of whitespace for field delimiter |
+| `--field=FIELDS`          | Replace the numbers in these input fields (default 1) |
+| `--format=FORMAT`         | Use printf style floating-point FORMAT |
+| `--from=UNIT`             | Auto-scale input numbers to UNITs: none, auto, si, iec, iec-i |
+| `--from-unit=N`           | Specify the input unit size |
+| `--grouping`              | Use locale-defined grouping of digits (none in the C locale) |
+| `--header[=N]`            | Print (without converting) the first N header lines |
+| `--invalid=MODE`          | Failure mode for invalid numbers: abort, fail, warn, ignore |
+| `--padding=N`             | Pad the output to N characters |
+| `--round=METHOD`          | up, down, from-zero (default), towards-zero, nearest |
+| `--suffix=SUFFIX`         | Add SUFFIX to output numbers, and accept it on input |
+| `--to=UNIT`               | Auto-scale output numbers to UNITs: none, si, iec, iec-i |
+| `--to-unit=N`             | The output unit size |
+| `-z`, `--zero-terminated` | Line delimiter is NUL, not newline |
+
+- **Behavior.** numfmtx is a port of GNU numfmt: the same number syntax, scaling, rounding
+  (simple_round), field splitting (a field keeps its leading blanks and fields are rejoined with one
+  space), automatic padding, --format parsing (including its quirks with %%), suffix handling and
+  diagnostics. An invalid number stops the run with status 2 (--invalid=abort), or under fail, warn
+  and ignore is printed unchanged and the run goes on, ending with 2, 0 and 0. A missing final
+  newline stays missing. It is a line filter: each line is answered as it arrives.
+- **Deviations.** Arithmetic has the 64-bit mantissa of x86-64's long double, so above 18 digits it
+  behaves as GNU on x86-64, not on arm64. --grouping and ' in --format add nothing (the C locale).
+- **Verified by.** `core/numfmt/numfmt_test.go`, `cmd/numfmtx/numfmtx_test.go`,
+  `cmd/robust_test.go`, the GNU conformance cases in `cmd/testdata/conformance/more-tools.txt`.
+
 ### FR-125: odx
 
 `odx` must dump files in octal and other formats, as GNU `od` does.
@@ -1915,6 +2075,62 @@ pastex [OPTION]... [FILE]...
   in LIST is used one byte at a time.
 - **Verified by.** `core/paste/paste_test.go`, `cmd/pastex/pastex_test.go`.
 
+### FR-176: pathchkx
+
+`pathchkx` must check whether file names are valid or portable, as GNU `pathchk` does.
+
+```text
+pathchkx [OPTION]... NAME...
+```
+
+| Option          | Meaning |
+|-----------------|---------|
+| `-p`            | Check for most POSIX systems |
+| `-P`            | Check for empty names and leading "-" |
+| `--portability` | Check for all POSIX systems (-p -P) |
+
+- **Behavior.** pathchkx checks each NAME and reports those that could not be created: by default
+  against the file system (a component that is not a searchable directory, or a name or component
+  longer than pathconf allows); with -p against _POSIX_PATH_MAX (256) and _POSIX_NAME_MAX (14) and
+  the portable character set; with -P also an empty name and a component starting with "-". Every
+  NAME is checked; the messages are GNU's ("limit 14 exceeded by length 16 of file name component
+  ...", "non-portable character ...").
+- **Deviations.** -p and -P also answer to the gnux long names --basic and --extra. On Windows the
+  limits are NTFS's.
+- **Verified by.** `core/pathchk/pathchk_test.go`, `cmd/pathchkx/pathchkx_test.go`, the GNU
+  conformance cases in `cmd/testdata/conformance/more-tools.txt`.
+
+### FR-177: pinkyx
+
+`pinkyx` must show who is logged in, or what is known about users, as GNU `pinky` does.
+
+```text
+pinkyx [OPTION]... [USER]...
+```
+
+| Option     | Meaning |
+|------------|---------|
+| `-l`       | Produce long format output for the specified USERs |
+| `-b`       | Omit the home directory and shell in long format |
+| `-h`       | Omit the project file in long format |
+| `-p`       | Omit the plan file in long format |
+| `-s`       | Do short format output (the default) |
+| `-f`       | Omit the line of column headings |
+| `-w`       | Omit the full name |
+| `-i`       | Omit the full name and remote host |
+| `-q`       | Omit the full name, remote host and idle time |
+| `--lookup` | Canonicalize host names via DNS |
+
+- **Behavior.** pinkyx prints one line per user session from the login records, as whox reads them
+  (FR-147), only for the USERs given if any, in GNU's columns: login, full name (GECOS, & expanded,
+  cut to 19), the message mark (* when the terminal is not group-writable), terminal, idle time,
+  login time (%b %e %H:%M) and host. -l prints each USER's login and real name, home directory and
+  shell, and ~/.project and ~/.plan; an unknown user is "???". The last of -s and -l wins.
+- **Deviations.** The long option names of its letters (--long, --omit-heading, ...) are gnux's own.
+  The shell is read from /etc/passwd, blank for users kept elsewhere and on Windows.
+- **Verified by.** `core/pinky/pinky_test.go`, `cmd/pinkyx/pinkyx_test.go`, the GNU conformance
+  cases in `cmd/testdata/conformance/more-tools.txt`.
+
 ### FR-127: printenvx
 
 `printenvx` must print all or part of the environment, as GNU `printenv` does.
@@ -1961,6 +2177,89 @@ printfx FORMAT [ARGUMENT]...
   `\c` ends output with the status the run already had rather than always 0. `%b` and `%q`
   accept a width and precision.
 - **Verified by.** `core/printf/printf_test.go`, `cmd/printfx/printfx_test.go`.
+
+### FR-178: prx
+
+`prx` must paginate or columnate files for printing, as GNU `pr` does.
+
+```text
+prx [OPTION]... [FILE]...
+```
+
+| Option                               | Meaning |
+|--------------------------------------|---------|
+| `+FIRST[:LAST]`, `--pages`           | Begin and stop printing with those pages |
+| `-COLUMN`, `--columns`               | Output COLUMN columns, printed down unless -a |
+| `-a`, `--across`                     | Print columns across rather than down |
+| `-c`, `--show-control-chars`         | Hat notation (^G) and octal backslash notation |
+| `-d`, `--double-space`               | Double space the output |
+| `-D`, `--date-format=FORMAT`         | Use FORMAT for the header date |
+| `-e`, `--expand-tabs[=CHAR[WIDTH]]`  | Expand input CHARs (TABs) to tab WIDTH (8) |
+| `-F`, `-f`, `--form-feed`            | Use form feeds to separate pages |
+| `-h`, `--header=HEADER`              | Use HEADER instead of the file name |
+| `-i`, `--output-tabs[=CHAR[WIDTH]]`  | Replace spaces with CHARs (TABs) to tab WIDTH (8) |
+| `-J`, `--join-lines`                 | Merge full lines |
+| `-l`, `--length=PAGE_LENGTH`         | Set the page length (66) |
+| `-m`, `--merge`                      | Print all files in parallel, one per column |
+| `-n`, `--number-lines[=SEP[DIGITS]]` | Number lines |
+| `-N`, `--first-line-number=NUMBER`   | Start counting with NUMBER |
+| `-o`, `--indent=MARGIN`              | Offset each line with MARGIN spaces |
+| `-r`, `--no-file-warnings`           | Omit warnings when a file cannot be opened |
+| `-s`, `--separator[=CHAR]`           | Separate columns by a single character |
+| `-S`, `--sep-string[=STRING]`        | Separate columns by STRING |
+| `-t`, `--omit-header`                | Omit page headers and trailers |
+| `-T`, `--omit-pagination`            | Also eliminate form feeds set in input files |
+| `-v`, `--show-nonprinting`           | Octal backslash notation |
+| `-w`, `--width=PAGE_WIDTH`           | Page width (72) for multiple text-column output only |
+| `-W`, `--page-width=PAGE_WIDTH`      | Page width (72), always truncating lines |
+
+- **Behavior.** prx is a port of GNU pr's page layout: headers and footers, columns down with the
+  last page balanced, across, and side by side (-m), truncation, separators, tabification, line
+  numbering, form feeds in the input, page ranges, and the reinterpretation of -s and -w next to -S,
+  -W and the column options. It reads its own command line as GNU's getopt does, digit options and
+  attached optional values included. A file that cannot be opened is reported (unless -r) and makes
+  the status 1; a read error ends the run.
+- **Deviations.** The header's date is in the C locale's words.
+- **Verified by.** `core/pr/pr_test.go`, `cmd/prx/prx_test.go`, the GNU conformance cases in
+  `cmd/testdata/conformance/more-tools.txt`.
+
+### FR-179: ptxx
+
+`ptxx` must produce a permuted index of the words in a text, as GNU `ptx` does.
+
+```text
+ptxx [OPTION]... [INPUT]...
+ptxx -G [OPTION]... [INPUT [OUTPUT]]
+```
+
+| Option                           | Meaning |
+|----------------------------------|---------|
+| `-A`, `--auto-reference`         | Output automatically generated references |
+| `-G`, `--traditional`            | Behave more like System V ptx |
+| `-F`, `--flag-truncation=STRING` | Use STRING for flagging line truncations |
+| `-M`, `--macro-name=STRING`      | Macro name to use instead of xx |
+| `-O`, `--format=roff`            | Generate output as roff directives |
+| `-R`, `--right-side-refs`        | Put references at right, not counted in -w |
+| `-S`, `--sentence-regexp=REGEXP` | For end of lines or end of sentences |
+| `-T`, `--format=tex`             | Generate output as TeX directives |
+| `-W`, `--word-regexp=REGEXP`     | Use REGEXP to match each keyword |
+| `-b`, `--break-file=FILE`        | Word break characters in this FILE |
+| `-f`, `--ignore-case`            | Fold lower case to upper case for sorting |
+| `-g`, `--gap-size=NUMBER`        | Gap size in columns between output fields |
+| `-i`, `--ignore-file=FILE`       | Read ignore word list from FILE |
+| `-o`, `--only-file=FILE`         | Read only word list from FILE |
+| `-r`, `--references`             | First field of each line is a reference |
+| `-t`, `--typeset-mode`           | Not implemented, as in GNU |
+| `-w`, `--width=NUMBER`           | Output width in columns, reference excluded |
+
+- **Behavior.** ptxx is a port of GNU ptx: words and contexts are found, sorted by keyword, and laid
+  out with the same field widths, truncation marks and wrap-around head and tail fields, in the
+  dumb, roff and TeX formats. -F, -S and -W take GNU ptx's backslash escapes. -O, -T and --format:
+  the last one wins.
+- **Deviations.** Regular expressions are in the Emacs syntax GNU ptx uses, run by RE2 in
+  leftmost-longest mode; back references are refused.
+- **Verified by.** `core/ptx/ptx_test.go`, `cmd/ptxx/ptxx_test.go`, the GNU conformance cases in
+  `cmd/testdata/conformance/more-tools.txt`.
 
 ### FR-63: pwdx
 
@@ -2340,6 +2639,37 @@ sha512sumx [OPTION]... [FILE]...
   (and, with -c, matched), 1 otherwise.
 - **Verified by.** `core/sha512sum/sha512sum_test.go`, `cmd/sha512sumx/sha512sumx_test.go`.
 
+### FR-180: shredx
+
+`shredx` must overwrite a file to hide its contents, and optionally delete it, as GNU `shred` does.
+
+```text
+shredx [OPTION]... FILE...
+```
+
+| Option                 | Meaning |
+|------------------------|---------|
+| `-f`, `--force`        | Change permissions to allow writing if necessary |
+| `-n`, `--iterations=N` | Overwrite N times instead of 3 |
+| `--random-source=FILE` | Get random bytes from FILE |
+| `-s`, `--size=N`       | Shred this many bytes |
+| `-u`                   | Deallocate and remove the file after overwriting (--remove=wipesync) |
+| `--remove[=HOW]`       | unlink, wipe or wipesync |
+| `-v`, `--verbose`      | Show progress |
+| `-x`, `--exact`        | Do not round file sizes up to the next full block |
+| `-z`, `--zero`         | Add a final overwrite with zeros |
+
+- **Behavior.** shredx overwrites each FILE with GNU's choice of passes (random passes spread among
+  fixed bit patterns, genpattern), rounding a regular file up to a whole block and overwriting a
+  small file first at its own size, flushing each pass, and with -u truncates it, renames it to ever
+  shorter names of zeros (skipping names that exist) and removes it, reporting each step with -v
+  exactly as GNU does. A file that cannot be opened ("failed to open for writing") is reported and
+  the rest are shredded. - shreds standard output.
+- **Deviations.** The order of the fixed patterns is drawn from Go's generator (or --random-source)
+  rather than GNU's ISAAC. A bad block ends the file's shredding instead of being skipped.
+- **Verified by.** `core/shred/shred_test.go`, `cmd/shredx/shredx_test.go`, the GNU conformance
+  cases in `cmd/testdata/conformance/more-tools.txt`.
+
 ### FR-134: shufx
 
 `shufx` must generate random permutations, as GNU `shuf` does.
@@ -2525,6 +2855,58 @@ statx [OPTION]... FILE...
   accepted for compatibility and has no effect.
 - **Verified by.** `core/stat/stat_test.go`, `cmd/statx/statx_test.go`.
 
+### FR-181: stdbufx
+
+`stdbufx` must run a command with modified buffering of its standard streams, as GNU `stdbuf` does.
+
+```text
+stdbufx OPTION... COMMAND [ARG]...
+```
+
+| Option                | Meaning |
+|-----------------------|---------|
+| `-i`, `--input=MODE`  | Adjust standard input stream buffering |
+| `-o`, `--output=MODE` | Adjust standard output stream buffering |
+| `-e`, `--error=MODE`  | Adjust standard error stream buffering |
+
+- **Behavior.** stdbufx checks its MODEs as GNU does (L, 0, or a size with K, M, ... suffixes; -iL
+  is "line buffering stdin is meaningless"; a mode is required), then runs COMMAND. A COMMAND named
+  after a gnux tool runs in-process as it is. Any other COMMAND gets GNU coreutils' libstdbuf.so
+  preloaded with the _STDBUF_ variables, found beside gnux or where coreutils packages install it;
+  without it stdbufx fails with "failed to find 'libstdbuf.so'", as GNU does. Statuses: 125 for its
+  own failures, 126 and 127 when COMMAND cannot be run or found, else COMMAND's.
+- **Deviations.** A gnux tool is not given the buffer sizes asked for: it already writes each line
+  as soon as its input runs dry. Windows has no library preloading.
+- **Verified by.** `core/stdbuf/stdbuf_test.go`, `cmd/stdbufx/stdbufx_test.go`, the GNU conformance
+  cases in `cmd/testdata/conformance/more-tools.txt`.
+
+### FR-182: sttyx
+
+`sttyx` must print or change terminal line settings, as GNU `stty` does.
+
+```text
+sttyx [-F DEVICE | --file=DEVICE] [SETTING]...
+sttyx [-F DEVICE | --file=DEVICE] [-a|--all]
+sttyx [-F DEVICE | --file=DEVICE] [-g|--save]
+```
+
+| Option                | Meaning |
+|-----------------------|---------|
+| `-a`, `--all`         | Print all current settings in human-readable form |
+| `-g`, `--save`        | Print all current settings in a stty-readable form |
+| `-F`, `--file=DEVICE` | Open and use DEVICE instead of standard input |
+
+- **Behavior.** sttyx is a port of GNU stty over termios: the mode and control-character tables as
+  GNU builds them for the platform, combination settings, speeds, window size, line discipline
+  (Linux), -g output and its reading back, the listing of changed and all settings with GNU's
+  wrapping, and the check that every setting was taken. Its command line is read as GNU's is, so a
+  setting such as -echo is not an option.
+- **Deviations.** On macOS and the BSDs the kernel-set PENDIN flag is left out of that check. When
+  the Linux kernel ignores a setting, the failure is worded as "unable to perform all requested
+  operations" where glibc's tcsetattr gives "Invalid argument". Windows has no termios.
+- **Verified by.** `core/stty/stty_test.go`, `cmd/sttyx/sttyx_test.go`, the GNU conformance cases in
+  `cmd/testdata/conformance/more-tools.txt`.
+
 ### FR-158: sumx
 
 `sumx` must print the checksum and block count of each file, as GNU `sum` does.
@@ -2546,6 +2928,28 @@ sumx [OPTION]... [FILE]...
   reported and the rest are still summed.
 - **Verified by.** `core/sum/sum_test.go`, `cmd/sumx/sumx_test.go`, `cmd/robust_test.go`
   (bounded memory).
+
+### FR-183: syncx
+
+`syncx` must flush cached writes to persistent storage, as GNU `sync` does.
+
+```text
+syncx [OPTION] [FILE]...
+```
+
+| Option                | Meaning |
+|-----------------------|---------|
+| `-d`, `--data`        | Sync only file data, no unneeded metadata |
+| `-f`, `--file-system` | Sync the file systems that contain the files |
+
+- **Behavior.** syncx flushes every file system, or each FILE (fsync), its data only (-d, fdatasync)
+  or its whole file system (-f, syncfs). -d needs a FILE and -d with -f is refused, without the
+  --help hint, as in GNU. A FILE is opened read-only, or write-only when reading is refused; one
+  that cannot be opened ("error opening") or flushed is reported and the rest are flushed.
+- **Deviations.** Off Linux, -d flushes as fsync and -f flushes every file system. On Windows a run
+  with no FILE flushes nothing.
+- **Verified by.** `core/sync/sync_test.go`, `cmd/syncx/syncx_test.go`, the GNU conformance cases in
+  `cmd/testdata/conformance/more-tools.txt`.
 
 ### FR-137: tacx
 
@@ -3703,9 +4107,10 @@ Examples must be given for both a POSIX shell and PowerShell.
 ### FR-41: generated from the program's own definitions
 
 The reference must be generated from the same definitions the program uses, so it cannot drift
-from the code.
+from the code. Generated output is not committed: the website build, the release and `make docs`
+generate it from the code at hand.
 
-- **Verified by.** The Docs workflow; `make docs/check`.
+- **Verified by.** The Docs workflow; `make docs`; `.gitignore`.
 
 ### FR-42: formats
 
@@ -3767,8 +4172,8 @@ The website must present the documentation with navigation and full-text search.
 
 The website's documentation must be produced by the generator, not written separately.
 
-- **Verified by.** The Docs workflow, which regenerates `web/content/docs` and fails on a
-  difference.
+- **Verified by.** The website build (`web/scripts/gen.mjs`), which generates `web/content/docs`
+  before every build; the Docs and Web workflows, which generate it in CI.
 
 ## 10. The playground
 

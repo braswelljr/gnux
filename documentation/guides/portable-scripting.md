@@ -707,7 +707,7 @@ A Go program can run a script in-process with `cmd.NewShell(opts, streams).RunSt
 
 ## See also
 
-- The [shell reference](../markdown/shell/index.md).
+- The [shell reference](https://gnux.vercel.app/docs/shell).
 - [CI and containers](ci-and-containers.md): these scripts as cross-OS CI steps.
 - [Troubleshooting](troubleshooting.md): shell errors and their statuses.
 - [Requirements](../../docs/requirements/functional-requirements.md), sections 5 (the portable shell) and FR-78 (deliberate differences from sh), and workflow WF-3 in the [user workflows](../../docs/requirements/srs-workflows.md).

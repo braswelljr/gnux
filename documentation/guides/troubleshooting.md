@@ -316,7 +316,7 @@ No. It polls every `-s` seconds (1 by default), which works the same on every pl
 Not safely: `cd` changes the process-wide working directory while a script runs.
 
 **Where are the man pages?**
-Generated in `documentation/man/` alongside markdown, reStructuredText and YAML. The [reference index](../markdown/index.md) is the place to start.
+In the `man/` folder of every Unix release archive. From a checkout, `make docs` generates them into `documentation/man/`, alongside markdown, reStructuredText and YAML. The [reference index](https://gnux.vercel.app/docs) is the place to start, and `gnux help TOOL` prints the same page in the terminal.
 
 ## See also
 

@@ -2,8 +2,12 @@
 # `make hooks`. Skip them for one commit with LEFTHOOK=0 git commit ..., and
 # never to get a change past CI: the same checks run there.
 #
-# pre-commit formats what is being committed and lints it; pre-push makes sure
-# the generated reference and the website's docs match the code being pushed.
+# pre-commit formats what is being committed and lints it. The generated docs
+# are not committed, so nothing needs checking on push.
+#
+# The Go jobs clear GOROOT: go finds its own installation, and a GOROOT left
+# over from another Go (a version manager's, an old shell) makes it compile
+# with the wrong toolchain ("compile: version ... does not match go tool").
 
 pre-commit:
   jobs:
@@ -16,7 +20,7 @@ pre-commit:
         jobs:
           # gofmt -s and goimports, as configured in .golangci.yml.
           - name: format
-            run: golangci-lint fmt {staged_files}
+            run: unset GOROOT; golangci-lint fmt {staged_files}
             stage_fixed: true
           # Every package a staged file belongs to, linted whole: a change can
           # break code in the same package that it does not touch. A package
@@ -25,6 +29,7 @@ pre-commit:
           # skips it the same way.
           - name: lint
             run: |
+              unset GOROOT
               pkgs=$(go list -e -f '{{if not .Error}}{{.Dir}}{{end}}' $(for f in {staged_files}; do echo "./$(dirname "$f")/"; done | sort -u))
               [ -z "$pkgs" ] || golangci-lint run $pkgs
 
@@ -32,7 +37,7 @@ pre-commit:
     # linted as that build.
     - name: go wasm
       glob: "tools/wasm/*.go"
-      run: GOOS=js GOARCH=wasm golangci-lint run ./tools/wasm/
+      run: unset GOROOT; GOOS=js GOARCH=wasm golangci-lint run ./tools/wasm/
 
     - name: web
       root: "web/"
@@ -47,12 +52,3 @@ pre-commit:
             glob: "*.{js,mjs,ts,jsx,tsx}"
             run: node_modules/.bin/eslint --fix --no-warn-ignored --max-warnings=0 {staged_files}
             stage_fixed: true
-
-pre-push:
-  jobs:
-    # Regenerates documentation/ (every format) and web/content/docs, then fails
-    # if that changed anything: the pushed commits would not match what the
-    # code generates, and the Docs workflow would reject them. Commit the
-    # regenerated files and push again.
-    - name: docs
-      run: make docs/check

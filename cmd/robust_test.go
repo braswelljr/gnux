@@ -52,7 +52,7 @@ var streaming = []string{
 	"sed s/quick/slow/", "sed -n $p", "sed -E s/(fox|dog)/[\\1]/g", "sed y/abc/xyz/",
 	"cut -c1-10", "cut -f2", "tr a-z A-Z", "tr -d o", "uniq", "uniq -c", "nl", "expand", "unexpand -a",
 	"fold -w 20", "fmt", "paste - -", "od", "od -c", "base64", "base32", "cksum", "sum", "sum -s", "md5sum", "sha256sum", "b2sum",
-	"dd status=none", "xargs -n 50 true", "xargs true",
+	"dd status=none", "xargs -n 50 true", "xargs true", "numfmt --invalid=ignore --to=si",
 }
 
 // The memory test's input, and how far a streaming tool may grow the live heap
@@ -179,13 +179,14 @@ func settledGoroutines() int {
 var lineFilters = []string{
 	"cat", "cat -n", "cat -A", "tee", "nl", "cut -c1-3", "cut -f1", "tr a-z A-Z", "expand", "unexpand -a",
 	"fold -w 40", "paste -", "head -n 5", "grep line", "grep -n -v zebra", "sed s/line/LINE/", "sed -n p",
-	"xargs -n 1 echo", "xargs -I {} echo {}", "factor",
+	"xargs -n 1 echo", "xargs -I {} echo {}", "factor", "numfmt --to=si",
 }
 
 // lineInput is the line a filter in lineFilters is given when "line one"
 // is not something it accepts.
 var lineInput = map[string]string{
-	"factor": "12\n",
+	"factor":         "12\n",
+	"numfmt --to=si": "1000\n",
 }
 
 // watched is an output a test can wait on.

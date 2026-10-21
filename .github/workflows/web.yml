@@ -67,6 +67,11 @@ jobs:
       - name: Build gnux for WebAssembly
         run: make web/wasm
 
+      # The docs pages (except the snapshots of past releases) are generated,
+      # not committed; the type-check and the tests read them.
+      - name: Generate the docs content
+        run: make web/docs
+
       - name: Install dependencies
         working-directory: web
         run: pnpm install --frozen-lockfile --store-dir ~/.pnpm-store

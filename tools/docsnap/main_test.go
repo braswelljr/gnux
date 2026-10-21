@@ -35,6 +35,8 @@ func TestSnapshot(t *testing.T) {
 	write("meta.json", `{"title":"gnux","pages":["index","---Tools---","...tools"]}`)
 	write("index.mdx", "See [rmx](/docs/tools/rmx), [the docs](/docs), [a part](/docs#x) and [elsewhere](/install) or /docs/guide in prose.\n")
 	write("tools/rmx/index.mdx", "[force](/docs/tools/rmx/force)\n")
+	write("tools/rmx/force.mdx", "the force option\n")
+	write("tools/truex/index.mdx", "true\n")
 	write("v1.0/index.mdx", "an older snapshot\n")
 
 	dst := filepath.Join(out, "v1.2")
@@ -49,6 +51,9 @@ func TestSnapshot(t *testing.T) {
 	if got, _ := os.ReadFile(filepath.Join(dst, "tools", "rmx", "index.mdx")); string(got) != "[force](/docs/v1.2/tools/rmx/force)\n" {
 		t.Errorf("nested page = %q", got)
 	}
+	if _, err := os.Stat(filepath.Join(dst, "tools", "truex.mdx")); err != nil {
+		t.Errorf("a tool without option pages was not made a page of its own: %v", err)
+	}
 	var meta map[string]any
 	raw, _ := os.ReadFile(filepath.Join(dst, "meta.json"))
 	if err := json.Unmarshal(raw, &meta); err != nil || meta["root"] != true || meta["title"] != "v1.2" {
@@ -56,5 +61,41 @@ func TestSnapshot(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dst, "v1.0")); err == nil {
 		t.Error("a snapshot inside the source was copied into the new one")
+	}
+}
+
+func TestFlatten(t *testing.T) {
+	root := t.TempDir()
+	write := func(rel, content string) {
+		t.Helper()
+		p := filepath.Join(root, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("tools/truex/index.mdx", "true page")
+	write("tools/truex/meta.json", `{"title":"truex","pages":[]}`)
+	write("tools/echox/index.mdx", "echo page")
+	write("tools/rmx/index.mdx", "rm page")
+	write("tools/rmx/force.mdx", "force page")
+	write("tools/rmx/meta.json", `{"title":"rmx","pages":["force"]}`)
+	if err := Flatten(root); err != nil {
+		t.Fatal(err)
+	}
+	for rel, want := range map[string]string{"tools/truex.mdx": "true page", "tools/echox.mdx": "echo page", "tools/rmx/index.mdx": "rm page"} {
+		if got, err := os.ReadFile(filepath.Join(root, rel)); err != nil || string(got) != want {
+			t.Errorf("%s = %q, %v", rel, got, err)
+		}
+	}
+	for _, gone := range []string{"tools/truex", "tools/echox"} {
+		if _, err := os.Stat(filepath.Join(root, gone)); !os.IsNotExist(err) {
+			t.Errorf("%s still exists", gone)
+		}
+	}
+	if err := Flatten(t.TempDir()); err != nil {
+		t.Errorf("a tree without tools: %v", err)
 	}
 }

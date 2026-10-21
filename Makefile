@@ -199,21 +199,13 @@ hooks: ## Install the Git hooks in lefthook.yml: format and lint on commit, docs
 	lefthook install
 
 .PHONY: ci
-ci: vet lint test docs/check ## Run the full CI suite locally
+ci: vet lint test docs ## Run the full CI suite locally
 
 # ── Documentation ─────────────────────────────────────────────────────────────
 .PHONY: docs
-docs: ## Regenerate the reference (documentation/, all formats) and the website content
+docs: ## Generate the reference (documentation/, all formats) and the website content; not committed
 	go run ./tools/gendocs documentation all
 	go run ./tools/gendocs $(WEB_DIR)/content/docs mdx
-
-.PHONY: docs/check
-docs/check: docs ## Fail if the committed docs are out of date
-	@if [ -n "$$(git status --porcelain documentation $(WEB_DIR)/content/docs)" ]; then \
-		echo "generated docs are out of date - commit the regenerated files"; \
-		git status --porcelain documentation $(WEB_DIR)/content/docs; \
-		exit 1; \
-	fi
 
 # ── Website (Fumadocs + playground) ───────────────────────────────────────────
 .PHONY: web/wasm
@@ -226,8 +218,9 @@ wasi: ## Build gnux for WASI (bin/gnux.wasm), to run under a WASI runtime
 	GOOS=wasip1 GOARCH=wasm go build -trimpath $(LDFLAGS) -o bin/gnux.wasm .
 
 .PHONY: web/docs
-web/docs: ## Regenerate the website's documentation content
+web/docs: ## Generate the website's documentation content and its YAML reference
 	go run ./tools/gendocs $(WEB_DIR)/content/docs mdx
+	go run ./tools/gendocs $(WEB_DIR)/public/reference yaml
 
 .PHONY: web/install
 web/install: ## Install the website's dependencies

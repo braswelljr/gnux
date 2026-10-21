@@ -392,7 +392,7 @@ output.
 - **Measure.** No timestamps; the man page date is pinned; cobra's generation footer is
   disabled.
 - **Verified by.** `TestGenerateAllDeterministic` for the four reference formats. The website
-  content has no determinism test of its own; the Docs workflow would fail if it varied.
+  content has no determinism test of its own.
 
 ### NFR-39: engines do not depend on the command-line framework
 

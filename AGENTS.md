@@ -75,11 +75,11 @@ gnux/
   tools/docsnap/           # `go run ./tools/docsnap -tag vX.Y.Z` - a release's docs for the website
   CHANGELOG.md             # Release history (Keep a Changelog); published as /docs/changelog
   web/                     # Next.js + Fumadocs site and playground (own go.mod: not part of ./...)
-    content/docs/          # Generated MDX (committed) - never edit by hand
+    content/docs/          # Generated MDX (not committed, except the vX.Y release snapshots)
     public/                # gnux.wasm + wasm_exec.js land here (`make web/wasm`; not committed)
   documentation/           # The published documentation:
     guides/                # Hand-written usage docs: getting started, cookbook, scripting, library, ...
-    <format>/              # Generated reference (committed, deterministic) - never edit by hand:
+    <format>/              # Generated reference (not committed; `make docs` builds it):
                            #   {index.*, guide.*, <tool>/index.*, <tool>/flags/<flag>.*}
   docs/                    # Hand-written contributor documentation
     README.md              # Map of docs/ and documentation/
@@ -93,16 +93,19 @@ gnux/
 
 ## Tools
 
-`archx`, `b2sumx`, `base32x`, `base64x`, `basenamex`, `catx`, `chgrpx`, `chmodx`, `chownx`,
-`cksumx`, `commx`, `cpx`, `csplitx`, `cutx`, `datex`, `ddx`, `dfx`, `dirnamex`, `dirx`, `dux`,
-`echox`, `envx`, `expandx`, `exprx`, `factorx`, `falsex`, `findx`, `fmtx`, `foldx`, `grepx`,
-`groupsx`, `headx`, `hostnamex`, `idx`, `installx`, `joinx`, `killx`, `linkx`, `lnx`, `lognamex`,
-`lsx`, `md5sumx`, `mkdirx`, `mktempx`, `mvx`, `nicex`, `nlx`, `nohupx`, `nprocx`, `odx`, `pastex`,
-`printenvx`, `printfx`, `pwdx`, `readlinkx`, `realpathx`, `rmdirx`, `rmx`, `sedx`, `seqx`,
-`sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `shufx`, `sleepx`, `sortx`,
-`splitx`, `statx`, `sumx`, `tacx`, `tailx`, `teex`, `testx`, `timeoutx`, `touchx`, `truex`,
-`truncatex`, `trx`, `tsortx`, `ttyx`, `unamex`, `unexpandx`, `uniqx`, `unlinkx`, `uptimex`,
-`usersx`, `vdirx`, `wcx`, `whoamix`, `whox`, `xargsx`, `yesx`. The README's roadmap lists what is not implemented yet.
+`archx`, `b2sumx`, `base32x`, `base64x`, `basenamex`, `basencx`, `catx`, `chgrpx`, `chmodx`,
+`chownx`, `cksumx`, `commx`, `cpx`, `csplitx`, `cutx`, `datex`, `ddx`, `dfx`, `dircolorsx`,
+`dirnamex`, `dirx`, `dux`, `echox`, `envx`, `expandx`, `exprx`, `factorx`, `falsex`, `findx`,
+`fmtx`, `foldx`, `grepx`, `groupsx`, `headx`, `hostidx`, `hostnamex`, `idx`, `installx`, `joinx`,
+`killx`, `linkx`, `lnx`, `lognamex`, `lsx`, `md5sumx`, `mkdirx`, `mkfifox`, `mknodx`, `mktempx`,
+`mvx`, `nicex`, `nlx`, `nohupx`, `nprocx`, `numfmtx`, `odx`, `pastex`, `pathchkx`, `pinkyx`,
+`printenvx`, `printfx`, `prx`, `ptxx`, `pwdx`, `readlinkx`, `realpathx`, `rmdirx`, `rmx`, `sedx`,
+`seqx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `shredx`, `shufx`,
+`sleepx`, `sortx`, `splitx`, `statx`, `stdbufx`, `sttyx`, `sumx`, `syncx`, `tacx`, `tailx`,
+`teex`, `testx`, `timeoutx`, `touchx`, `truex`, `truncatex`, `trx`, `tsortx`, `ttyx`, `unamex`,
+`unexpandx`, `uniqx`, `unlinkx`, `uptimex`, `usersx`, `vdirx`, `wcx`, `whoamix`, `whox`, `xargsx`,
+`yesx`. Every GNU coreutils tool is here except `chroot`, `chcon` and `runcon`, left out by
+design (the README's roadmap).
 
 `grepx`, `sedx`, `findx` and `xargsx` mirror GNU grep, GNU sed and GNU findutils, not coreutils:
 they are the tools a build script reaches for next. `xargsx` and `findx -exec` run a command
@@ -120,8 +123,8 @@ make test          # go test -race ./...
 make lint          # golangci-lint run
 make format        # golangci-lint fmt (gofmt -s + goimports, in .golangci.yml), then Prettier in web/
 make hooks         # lefthook install: the Git hooks in lefthook.yml
-make docs          # regenerate documentation/ (all formats) and web/content/docs (also: go generate ./...)
-make ci            # vet + lint + test + docs freshness check
+make docs          # generate documentation/ (all formats) and web/content/docs (also: go generate ./...)
+make ci            # vet + lint + test + docs generation
 make bench         # benchmark the real tools into bench/latest.txt (BENCH=regexp, COUNT=n)
 make bench/save    # keep the latest results as the baseline; make bench/compare runs benchstat
 make bench/check   # fail if bench/latest.txt regressed against bench/baseline.txt (tools/benchcheck)
@@ -151,8 +154,7 @@ go build -ldflags "-X github.com/braswelljr/gnux/internal/common.Version=$(git d
 - **Go 1.26+** (pinned in `go.mod`; CI reads it from there) and `git`.
 - **golangci-lint v2** for `make lint` and `make format`; **lefthook** for the Git hooks
   (`make hooks`): on commit, staged Go files are formatted and their packages linted, and staged
-  web files go through Prettier and ESLint; on push, `make docs/check` fails if the generated
-  docs (`documentation/` and `web/content/docs/`) do not match the code.
+  web files go through Prettier and ESLint.
 - **Node.js 22.18+ and pnpm**, only for `web/` (pinned in `web/package.json`).
 - No cgo anywhere: the binary must stay statically linked and cross-compile for linux, darwin,
   freebsd, windows **and js/wasm** (the playground). Releases cover linux amd64/arm64/riscv64,
@@ -359,7 +361,7 @@ adapter package directly; add `Topics` to a spec only when per-flag pages are wo
 2. Create the adapter in `cmd/<gnu>x/` (`Spec`, `Meta`, `Register`, `buildOptions`, `run`) with a
    `buildOptions` table test. Start from `cmd/pwdx`.
 3. Add `<gnu>x.Spec()` to `Tools()` in `cmd/registry.go` (kept alphabetical).
-4. Run `make docs` and commit the regenerated `documentation/` and `web/content/docs/`.
+4. Run `make docs` to check the new pages generate (they are not committed).
 5. Add the tool to the tables in `README.md` and the list above, give it a section in
    `docs/requirements/functional-requirements.md`, and add it to
    `documentation/guides/adoption.md`.
@@ -394,7 +396,14 @@ a page in every format - a new tool is covered by both as soon as it is register
 
 `tools/gendocs` (also `make docs` and `go generate ./...`) builds the reference into `documentation/` via
 `cmd/docs`, in **markdown, man, yaml and reST**. Each format directory is self-contained and is
-rebuilt from scratch on every run:
+rebuilt from scratch on every run. **Generated output is never committed** (`.gitignore`): the
+website build (`web/scripts/gen.mjs`) generates its MDX and the YAML reference it serves at
+`/reference/yaml/` (listed in `llms.txt`, for AI tools and scripts), GoReleaser generates the man
+pages it ships, and the Docs workflow generates everything and keeps the markdown and man pages as a run
+artifact. Only the hand-written guides and the release snapshots (`web/content/docs/vX.Y`) are
+committed. A hand-written document links to a reference page by its website URL
+(`https://gnux.vercel.app/docs/tools/rmx`), which the MDX generator turns into a site path. Each
+format holds:
 
 - `<format>/index.*` - gnux itself; links to every tool page.
 - `<format>/guide.*` - requirements, installation + usage guide (synthetic command; prose in
@@ -427,7 +436,9 @@ it changes a usage example the guides show, update the guide.
 `tools/docsnap -tag vX.Y.Z` (`make docs/snapshot TAG=...`, and the Release workflow's `docs`
 job) runs that tag's own generator in a temporary worktree into `web/content/docs/vX.Y/`,
 rewrites its `/docs` links into `/docs/vX.Y`, and makes its `meta.json` a root folder.
-`GenerateMDX` never deletes those folders (`VersionDir`). On the site, `lib/source.ts`
+`GenerateMDX` never deletes those folders (`VersionDir`). A tool with no option pages is a plain page
+(`tools/<tool>.mdx`), a link in the sidebar, never a folder with nothing to open; docsnap's
+`Flatten` lays out older releases' snapshots the same way (`go run ./tools/docsnap -tidy`). On the site, `lib/source.ts`
 (`pageVersion`, `docsVersions`, `latestDocs`) tells them apart: the version select in the docs
 sidebar switches between them, an older version's page is noindex with the latest page as its
 canonical, and search, the sitemap and `llms.txt` hold the latest docs only.
@@ -450,7 +461,7 @@ multi-language code blocks; man/yaml/reST reuse `cobra/doc` from a synthetic com
 permissions and use cases into its description. In markdown only, `wrapCode` wraps flag and
 command references in backticks (ambiguous English tool names like `true`, `head`, `cat` are
 left alone; the x-names always wrap). Output is **deterministic** - the cobra auto-gen tag is
-disabled and the man date is pinned (`docs.ManDate`) - so committed docs don't churn.
+disabled and the man date is pinned (`docs.ManDate`) - so two runs give the same files.
 `cobra/doc` pulls in `go-md2man`, but only `tools/gendocs` imports `cmd/docs`, so it never links
 into the `gnux` binary.
 
@@ -473,7 +484,7 @@ nothing depends on following a link.
 - **A failure is never reported as success** - every failure gets a diagnostic and a nonzero status exactly once, and a tool refuses rather than silently doing something else. ([file](docs/rules/a-failure-is-never-reported-as-success.md))
 - **Platform code lives behind build tags, with a fallback that compiles everywhere** - use `unix` / `!unix` files that also build for js/wasm, with no `runtime.GOOS` branches and no cgo. ([file](docs/rules/platform-code-lives-behind-build-tags.md))
 - **The shell runs no external program implicitly** - `gnux shell` reaches only builtins and registered tools through `Exec`, anything else is `command not found` (127), and external programs go through `envx`. ([file](docs/rules/the-shell-runs-no-external-program-implicitly.md))
-- **The reference documents itself, and it is checked** - `docs/` and `web/content/docs/` are generated deterministically from the registry and `Meta()`, never edited by hand, and the Docs workflow rejects stale copies. ([file](docs/rules/the-reference-documents-itself-and-it-is-checked.md))
+- **The reference documents itself, and it is checked** - `documentation/<format>/` and `web/content/docs/` are generated deterministically from the registry and `Meta()` whenever they are needed, never committed or edited by hand, and the Docs workflow and the generator's tests prove they still generate. ([file](docs/rules/the-reference-documents-itself-and-it-is-checked.md))
 - **Tests drive engines, not terminals** - build engines on `t.TempDir()`, buffers and injected funcs (`PromptFn`, `RemoveFn`, `Getenv`), with the standard library only and `-race` always on. ([file](docs/rules/tests-drive-engines-not-terminals.md))
 
 ### Frontend
@@ -558,7 +569,7 @@ cleanup, and best-effort `fmt.Fprint*` diagnostic writes. `_test.go` files are e
 | `test.yml`  | `go vet` + `go test -race` on ubuntu/macos/windows, a multi-call smoke test, wasm build, 30s fuzzing of every parser (`make fuzz`), and the GNU conformance harness in a Debian container |
 | `build.yml` | cross-compiles `gnux` for every release platform and uploads the binaries               |
 | `lint.yml`  | `golangci-lint` (pinned v2 release)                                                     |
-| `docs.yml`  | regenerates `documentation/` and `web/content/docs/`; fails if the committed copies are stale |
+| `docs.yml`  | tests the generator, generates `documentation/` and `web/content/docs/`, and keeps the markdown and man reference as a run artifact |
 | `web.yml`   | builds the wasm, then lints, type-checks, tests and builds the website                  |
 | `bench.yml` | on a pull request: benchmarks the base commit and the change in one job and fails on a regression (`tools/benchcheck`) |
 | `action.yml` | runs the setup-gnux action (`action.yml` at the root) on linux/macos/windows runners and uses the tools |

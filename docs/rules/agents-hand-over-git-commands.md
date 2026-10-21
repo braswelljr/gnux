@@ -18,7 +18,7 @@ git tag -a v1.0.0 -m "gnux v1.0.0"
 git push origin v1.0.0
 ```
 
-with a note on anything that is hard to reverse (a tag starts a release; a force-push rewrites `main`) and on what each command needs first (the `pre-push` hook refuses a tree with uncommitted generated docs).
+with a note on anything that is hard to reverse (a tag starts a release; a force-push rewrites `main`) and on what each command needs first.
 
 Do: run the checks (`make ci`, `make docs`, `make release/check`), read `git status` and `git diff`, and write the message in the project's style (`release: vX.Y.Z`, `fix: ...`, `feat: ...`).
 
@@ -31,4 +31,4 @@ Review. Nothing in the repository can stop an agent from running git; this file,
 ## Related
 
 - [Publishing a release](../workflows/publishing-a-release.md), whose steps the handed-over commands follow.
-- [The reference documents itself, and it is checked](the-reference-documents-itself-and-it-is-checked.md): why `make docs` comes before the commit.
+- [The reference documents itself, and it is checked](the-reference-documents-itself-and-it-is-checked.md): why the generated docs are not part of the commit.

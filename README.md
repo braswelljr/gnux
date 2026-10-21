@@ -43,6 +43,7 @@ against an in-memory filesystem.
 | `base32x`    | `base32`    | Encode or decode data in base32 |
 | `base64x`    | `base64`    | Encode or decode data in base64 |
 | `basenamex`  | `basename`  | Strip the directory and suffix from file names |
+| `basencx`    | `basenc`    | Encode or decode data in base64, base64url, base32, base32hex, base16, base2 or Z85 |
 | `catx`       | `cat`       | Concatenate files and print them on standard output |
 | `chgrpx`     | `chgrp`     | Change group ownership |
 | `chmodx`     | `chmod`     | Change file mode bits |
@@ -55,6 +56,7 @@ against an in-memory filesystem.
 | `datex`      | `date`      | Print the date and time |
 | `ddx`        | `dd`        | Convert and copy a file, block by block |
 | `dfx`        | `df`        | Report file system space usage |
+| `dircolorsx` | `dircolors` | Print commands that set LS_COLORS, the colors of lsx --color |
 | `dirnamex`   | `dirname`   | Strip the last component from file names |
 | `dirx`       | `dir`       | List directory contents in columns |
 | `dux`        | `du`        | Estimate file space usage |
@@ -70,6 +72,7 @@ against an in-memory filesystem.
 | `grepx`      | `grep`      | Print the lines that match patterns |
 | `groupsx`    | `groups`    | Print the groups a user is in |
 | `headx`      | `head`      | Print the first part of each file |
+| `hostidx`    | `hostid`    | Print the numeric identifier for the current host |
 | `hostnamex`  | `hostname`  | Print the name of the current host system |
 | `idx`        | `id`        | Print real and effective user and group IDs |
 | `installx`   | `install`   | Copy files into place and set their mode, owner and group |
@@ -81,16 +84,23 @@ against an in-memory filesystem.
 | `lsx`        | `ls`        | List information about files and directory contents |
 | `md5sumx`    | `md5sum`    | Print or check MD5 (128-bit) checksums |
 | `mkdirx`     | `mkdir`     | Create the DIRECTORY(ies), if they do not already exist |
+| `mkfifox`    | `mkfifo`    | Make named pipes (FIFOs) |
+| `mknodx`     | `mknod`     | Make block or character special files, or named pipes |
 | `mktempx`    | `mktemp`    | Create a temporary file or directory, safely, and print its name |
 | `mvx`        | `mv`        | Move (rename) files and directories |
 | `nicex`      | `nice`      | Run a program with modified scheduling priority |
 | `nlx`        | `nl`        | Number lines of files |
 | `nohupx`     | `nohup`     | Run a command immune to hangups, with output to a non-terminal |
 | `nprocx`     | `nproc`     | Print the number of processing units available |
+| `numfmtx`    | `numfmt`    | Convert numbers to and from human-readable strings |
 | `odx`        | `od`        | Dump files in octal and other formats |
 | `pastex`     | `paste`     | Merge lines of files |
+| `pathchkx`   | `pathchk`   | Check whether file names are valid or portable |
+| `pinkyx`     | `pinky`     | Show who is logged in, or what is known about users |
 | `printenvx`  | `printenv`  | Print all or part of the environment |
 | `printfx`    | `printf`    | Format and print data |
+| `prx`        | `pr`        | Paginate or columnate files for printing |
+| `ptxx`       | `ptx`       | Produce a permuted index of the words in a text |
 | `pwdx`       | `pwd`       | Print the full name of the current working directory |
 | `readlinkx`  | `readlink`  | Print resolved symbolic links or canonical file names |
 | `realpathx`  | `realpath`  | Print the resolved absolute file name |
@@ -103,12 +113,16 @@ against an in-memory filesystem.
 | `sha256sumx` | `sha256sum` | Print or check SHA-256 (256-bit) checksums |
 | `sha384sumx` | `sha384sum` | Print or check SHA-384 (384-bit) checksums |
 | `sha512sumx` | `sha512sum` | Print or check SHA-512 (512-bit) checksums |
+| `shredx`     | `shred`     | Overwrite a file to hide its contents, and optionally delete it |
 | `shufx`      | `shuf`      | Generate random permutations |
 | `sleepx`     | `sleep`     | Delay for a specified amount of time |
 | `sortx`      | `sort`      | Sort lines of text files |
 | `splitx`     | `split`     | Split a file into pieces |
 | `statx`      | `stat`      | Display file or file system status |
+| `stdbufx`    | `stdbuf`    | Run a command with modified buffering of its standard streams |
+| `sttyx`      | `stty`      | Print or change terminal line settings |
 | `sumx`       | `sum`       | Print the checksum and block count of each file |
+| `syncx`      | `sync`      | Synchronize cached writes to persistent storage |
 | `tacx`       | `tac`       | Concatenate and print files in reverse |
 | `tailx`      | `tail`      | Print the last part of each file, optionally following it as it grows |
 | `teex`       | `tee`       | Copy standard input to each FILE, and also to standard output |
@@ -133,8 +147,8 @@ against an in-memory filesystem.
 | `xargsx`     | `xargs`     | Build and run command lines from standard input |
 | `yesx`       | `yes`       | Output a string repeatedly until killed |
 
-`gnux --list` prints the tool names; `gnux --help` lists them with a summary. The few
-remaining coreutils tools are on the [roadmap](#roadmap).
+`gnux --list` prints the tool names; `gnux --help` lists them with a summary. Every GNU
+coreutils tool is here except the three the [roadmap](#roadmap) leaves out by design.
 
 Four of the tools are not part of GNU coreutils: `grepx` (GNU grep), `sedx` (GNU sed), and
 `findx` and `xargsx` (GNU findutils). They are here because a build or CI script rarely stays
@@ -174,8 +188,8 @@ it back to the system's own tools, which differ between Linux, macOS and Windows
 
 - Everything above, plus [golangci-lint](https://golangci-lint.run/) v2 for `make lint` and
   `make format`, and [lefthook](https://lefthook.dev/) for the Git hooks (`make hooks` installs
-  them: format and lint on commit, a docs freshness check on push). `make ci` must pass, which
-  includes regenerating `documentation/`.
+  them: format and lint on commit). `make ci` must pass, which includes generating the
+  reference.
 
 ## Installation
 
@@ -488,8 +502,8 @@ run it with `gnux shell -e`. The same file serves a developer laptop and every C
 returned error against `core.ErrFailed`.
 
 **Contributing.** Add an engine under `core/` and its adapter under `cmd/`, register it in
-`cmd/registry.go`, then run `make ci` - vet, lint, tests, and regeneration of every generated
-doc. Commit the regenerated files with your change.
+`cmd/registry.go`, then run `make ci` - vet, lint, tests, and generation of every reference
+format. The generated reference is not committed: it is built whenever it is needed.
 
 **Continuous integration.** Every push and pull request runs these GitHub workflows:
 
@@ -498,7 +512,7 @@ doc. Commit the regenerated files with your change.
 | Test     | `go vet` and `go test -race` on Linux, macOS and Windows; a multi-call smoke test; the WebAssembly build; a short fuzzing run of the shell |
 | Build    | cross-compiles `gnux` for Linux, macOS, FreeBSD and Windows and uploads the binaries                     |
 | Lint     | `golangci-lint`                                                                                          |
-| Docs     | regenerates `documentation/` and `web/content/docs/` and fails if the committed copies are stale         |
+| Docs     | tests the generator, generates `documentation/` and `web/content/docs/`, and keeps the reference as a run artifact |
 | Web      | builds the WebAssembly binary, then lints, type-checks, tests and builds the website                     |
 | Action   | installs a release with the setup-gnux action (`action.yml`) on Linux, macOS and Windows runners and uses the tools |
 | Release  | on a `v*` tag: re-runs the checks, then GoReleaser (`.goreleaser.yaml`) builds an archive per platform, publishes them with `.deb`, `.rpm` and `.apk` packages, checksums, a provenance attestation and the tag's [`CHANGELOG.md`](CHANGELOG.md) section as notes, and publishes to Homebrew, Scoop, winget, the Snap Store and the AUR ([how](docs/workflows/publishing-a-release.md)) |
@@ -508,9 +522,11 @@ doc. Commit the regenerated files with your change.
 The website in [`web/`](web/) - Fumadocs documentation plus the playground - is the friendliest
 way in: `make web/dev` serves it locally.
 
-A full reference is also generated into [`documentation/`](documentation/markdown/index.md) in markdown, man, YAML and
-reST, grouped by format so each directory is self-contained (`documentation/markdown/` holds all
-markdown, etc.). The same content prints in the terminal with `gnux help TOOL`:
+The full reference is on the website at [gnux.vercel.app/docs](https://gnux.vercel.app/docs), and
+prints in the terminal with `gnux help TOOL`. `make docs` also generates it into `documentation/`
+in markdown, man, YAML and reST, grouped by format so each directory is self-contained
+(`documentation/markdown/` holds all markdown, etc.). These files are not committed; the release
+archives carry the man pages:
 
 - `documentation/<format>/index.*` - gnux itself (entry page, links to every tool)
 - `documentation/<format>/guide.*` - installation and usage guide
@@ -532,8 +548,8 @@ requirements, workflows and rules are for contributors and live here only:
 
 [`docs/README.md`](docs/README.md) is the map of all of it.
 
-Start at [`documentation/markdown/index.md`](documentation/markdown/index.md). The website's pages
-(`web/content/docs/`) are generated from the same source. Regenerate everything with `make docs`
+Start at [the reference index](https://gnux.vercel.app/docs). The website's pages
+(`web/content/docs/`) are generated from the same source. Generate everything with `make docs`
 (or `go generate ./...`).
 
 ## Development
@@ -546,8 +562,8 @@ make cover        # tests + coverage.out summary
 make lint         # golangci-lint
 make format       # format everything: Go (gofmt -s + goimports) and the website (Prettier)
 make hooks        # install the lefthook Git hooks (lefthook.yml)
-make docs         # regenerate documentation/ and web/content/docs/
-make ci           # vet + lint + test + docs freshness check
+make docs         # generate documentation/ and web/content/docs/ (not committed)
+make ci           # vet + lint + test + docs generation
 make web/dev      # build the wasm + docs content, then serve the website locally
 make web/test     # test the playground's filesystem against the real wasm
 make web/build    # production build of the website
@@ -566,8 +582,7 @@ Not yet implemented, roughly in priority order. The full list of planned tools, 
 channels and integrations, ticked off as they land, is
 [`docs/requirements/checklist.md`](docs/requirements/checklist.md).
 
-- **Tools:** `basenc`, `numfmt`, `pr`, `mkfifo`, `mknod`, `pathchk`, `pinky`, `stdbuf`, `sync`,
-  `shred`, `dircolors`, `hostid`, `ptx`, `stty`
+- **Tools:** none; every GNU coreutils tool but those below is implemented.
 - **Out of scope by design:** `chroot`, `chcon` and `runcon`, which change system-wide state
   that gnux leaves to the system's own tools
 

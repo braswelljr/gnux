@@ -9,13 +9,13 @@ What each GitHub Actions workflow in `.github/workflows/` does, step by step: wh
 | Test       | `test.yml`    | push and PR to `main`                                            | NFR-1, NFR-3, NFR-4, NFR-15, NFR-31, NFR-48, FR-19, FR-29, FR-37 | `make vet test`, `make links`, the wasm build, `go test -fuzz` |
 | Build      | `build.yml`   | push and PR to `main`                                            | NFR-1, NFR-2, NFR-4, FR-17, FR-36                   | `CGO_ENABLED=0 make build/all`        |
 | Lint       | `lint.yml`    | push and PR to `main` and `staging`                              | NFR-28, NFR-42                                      | `make lint`                           |
-| Docs       | `docs.yml`    | push and PR to `main` touching Go, `docs/`, `web/content/docs/`, `tools/` or `go.mod` | FR-41, FR-46, FR-82, NFR-29 | `make docs/check`              |
+| Docs       | `docs.yml`    | push and PR to `main` touching Go, `documentation/guides/`, `CHANGELOG.md`, `tools/` or `go.mod` | FR-41, FR-46, FR-82, NFR-29 | `make docs`              |
 | Web        | `web.yml`     | push and PR to `main` touching `web/`, Go, `go.mod` or the workflow | NFR-3, NFR-11, NFR-19, NFR-33, FR-47, FR-84, FR-85 | `make web/test`, then `pnpm` steps |
 | Bench      | `bench.yml`   | PR to `main` touching Go, `go.mod`, the `Makefile` or the workflow | NFR-52 | `make bench COUNT=5 && make bench/save` on the base, then `make bench COUNT=5 && make bench/check` |
 | Action     | `action.yml`  | push and PR to `main` touching `action.yml` or the workflow      | FR-36                                               | the install script with `RUNNER_*` set |
 | Release    | `release.yml` | push of a tag matching `v*`                                      | FR-36, FR-38, FR-95, NFR-1, NFR-2, NFR-37           | `make ci`, then `make release/snapshot` |
 
-`make ci` runs `vet`, `lint`, `test` and `docs/check`: the Go half of the gates, on the host
+`make ci` runs `vet`, `lint`, `test` and `docs`: the Go half of the gates, on the host
 platform only.
 
 ### Rules every workflow follows
@@ -128,9 +128,9 @@ applies it (`golangci-lint fmt`, then Prettier over the website; `make fix` is t
 reach CI. On commit, the staged Go files are formatted with `golangci-lint fmt` and every
 package they belong to is linted (a package the machine cannot build is skipped, as `./...`
 skips it in CI, and `tools/wasm` is linted as the `js/wasm` build it is); the staged website files are formatted with Prettier and
-linted with ESLint (`--max-warnings=0`). Fixes are staged with the commit. On push, `make
-docs/check` regenerates `documentation/` and `web/content/docs/` and stops the push when they
-differ from what is committed. `LEFTHOOK=0` skips the hooks for one command.
+linted with ESLint (`--max-warnings=0`). Fixes are staged with the commit. There is no push
+hook: the generated docs are not committed, so there is nothing to keep in step.
+`LEFTHOOK=0` skips the hooks for one command.
 
 **Common failures:**
 
@@ -144,32 +144,27 @@ differ from what is committed. `LEFTHOOK=0` skips the hooks for one command.
 ## Docs (`docs.yml`)
 
 **Job `docs`** on `ubuntu-latest`, path-filtered to changes that can affect generated output:
-`**.go`, `docs/**`, `web/content/docs/**`, `tools/**`, `go.mod`.
+`**.go`, `documentation/guides/**`, `CHANGELOG.md`, `tools/**`, `go.mod`.
 
 ```bash
+go test ./cmd/docs/... ./tools/gendocs/...
 go generate ./...     # runs both //go:generate lines in main.go
-if [ -n "$(git status --porcelain docs web/content/docs)" ]; then
-  echo "::error::Generated docs are out of date. Run 'make docs' and commit the result." >&2
-  git status --porcelain docs web/content/docs
-  git --no-pager diff -- docs web/content/docs
-  exit 1
-fi
 ```
 
-It enforces that the committed reference and website content equal what the code generates
-(FR-41, FR-46), which in turn depends on generation being deterministic (NFR-29). The full
+then uploads `documentation/markdown` and `documentation/man` as the run's `reference`
+artifact (kept 30 days). Nothing generated is committed (`.gitignore`), so there is no
+freshness check: the job proves the reference and the website content still generate from the
+code (FR-41, FR-46), and the generator's tests hold it to being deterministic (NFR-29). The full
 mechanism is in [documentation-generation](documentation-generation.md).
 
-**Locally:** `make docs/check` (part of `make ci`).
+**Locally:** `make docs` (part of `make ci`).
 
 **Common failures:**
 
 | Symptom                                          | Cause                                                            | Fix                                         |
 |--------------------------------------------------|------------------------------------------------------------------|---------------------------------------------|
-| "Generated docs are out of date" with `M` lines  | A `Meta()`, a flag, `guide.go` or a hand-written doc changed without `make docs` | `make docs`, commit the result |
-| Lines starting with `??`                         | New generated files (a new tool's pages) were not added to git   | `git add` them                              |
-| Lines starting with ` D`                         | A generated file was deleted by hand, or a tool or flag was removed | Commit the deletion `make docs` produced |
-| Fails locally but the diff is a hand-written file | `make docs/check` sees uncommitted edits under `docs/`          | Commit, then re-run                         |
+| `gendocs` exits with an error                    | A `Meta()` or a hand-written guide the generator cannot render (a guide with no `# ` title) | Fix the source; `make docs` shows the same error |
+| `TestGenerateAll` or `TestGenerateMDX` fails     | A tool has no page in some format, or a markdown link does not resolve | Read the test's message |
 
 ## Web (`web.yml`)
 
@@ -210,7 +205,7 @@ cd web && pnpm lint && pnpm format:check && pnpm typecheck && pnpm build && pnpm
 | `pnpm test` cannot find `public/gnux.wasm`                 | Running the tests without building the module                | `make web/test`, not bare `pnpm test`              |
 | "no em dashes in anything we write" in `rules.test.ts`     | A U+2014 character in a web source or markdown file          | Use a colon, comma or " - " instead                |
 | A wasm test fails but `go test` passes                     | A difference between the OS and `MemFS` semantics, or a `!unix` fallback | Reproduce with `make web/test`; check `memfs.ts` and `core/fs_other.go` |
-| `pnpm build` fails on an MDX page                          | Stale `web/content/docs`, or an unbalanced code fence in a hand-written doc | `make web/docs` (or `make docs`)    |
+| `pnpm build` fails on an MDX page                          | An unbalanced code fence in a hand-written doc, or a generator change the content does not reflect yet | `make web/docs` (or `make docs`)    |
 
 ## Action (`action.yml`)
 
@@ -248,7 +243,7 @@ What is built and published is described once, in `.goreleaser.yaml`.
 
 ```mermaid
 flowchart LR
-    T["git push origin v0.1.0"] --> V["verify<br/>go vet, go test -race,<br/>docs freshness,<br/>CHANGELOG.md section"]
+    T["git push origin v0.1.0"] --> V["verify<br/>go vet, go test -race,<br/>docs generation,<br/>CHANGELOG.md section"]
     V --> G["release (contents: write)<br/>goreleaser release<br/>9 archives, 9 packages, checksums.txt"]
     G --> R["GitHub release v0.1.0"]
     G --> M["Homebrew cask, Scoop manifest,<br/>winget pull request, snap, AUR"]
@@ -270,8 +265,8 @@ major tag to each stable release (a prerelease leaves it alone). Workflow-level 
 
 ### Job `verify`
 
-On `ubuntu-latest`, against the tagged commit: `go vet ./...`, `go test -race ./...`, and the
-docs freshness check (`go generate ./...` then `git status --porcelain docs web/content/docs`).
+On `ubuntu-latest`, against the tagged commit: `go vet ./...`, `go test -race ./...`, and
+`go generate ./...`, which proves the docs generate at the tag (they are not committed).
 The point is that a tag cannot publish what CI would reject, even if it was pushed on a commit
 that never went through a pull request.
 
@@ -301,7 +296,7 @@ legs, or Web; those are expected to be green on `main` before tagging.
    - builds `unix` (linux amd64/arm64/riscv64, darwin and freebsd amd64/arm64) and `windows`
      (amd64/arm64), each `CGO_ENABLED=0`, `-trimpath`, `-s -w` and `Version={{ .Tag }}`;
    - archives `gnux-<tag>-<os>-<arch>`, wrapped in a directory of the same name, with
-     `LICENSE`, `README.md` and the completions, plus `man/` from `documentation/man` on Unix;
+     `LICENSE`, `README.md` and the completions, plus `man/` from `documentation/man` on Unix (generated by the `before` hook, since it is not committed);
      `.tar.gz` on Unix and `.zip` on Windows, the naming every earlier release used;
    - `gnux-<tag>-linux-<arch>.deb`, `.rpm` and `.apk` for the three Linux architectures, each
      installing `/usr/bin/gnux` and the completions;
@@ -342,8 +337,7 @@ procedure, with the checks before and after, is [publishing-a-release](publishin
    empty `## [Unreleased]` above it.
 2. Update the link definitions at the bottom: `[Unreleased]` compares the new tag with `HEAD`,
    and the version's link compares it with the previous tag (or, for the first, points at it).
-3. Check the notes the release will carry, then commit (the pre-push hook regenerates
-   `/docs/changelog` and stops the push if it is stale), tag and push:
+3. Check the notes the release will carry, then commit, tag and push:
 
 ```bash
 go run ./tools/changelog v0.1.0             # the release notes, or why there are none
@@ -386,7 +380,7 @@ gh attestation verify gnux-v0.1.0-linux-amd64.tar.gz --repo braswelljr/gnux
 
 | Symptom                                       | Cause                                                        | Fix                                                        |
 |-----------------------------------------------|--------------------------------------------------------------|------------------------------------------------------------|
-| `verify` fails                                | The tagged commit fails a test or has stale docs             | Fix on `main`, delete the tag (`git push --delete origin v0.1.0`), tag again |
+| `verify` fails                                | The tagged commit fails a test or its docs fail to generate  | Fix on `main`, delete the tag (`git push --delete origin v0.1.0`), tag again |
 | GoReleaser fails to build one target and nothing is published | A platform-specific compile error                | Fix it (`make build/all` reproduces it); re-tag            |
 | GoReleaser: "git is in a dirty state"          | A step wrote into the checkout before GoReleaser ran       | Write into `dist/` or a gitignored path (`completions/` is ignored) |
 | winget, the snap or the AUR is not updated     | Its secret is not set, so it was skipped                    | Add the secret; the next release publishes it              |

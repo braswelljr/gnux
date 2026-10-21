@@ -346,10 +346,10 @@ $ ./bin/gnux nprocx --version
 nprocx (gnux) dev
 ```
 
-## Step 4: regenerate and update the hand-written lists
+## Step 4: read the generated pages and update the hand-written lists
 
 ```bash
-make docs        # docs/{markdown,man,yaml,rest} and web/content/docs
+make docs        # documentation/{markdown,man,yaml,rest} and web/content/docs; not committed
 ```
 
 Then, by hand, in the same change:
@@ -381,7 +381,7 @@ The generated reference needs no hand edits: see
 | Platform code with no fallback for `js/wasm` or Windows         | The "Build for WebAssembly" step of the Test workflow; the Build workflow | NFR-3, NFR-4 |
 | A data race in a concurrent engine                              | `go test -race` (`make test`, the Test workflow)              | NFR-15      |
 | A per-flag `Topic` page missing or a broken link in markdown    | `TestGenerateAll`, `TestMarkdownLinksResolve` (`cmd/docs/docs_test.go`) | FR-42, FR-83 |
-| Docs not regenerated, or new generated files not added to git   | The Docs workflow and `make docs/check`                       | FR-41       |
+| Metadata the generator cannot render                            | The Docs workflow and `make docs`                             | FR-41       |
 | A misspelling or lint finding                                   | The Lint workflow (`make lint`)                               | NFR-28, NFR-42 |
 | The engine imports cobra or pflag                               | Nothing automatic; review                                     | NFR-39      |
 | The `Spec()` call never added to `Tools()`                      | Nothing automatic: every check iterates the registry, so an unregistered tool is invisible to all of them | NFR-26 |
@@ -414,12 +414,12 @@ registered command in every format, so a registered tool is documented automatic
    PowerShell examples), `Register` (no `--help`/`--version`), `buildOptions`, `run`.
 8. `cmd/<gnu>x/<gnu>x_test.go`: `TestBuildOptions` with a row per mapping and precedence rule.
 9. `cmd/registry.go`: import and `Spec()` call, alphabetical.
-10. `make docs`, then add the new generated files to git.
+10. `make docs`, and read the new pages (they are not committed).
 11. `README.md` table and Roadmap, `AGENTS.md` list, a new `FR-n` in the functional
     requirements.
-12. `make ci` (vet, lint, race tests, docs freshness), and `make web/test` if the tool matters
+12. `make ci` (vet, lint, race tests, docs generation), and `make web/test` if the tool matters
     to the playground.
-13. Commit code, tests, regenerated docs and the hand-written updates together.
+13. Commit code, tests and the hand-written updates together.
 
 ## Related
 
