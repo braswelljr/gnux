@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/gitstat"
 	"github.com/braswelljr/gnux/core/internal/human"
 	"github.com/braswelljr/gnux/core/internal/quotearg"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -92,6 +94,33 @@ const (
 	WhenAuto
 	// WhenAlways enables the feature unconditionally.
 	WhenAlways
+)
+
+// Scale selects which long-format columns are colored on a gradient by
+// value rather than in one fixed color (--color-scale).
+type Scale int
+
+const (
+	// ScaleNone colors each column in one color.
+	ScaleNone Scale = iota
+	// ScaleSize colors sizes by magnitude.
+	ScaleSize
+	// ScaleAge colors timestamps by age.
+	ScaleAge
+	// ScaleAll does both.
+	ScaleAll
+)
+
+// Only restricts a listing to directories or to everything else.
+type Only int
+
+const (
+	// OnlyAll lists every entry.
+	OnlyAll Only = iota
+	// OnlyDirs lists directories (and links to them) only.
+	OnlyDirs
+	// OnlyFiles lists everything but directories.
+	OnlyFiles
 )
 
 // Quoting selects how names are rendered: GNU's quoting styles.
@@ -183,6 +212,26 @@ type Options struct {
 	Hyperlink When // --hyperlink: link each name to its file:// URL
 	Dired     bool // -D, --dired: Emacs dired output, with -l
 	Zero      bool // --zero: end each output line with NUL, not newline
+
+	// gnux's own options, for an eza-style view. Their zero values leave
+	// the output as GNU ls prints it.
+
+	Tree  bool // --tree: list directories recursively, drawn as a tree
+	Level int  // --level: how deep -R and --tree go; 0 means no limit
+	Icons When // --icons: a Nerd Font icon before each name
+	// Pretty colors every column of the long format, the tree branches and
+	// the git column from the theme, when color is on (lsx --pretty also
+	// turns on a header, readable sizes and directories first).
+	Pretty     bool
+	Theme      string // --theme: a built-in theme; "" takes GNUX_THEME's
+	ColorScale Scale  // --color-scale: gradients for sizes and timestamps (implies Pretty)
+	Header     bool   // --header: a row naming the long format's columns
+	Git        bool   // --git: a two-letter git status column in the long format
+	GitIgnore  bool   // --git-ignore: leave out what .gitignore rules exclude
+	Only       Only   // --only-dirs, --only-files
+	TotalSize  bool   // --total-size: a directory's size is that of everything in it
+	// OctalPermissions adds the permission bits in octal before the mode.
+	OctalPermissions bool
 }
 
 // Ls is the engine. Construct it with New.
@@ -249,6 +298,14 @@ type Ls struct {
 	// the other operands, as GNU measures every operand before setting the
 	// directories aside.
 	measureAlso []*entry
+	icons       bool                     // --icons resolved against the terminal
+	theme       *visual.Theme            // nil unless Pretty or ColorScale and color is on
+	branches    visual.Branches          // the tree's drawing characters
+	repos       map[string]*gitstat.Repo // by working tree top; nil when unreadable
+	dirRoots    map[string]string        // directory -> working tree top ("" for none)
+	totals      map[string]int64         // --total-size, by directory
+	selfUID     int
+	selfGIDs    map[uint32]bool
 	pos         int64   // bytes written, for --dired
 	diredPos    []int64 // start and end of each name
 	subdired    []int64 // start and end of each directory header

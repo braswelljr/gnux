@@ -85,9 +85,14 @@ func (l *Ls) timeOf(e *entry) time.Time {
 	return t
 }
 
+// sizeOf is what -S sorts on: the file's size, or with --total-size what a
+// directory holds.
 func sizeOf(e *entry) int64 {
 	if e.info == nil {
 		return 0
+	}
+	if e.hasTotal {
+		return e.total
 	}
 	return e.info.Size()
 }

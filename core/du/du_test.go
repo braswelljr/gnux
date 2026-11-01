@@ -223,3 +223,30 @@ func TestFiles0From(t *testing.T) {
 		t.Fatalf("--files0-from: %q %v", out, err)
 	}
 }
+
+func TestPretty(t *testing.T) {
+	root := tree(t)
+	out, errb, err := run(t, du.Options{Pretty: true, Apparent: true, BlockSize: "1"}, root)
+	if err != nil {
+		t.Fatalf("%v %q", err, errb)
+	}
+	got := lines(out)
+	if len(got) != 3 {
+		t.Fatalf("want one line per directory:\n%s", out)
+	}
+	// Sizes right-aligned, then each line's share of the operand.
+	for i, want := range []string{"   5  ", "3005  ", "4005  "} {
+		if !strings.HasPrefix(got[i], want) {
+			t.Errorf("line %d = %q, want it to start %q", i, got[i], want)
+		}
+	}
+	if !strings.Contains(got[2], " 100%  "+root) || !strings.Contains(got[1], "  75%  ") {
+		t.Errorf("percentages:\n%s", out)
+	}
+
+	// -0 keeps GNU's format, which a script reads.
+	out, _, _ = run(t, du.Options{Pretty: true, Null: true, Summarize: true, Apparent: true, BlockSize: "1"}, root)
+	if out != "4005\t"+root+"\x00" {
+		t.Errorf("-0 with the view: %q", out)
+	}
+}

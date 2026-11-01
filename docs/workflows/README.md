@@ -16,6 +16,7 @@ How gnux's technical processes actually run inside the code, one document per pr
 | [publishing-a-release](publishing-a-release.md)                       | A version to every place it is installed from: the one-time setup of Homebrew, Scoop, winget, the Snap Store and the AUR, cutting and checking a release, installing one particular version, and recovering from a bad one |
 | [error-handling-and-exit-status](error-handling-and-exit-status.md)   | `ErrFailed`, `ExitError`, `UsageError`, `ErrText`, `Describe`, closed pipes, and a table of every special status |
 | [gnu-conformance](gnu-conformance.md)                                 | The harness that runs each case through the GNU tools and through gnux and compares output, errors and status |
+| [terminal-visuals](terminal-visuals.md)                               | gnux's terminal view: the shared themes, bars, trees, icons and git status, how `--pretty` and the `GNUX_*` variables are resolved, how a tool adopts it, and the plan for every tool |
 | [benchmarking-and-robustness](benchmarking-and-robustness.md)         | `make bench` and comparing two runs; the memory, goroutine and open-file tests; `core.FlushIfIdle`; the fuzz targets; where a panic is contained |
 
 ## Where to start
@@ -29,6 +30,7 @@ How gnux's technical processes actually run inside the code, one document per pr
 | Work on the website or the playground           | [wasm-playground](wasm-playground.md) and [documentation-generation](documentation-generation.md) |
 | Fix a red CI run                                | [ci-and-release](ci-and-release.md)                                                      |
 | Cut a release, or set up a package manager      | [publishing-a-release](publishing-a-release.md)                                          |
+| Give a tool colors, bars, a tree or icons        | [terminal-visuals](terminal-visuals.md)                                                  |
 | Make something faster, or check a change did not make it slower | [benchmarking-and-robustness](benchmarking-and-robustness.md)            |
 
 ## How to read them

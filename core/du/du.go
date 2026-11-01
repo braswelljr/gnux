@@ -27,6 +27,7 @@ import (
 	"github.com/braswelljr/gnux/core/internal/human"
 	"github.com/braswelljr/gnux/core/internal/quote"
 	"github.com/braswelljr/gnux/core/internal/sysstat"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -93,6 +94,15 @@ type Options struct {
 	Files0From string
 	// Null (-0) ends each output line with NUL.
 	Null bool
+
+	// Pretty is gnux's terminal view, not a GNU option: each operand's
+	// lines are aligned, with a bar and a percentage giving each line's
+	// share of the operand, and with Color the sizes on the theme's
+	// gradient and the names highlighted, in the colors of Theme (a
+	// built-in theme; "" takes GNUX_THEME's). It has no effect with Null.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Du is the engine. Construct it with New.
@@ -120,6 +130,8 @@ type Du struct {
 	seen       map[devIno]bool
 	seenPath   map[string]bool // where file IDs are unknown (Windows), by absolute path
 	sem        chan struct{}
+	pending    []line // the pretty view's lines, held until their operand is done
+	theme      *visual.Theme
 	trap       core.Trap // a panic on a scanning goroutine, raised again by the caller
 }
 
@@ -164,6 +176,12 @@ func (d *Du) Run(args []string) (err error) {
 
 	d.out = core.NewWriter(d.streams.Out)
 	defer core.FlushOutput(d.out, d.diag, &err)
+	if d.Pretty && d.Color {
+		var err error
+		if d.theme, err = visual.LoadTheme(d.Theme, d.Getenv); err != nil {
+			d.diag.Warnf("ignoring the theme: %v", err)
+		}
+	}
 	var grand sums
 	for _, name := range operands {
 		root := d.scanRoot(name)
@@ -171,9 +189,11 @@ func (d *Du) Run(args []string) (err error) {
 			continue
 		}
 		d.walk(root, 0, &grand)
+		d.flushPretty()
 	}
 	if d.Total {
 		d.print(grand, "total")
+		d.flushPretty()
 	}
 	return d.diag.Result()
 }
@@ -537,7 +557,7 @@ func (d *Du) walk(e *entry, level int, grand *sums) (sums, bool) {
 			v = total.inodes
 		}
 		if d.Threshold < 0 && v <= uint64(-d.Threshold) || d.Threshold >= 0 && v >= uint64(d.Threshold) {
-			d.print(total, e.path)
+			d.printEntry(total, e.path, e.dir)
 		}
 	}
 	return total, true
@@ -550,6 +570,15 @@ func (d *Du) errorf(format string, a ...any) {
 
 // print writes one line: the size, the time when asked for, and the name.
 func (d *Du) print(s sums, name string) {
+	d.printEntry(s, name, false)
+}
+
+// printEntry writes one line, or holds it for the pretty view.
+func (d *Du) printEntry(s sums, name string, dir bool) {
+	if d.Pretty && !d.Null {
+		d.pending = append(d.pending, line{s: s, name: name, dir: dir})
+		return
+	}
 	v := s.size
 	if d.Inodes {
 		v = s.inodes
@@ -620,4 +649,79 @@ func fnmatch(pattern string) (*regexp.Regexp, error) {
 	}
 	b.WriteString(`)$`)
 	return regexp.Compile(b.String())
+}
+
+// line is one line of the pretty view.
+type line struct {
+	s    sums
+	name string
+	dir  bool
+}
+
+// prettyBar is the width of the pretty view's bar.
+const prettyBar = 16
+
+// flushPretty writes the held lines: the size right-aligned (on the size
+// gradient, in bytes), a bar and a percentage of the largest line (the
+// operand, unless -S), the time with --time, then the name with its last
+// part highlighted.
+func (d *Du) flushPretty() {
+	if len(d.pending) == 0 {
+		return
+	}
+	lines := d.pending
+	d.pending = nil
+	value := func(l line) uint64 {
+		if d.Inodes {
+			return l.s.inodes
+		}
+		return l.s.size
+	}
+	var most uint64
+	sizes := make([]string, len(lines))
+	width := 0
+	for i, l := range lines {
+		most = max(most, value(l))
+		sizes[i] = human.Readable(value(l), d.humanOpts, 1, d.blockSize)
+		width = max(width, len(sizes[i]))
+	}
+	unicode := visual.UTF8(d.Getenv)
+	loc := d.Location
+	if loc == nil {
+		loc = time.Local
+	}
+	for i, l := range lines {
+		fraction := 1.0
+		if most > 0 {
+			fraction = float64(value(l)) / float64(most)
+		}
+		key := visual.Size
+		if !d.Inodes {
+			key = visual.SizeKey(int64(min(l.s.size, 1<<62)))
+		}
+		_, _ = d.out.WriteString(strings.Repeat(" ", width-len(sizes[i])))
+		_, _ = d.out.WriteString(d.theme.Paint(key, sizes[i]))
+		_, _ = d.out.WriteString("  ")
+		_, _ = d.out.WriteString(d.theme.Bar(fraction, prettyBar, unicode))
+		fmt.Fprintf(d.out, " %3.0f%%  ", fraction*100)
+		if d.timeFormat != "" {
+			_, _ = d.out.WriteString(d.theme.Paint(visual.Date, date.Format(d.timeFormat, l.s.tmax.In(loc))))
+			_, _ = d.out.WriteString("  ")
+		}
+		name := l.name
+		if d.quoteNames {
+			name = quote.ShellEscape(name)
+		}
+		cut := strings.LastIndexAny(name, "/"+string(os.PathSeparator)) + 1
+		if cut == len(name) {
+			cut = 0
+		}
+		_, _ = d.out.WriteString(d.theme.Paint(visual.Punctuation, name[:cut]))
+		last := visual.Header
+		if l.dir {
+			last = visual.TypeDir
+		}
+		_, _ = d.out.WriteString(d.theme.Paint(last, name[cut:]))
+		_ = d.out.WriteByte('\n')
+	}
 }

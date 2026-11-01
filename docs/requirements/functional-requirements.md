@@ -859,6 +859,8 @@ dfx [OPTION]... [FILE]...
 | `-v`, `--sysv`           | (ignored) |
 | `--total`                | Elide all entries insignificant to available space, and produce a grand total |
 | `-t`, `--type`           | Limit listing to file systems of type TYPE |
+| `--pretty[=WHEN]`        | gnux's own: the terminal view `always`, `auto` (the default) or `never` |
+| `--theme=NAME`           | gnux's own: color the view with a built-in theme |
 
 - **Behavior.** dfx shows, for each mounted file system, its size, the space used and available,
   the percentage used and where it is mounted. With FILE operands it shows only the file systems
@@ -875,7 +877,12 @@ dfx [OPTION]... [FILE]...
   file systems on Linux, macOS and FreeBSD, and on Windows lists every drive (C:\, D:\, network
   drives) with the same columns, quietly skipping a card reader or DVD drive with no medium.
   --sync and --no-sync are accepted and have no effect, and -v is ignored, as in GNU.
-- **Verified by.** `core/df/df_test.go`, `cmd/dfx/dfx_test.go`.
+- **Terminal view (BR-13).** On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`), a
+  usage bar follows each percentage, green, yellow from 75% and red from 90%, and the header,
+  percentages and mount points take the theme's colors (`--theme`, `GNUX_THEME`; uncolored under
+  `NO_COLOR`). Piped or redirected output, and `-P`, are GNU's (NFR-53).
+- **Verified by.** `core/df/df_test.go` (`TestPretty`), `cmd/dfx/dfx_test.go`,
+  `internal/tool/view_test.go`.
 
 ### FR-171: dircolorsx
 
@@ -992,7 +999,14 @@ dux [OPTION]... [FILE]...
   which path a hard-linked file is counted under, is the same every run. The block size defaults
   to DU_BLOCK_SIZE, BLOCK_SIZE or BLOCKSIZE when set. Names are quoted only when output goes to a
   terminal.
-- **Verified by.** `core/du/du_test.go`, `cmd/dux/dux_test.go`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal
+  (`--pretty=auto`, the default, or `GNUX_PRETTY`), each operand's lines are held until it is
+  measured, then printed with the sizes right-aligned and colored by magnitude, a bar and a
+  percentage giving each line's share of the operand's largest line, the `--time` column, and
+  the name with its last part highlighted (`--theme`, `GNUX_THEME`; uncolored under `NO_COLOR`).
+  Piped or redirected output, and `-0`, are GNU's tab-separated lines (NFR-53).
+- **Verified by.** `core/du/du_test.go` (`TestPretty`), `cmd/dux/dux_test.go`,
+  `internal/tool/view_test.go`.
 
 ### FR-55: echox
 
@@ -1635,6 +1649,18 @@ lsx [OPTION]... [FILE]...
 | `-X`                            | Sort alphabetically by entry extension                                  |
 | `-1`                            | List one file per line                                                  |
 | `--zero`                        | End each output line with NUL, not newline                              |
+| `--pretty[=WHEN]`               | gnux's own: the eza-style view `always`, `auto` (the default) or `never` |
+| `--theme=NAME`                  | gnux's own: default, mono, dracula, nord, gruvbox, solarized, catppuccin |
+| `--color-scale[=WHICH]`         | gnux's own: color sizes by magnitude, timestamps by age: all, size, age, none |
+| `--tree`                        | gnux's own: list subdirectories recursively, drawn as a tree            |
+| `--level=DEPTH`                 | gnux's own: with `-R` or `--tree`, go at most DEPTH levels deep         |
+| `--icons[=WHEN]`                | gnux's own: a Nerd Font icon before each name                           |
+| `--header`                      | gnux's own: with `-l`, a row naming each column                         |
+| `--git`                         | gnux's own: with `-l`, each file's git status, staged then unstaged     |
+| `--git-ignore`                  | gnux's own: do not list what `.gitignore` rules exclude                 |
+| `--only-dirs`, `--only-files`   | gnux's own: list only directories, or everything else                   |
+| `--total-size`                  | gnux's own: a directory's size is the total of everything in it         |
+| `--octal-permissions`           | gnux's own: with `-l`, the permission bits in octal too                 |
 
 - **Behavior.** Operands that are not directories are listed first, then each directory under a
   header. On a terminal names are arranged in columns sized to the window; when output is piped
@@ -1676,10 +1702,47 @@ lsx [OPTION]... [FILE]...
   `-p`, `-S`, `-t`, `-u`, `-U`, `-v`, `-x`, `-X` and `-1` also answer to long names of gnux's
   own (`--ctime`, `--columns`, `--long-no-owner`, `--long`, `--commas`, `--long-no-group`,
   `--slash`, `--sort-size`, `--sort-time`, `--atime`, `--unsorted`, `--sort-version`,
-  `--across`, `--sort-extension`, `--one-per-line`). A multibyte name is read as UTF-8 in
+  `--across`, `--sort-extension`, `--one-per-line`). The options of the eza-style view below
+  are gnux's own too: each answers only when written in full, so no GNU abbreviation changes
+  meaning. A multibyte name is read as UTF-8 in
   every locale, so in the C locale a printable non-ASCII character is shown where GNU escapes
   its bytes. Not implemented: `-f`, `-Z` and `--context`.
-- **Verified by.** `core/ls/ls_test.go`, `cmd/lsx/lsx_test.go`.
+- **Eza-style view (BR-13).** On a terminal the view is on by default (`--pretty=auto`, or
+  `GNUX_PRETTY`): every column of the long format takes the theme's colors (each permission
+  letter, the link count, an owner or group that is the caller's, the size, the date, `->`), and
+  `--header`, `-h` and `--group-directories-first` are turned on, each unless an option (or
+  `LS_BLOCK_SIZE`, `BLOCK_SIZE`) already decides it. Piped or redirected output is GNU's unless
+  `--pretty=always` or `GNUX_PRETTY=always`, which also color through the pipe; `--pretty=never`
+  or `GNUX_PRETTY=never` turn the view off; `--zero` keeps color off (NFR-53). The theme is the
+  default (eza's look in the 16 basic colors), or the one `--theme` or `GNUX_THEME=NAME` names,
+  overridden key by key by `EZA_COLORS` and then by `GNUX_THEME=NAME:KEY=CODE:...` (eza's keys:
+  `ur`, `uw`, `ux`, `ue`, `gr`, ..., `sn`, `nb`...`nt`, `da`, `uu`, `un`, `lc`, `hd`, `ga`...`gc`;
+  gnux's own `dh`...`do` for ages, `tb` for tree branches); `NO_COLOR` keeps it uncolored, an
+  unknown name in `GNUX_THEME` is warned about and ignored, and an unknown `--theme` exits 1.
+  `--color-scale` colors sizes by magnitude (bytes, KiB, MiB, GiB, TiB) and timestamps by age
+  (an hour, a day, a week, a month, a year, older). `--tree` lists each operand as the root of
+  a tree, its contents drawn beneath it with `├──`, `└──` and `│` (`|--`, `` `-- `` and `|` in a
+  locale that is not UTF-8), never `.` or `..`, with no `dir:` headers or `total` lines; with
+  `-l` the whole tree is one table, and its rows carry no `--dired` offsets. `--level=DEPTH`
+  (1 or more) limits `--tree` and `-R`; without either it is a usage error (status 2).
+  `--icons` puts a Nerd Font glyph (by name, extension and type) and a space before each name,
+  colored as the name; `auto` is on a terminal only, and `GNUX_ICONS` sets the default, which is
+  `never`. `--git` adds, after the date, eza's two letters (staged, then unstaged: `-`
+  unchanged, `N` new, `M` modified, `D` deleted, `T` type changed, `I` ignored, `U`
+  conflicted); a directory shows the most significant status of what is under it, and an entry
+  outside a repository shows two spaces. The repository is read directly (the index in versions
+  2 to 4, HEAD from loose objects and pack files, SHA-1 or SHA-256, linked worktrees and
+  submodules; `.gitignore` files, `.git/info/exclude` and the global excludes file), without
+  running git; a repository that cannot be read is reported once, a minor problem. Not done:
+  rename detection, line-ending conversion, reftable references (the staged column is then
+  clean) and alternates. `--git-ignore` leaves out what the ignore rules exclude, tracked files
+  never. `--only-dirs` and `--only-files` filter what is shown (the last given wins); `-R` still
+  descends into the directories `--only-files` hides, and `--tree` does not. `--total-size`
+  gives a directory the apparent size of everything under it (links not followed), shown and
+  sorted on with `-S`; an unreadable directory under it is reported. `--octal-permissions` puts
+  four octal digits, special bits included, before the mode.
+- **Verified by.** `core/ls/ls_test.go`, `core/ls/view_test.go`, `cmd/lsx/lsx_test.go`,
+  `cmd/lsx/view_test.go`, `core/internal/visual`, `core/internal/gitstat`.
 
 ### FR-119: md5sumx
 

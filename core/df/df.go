@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -18,6 +19,7 @@ import (
 	"github.com/braswelljr/gnux/core/internal/fsstat"
 	"github.com/braswelljr/gnux/core/internal/human"
 	"github.com/braswelljr/gnux/core/internal/sysstat"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -51,6 +53,13 @@ type Options struct {
 	// fields, all of them.
 	Output    []string
 	OutputSet bool
+
+	// Pretty is gnux's terminal view, not a GNU option: a usage bar after
+	// each percentage, and with Color the table in the colors of Theme (a
+	// built-in theme; "" takes GNUX_THEME's).
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Df is the engine. Construct it with New.
@@ -615,7 +624,12 @@ func clean(s string) string {
 	}, s)
 }
 
+// barWidth is the width of the --pretty usage bar.
+const barWidth = 12
+
 // print writes the table: text columns left-aligned, numbers right-aligned.
+// The pretty view adds a bar after each percentage and paints the header,
+// the percentages and the mount points.
 func (d *Df) print() {
 	w := core.NewWriter(d.streams.Out)
 	defer func() {
@@ -623,7 +637,15 @@ func (d *Df) print() {
 			d.diag.Errorf("write error: %s", core.ErrText(err))
 		}
 	}()
-	for _, row := range d.rows {
+	var theme *visual.Theme
+	unicode := visual.UTF8(d.Getenv)
+	if d.Pretty && d.Color {
+		var err error
+		if theme, err = visual.LoadTheme(d.Theme, d.Getenv); err != nil {
+			d.diag.Warnf("ignoring the theme: %v", err)
+		}
+	}
+	for r, row := range d.rows {
 		for i, cell := range row {
 			c := d.columns[i]
 			if i > 0 {
@@ -633,11 +655,47 @@ func (d *Df) print() {
 			if c.right {
 				_, _ = w.WriteString(strings.Repeat(" ", max(fill, 0)))
 			}
-			_, _ = w.WriteString(cell)
+			percent := c.field == "pcent" || c.field == "ipcent"
+			used, isNumber := usedFraction(cell)
+			switch {
+			case r == 0:
+				_, _ = w.WriteString(theme.Paint(visual.Header, cell))
+			case percent && isNumber:
+				_, _ = w.WriteString(theme.Paint(barKey(used), cell))
+			case c.field == "target":
+				_, _ = w.WriteString(theme.Paint(visual.TypeDir, cell))
+			default:
+				_, _ = w.WriteString(cell)
+			}
 			if !c.right && i+1 < len(row) {
 				_, _ = w.WriteString(strings.Repeat(" ", max(fill, 0)))
+			}
+			if d.Pretty && percent {
+				_ = w.WriteByte(' ')
+				if r > 0 && isNumber {
+					_, _ = w.WriteString(theme.Bar(used, barWidth, unicode))
+				} else {
+					_, _ = w.WriteString(strings.Repeat(" ", barWidth))
+				}
 			}
 		}
 		_ = w.WriteByte('\n')
 	}
+}
+
+// usedFraction reads a percentage cell ("42%"); "-" is not a number.
+func usedFraction(cell string) (float64, bool) {
+	n, err := strconv.Atoi(strings.TrimSuffix(strings.TrimSpace(cell), "%"))
+	return float64(n) / 100, err == nil && strings.HasSuffix(cell, "%")
+}
+
+// barKey colors a percentage as its bar is colored.
+func barKey(used float64) string {
+	switch {
+	case used >= visual.Alert:
+		return visual.BarAlert
+	case used >= visual.Warn:
+		return visual.BarWarn
+	}
+	return visual.BarFull
 }

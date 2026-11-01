@@ -517,6 +517,24 @@ format. The generated reference is not committed: it is built whenever it is nee
 | Action   | installs a release with the setup-gnux action (`action.yml`) on Linux, macOS and Windows runners and uses the tools |
 | Release  | on a `v*` tag: re-runs the checks, then GoReleaser (`.goreleaser.yaml`) builds an archive per platform, publishes them with `.deb`, `.rpm` and `.apk` packages, checksums, a provenance attestation and the tag's [`CHANGELOG.md`](CHANGELOG.md) section as notes, and publishes to Homebrew, Scoop, winget, the Snap Store and the AUR ([how](docs/workflows/publishing-a-release.md)) |
 
+### The terminal view
+
+On a terminal, gnux shows its listings the way eza, dust and duf do, with nothing else to
+install; through a pipe the output is GNU's, so scripts are unaffected:
+
+```bash
+lsx -l                            # every column colored, a header, readable sizes
+lsx --tree --level=2              # a project's layout as a tree
+lsx -l --git --git-ignore src/    # git status per file, ignored files left out
+dfx -h                            # a usage bar per disk, red when nearly full
+dux -h -d 1 ~                     # each folder's share of your home folder
+```
+
+Pick a built-in theme with `--theme` (default, mono, dracula, nord, gruvbox, solarized,
+catppuccin), make your choice the default with `GNUX_THEME`, `GNUX_ICONS` and `GNUX_PRETTY`, or
+switch the view off with `GNUX_PRETTY=never`. The
+[Terminal view guide](documentation/guides/terminal-view.md) has it all.
+
 ## Documentation
 
 The website in [`web/`](web/) - Fumadocs documentation plus the playground - is the friendliest
@@ -541,7 +559,7 @@ requirements, workflows and rules are for contributors and live here only:
 
 | Directory                                         | What it holds                                                                    |
 |---------------------------------------------------|----------------------------------------------------------------------------------|
-| [`documentation/guides/`](documentation/guides/README.md) | Getting started, a cookbook of recipes, portable scripting, Windows and PowerShell, CI and containers, the Go library, adoption next to GNU coreutils, troubleshooting |
+| [`documentation/guides/`](documentation/guides/README.md) | Getting started, a cookbook of recipes, portable scripting, Windows and PowerShell, CI and containers, the Go library, the terminal view, adoption next to GNU coreutils, troubleshooting |
 | [`docs/requirements/`](docs/requirements/)        | The SRS and the business, functional and non-functional requirement registers   |
 | [`docs/workflows/`](docs/workflows/README.md)     | How each process runs inside the code: dispatch, engines, the shell, docs, CI and releases |
 | [`docs/rules/`](docs/rules/README.md)             | The rules the code follows, each with its reasoning and how it is checked        |

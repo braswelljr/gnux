@@ -61,6 +61,8 @@ gnux/
     fs_other.go            # Writable()/DeviceID() fallback (build tag !unix: Windows, wasm)
     <gnu>/                 # One engine package per tool: Name, Options, New, Run (+ tests)
     shell/                 # The gnux shell interpreter: parse.go, expand.go, shell.go
+    internal/visual/       # The terminal view: themes, gradients, bars, tree branches, icons
+    internal/gitstat/      # Git status and .gitignore, read from the repository without git
   internal/
     common/                # AppName ("gnux") + link-time Version
     docmeta/               # zero-dep doc metadata (Meta, Example) for tools and flags
@@ -259,6 +261,27 @@ is not reachable through `argv[0]` and is not in `--list`. Options stop at `SCRI
   an output cap (`cappedBuffer`: keep `bytes.Buffer` a field, not embedded, or `io.Copy` uses
   its `ReadFrom` and the cap never applies) and its process tree killed on cancel.
 - Like the shell, `mcp` is in `Commands()`, not `Tools()`, and `cmd.Main` dispatches it directly.
+
+## The terminal view (`core/internal/visual`, `core/internal/gitstat`, `internal/tool/view.go`)
+
+On a terminal, the tools people read (`lsx`/`dirx`/`vdirx`, `dfx`, `dux`) show an eza-style
+view; anything piped or redirected is GNU's (BR-13, NFR-53, NFR-54).
+
+- **Opt-out on a terminal, never in a pipe.** `--pretty[=WHEN]`, else `GNUX_PRETTY`, else
+  `auto` (`tool.ResolvePretty` / `tool.ViewOf`). `NO_COLOR` and `TERM=dumb` keep it uncolored.
+  A machine format (`lsx --zero`, `dux -0`, `dfx -P`) always wins. The engine side is fields of
+  its own (`Pretty`, `Color`, `Theme`) whose zero value is GNU's output: only adapters set them.
+- **One palette.** Colors come from theme keys (`visual.Size`, `visual.GitMod`, eza's
+  `EZA_COLORS` names) through `visual.LoadTheme` (default < `--theme`/`GNUX_THEME` name <
+  `EZA_COLORS` < `GNUX_THEME` overrides); a nil `*visual.Theme` paints nothing. Never hardcode
+  an escape in a tool.
+- **Options are gnux's own** (`tool.RegisterView` and `tool.OwnNames`), so GNU abbreviations
+  keep their meaning. Icons need a Nerd Font: off unless `--icons` or `GNUX_ICONS`.
+- **`gitstat`** reads the index, HEAD (loose objects and packs, SHA-1 and SHA-256) and the
+  ignore files through `core/fsys`; it runs no git. `lsx` opens one repository per working tree
+  (`repoFor`) and closes them at the end of `Run`.
+- Adopting the view in another tool, and the plan for every tool:
+  `docs/workflows/terminal-visuals.md`.
 
 ## The npm packages (`tools/npm`)
 

@@ -334,6 +334,29 @@ Messages must say what failed and on which file.
   system's reason.
 - **Verified by.** The engine suites compare diagnostics exactly.
 
+### NFR-53: the terminal view never reaches a program
+
+gnux's terminal view (BR-13) must never change output that a program reads.
+
+- **Measure.** With no option or variable asking for it, the view applies only when standard
+  output is a terminal; `--zero` (lsx), `-0` (dux) and `-P` (dfx) always print GNU's format; an
+  engine's zero `Options` prints GNU's output, so a library caller never gets the view by
+  accident; and under the colors the view's text is GNU's wherever it does not add a column.
+- **Verified by.** `TestApplyView` (`cmd/lsx`), `TestViewOf` (`internal/tool`), `TestPrettyLong`
+  (`core/ls`), `TestPretty` (`core/df`, `core/du`); the conformance harness, whose output is
+  piped.
+
+### NFR-54: the view is legible for everyone
+
+The terminal view must stay readable without color and on any terminal.
+
+- **Measure.** Nothing is told by color alone (git status, percentages and permissions are also
+  letters or numbers); `NO_COLOR` and `TERM=dumb` keep it uncolored; the `mono` theme uses only
+  bold, underline and dim; a locale that is not UTF-8 gets ASCII tree branches and bars; and
+  icons, which need a Nerd Font, are off unless asked for (`--icons`, `GNUX_ICONS`).
+- **Verified by.** `core/internal/visual` tests (themes, branches, bars, icons), `TestTreeASCII`,
+  `TestViewOf`.
+
 ## 6. Accessibility
 
 ### NFR-24: an accessible website

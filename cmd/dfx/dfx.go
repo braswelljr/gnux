@@ -2,6 +2,7 @@
 package dfx
 
 import (
+	"os"
 	"slices"
 	"strings"
 
@@ -48,7 +49,12 @@ func Meta() docmeta.Meta {
 			"Linux, macOS and FreeBSD, and on Windows lists every drive (C:\\, D:\\, network " +
 			"drives) with the same columns, quietly skipping a card reader or DVD drive with " +
 			"no medium. --sync and --no-sync are accepted and have no effect, and -v is " +
-			"ignored, as in GNU.",
+			"ignored, as in GNU. On a terminal, dfx shows gnux's view (--pretty=auto, the " +
+			"default; GNUX_PRETTY changes it): a usage bar after each percentage, green, then " +
+			"yellow from 75% and red from 90%, with the header and mount points colored in the " +
+			"theme --theme or GNUX_THEME names (NO_COLOR keeps it uncolored). Piped or " +
+			"redirected output, and -P, stay exactly GNU's; --pretty=always asks for the view " +
+			"anyway and --pretty=never turns it off.",
 		Permissions: "Needs no special permission; a mount point the user cannot examine is " +
 			"left out (or shown with '-' under -a).",
 		UseCases: []string{
@@ -56,9 +62,15 @@ func Meta() docmeta.Meta {
 			"Finding which disk is filling up on a server.",
 			"Checking which file system a directory lives on, and its type.",
 			"Running out of inodes despite free space: checking with -i.",
+			"Seeing at a glance which disk is nearly full, from the colored usage bars.",
 			"Alerting from a script when a disk passes a usage threshold.",
 		},
 		Examples: []docmeta.Example{
+			{
+				Description: "Your laptop warned that the disk is almost full: see every volume's usage as a bar, the full ones in red:",
+				Bash:        "dfx -h",
+				PowerShell:  "dfx -h",
+			},
 			{
 				Description: "See at a glance how full every disk is:",
 				Bash:        "dfx -h",
@@ -195,6 +207,7 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "kilobytes", "sysv")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into df.Options.
@@ -227,5 +240,12 @@ func buildOptions(fs *pflag.FlagSet) df.Options {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
-	return df.New(buildOptions(fs), s).Run(args)
+	o := buildOptions(fs)
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), df.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	// -P promises POSIX's format, which a bar would break.
+	o.Pretty, o.Color, o.Theme = view.Pretty && !o.Portability, view.Color, view.Theme
+	return df.New(o, s).Run(args)
 }

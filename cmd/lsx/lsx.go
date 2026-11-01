@@ -4,8 +4,11 @@
 package lsx
 
 import (
+	"fmt"
+	"os"
 	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/pflag"
 
@@ -71,7 +74,29 @@ func Meta() docmeta.Meta {
 			"its file:// URL. -D (--dired) adds the marks Emacs' dired reads: each long-format " +
 			"line indented two spaces, then //DIRED// and //SUBDIRED// with the byte offsets " +
 			"of each name and directory header; it implies -l, turns --hyperlink off, and " +
-			"cannot be combined with --zero. The exit " +
+			"cannot be combined with --zero. " +
+			"Beyond GNU, lsx has an eza-style view, all of it in options of gnux's own that GNU ls " +
+			"does not have. On a terminal it is on by default (--pretty=auto): every column of " +
+			"the long format is colored (permission bits, owner, size, date, link count), with a " +
+			"--header row, -h sizes and --group-directories-first, each unless an option already " +
+			"decides it. When the output is piped or redirected nothing changes, so scripts and " +
+			"other programs still read GNU's output; --pretty (or GNUX_PRETTY=always) asks for the " +
+			"view anyway, and --pretty=never (or GNUX_PRETTY=never) turns it off everywhere. " +
+			"--theme=NAME, or GNUX_THEME=NAME[:KEY=CODE...], picks a built-in theme (default, mono, " +
+			"dracula, nord, gruvbox, solarized, catppuccin) and overrides single colors with eza's " +
+			"EZA_COLORS keys, which are read too; NO_COLOR keeps the view uncolored. " +
+			"--color-scale[=size|age|all] colors sizes by magnitude and timestamps by age. --tree " +
+			"draws the operands as trees, as one table in the long format, and --level=DEPTH " +
+			"limits --tree and -R. --icons[=WHEN] (GNUX_ICONS) puts a Nerd Font icon before each " +
+			"name; it needs a Nerd Font in the terminal, so it is off unless asked for. --git adds " +
+			"eza's two-letter git status column (staged, then unstaged: - unchanged, N new, M " +
+			"modified, D deleted, T type changed, I ignored, U conflicted; a directory shows the " +
+			"most significant status inside it), read from the repository without running git, " +
+			"and --git-ignore leaves out what .gitignore rules exclude. --only-dirs and " +
+			"--only-files filter what is shown (the last one given wins; -R still descends), " +
+			"--total-size gives a directory the size of everything in it, and " +
+			"--octal-permissions adds the mode in octal. A tree's rows carry no --dired offsets. " +
+			"The exit " +
 			"status is 0 on success, 1 for minor problems such as an entry that cannot be " +
 			"examined, and 2 for serious trouble such as an operand that cannot be accessed.",
 		Permissions: "Listing a directory needs read permission on it; examining its entries " +
@@ -91,6 +116,9 @@ func Meta() docmeta.Meta {
 			"Auditing which files changed recently by sorting on modification, access or change time.",
 			"Producing stable, script-friendly listings (one per line, no colors) that behave the same on every platform.",
 			"Spotting oddly named files (spaces, control characters) with -Q, -b or -q.",
+			"Getting an eza-style, colored overview of a project on a terminal, with no other tool installed.",
+			"Seeing a project's layout at a glance with --tree and --level.",
+			"Checking which files a change touched, and what git ignores, with --git and --git-ignore.",
 		},
 		Examples: []docmeta.Example{
 			{
@@ -229,6 +257,36 @@ func Meta() docmeta.Meta {
 				PowerShell:  "lsx -l --block-size=M videos",
 			},
 			{
+				Description: "You open a project you have not seen before and want its layout two levels deep, directories first:",
+				Bash:        "lsx --tree --level=2 --group-directories-first ~/src/webapp",
+				PowerShell:  "lsx --tree --level=2 --group-directories-first $HOME\\src\\webapp",
+			},
+			{
+				Description: "Before committing, see which files in src/ you changed, staged or created, with the files git ignores left out:",
+				Bash:        "lsx -l --git --git-ignore src/",
+				PowerShell:  "lsx -l --git --git-ignore src",
+			},
+			{
+				Description: "Your downloads folder is full: find the biggest folders, each sized by everything in it, with the sizes colored by magnitude:",
+				Bash:        "lsx -lS --total-size --only-dirs --color-scale=size ~/Downloads",
+				PowerShell:  "lsx -lS --total-size --only-dirs --color-scale=size $HOME\\Downloads",
+			},
+			{
+				Description: "Your terminal has a Nerd Font and a dark theme: make icons and the Dracula colors the default in every new shell:",
+				Bash:        "echox 'export GNUX_ICONS=auto GNUX_THEME=dracula' >> ~/.bashrc",
+				PowerShell:  "Add-Content $PROFILE '$env:GNUX_ICONS = \"auto\"; $env:GNUX_THEME = \"dracula\"'",
+			},
+			{
+				Description: "Page through the colored view, which a pipe would otherwise turn off:",
+				Bash:        "lsx -l --pretty=always /etc | less -R",
+				PowerShell:  "lsx -l --pretty=always C:\\Windows | Out-Host -Paging",
+			},
+			{
+				Description: "You prefer GNU ls's plain look on your terminal too: switch the view off in every shell (pipes are always plain):",
+				Bash:        "export GNUX_PRETTY=never",
+				PowerShell:  "$env:GNUX_PRETTY = 'never'",
+			},
+			{
 				Description: "Make every name clickable in a terminal that supports hyperlinks:",
 				Bash:        "lsx --hyperlink=auto ~/projects",
 				PowerShell:  "lsx --hyperlink=auto $HOME\\projects",
@@ -252,6 +310,7 @@ var (
 	colorFlags     = []string{"color", "zero"}
 	hyperlinkFlags = []string{"hyperlink", "dired"}
 	styleFlags     = []string{"time-style", "full-time"}
+	onlyFlags      = []string{"only-dirs", "only-files"}
 )
 
 // Register installs every lsx flag onto fs.
@@ -330,8 +389,30 @@ func Register(fs *pflag.FlagSet) {
 	flag("sort-extension", "X", "sort alphabetically by entry extension")
 	flag("one-per-line", "1", "list one file per line")
 
+	// gnux's own view (eza's features): a tree, icons, a themed long format,
+	// git status. None of it changes GNU's output unless asked for, and the
+	// pretty bundle applies on a terminal only.
+	fs.Bool("tree", false, "list subdirectories recursively, drawn as a tree")
+	fs.String("level", "", "with -R or --tree, go at most `DEPTH` levels deep")
+	word("icons", "show an icon (Nerd Font) before each name `WHEN`: 'always' (the default when WHEN is omitted), 'auto', or 'never'; GNUX_ICONS sets the default")
+	fs.Lookup("icons").NoOptDefVal = "always"
+	word("pretty", "the eza-style view `WHEN`: 'always' (the default when WHEN is omitted), 'auto' (the default: on a terminal), or 'never'; "+
+		"colors every column, adds --header, -h and --group-directories-first; GNUX_PRETTY sets the default")
+	fs.Lookup("pretty").NoOptDefVal = "always"
+	fs.String("theme", "", "color the view with the built-in theme `NAME`: "+strings.Join(ls.ThemeNames(), ", ")+"; GNUX_THEME sets the default")
+	word("color-scale", "color `WHICH` columns on a gradient by value: 'all' (the default when WHICH is omitted), 'size', 'age' or 'none'")
+	fs.Lookup("color-scale").NoOptDefVal = "all"
+	fs.Bool("header", false, "with -l, print a row naming each column")
+	fs.Bool("git", false, "with -l, print each file's git status (staged, then unstaged)")
+	fs.Bool("git-ignore", false, "do not list entries that .gitignore rules exclude")
+	flag("only-dirs", "", "list only directories")
+	flag("only-files", "", "list only files, not directories")
+	fs.Bool("total-size", false, "show a directory's size as the total of everything in it")
+	fs.Bool("octal-permissions", false, "with -l, print the permission bits in octal too")
+
 	// Long names GNU does not have: accepted, never an abbreviation.
-	tool.OwnNames(fs, "across", "atime", "columns", "commas", "ctime", "long", "long-no-group", "long-no-owner", "one-per-line", "slash", "sort-extension", "sort-size", "sort-time", "sort-version", "unsorted")
+	tool.OwnNames(fs, "tree", "level", "icons", "pretty", "theme", "color-scale", "header", "git", "git-ignore",
+		"only-dirs", "only-files", "total-size", "octal-permissions", "across", "atime", "columns", "commas", "ctime", "long", "long-no-group", "long-no-owner", "one-per-line", "slash", "sort-extension", "sort-size", "sort-time", "sort-version", "unsorted")
 }
 
 // run builds the listing options from the parsed flags and runs the engine
@@ -341,7 +422,66 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	if err != nil {
 		return err
 	}
+	if err := applyView(fs, &opts, core.IsTerminal(s.Out), getenv, s); err != nil {
+		return err
+	}
 	return ls.New(opts, s).Run(args)
+}
+
+// getenv reads the environment; the tests replace it.
+var getenv = os.Getenv
+
+// applyView folds in the view's defaults: GNUX_ICONS when --icons is not
+// given, and the pretty bundle (--pretty, else GNUX_PRETTY, else auto;
+// tool.ResolvePretty),
+// which on a terminal colors every column and turns on --header,
+// --group-directories-first and -h, each unless an option already decides
+// it. Off a terminal, auto changes nothing, so a pipe or a script gets
+// GNU's output. An invalid value in a variable is warned about and
+// ignored, as ls does with QUOTING_STYLE.
+func applyView(fs *pflag.FlagSet, o *ls.Options, terminal bool, getenv func(string) string, s core.Streams) error {
+	fromEnv := func(name string, fallback ls.When) ls.When {
+		v := getenv(name)
+		if v == "" {
+			return fallback
+		}
+		w, err := ls.ParseWhen(name, v)
+		if err != nil {
+			_, _ = fmt.Fprintf(s.Err, "%s: ignoring invalid value of environment variable %s: '%s'\n", ls.Name, name, v)
+			return fallback
+		}
+		return w
+	}
+	if !given(fs, "icons") {
+		o.Icons = fromEnv("GNUX_ICONS", ls.WhenNever)
+	}
+
+	pretty, err := tool.ResolvePretty(value(fs, "pretty"), given(fs, "pretty"), ls.Name, getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	if !pretty.On(terminal) {
+		return nil
+	}
+	o.Pretty = true
+	// --pretty=always means it through a pipe too (into less -R), so its
+	// color does; NO_COLOR keeps it plain.
+	if latest(fs, colorFlags) == "" {
+		switch {
+		case getenv("NO_COLOR") != "":
+			o.Color = ls.WhenNever
+		case pretty == tool.Always:
+			o.Color = ls.WhenAlways
+		default:
+			o.Color = ls.WhenAuto
+		}
+	}
+	if latest(fs, sizeFlags) == "" && getenv("LS_BLOCK_SIZE") == "" && getenv("BLOCK_SIZE") == "" {
+		o.HumanReadable = true
+	}
+	o.GroupDirectories = true
+	o.Header = true
+	return nil
 }
 
 // RunAs returns the Run of one of ls's variants, which GNU builds from the
@@ -353,6 +493,9 @@ func RunAs(name string, format ls.Format) func(fs *pflag.FlagSet, args []string,
 	return func(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		opts, err := buildOptions(fs)
 		if err != nil {
+			return err
+		}
+		if err := applyView(fs, &opts, core.IsTerminal(s.Out), getenv, s); err != nil {
 			return err
 		}
 		if opts.Format == ls.FormatAuto {
@@ -538,6 +681,9 @@ func buildOptions(fs *pflag.FlagSet) (ls.Options, error) {
 			o.Width = -1
 		}
 	}
+	if err := buildView(fs, &o); err != nil {
+		return ls.Options{}, err
+	}
 	if t, _ := fs.GetString("tabsize"); t != "" {
 		n, err := strconv.Atoi(t)
 		if err != nil || n < 0 {
@@ -547,6 +693,50 @@ func buildOptions(fs *pflag.FlagSet) (ls.Options, error) {
 	}
 
 	return o, nil
+}
+
+// buildView folds in the options of gnux's own view.
+func buildView(fs *pflag.FlagSet, o *ls.Options) error {
+	o.Tree, _ = fs.GetBool("tree")
+	o.Header, _ = fs.GetBool("header")
+	o.Git, _ = fs.GetBool("git")
+	o.GitIgnore, _ = fs.GetBool("git-ignore")
+	o.TotalSize, _ = fs.GetBool("total-size")
+	o.OctalPermissions, _ = fs.GetBool("octal-permissions")
+	switch latest(fs, onlyFlags) {
+	case "only-dirs":
+		o.Only = ls.OnlyDirs
+	case "only-files":
+		o.Only = ls.OnlyFiles
+	}
+
+	var err error
+	if given(fs, "icons") {
+		if o.Icons, err = ls.ParseWhen("--icons", value(fs, "icons")); err != nil {
+			return err
+		}
+	}
+	if given(fs, "color-scale") {
+		if o.ColorScale, err = ls.ParseScale(value(fs, "color-scale")); err != nil {
+			return err
+		}
+	}
+	if t, _ := fs.GetString("theme"); t != "" {
+		if o.Theme, err = ls.ParseTheme(t); err != nil {
+			return err
+		}
+	}
+	if lv, _ := fs.GetString("level"); lv != "" {
+		n, err := strconv.Atoi(lv)
+		if err != nil || n < 1 {
+			return core.Usagef("invalid level: '%s'", lv)
+		}
+		if !o.Recursive && !o.Tree {
+			return core.Usagef("--level needs -R or --tree")
+		}
+		o.Level = n
+	}
+	return nil
 }
 
 // ordered is a flag value that remembers when it was last set, relative to the

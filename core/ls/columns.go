@@ -30,6 +30,9 @@ func (l *Ls) newFrills(entries []*entry, pad bool) frills {
 			f.blocks = max(f.blocks, len(l.blocksOf(e)))
 		}
 	}
+	if l.Header && l.format == FormatLong {
+		f.inode, f.blocks = max(f.inode, len("Inode")), max(f.blocks, len("Blocks"))
+	}
 	return f
 }
 
@@ -64,7 +67,7 @@ func (l *Ls) frillsOf(e *entry, f frills) string {
 
 // cellWidth is the number of columns writeCell will occupy for e.
 func (l *Ls) cellWidth(e *entry, f frills) int {
-	return len(l.frillsOf(e, f)) + l.pad(e) + e.width + len(l.indicator(e.mode))
+	return len(l.frillsOf(e, f)) + l.leadWidth(e) + l.pad(e) + e.width + len(l.indicator(e.mode))
 }
 
 // writeCell writes an entry as it appears in every format but the long one:
@@ -84,8 +87,10 @@ func (l *Ls) pad(e *entry) int {
 }
 
 // putName writes the quoted name of e, padded to line up with quoted names,
-// colored when color is on and linked with --hyperlink.
+// colored when color is on and linked with --hyperlink; after its tree
+// branch and icon, with --tree and --icons.
 func (l *Ls) putName(e *entry) {
+	l.putLead(e)
 	if l.pad(e) == 1 {
 		l.put(" ")
 	}
