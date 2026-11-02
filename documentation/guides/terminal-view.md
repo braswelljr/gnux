@@ -110,6 +110,27 @@ $ lsx --tree --level=2 --group-directories-first
 With `-l`, the whole tree is one table, so every column lines up. Where the locale is not UTF-8
 (`LANG=C`), the branches are drawn as `|--` and `` `-- ``.
 
+`findx --tree` draws what a search found the same way, under each starting point. The
+directories leading to a match are dimmed, so you can tell them from the matches, and a count
+follows:
+
+```text
+$ findx --tree core -name 'box*.go' -o -name 'table.go'
+core
+└── internal
+    └── visual
+        ├── box.go
+        ├── box_test.go
+        └── table.go
+
+0 directories, 3 files
+```
+
+The view options go before the starting points (`findx --tree --icons . -name '*.go'`). Without
+`--tree`, `findx` still prints one path per line, as GNU find does, with each name in its
+type's color and the directories in front of it dimmed. `-print0`, `-printf` and `-ls` never
+change.
+
 ## Git status
 
 `--git` adds two letters after the date: what is staged, then what is not. `-` is

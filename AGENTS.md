@@ -265,7 +265,7 @@ is not reachable through `argv[0]` and is not in `--list`. Options stop at `SCRI
 
 ## The terminal view (`core/internal/visual`, `core/internal/gitstat`, `internal/tool/view.go`)
 
-On a terminal, the tools people read (`lsx`/`dirx`/`vdirx`, `dfx`, `dux`, `grepx`, the checksum
+On a terminal, the tools people read (`lsx`/`dirx`/`vdirx`, `findx`, `dfx`, `dux`, `grepx`, the checksum
 tools' `-c`, `headx`/`tailx` headers, the file tools' `-v`) show gnux's terminal view; anything
 piped or redirected is GNU's (BR-13, NFR-53, NFR-54).
 
@@ -284,6 +284,8 @@ piped or redirected is GNU's (BR-13, NFR-53, NFR-54).
 - **Panels and tables:** `Theme.Box` and `Theme.Render(visual.Table{..., MaxWidth:
   core.TerminalWidth(out, getenv)})` draw the framed layouts (`statx`, `dfx`, `wcx`); a table
   never wraps, it cuts its widest text column with `…`.
+- **A file name in its type's color** comes from `visual.NewNames(LS_COLORS)`, the palette
+  `lsx` and `findx` share, so a name looks the same in every tool.
 - **A `-v` report needs no engine change:** the adapter wraps its streams with
   `tool.ReportView` (after its own argument parsing, for a `RawArgs` tool like `chmodx`).
 - **Options are gnux's own** (`tool.RegisterView` and `tool.OwnNames`), so GNU abbreviations

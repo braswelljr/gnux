@@ -2,6 +2,11 @@
 package findx
 
 import (
+	"fmt"
+	"io"
+	"os"
+	"strings"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -20,6 +25,7 @@ func Spec() tool.Spec {
 	return tool.Spec{
 		Meta:    Meta(),
 		GNU:     "find",
+		Flags:   Register,
 		Run:     run,
 		RawArgs: true,
 	}
@@ -129,7 +135,19 @@ func Meta() docmeta.Meta {
 			"supported, and refused with a diagnostic: -fstype, -context, -used, " +
 			"-files0-from, the -D debug options, the %F and %Z directives of -printf, " +
 			"-type D, and -help and -version inside an expression (use --help and --version " +
-			"alone). GNU's warning about a pattern that looks unquoted is not given.",
+			"alone). GNU's warning about a pattern that looks unquoted is not given.\n\n" +
+			"gnux's terminal view (BR-13): before the starting points, and only there and " +
+			"in full, findx takes options of gnux's own, which GNU find does not have. On a " +
+			"terminal, what -print writes has each name in its type's color as lsx shows it " +
+			"(LS_COLORS) and the directories before it dimmed, in the theme --theme=NAME or " +
+			"GNUX_THEME names; the text is GNU's, and piped or redirected output is never " +
+			"colored (--pretty=never, GNUX_PRETTY=never or NO_COLOR keep it plain). --tree " +
+			"draws what -print writes as a tree under each starting point, once the walk has " +
+			"ended, with the directories leading to a match dimmed and, on a terminal, a " +
+			"count of the directories and files that matched; a file printed twice is drawn " +
+			"once. --icons[=WHEN] (GNUX_ICONS) puts a Nerd Font icon before each name. " +
+			"-print0, -printf, -ls and the -f actions always write GNU's bytes, as the walk " +
+			"goes.",
 		Permissions: "findx needs search permission on every directory it passes through and " +
 			"read permission on every directory it lists; a directory it cannot read is " +
 			"diagnosed, the walk continues with the rest and the exit status is 1. Tests " +
@@ -274,6 +292,11 @@ func Meta() docmeta.Meta {
 				PowerShell:  "findx . -maxdepth 1 -name '*.conf' -ls",
 			},
 			{
+				Description: "You cloned a project and want to see where its tests live, drawn as a tree under the directories that hold them:",
+				Bash:        "findx --tree . -name '*_test.go' -not -path './vendor/*'",
+				PowerShell:  "findx --tree . -name '*_test.go' -not -path './vendor/*'",
+			},
+			{
 				Description: "Stop at the first match:",
 				Bash:        "findx . -name go.mod -print -quit",
 				PowerShell:  "findx . -name go.mod -print -quit",
@@ -287,19 +310,85 @@ func Meta() docmeta.Meta {
 	}
 }
 
-// buildOptions returns the engine options. There is nothing to fold: with
-// RawArgs no flag is parsed here, and everything on find's command line (the
-// symbolic link mode included) is positional and read by the engine. It is
-// kept so that the adapter has the shape of every other one, and so that an
-// option find grows outside its expression has a place to go.
-func buildOptions(_ *pflag.FlagSet) find.Options {
-	return find.Options{}
+// Register installs gnux's terminal view options. findx's command line is
+// an expression, so these are read only before the starting points, in
+// full (viewArgs); GNU find has no option of these names.
+func Register(fs *pflag.FlagSet) {
+	fs.Bool("tree", false, "draw what -print writes as a tree under each starting point")
+	fs.String("icons", "", "show an icon (Nerd Font) before each name `WHEN`: 'always' (the default when WHEN is omitted), 'auto', or 'never'; GNUX_ICONS sets the default")
+	fs.Lookup("icons").NoOptDefVal = "always"
+	tool.OwnNames(fs, "tree", "icons")
+	tool.RegisterView(fs)
+}
+
+// viewOptions are the names viewArgs takes.
+var viewOptions = map[string]bool{"tree": true, "icons": true, "pretty": true, "theme": true}
+
+// viewArgs sets gnux's view options apart from the words before the
+// starting points (among -H, -L, -P and -O); everything else, from the
+// first starting point or expression word on, goes to the engine as it
+// was. An option written any other way (abbreviated, or after a starting
+// point) is an expression word, which find rejects as GNU's does.
+func viewArgs(args []string) (view, rest []string) {
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		name, _, _ := strings.Cut(strings.TrimPrefix(a, "--"), "=")
+		switch {
+		case strings.HasPrefix(a, "--") && viewOptions[name]:
+			view = append(view, a)
+			if a == "--theme" && i+1 < len(args) {
+				i++
+				view = append(view, args[i])
+			}
+		case a == "-H" || a == "-L" || a == "-P" || strings.HasPrefix(a, "-O"):
+			rest = append(rest, a)
+		default:
+			return view, append(rest, args[i:]...)
+		}
+	}
+	return view, rest
+}
+
+// buildOptions folds the view options into the engine's. Everything else
+// on find's command line (the symbolic link mode included) is positional
+// and read by the engine. terminal is whether standard output is one.
+func buildOptions(fs *pflag.FlagSet, terminal bool, getenv func(string) string, warn io.Writer) (find.Options, error) {
+	var o find.Options
+	view, err := tool.ViewOf(fs, terminal, find.Name, getenv, warn)
+	if err != nil {
+		return o, err
+	}
+	o.Pretty, o.Color, o.Theme = view.Pretty, view.Color, view.Theme
+	o.Tree, _ = fs.GetBool("tree")
+	icons, option := fs.Lookup("icons").Value.String(), "--icons"
+	if !fs.Changed("icons") {
+		icons, option = getenv("GNUX_ICONS"), "GNUX_ICONS"
+	}
+	if icons != "" {
+		when, err := tool.ParseWhen(option, icons)
+		if err != nil {
+			if option == "--icons" {
+				return o, err
+			}
+			_, _ = fmt.Fprintf(warn, "%s: ignoring invalid value of environment variable GNUX_ICONS: '%s'\n", find.Name, icons)
+		}
+		o.Icons = when.On(terminal)
+	}
+	return o, nil
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
-	f := find.New(buildOptions(fs), s)
+	view, rest := viewArgs(args)
+	if err := tool.ParseFlagSet(fs, view, false); err != nil {
+		return core.Usagef("%s", err)
+	}
+	opts, err := buildOptions(fs, core.IsTerminal(s.Out), os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	f := find.New(opts, s)
 	// A command named after a gnux tool runs in-process, through the
 	// registry package cmd installed.
 	f.Exec = tool.RunTool
-	return f.Run(args)
+	return f.Run(rest)
 }

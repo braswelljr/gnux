@@ -1200,8 +1200,18 @@ line; `--help` and `--version` are honored as the sole argument.
   print 0, links 1, `-xdev` does nothing and ctime is the modification time. Not implemented,
   and refused: `-fstype`, `-context`, `-used`, `-files0-from`, `-D`, and `%F` and `%Z` in
   `-printf`.
+- **Terminal view (BR-13).** gnux's own `--tree`, `--icons[=WHEN]`, `--pretty[=WHEN]` and
+  `--theme=NAME`, read only before the starting points and only in full (after a starting
+  point, `--tree` is an unknown predicate, as in GNU). On a terminal, what `-print` writes to
+  standard output has each name in its type's color, as `lsx` colors it (`LS_COLORS`), and its
+  directories in the punctuation color; the text is GNU's. `--tree` draws the files `-print`
+  writes as a tree under each starting point once the walk ends, the directories leading to a
+  match dimmed, a file printed twice drawn once, and on a terminal tree(1)'s count of the
+  directories and files matched. `--icons` (or `GNUX_ICONS`) puts a Nerd Font icon before each
+  name. `-print0`, `-printf`, `-ls` and the `-f` actions write GNU's bytes as the walk goes,
+  and piped output is uncolored (NFR-53).
 - **Verified by.** `core/find/find_test.go`, `core/find/find_unix_test.go`,
-  `core/find/internal_test.go`, `cmd/findx/findx_test.go`.
+  `core/find/internal_test.go`, `core/find/view_test.go`, `cmd/findx/findx_test.go`.
 
 ### FR-111: fmtx
 
