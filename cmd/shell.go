@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -97,7 +99,8 @@ func ShellSpec() tool.Spec {
 				"Windows and Capsicum on FreeBSD, where a command can run gnux's own tools only " +
 				"(capability mode starts no other program); where none can be used the shell " +
 				"refuses with status 125 and runs nothing. A SCRIPT must lie in an allowed directory, as it is read after the " +
-				"sandbox is entered.",
+				"sandbox is entered.\n\n" +
+				"gnux's terminal view (BR-13): on a terminal, the prompt shows the working directory and the status of a command that failed, and help is colored. --pretty[=WHEN] and --theme=NAME choose the view (GNUX_PRETTY, GNUX_THEME), and the shell passes them on to every tool it runs; --pretty=never brings back the plain gnux> prompt.",
 			Permissions: "The shell itself needs only read access to SCRIPT. Each command it " +
 				"runs needs whatever its tool needs; redirection creates files with mode 0644 " +
 				"(before the umask).",
@@ -161,6 +164,7 @@ func ShellSpec() tool.Spec {
 			fs.BoolP("nounset", "u", false, "treat expanding an unset variable as an error")
 			fs.StringArray("sandbox", nil, "confine the shell, its commands and the programs they start to `DIR`, which they may read and write, and the system's own directories, which they may only read; may be repeated")
 			fs.StringArray("sandbox-read", nil, "with --sandbox, also let them read `DIR`; may be repeated")
+			tool.RegisterView(fs)
 		},
 		Run: runShell,
 		// Options stop at SCRIPT: what follows it belongs to the script.
@@ -176,6 +180,15 @@ func runShell(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	opts := shell.Options{}
 	opts.ErrExit, _ = fs.GetBool("errexit")
 	opts.NoUnset, _ = fs.GetBool("nounset")
+	if err := shareView(fs); err != nil {
+		return err
+	}
+	// The prompt is written to standard error.
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Err), shell.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
 
 	// name is $0 and params are $1, $2, ...
 	name, params := shell.Name, []string(nil)
@@ -208,6 +221,23 @@ func runShell(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	sh := NewShell(opts, s)
 	sh.SetArgs(name, params)
 	return sh.Run(script)
+}
+
+// shareView hands the shell's own --pretty and --theme to the tools it runs,
+// in-process, through the variables every tool reads them from.
+func shareView(fs *pflag.FlagSet) error {
+	if f := fs.Lookup("pretty"); f.Changed {
+		if err := os.Setenv("GNUX_PRETTY", f.Value.String()); err != nil {
+			return fmt.Errorf("GNUX_PRETTY: %w", err)
+		}
+	}
+	if fs.Changed("theme") {
+		theme, _ := fs.GetString("theme")
+		if err := os.Setenv("GNUX_THEME", theme); err != nil {
+			return fmt.Errorf("GNUX_THEME: %w", err)
+		}
+	}
+	return nil
 }
 
 // enterSandbox confines the process as --sandbox and --sandbox-read ask,

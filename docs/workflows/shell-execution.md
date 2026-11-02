@@ -117,6 +117,11 @@ for !sh.exited {
   the rest of the script.
 - **`\r\n` is trimmed,** so a script saved with Windows line endings runs unchanged (FR-29).
 - **The prompt goes to standard error,** so `gnux shell > out.txt` captures only command output.
+  With the terminal view on (standard error a terminal, FR-185) it is `prompt()` in
+  `core/shell/prompt.go`: the working directory and a failed status, colored; otherwise the
+  constants `Prompt` and `ContinuePrompt`. The shell's `--pretty` and `--theme` are set as
+  `GNUX_PRETTY` and `GNUX_THEME` (`shareView` in `cmd/shell.go`) before the script runs, so the
+  tools it runs in-process see them.
 - **The working directory is restored** when `Run` returns (NFR-16): `cd` changes the whole
   process's directory (step 9), and a Go program that runs a script must not find itself
   somewhere else afterwards.

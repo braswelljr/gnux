@@ -2,6 +2,8 @@
 package unamex
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -15,7 +17,7 @@ func Spec() tool.Spec {
 	return tool.Spec{
 		Meta:  Meta(),
 		GNU:   "uname",
-		Flags: Register,
+		Flags: func(fs *pflag.FlagSet) { Register(fs); tool.RegisterView(fs) },
 		Run:   run,
 	}
 }
@@ -37,7 +39,8 @@ func Meta() docmeta.Meta {
 			"sysctl on macOS and FreeBSD, and the registry on Windows, so unamex prints the " +
 			"same fields on every platform: on Windows the kernel name is 'Windows_NT' and " +
 			"the operating system 'MS/Windows'; in the browser playground the fields describe " +
-			"the WebAssembly runtime.",
+			"the WebAssembly runtime.\n\n" +
+			"gnux's terminal view (BR-13), asked for only: with --pretty, the fields are a panel titled with the host's name, one labeled line each, every field when none is selected. Scripts capture uname's output even from a terminal, so the view is never on by default or from GNUX_PRETTY. --theme=NAME picks its colors.",
 		Permissions: "Needs no permissions.",
 		UseCases: []string{
 			"Branching a portable script on the operating system or architecture.",
@@ -139,5 +142,12 @@ func buildOptions(fs *pflag.FlagSet) uname.Options {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
-	return uname.New(buildOptions(fs), s).Run(args)
+	opts := buildOptions(fs)
+	// Scripts capture uname's output, so the view is only asked for.
+	view, err := tool.AskedViewOf(fs, core.IsTerminal(s.Out), uname.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
+	return uname.New(opts, s).Run(args)
 }

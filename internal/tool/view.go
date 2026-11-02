@@ -121,3 +121,15 @@ func ReportView(fs *pflag.FlagSet, s core.Streams, name string, getenv func(stri
 	s.Out = w
 	return s, func() { _ = w.Flush() }, nil
 }
+
+// AskedViewOf is ViewOf for a tool whose output a script captures even
+// from a terminal (datex, unamex): the view is on only when --pretty is
+// given on the command line, never from GNUX_PRETTY or by default, so
+// `now=$(datex)` keeps GNU's text whatever the environment says.
+func AskedViewOf(fs *pflag.FlagSet, terminal bool, name string, getenv func(string) string, warn io.Writer) (View, error) {
+	v, err := ViewOf(fs, terminal, name, getenv, warn)
+	if err != nil || !fs.Changed("pretty") {
+		return View{}, err
+	}
+	return v, nil
+}

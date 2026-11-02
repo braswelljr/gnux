@@ -4,6 +4,7 @@ package joinx
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -50,7 +51,8 @@ func Meta() docmeta.Meta {
 			"and then exits with status 1; --check-order fails at the first line out of " +
 			"order, and --nocheck-order never checks. -z makes NUL the line delimiter. When " +
 			"both --check-order and --nocheck-order are given, --check-order wins. GNU's " +
-			"obsolescent -j1 FIELD and -j2 FIELD forms are not accepted; use -1 and -2.",
+			"obsolescent -j1 FIELD and -j2 FIELD forms are not accepted; use -1 and -2.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, each field is in the color of the file it came from, and the join field in a color of its own when the line pairs both files; a --header line is in the header color. The text is GNU's. --pretty[=WHEN] and --theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); -z and piped or redirected output are always GNU's.",
 		Permissions: "Needs read permission on FILE1 and FILE2 and search permission on the " +
 			"directories leading to them. Nothing is ever modified.",
 		UseCases: []string{
@@ -148,6 +150,7 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "empty", "field1", "field2", "join-field", "only-unpaired", "output-format", "separator", "unpaired")
+	tool.RegisterView(fs)
 }
 
 // fatalError is a mistake GNU join reports without the --help hint.
@@ -336,5 +339,10 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		d.Errorf("%s", fatal.msg)
 		return d.Result()
 	}
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), join.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
 	return join.New(opts, s).Run(args)
 }

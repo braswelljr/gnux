@@ -236,6 +236,9 @@ is not reachable through `argv[0]` and is not in `--list`. Options stop at `SCRI
   process-wide because tools resolve relative paths against it). `Eval` runs one command and
   keeps all state, for REPL-style hosts such as the playground, which also sets `LoopLimit`
   because nothing can interrupt a script in a browser tab.
+- On a terminal the prompt is the terminal view's (`core/shell/prompt.go`, FR-185): the working
+  directory and a failed status; the shell's `--pretty`/`--theme` reach its tools as
+  `GNUX_PRETTY`/`GNUX_THEME` (`shareView`).
 - Exit status: last command's; 2 on a syntax error (which aborts a non-interactive script);
   127 for an unknown command; 1 for an unset variable under `-u`.
 
@@ -267,9 +270,10 @@ is not reachable through `argv[0]` and is not in `--list`. Options stop at `SCRI
 
 On a terminal, the tools people read (`lsx`/`dirx`/`vdirx`, `findx`, `dfx`, `dux`, `grepx`,
 `ddx status=progress`, `shredx -v`, `uniqx -c`, `odx`, `uptimex`, `whox`, `pinkyx`, `idx`,
-`usersx`, `groupsx`, `envx`, `printenvx`, `killx -l`, `sttyx -a`, the checksum tools' `-c`,
-`headx`/`tailx` headers, the file tools' `-v`) show gnux's terminal view; anything piped or
-redirected is GNU's (BR-13, NFR-53, NFR-54).
+`usersx`, `groupsx`, `envx`, `printenvx`, `killx -l`, `sttyx -a`, `commx`, `joinx`, the checksum
+tools' `-c`, `headx`/`tailx` headers, the file tools' `-v`) show gnux's terminal view; anything
+piped or redirected is GNU's (BR-13, NFR-53, NFR-54). `datex` and `unamex` show it only with an explicit
+`--pretty` (`tool.AskedViewOf`): scripts capture their output even from a terminal.
 
 - **Opt-out on a terminal, never in a pipe.** `--pretty[=WHEN]`, else `GNUX_PRETTY`, else
   `auto` (`tool.ResolvePretty` / `tool.ViewOf`). `NO_COLOR` and `TERM=dumb` keep it uncolored.

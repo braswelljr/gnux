@@ -31,6 +31,15 @@ Every notable change to gnux, release by release, newest first. The format follo
 - `ddx status=progress` rewrites GNU's transfer line once a second while copying (it printed
   only the final statistics); on a terminal it draws a bar with the percentage, the rate and the
   time left.
+- `gnux shell`: on a terminal, the prompt shows the working directory and the status of a
+  command that failed, and `help` is colored. `--pretty` and `--theme` on the shell apply to
+  every tool it runs.
+- `datex --pretty` shows one date as a panel: local time, UTC, ISO 8601, Unix seconds, the
+  week and day of the year, the zone, and how far it is from now. `unamex --pretty` shows the
+  system as a panel. Both only when asked: scripts capture their output.
+- `commx`: on a terminal, a header row naming the files, and each column's lines in a color of
+  their own. `joinx`: each field colored by the file it came from, the join field apart. New
+  theme keys `f1`, `f2`, `fb`.
 - `killx -l` and `-L`: on a terminal, every signal in a framed table, the names colored by what
   the signal does. `sttyx -a`: a panel with the control characters in a grid and each group of
   flags on its own lines, the flags that are off dimmed.

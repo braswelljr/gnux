@@ -299,6 +299,45 @@ the `:` between the directories of `PATH` and every other `*PATH` variable, so y
 one directory you are looking for in a long search path. `printenvx PATH`, which prints just the
 value, and `-0` stay GNU's.
 
+`gnux shell`'s prompt shows the working directory and, after a command fails, its status; the
+shell's own `--pretty` and `--theme` apply to every tool you run in the session.
+
+`datex` and `unamex` keep GNU's text even on a terminal, since scripts capture it
+(`deadline=$(datex -d 'next friday' +%F)`); ask for the view with `--pretty`. `GNUX_PRETTY` does
+not turn it on. `datex --pretty` shows one moment every way you might need it, and how far it is
+from now:
+
+```text
+$ datex --pretty -d '2026-12-25 18:00' +'%A %d %B'
+╭─ Friday 25 December ───────────────────────────╮
+│ Local     Fri Dec 25 18:00:00 CET 2026         │
+│ UTC       Fri Dec 25 17:00:00 UTC 2026         │
+│ ISO 8601  2026-12-25T18:00:00+01:00            │
+│ Unix      1798218000                           │
+│ Day       Friday, day 359 of the year, week 52 │
+│ Zone      CET (UTC+01:00)                      │
+│ From now  in 53 days 8 hours                   │
+╰────────────────────────────────────────────────╯
+```
+
+`unamex --pretty` shows the system as a panel titled with the host's name, every field when you
+name none.
+
+`commx` puts a header row over its three columns, naming the files, and colors each column, so
+a line only in the new list stands apart from one in both even when the lines are long. GNU's
+columns are one tab apart, so a name wider than a tab stop is cut to fit over its column:
+
+```text
+$ commx old.txt new.txt
+old.txt new.txt both
+ada
+                lin
+        mei
+```
+
+`joinx` colors each field by the file it came from, and the join field by whether it paired
+both files or came from one alone (`-a`), so you can see which side a value is from.
+
 `killx -l` lists every signal as a table of number, name and description, so you can see what
 `killx -s HUP` will do before you send it. The names are colored by what the signal does: `KILL`
 and `STOP`, which no program can catch, stand out from the rest. `killx -l 9` still prints just
@@ -434,7 +473,8 @@ from an hour to older than a year), `uu` `un` (yours, others'), `lc` (links), `i
 filled, warning, alert, empty) and `ga` `gm` `gd` `gv` `gt` `gi` `gc` `g-` (git: new,
 modified, deleted, renamed, type change, ignored, conflict, clean), `fh` (a file heading:
 grepx, headx, tailx), `ok` and `er` (OK and FAILED, a creation and a removal), `pa` (a name
-in a `-v` report), `ev` (a variable's name in `envx` and `printenvx`) and `yz` `yp` `yw` `yc` `yh` (bytes in an `odx` dump: zero, printable,
+in a `-v` report), `ev` (a variable's name in `envx` and `printenvx`), `f1` `f2` `fb` (from the first file, the
+second, or both, in `commx` and `joinx`) and `yz` `yp` `yw` `yc` `yh` (bytes in an `odx` dump: zero, printable,
 whitespace, other control characters, and above 0x7f).
 
 ## Turning it off

@@ -60,3 +60,31 @@ func TestViewOf(t *testing.T) {
 		t.Error("an invalid --pretty should be a usage error")
 	}
 }
+
+func TestAskedViewOf(t *testing.T) {
+	tests := []struct {
+		args     []string
+		env      map[string]string
+		terminal bool
+		want     View
+	}{
+		// Never by default, nor from the environment: a script captures it.
+		{nil, nil, true, View{}},
+		{nil, map[string]string{"GNUX_PRETTY": "always"}, true, View{}},
+		{[]string{"--theme=nord"}, nil, true, View{}},
+		{[]string{"--pretty"}, nil, false, View{Pretty: true, Color: true}},
+		{[]string{"--pretty=auto"}, nil, false, View{}},
+		{[]string{"--pretty=auto"}, map[string]string{"NO_COLOR": "1"}, true, View{Pretty: true}},
+	}
+	for _, tt := range tests {
+		fs := pflag.NewFlagSet("t", pflag.ContinueOnError)
+		RegisterView(fs)
+		if err := fs.Parse(tt.args); err != nil {
+			t.Fatal(err)
+		}
+		got, err := AskedViewOf(fs, tt.terminal, "t", func(k string) string { return tt.env[k] }, &bytes.Buffer{})
+		if err != nil || got != tt.want {
+			t.Errorf("%q env=%v terminal=%v: got %+v (%v), want %+v", tt.args, tt.env, tt.terminal, got, err, tt.want)
+		}
+	}
+}

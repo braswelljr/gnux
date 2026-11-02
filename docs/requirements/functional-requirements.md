@@ -639,7 +639,13 @@ commx [OPTION]... FILE1 FILE2
   sort). The framework requires a long name for every option, so -1, -2 and -3 also answer to
   gnux's own --suppress-file1, --suppress-file2 and --suppress-common. When both --check-order and
   --nocheck-order are given, --check-order wins.
-- **Verified by.** `core/comm/comm_test.go`, `cmd/commx/commx_test.go`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, a header row names each shown
+  column's file (`standard input` for `-`, `both` for the third; with GNU's tab between the
+  columns, a name wider than a tab stop is cut to its base name and then to seven columns, so it
+  sits over its column), and every line, and its
+  `--total` count, is in its column's color (`f1`, `f2`, `fb`). The lines and their separators
+  are GNU's and the output still streams; `-z` and piped output are GNU's (NFR-53).
+- **Verified by.** `core/comm/comm_test.go`, `core/comm/view_test.go`, `cmd/commx/commx_test.go`.
 
 ### FR-53: cpx
 
@@ -802,7 +808,14 @@ datex [OPTION]... [+FORMAT]
   as GNU measures it, as a time that many seconds after the epoch (0.000000001 for a nanosecond
   clock), and in any format '%-N' prints as many digits of nanoseconds as that resolution needs.
   --debug is not implemented.
-- **Verified by.** `core/date/date_test.go`, `cmd/datex/datex_test.go`.
+- **Terminal view (BR-13), asked for only.** gnux's own `--pretty[=WHEN]` and `--theme=NAME`;
+  scripts capture this tool's output even from a terminal, so the view is on only when
+  `--pretty` is on the command line, never by default or from `GNUX_PRETTY`
+  (`tool.AskedViewOf`). One date is then a panel titled with it in the format asked for, holding the same
+  moment as local time, UTC, ISO 8601 and Unix seconds, its weekday, day of the year and ISO
+  week, its zone, and (unless it is now) how far it is from now. `-f`'s lines are GNU's.
+- **Verified by.** `core/date/date_test.go`, `core/date/view_test.go`, `cmd/datex/datex_test.go`,
+  `internal/tool/view_test.go`.
 
 ### FR-106: ddx
 
@@ -1527,7 +1540,11 @@ joinx [OPTION]... FILE1 FILE2
   makes NUL the line delimiter. When both --check-order and --nocheck-order are given,
   --check-order wins. GNU's obsolescent -j1 FIELD and -j2 FIELD forms are not accepted; use -1 and
   -2.
-- **Verified by.** `core/join/join_test.go`, `cmd/joinx/joinx_test.go`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, the join field is in the `fb` color
+  when the line pairs both files, else in its one file's color; each file's other fields are in
+  that file's color (`f1`, `f2`), with `-o` too; a `--header` line is in the header color. The
+  text is GNU's; `-z` and piped output are never colored (NFR-53).
+- **Verified by.** `core/join/join_test.go`, `core/join/view_test.go`, `cmd/joinx/joinx_test.go`.
 
 ### FR-117: killx
 
@@ -3421,6 +3438,12 @@ unamex [OPTION]...
   and FreeBSD, and the registry on Windows, so unamex prints the same fields on every platform: on
   Windows the kernel name is 'Windows_NT' and the operating system 'MS/Windows'; in the browser
   playground the fields describe the WebAssembly runtime.
+- **Terminal view (BR-13), asked for only.** gnux's own `--pretty[=WHEN]` and `--theme=NAME`;
+  scripts capture this tool's output even from a terminal, so the view is on only when
+  `--pretty` is on the command line, never by default or from `GNUX_PRETTY`
+  (`tool.AskedViewOf`). The fields are then a panel titled with the host's name, one labeled line
+  each, every field the system reports when none is selected, a line too long for the terminal
+  cut to fit.
 - **Verified by.** `core/uname/uname_test.go`, `cmd/unamex/unamex_test.go`.
 
 ### FR-143: unexpandx
@@ -3975,6 +3998,24 @@ A script must produce the same result on every supported platform, given the sam
 - **Acceptance.** It is not in `gnux --list`, cannot be selected through the program name, and
   its diagnostics from the command line are prefixed `gnux shell`.
 - **Verified by.** `TestShellCommand` ("shell is not a tool", "usage error names gnux shell").
+
+### FR-185: the shell's terminal view
+
+`gnux shell` must take gnux's own `--pretty[=WHEN]` and `--theme=NAME`, and pass them to the
+tools it runs.
+
+- **Rationale.** BR-13: an interactive session is read by a person; a script is not.
+- **Acceptance.** When interactive and the view is on (standard error is a terminal, or
+  `--pretty`), the prompt is `gnux DIR ❯ ` (`>` outside a UTF-8 locale): the working directory,
+  `~` for the home directory and `~/...` under it (both compared with their links resolved), and
+  a failed command's status as `[N]` before the arrow, which is then in the failure color; a
+  line continuing an unfinished command gets an aligned arrow. Without the view the prompts
+  are `gnux> ` and `> `. With colors on, `help` colors its heading and syntax column when it is
+  written to the shell's own output, never when redirected. The shell's `--pretty` and
+  `--theme` become `GNUX_PRETTY` and `GNUX_THEME` for the tools it runs in-process. A script's
+  output is unchanged.
+- **Verified by.** `TestPrompt` and `TestHelpColored` in `core/shell/prompt_test.go`;
+  `TestShellSharesView` in `cmd/shell_test.go`.
 
 ### FR-78: deliberate differences from sh
 

@@ -2,6 +2,7 @@
 package datex
 
 import (
+	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -55,7 +56,8 @@ func Meta() docmeta.Meta {
 			"of the system clock, measured as GNU measures it, as a time that many seconds " +
 			"after the epoch (0.000000001 for a nanosecond clock), and in any format '%-N' " +
 			"prints as many digits of nanoseconds as that resolution needs. --debug is not " +
-			"implemented.",
+			"implemented.\n\n" +
+			"gnux's terminal view (BR-13), asked for only: with --pretty, one date is a panel titled with it in the format asked for, holding the same moment as local time, UTC, ISO 8601 and Unix seconds, its day of the year and week, its zone, and how far it is from now. Scripts capture the date even from a terminal, so the view is never on by default or from GNUX_PRETTY; -f's lines are GNU's. --theme=NAME picks its colors.",
 		Permissions: "Printing needs no permissions; -f needs read permission on FILE and -r " +
 			"search permission on the directories leading to it.",
 		UseCases: []string{
@@ -168,6 +170,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.StringP("set", "s", "", "set time described by `STRING` (not supported)")
 	fs.BoolP("utc", "u", false, "print or set Coordinated Universal Time (UTC)")
 	fs.Bool("universal", false, "same as --utc")
+	tool.RegisterView(fs)
 }
 
 // parsed is a command line split into its parts.
@@ -324,5 +327,11 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		tool.PrintVersion(s.Out, date.Name)
 		return nil
 	}
+	// Scripts capture the date, so the view is only asked for.
+	view, err := tool.AskedViewOf(fs, core.IsTerminal(s.Out), date.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	p.opts.Pretty, p.opts.Color, p.opts.Theme = view.Pretty, view.Color, view.Theme
 	return date.New(p.opts, s).Run(p.operands)
 }

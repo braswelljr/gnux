@@ -15,7 +15,7 @@ The same file serves a developer laptop and every CI runner.
 ## Running scripts
 
 ```bash
-gnux shell                          # interactive session (prompt: gnux> )
+gnux shell                          # interactive session
 gnux shell build.gnux               # run a script file
 gnux shell -e build.gnux            # ... stopping at the first failing command
 gnux shell -eu build.gnux           # ... and refusing a variable that was never set
@@ -700,6 +700,16 @@ catx $OUT
 ## Interactive use
 
 `gnux shell` with no arguments on a terminal is an interactive session with the prompt `gnux> `. A syntax error is reported and the session carries on; `exit` leaves it. A command that is not finished yet (an `if` waiting for its `fi`, a loop for its `done`) is continued on the next line, at the prompt `> `. It is a consistent shell for machines without the GNU tools installed: the same commands, flags and globbing on a Windows server as on a Linux laptop.
+
+On a terminal the prompt shows where you are, and the status of a command that failed, so you notice it before you go on:
+
+```text
+gnux ~/site ❯ cd public
+gnux ~/site/public ❯ testx -f index.html
+gnux ~/site/public [1] ❯ lsx
+```
+
+`--pretty=never` (or `GNUX_PRETTY=never`) brings back the plain `gnux> `. `gnux shell --theme=nord` picks the theme for the prompt and for every tool you run in the session, and `--pretty=always` turns the tools' view on even in a pipeline. See [Terminal view](terminal-view.md).
 
 ## Embedding scripts in Go
 

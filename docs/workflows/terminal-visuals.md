@@ -18,7 +18,7 @@ flowchart LR
 |--------------------------|--------------------------------------------------------------------------------------|
 | `core/internal/visual`   | `Use(color, name, getenv, warn)` (the theme an engine paints with, nil when uncolored), `LoadTheme(name, getenv)`, `Resolve` and `Dark` (a family's variant for the background), `Theme.Paint(key, s)`, `Theme.Bar(fraction, width, unicode)`, `Theme.Progress` (a bar that never turns to the warning colors), `Line` (one line rewritten in place with `\r`, padded and cut to the terminal), `Clock`, `Theme.Box(title, lines, unicode)`, `Theme.Render(Table)` (a framed table that fits `Table.MaxWidth`), `Truncate`, `PaintMode`, `Theme.Report(line)`, `Width(s)`, `SizeKey`, `AgeKey`, `BranchesFor(getenv).Prefix(last)`, `Icon(name, kind)`, `Theme.EnvEntry(kv, listSep)` (a NAME=value entry, painted), `ByteKey(c)` and `BytesKey(b)` (a byte's class in a dump), `NewNames(lsColors).ModeColor(mode, name)` (a file name in its type's color, as GNU ls picks it from LS_COLORS: `lsx` and `findx` share it), `UTF8(getenv)`, `ThemeNames()`, `Preview` |
 | `core/internal/gitstat`  | `FindRoot(dir)`, `Open(root, getenv)`, `Repo.Status(path, isDir)`, `Repo.IsIgnored(path, isDir)`, `Repo.Close()` |
-| `internal/tool`          | `RegisterView(fs)` (the `--pretty[=WHEN]` and `--theme=NAME` options, as names of gnux's own), `ViewOf(fs, terminal, name, getenv, warn)`, `ReportView(fs, s, name, getenv)` (streams whose `Out` colors a `-v` report), `ResolvePretty`, `ParseWhen` |
+| `internal/tool`          | `RegisterView(fs)` (the `--pretty[=WHEN]` and `--theme=NAME` options, as names of gnux's own), `ViewOf(fs, terminal, name, getenv, warn)`, `AskedViewOf` (the same, on only when `--pretty` is on the command line: for `datex` and `unamex`, whose output scripts capture), `ReportView(fs, s, name, getenv)` (streams whose `Out` colors a `-v` report), `ResolvePretty`, `ParseWhen` |
 | `core`                   | `ThemeNames()`, `ReportWriter` and `WriteThemes`, for adapters and `gnux themes` (adapters cannot import `core/internal`); `TerminalWidth(w, getenv)`, the width a table must fit (`COLUMNS`, else the terminal's) |
 
 A nil `*visual.Theme` paints nothing, so an engine holds `nil` for "no color" and calls `Paint`
@@ -196,6 +196,11 @@ not change the data.
 | `envx`, `printenvx`   | A listing of the environment (`Theme.EnvEntry`): each name in the `ev` color, the `=` and a `*PATH` variable's separators dimmed; a value asked for by name and `-0` are GNU's |
 | `killx -l`, `-L`      | Every signal in a framed table, the name colored by the signal's default action; converting an operand is GNU's |
 | `sttyx -a`            | A panel titled with the device: speed and size, the control characters in a grid, each group of flags on its lines, set flags colored and unset ones dimmed |
+| `commx`              | A header row naming each column's file; every line in its column's color (`f1`, `f2`, `fb`), still streamed with GNU's tabs |
+| `joinx`               | The join field in the `fb` color when it pairs both files, each file's fields in its color (`f1`, `f2`), `--header` in the header color |
+| `datex --pretty`      | One date as a panel: local, UTC, ISO 8601, Unix seconds, day and week, zone, how far from now; only when asked (`tool.AskedViewOf`) |
+| `unamex --pretty`     | The fields as a panel titled with the host, every field when none is selected; only when asked |
+| `gnux shell`          | The prompt names the directory and a failed status (`core/shell/prompt.go`); `help`'s syntax colored when not redirected; `--pretty` and `--theme` passed to the tools as `GNUX_PRETTY` and `GNUX_THEME` |
 | `dux`                 | Aligned sizes on the size gradient, a bar and percentage of each line's share, names highlighted |
 | `grepx`               | Each file's name once, as a heading over its lines (key `fh`), a blank line between files, line numbers on; GNU's `--color` colors the rest |
 | `md5sumx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `b2sumx`, `cksumx` | With `-c`: `OK` (key `ok`) and `FAILED` (key `er`) colored, and a count for each list (`2 OK, 1 FAILED`) |
@@ -203,13 +208,11 @@ not change the data.
 | `cpx`, `mvx`, `rmx`, `lnx`, `installx`, `mkdirx`, `rmdirx`, `chmodx`, `chownx`, `chgrpx` | With `-v`: the verb (a removal red, a creation green), each quoted name (key `pa`) and the arrows colored, through `tool.ReportView` |
 | `gnux themes`         | Every theme on a sample row, in a box naming the theme in use and the background |
 
-### Planned, in this order
+### Planned
 
-| Tool                                   | The view to add                                                     |
-|----------------------------------------|---------------------------------------------------------------------|
-| `commx`, `joinx`                       | Each column colored by origin                                       |
-| `datex`, `unamex`                      | Field names with `--pretty` only (`auto` would change data a script may capture from a terminal) |
-| `gnux shell`                           | A colored prompt and `help`, and the view passed to the tools it runs |
+Every tool in the plan now has its view. A new tool that people read on a terminal adopts it
+as [Adopting the view in a tool](#adopting-the-view-in-a-tool) describes, and gets a row above;
+one whose output is data gets a row below.
 
 ### No view, by design
 
@@ -232,6 +235,9 @@ nothing to show: `archx`, `base32x`, `base64x`, `basencx`, `basenamex`, `catx`, 
 | `core/internal/visual/box_test.go`, `report_test.go` | Boxes, tables (and fitting them to a width), `Width`, `Truncate`, `Preview`, the `-v` report coloring (a name holding a quote stays whole) |
 | `core/find/view_test.go`, `cmd/findx/findx_test.go` (`TestViewArgs`, `TestTreeCommand`) | The tree (`-depth`, ASCII, a file printed twice, the count), the colors over GNU's text, `-print0` and `-printf` untouched, the options read only before the starting points |
 | `core/dd/progress_test.go`, `core/shred/view_test.go`, `cmd/ddx/ddx_test.go` | GNU's `status=progress` line on a fake clock (padding, the newline before the statistics), the bar's line and its last state, each pass ending on a line of its own |
+| `core/shell/prompt_test.go`, `cmd/shell_test.go` (`TestShellSharesView`) | The prompt's directory and status, the plain prompts without the view, `help` colored only to the shell's own output |
+| `core/date/view_test.go`, `core/uname/uname_test.go` (`TestPanel`), `internal/tool/view_test.go` (`TestAskedViewOf`) | The panels; the view never on by default or from `GNUX_PRETTY` |
+| `core/comm/view_test.go`, `core/join/view_test.go` | The header row and the colors by origin, `-a` and `-o`, the totals; `-z` untouched |
 | `core/kill/view_test.go`, `core/stty/view_test.go` | The signal table under `-l` and `-L`, an operand still converted; the `-a` panel fitted to the screen |
 | `core/env/view_test.go`, `core/printenv/view_test.go` | The colored listing, a `*PATH` variable's separators, a value asked for by name and `-0` untouched |
 | `core/who/view_test.go`, `core/pinky/view_test.go`, `core/id/view_test.go` | The tables and panels, the caller's rows colored, `-q` and `-u` untouched, empty columns left out |

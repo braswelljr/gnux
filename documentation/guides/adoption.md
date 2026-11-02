@@ -25,11 +25,11 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `chmod` | `chmodx` | `-c`, `--dereference`, `-L`, `-H`, `-h`, `-P`, `--no-preserve-root`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [chmodx](https://gnux.vercel.app/docs/tools/chmodx) |
 | `chown` | `chownx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [chownx](https://gnux.vercel.app/docs/tools/chownx) |
 | `cksum` | `cksumx` | `-a TYPE`, `--base64`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--raw`, `--status`, `--strict`, `--tag`, `--untagged`, `-w`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [cksumx](https://gnux.vercel.app/docs/tools/cksumx) |
-| `comm` | `commx` | `--check-order`, `--nocheck-order`, `--output-delimiter=STR`, `-3`, `-1`, `-2`, `--total`, `-z` | [commx](https://gnux.vercel.app/docs/tools/commx) |
+| `comm` | `commx` | `--check-order`, `--nocheck-order`, `--output-delimiter=STR`, `-3`, `-1`, `-2`, `--total`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [commx](https://gnux.vercel.app/docs/tools/commx) |
 | `cp` | `cpx` | `-a`, `--backup[=CONTROL]`, `-b`, `-d`, `-f`, `-H`, `-i`, `-l`, `-L`, `-n`, `-p`, `-P`, `-r`/`-R`, `-s`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `-x`, `--parents`, `--preserve[=LIST]`, `--no-preserve=LIST`, `--remove-destination`, `-S SUFFIX`, `--strip-trailing-slashes`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [cpx](https://gnux.vercel.app/docs/tools/cpx) |
 | `csplit` | `csplitx` | `-n DIGITS`, `-z`, `-k`, `-f PREFIX`, `-s`, `-q`, `-b FORMAT`, `--suppress-matched` | [csplitx](https://gnux.vercel.app/docs/tools/csplitx) |
 | `cut` | `cutx` | `-b LIST`, `-c LIST`, `-d DELIM`, `-f LIST`, `-n`, `-s`, `-z`, `--complement`, `--output-delimiter=STRING` | [cutx](https://gnux.vercel.app/docs/tools/cutx) |
-| `date` | `datex` | `-d STRING`, `-f DATEFILE`, `-I[=FMT]`, `-r FILE`, `--resolution`, `--rfc-3339=FMT`, `-R`, `-s STRING`, `--universal`, `-u` | [datex](https://gnux.vercel.app/docs/tools/datex) |
+| `date` | `datex` | `-d STRING`, `-f DATEFILE`, `-I[=FMT]`, `-r FILE`, `--resolution`, `--rfc-3339=FMT`, `-R`, `-s STRING`, `--universal`, `-u`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [datex](https://gnux.vercel.app/docs/tools/datex) |
 | `dd` | `ddx` | operands `if=`, `of=`, `bs=`, `ibs=`, `obs=`, `cbs=`, `skip=`/`iseek=`, `seek=`/`oseek=`, `count=`, `conv=`, `iflag=`, `oflag=`, `status=`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [ddx](https://gnux.vercel.app/docs/tools/ddx) |
 | `df` | `dfx` | `-a`, `-B SIZE`, `-x TYPE`, `-h`, `-i`, `-k`, `-l`, `--no-sync`, `--output[=FIELD_LIST]`, `-P`, `-T`, `-H`, `--sync`, `-v`, `--total`, `-t TYPE`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [dfx](https://gnux.vercel.app/docs/tools/dfx) |
 | `dir` | `dirx` | every `lsx` option | [dirx](https://gnux.vercel.app/docs/tools/dirx) |
@@ -52,7 +52,7 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `hostname` | `hostnamex` | none | [hostnamex](https://gnux.vercel.app/docs/tools/hostnamex) |
 | `id` | `idx` | `-a`, `-Z`, `-g`, `-G`, `-n`, `-r`, `-u`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [idx](https://gnux.vercel.app/docs/tools/idx) |
 | `install` | `installx` | `--backup[=CONTROL]`, `-b`, `-C`, `-c`, `-D`, `-d`, `-g GROUP`, `-m MODE`, `-T`, `-o OWNER`, `-p`, `-s`, `-S SUFFIX`, `-t DIRECTORY`, `-v`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [installx](https://gnux.vercel.app/docs/tools/installx) |
-| `join` | `joinx` | `--check-order`, `-e EMPTY`, `-1 FIELD`, `-2 FIELD`, `--header`, `-i`, `-j STRINGARRAY`, `--nocheck-order`, `-v STRINGARRAY`, `-o FORMAT`, `-t CHAR`, `-a FILENUM`, `-z` | [joinx](https://gnux.vercel.app/docs/tools/joinx) |
+| `join` | `joinx` | `--check-order`, `-e EMPTY`, `-1 FIELD`, `-2 FIELD`, `--header`, `-i`, `-j STRINGARRAY`, `--nocheck-order`, `-v STRINGARRAY`, `-o FORMAT`, `-t CHAR`, `-a FILENUM`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [joinx](https://gnux.vercel.app/docs/tools/joinx) |
 | `kill` | `killx` | `-l`, `-n NUMBER`, `-s STRING`, `-L`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [killx](https://gnux.vercel.app/docs/tools/killx) |
 | `link` | `linkx` | none | [linkx](https://gnux.vercel.app/docs/tools/linkx) |
 | `ln` | `lnx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-L`, `-n`, `-P`, `-r`, `-s`, `-S SUFFIX`, `-t`, `-T`, `-v`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [lnx](https://gnux.vercel.app/docs/tools/lnx) |
@@ -110,7 +110,7 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `truncate` | `truncatex` | `-o`, `-c`, `-r RFILE`, `-s SIZE` | [truncatex](https://gnux.vercel.app/docs/tools/truncatex) |
 | `tsort` | `tsortx` | none | [tsortx](https://gnux.vercel.app/docs/tools/tsortx) |
 | `tty` | `ttyx` | `--quiet`, `-s` | [ttyx](https://gnux.vercel.app/docs/tools/ttyx) |
-| `uname` | `unamex` | `-a`, `-i`, `-s`, `-r`, `-v`, `-m`, `-n`, `-o`, `-p` | [unamex](https://gnux.vercel.app/docs/tools/unamex) |
+| `uname` | `unamex` | `-a`, `-i`, `-s`, `-r`, `-v`, `-m`, `-n`, `-o`, `-p`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [unamex](https://gnux.vercel.app/docs/tools/unamex) |
 | `unexpand` | `unexpandx` | `-a`, `--first-only`, `-t N, LIST` | [unexpandx](https://gnux.vercel.app/docs/tools/unexpandx) |
 | `uniq` | `uniqx` | `-c`, `-d`, `-D`, `-f N`, `-i`, `-s N`, `-u`, `-w N`, `-z`, `--all-repeated[=METHOD]`, `--group[=METHOD]`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [uniqx](https://gnux.vercel.app/docs/tools/uniqx) |
 | `unlink` | `unlinkx` | none | [unlinkx](https://gnux.vercel.app/docs/tools/unlinkx) |

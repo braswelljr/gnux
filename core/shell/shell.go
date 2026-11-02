@@ -55,6 +55,7 @@ import (
 	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the program name diagnostics are prefixed with.
@@ -90,6 +91,15 @@ type Options struct {
 	// Interactive writes a prompt before each line and keeps going after a
 	// syntax error. The command line turns it on when reading from a terminal.
 	Interactive bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not sh options:
+	// with Pretty, an interactive prompt names the working directory and a
+	// failed command's status, colored with Color in Theme (a built-in
+	// theme; "" takes GNUX_THEME's), as is help's syntax when it is written
+	// to the shell's own output. Scripts are unchanged.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Shell is the interpreter. Construct it with New.
@@ -116,6 +126,7 @@ type Shell struct {
 	LoopLimit int
 
 	streams core.Streams
+	colors  *visual.Theme // the view's, once loaded
 	vars    map[string]string
 	name    string   // $0
 	args    []string // $1, $2, ...
@@ -184,11 +195,7 @@ func (sh *Shell) Run(r io.Reader) error {
 	pending := ""
 	for !sh.exited {
 		if sh.Interactive {
-			prompt := Prompt
-			if pending != "" {
-				prompt = ContinuePrompt
-			}
-			fmt.Fprint(sh.streams.Err, prompt)
+			fmt.Fprint(sh.streams.Err, sh.prompt(pending != ""))
 		}
 		line, err := reader.ReadString('\n')
 		if line != "" {
@@ -578,7 +585,12 @@ func (sh *Shell) runCommand(cmd command, p prepared, s core.Streams, redirected,
 				return status
 			}
 		}
-		fmt.Fprint(s.Out, helpText)
+		text := helpText
+		if s.Out == sh.streams.Out {
+			// Redirected, help is data.
+			text = paintHelp(sh.theme(), text)
+		}
+		fmt.Fprint(s.Out, text)
 		return 0
 	case "[":
 		// [ EXPRESSION ] is the test tool, written the way scripts write it.
