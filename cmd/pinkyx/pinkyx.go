@@ -2,6 +2,8 @@
 package pinkyx
 
 import (
+	"os"
+
 	"strconv"
 
 	"github.com/spf13/pflag"
@@ -63,6 +65,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.Bool("lookup", false, "attempt to canonicalize hostnames via DNS")
 	tool.OwnNames(fs, "long", "short", "omit-home-and-shell", "omit-project", "omit-plan",
 		"omit-heading", "omit-name", "omit-where", "omit-idle")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into pinky.Options.
@@ -83,7 +86,13 @@ func buildOptions(fs *pflag.FlagSet) pinky.Options {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
-	return pinky.New(buildOptions(fs), s).Run(args)
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), pinky.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts := buildOptions(fs)
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
+	return pinky.New(opts, s).Run(args)
 }
 
 // Meta returns the documentation metadata for pinkyx.
@@ -105,7 +114,8 @@ func Meta() docmeta.Meta {
 			"records, as for whox; on Windows they are the signed-in console and Remote Desktop " +
 			"sessions. The shell is read from /etc/passwd, so it is blank for a user kept " +
 			"elsewhere (macOS directory services, LDAP) and on Windows. If both -s and -l are " +
-			"given, the last one wins.",
+			"given, the last one wins.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, the short format is a framed table with a header (left out with -f), each full name whole (GNU cuts it to 19 columns), the columns empty in every row left out and your own logins in the theme's color for what is yours; -l shows each user as a panel titled with the login name. --pretty[=WHEN] and --theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); piped or redirected output is always GNU's.",
 		Permissions: "Reads the login records, the user database and other users' ~/.project and " +
 			"~/.plan files when they are readable. Changes nothing.",
 		UseCases: []string{

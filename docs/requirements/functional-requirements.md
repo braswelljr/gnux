@@ -1340,6 +1340,9 @@ groupsx has no options of its own.
   idx -Gn does. For each USERNAME it prints 'USERNAME : ' and that user's groups from the account
   database. An unknown user is reported as 'no such user' and the rest are still printed; a group
   with no name is reported and printed as its number; either makes the exit status 1.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, each user's primary group is in the `uu` color, the
+  others in the `un` color and a USER operand in the heading color; the text is GNU's, and piped
+  output is never colored (NFR-53).
 - **Verified by.** `core/groups/groups_test.go`, `cmd/groupsx/groupsx_test.go`.
 
 ### FR-58: headx
@@ -1431,7 +1434,12 @@ idx [OPTION]... [USER]...
   is not supported and fails, as GNU id does on a kernel without SELinux. An unknown USER is
   reported ('no such user') and the remaining USERs are still printed. On Windows the IDs are
   security identifiers (SIDs) and the names come from the account database.
-- **Verified by.** `core/id/id_test.go`, `cmd/idx/idx_test.go`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, the default format is a panel titled with the user's
+  name: one labeled line an ID and its name (`User`, `Group`, `Effective user` and `Effective
+  group` only when they differ from the real IDs, in the `er` color), then each group on a line
+  of its own, the primary group in the `uu` color. `-u`, `-g`, `-G`, `-z` and piped output are
+  GNU's (NFR-53).
+- **Verified by.** `core/id/id_test.go`, `core/id/view_test.go`, `cmd/idx/idx_test.go`.
 
 ### FR-115: installx
 
@@ -2146,7 +2154,13 @@ odx [OPTION]... [FILE]...
   double (fL) is read as an eight-byte double; -S and -w need a value (GNU's bare -S means -S3 and
   bare -w means -w32), because an optional value could not also be attached as in -w8; the
   traditional offset operand ([+]OFFSET[.][b]) and --traditional are not implemented.
-- **Verified by.** `core/od/od_test.go`, `cmd/odx/odx_test.go`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, each
+  value is colored by the class of its bytes (theme keys `yz` zero, `yp` printable ASCII, `yw`
+  whitespace, `yc` other control characters, `yh` above 0x7f; a value of several bytes takes the
+  most unusual class among them, and is zero only when every byte is), and so is each character
+  of the `z` trailer; the offsets and the `*` of a repeated block are in the punctuation color.
+  The text is GNU's; piped or redirected output and `-S` are never colored (NFR-53).
+- **Verified by.** `core/od/od_test.go`, `core/od/view_test.go`, `cmd/odx/odx_test.go`.
 
 ### FR-126: pastex
 
@@ -2226,7 +2240,12 @@ pinkyx [OPTION]... [USER]...
   shell, and ~/.project and ~/.plan; an unknown user is "???". The last of -s and -l wins.
 - **Deviations.** The long option names of its letters (--long, --omit-heading, ...) are gnux's own.
   The shell is read from /etc/passwd, blank for users kept elsewhere and on Windows.
-- **Verified by.** `core/pinky/pinky_test.go`, `cmd/pinkyx/pinkyx_test.go`, the GNU conformance
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, the short format is a framed table with a header
+  (none with `-f`), each full name whole rather than cut to 19 columns, the TTY with GNU's `*`
+  or `?` mark, the columns empty in every row left out and the caller's own logins in the `uu`
+  color; `-l` shows each user as a panel titled with the login name (real name, directory, shell
+  when known, project and plan). Piped or redirected output is GNU's (NFR-53).
+- **Verified by.** `core/pinky/pinky_test.go`, `core/pinky/view_test.go`, `cmd/pinkyx/pinkyx_test.go`, the GNU conformance
   cases in `cmd/testdata/conformance/more-tools.txt`.
 
 ### FR-127: printenvx
@@ -3441,7 +3460,14 @@ uniqx [OPTION]... [INPUT [OUTPUT]]
   be abbreviated. With `-D` the comparison anchor moves to each line, as in GNU.
 - **Deviations.** Characters for `-s` and `-w` are bytes (GNU's C locale) and `-i` folds ASCII
   letters only. Not implemented: the obsolete `-N` and `+N` forms of `-f` and `-s`.
-- **Verified by.** `core/uniq/uniq_test.go`, `cmd/uniqx/uniqx_test.go`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, `-c`
+  draws a histogram: each count, in GNU's 7-column field, is colored on the size gradient by its
+  share of the largest count, and a 20-column bar of that share stands between it and the line.
+  The groups are written once the largest count is known: at the end, or after the first 4096
+  groups, which are drawn against the largest count among them, as is every later group (a
+  larger one gets a full bar), so a long input still streams. Piped or redirected output, an
+  OUTPUT file, `-z` and the modes without `-c` are GNU's (NFR-53).
+- **Verified by.** `core/uniq/uniq_test.go`, `core/uniq/view_test.go`, `cmd/uniqx/uniqx_test.go`.
 
 ### FR-144: unlinkx
 
@@ -3479,7 +3505,13 @@ uptimex [OPTION]... [FILE]
   Windows, where the users are the signed-in sessions; Windows keeps no load average, so that part
   is left out there, as GNU uptime leaves it out wherever the system cannot report it. If the boot
   time cannot be found the time up is shown as '????' and the exit status is 1.
-- **Verified by.** `core/uptime/uptime_test.go`, `cmd/uptimex/uptimex_test.go`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal,
+  uptimex draws a panel titled with how long the system has been up (`up 3 days, 4:12`, or
+  `up ????`), holding the time, the users, each load average as a bar of the load against the
+  CPUs (the warning color from 75% of them, the alert color from 90%) and the CPU count. A
+  missing boot time is still diagnosed and makes the status 1. Piped or redirected output is
+  GNU's line (NFR-53).
+- **Verified by.** `core/uptime/uptime_test.go`, `core/uptime/view_test.go`, `cmd/uptimex/uptimex_test.go`.
 
 ### FR-163: usersx
 
@@ -3496,6 +3528,8 @@ usersx has no options of its own.
   records (FR-147): the utmp file without the sessions whose process has ended, or utmpx on
   macOS, or the signed-in sessions on Windows. FILE reads another file in utmp format, leaving
   nothing out; it is not supported on Windows. More than one FILE is a usage error.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, the caller's own name is in the `uu` color and the
+  others in the `un` color; the text is GNU's, and piped output is never colored (NFR-53).
 - **Verified by.** `core/users/users_test.go`, `cmd/usersx/usersx_test.go`.
 
 ### FR-164: vdirx
@@ -3599,7 +3633,11 @@ whox [OPTION]... [ FILE | ARG1 ARG2 ]
   Windows, which keeps sessions rather than a utmp file, whox lists the signed-in console and
   Remote Desktop sessions, so the same command answers 'who is on this machine' everywhere; there
   FILE is not supported.
-- **Verified by.** `core/who/who_test.go`, `cmd/whox/whox_test.go`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, the records are a framed table with a header
+  (`-H`'s heading becomes it), the columns empty in every row left out (the name, line and time
+  stay), the idle times trimmed, and the caller's own logins in the `uu` color. `-q`, and piped
+  or redirected output, are GNU's (NFR-53).
+- **Verified by.** `core/who/who_test.go`, `core/who/view_test.go`, `cmd/whox/whox_test.go`.
 
 ### FR-151: xargsx
 

@@ -4,6 +4,7 @@ package uniqx
 import (
 	"errors"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 
@@ -46,7 +47,15 @@ func Meta() docmeta.Meta {
 			"-z makes NUL the line delimiter, and the output always ends each line with it. " +
 			"Deviations from GNU: characters for -s and -w are bytes, as in GNU's C locale, and " +
 			"-i folds ASCII letters only. The obsolete -N and +N forms of -f and -s are not " +
-			"accepted. METHOD arguments may be abbreviated, as in GNU.",
+			"accepted. METHOD arguments may be abbreviated, as in GNU.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, -c draws a histogram. Each count, in " +
+			"GNU's 7-column field, is colored by its share of the largest count, and a bar of " +
+			"that share stands before the line. The groups are written once the largest count " +
+			"is known: at the end of the input, or after the first 4096 groups, which are then " +
+			"drawn against the largest count among them, as is every group after. " +
+			"--pretty[=WHEN] and --theme=NAME, options of gnux's own, choose the view " +
+			"(GNUX_PRETTY, GNUX_THEME); piped or redirected output, an OUTPUT file and -z are " +
+			"always GNU's.",
 		Permissions: "Needs read permission on INPUT and search permission on the directories " +
 			"leading to it. When OUTPUT is given it is created or truncated, which needs write " +
 			"permission on it if it exists, or on its directory if it does not. INPUT itself is " +
@@ -62,6 +71,11 @@ func Meta() docmeta.Meta {
 			"Deduplicating NUL-separated file lists safely with -z.",
 		},
 		Examples: []docmeta.Example{
+			{
+				Description: "Users report errors from your web server: see how its responses split between status codes, drawn as a histogram on the terminal:",
+				Bash:        "cutx -d' ' -f9 access.log | sortx | uniqx -c",
+				PowerShell:  "cutx -d' ' -f9 access.log | sortx | uniqx -c",
+			},
 			{
 				Description: "Remove adjacent duplicate lines:",
 				Bash:        "uniqx names.txt",
@@ -157,6 +171,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("unique", "u", false, "only print unique lines")
 	fs.BoolP("zero-terminated", "z", false, "line delimiter is NUL, not newline")
 	fs.StringP("check-chars", "w", "", "compare no more than `N` characters in lines")
+	tool.RegisterView(fs)
 }
 
 var delimits = []choice[uniq.Delimit]{
@@ -269,5 +284,11 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	if err != nil {
 		return err
 	}
+	// gnux's terminal view draws -c as a histogram.
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), uniq.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
 	return uniq.New(opts, s).Run(args)
 }

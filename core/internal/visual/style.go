@@ -73,7 +73,14 @@ const (
 	GitType   = "gt"
 	GitIgnore = "gi"
 	GitClash  = "gc"
-	GitClean  = "g-"
+	// The classes of a byte in a dump (odx): zero, printable ASCII, ASCII
+	// whitespace, any other ASCII control, and above 0x7f.
+	ByteZero    = "yz"
+	BytePrint   = "yp"
+	ByteSpace   = "yw"
+	ByteControl = "yc"
+	ByteHigh    = "yh"
+	GitClean    = "g-"
 )
 
 // defaults is the default theme, in the 16 basic colors.
@@ -89,6 +96,7 @@ var defaults = map[string]string{
 	Header: "4", Heading: "1;35", Good: "1;32", Bad: "1;31", Path: "1;36", Branch: "90",
 	BarFull: "32", BarWarn: "33", BarAlert: "1;31", BarEmpty: "90",
 	GitNew: "32", GitMod: "34", GitDel: "31", GitRename: "33", GitType: "35", GitIgnore: "90", GitClash: "1;31", GitClean: "90",
+	ByteZero: "90", BytePrint: "36", ByteSpace: "32", ByteControl: "35", ByteHigh: "33",
 }
 
 // Theme maps theme keys to SGR parameter strings ("1;34"). The zero Theme is

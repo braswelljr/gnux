@@ -2,6 +2,7 @@
 package odx
 
 import (
+	"os"
 	"strconv"
 	"strings"
 
@@ -53,7 +54,15 @@ func Meta() docmeta.Meta {
 			"double; -S and -w need a value (GNU's bare -S means -S3 and bare -w means " +
 			"-w32), because an optional value could not also be attached as in -w8; the " +
 			"traditional offset operand ([+]OFFSET[.][b]) and --traditional are " +
-			"not implemented.",
+			"not implemented.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, each value is colored by the class " +
+			"of its bytes, so the structure of a binary file shows at a glance: zero bytes " +
+			"dimmed, printable ASCII, whitespace, other control characters and bytes above " +
+			"0x7f each in a color of their own (a value of several bytes takes the most " +
+			"unusual class among them), and the same in the -t ...z trailer; the offsets and " +
+			"the '*' of a repeated block are dimmed. The text is GNU's. --pretty[=WHEN] and " +
+			"--theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); " +
+			"piped or redirected output, and -S, are never colored.",
 		Permissions: "Needs read permission on each FILE and search permission on the " +
 			"directories leading to it. Nothing is ever modified.",
 		UseCases: []string{
@@ -70,6 +79,7 @@ func Meta() docmeta.Meta {
 			{Description: "Dump a file as octal words:", Bash: "odx data.bin", PowerShell: "odx data.bin"},
 			{Description: "Show every character, with escapes for invisible ones:", Bash: "odx -c notes.txt", PowerShell: "odx -c notes.txt"},
 			{Description: "A hexdump with offsets in hex and the text alongside:", Bash: "odx -A x -t x1z image.png", PowerShell: "odx -A x -t x1z image.png"},
+			{Description: "A config file breaks a parser, but looks fine in an editor: find the stray carriage returns and the byte order mark, which the terminal view colors apart from the text:", Bash: "odx -A x -t x1z -N 64 config.yaml", PowerShell: "odx -A x -t x1z -N 64 config.yaml"},
 			{Description: "Read the first four bytes (a magic number):", Bash: "odx -A n -t x1 -N 4 image.png", PowerShell: "odx -A n -t x1 -N 4 image.png"},
 			{Description: "Skip a 512-byte header and dump the next 64 bytes:", Bash: "odx -j 512 -N 64 -t x1 disk.img", PowerShell: "odx -j 512 -N 64 -t x1 disk.img"},
 			{Description: "Decode big-endian 32-bit integers:", Bash: "odx --endian=big -t u4 counts.bin", PowerShell: "odx --endian=big -t u4 counts.bin"},
@@ -138,6 +148,7 @@ func Register(fs *pflag.FlagSet) {
 	}
 
 	// Long names GNU does not have: accepted, never an abbreviation.
+	tool.RegisterView(fs)
 	tool.OwnNames(fs, "characters", "decimal-2-bytes", "decimal-ints", "decimal-longs", "floats", "hex-2-bytes", "named-characters", "octal-2-bytes", "octal-bytes", "unsigned-decimal-2-bytes")
 }
 
@@ -224,5 +235,11 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	if err != nil {
 		return err
 	}
+	// gnux's terminal view colors the bytes by class.
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), od.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
 	return od.New(opts, s).Run(args)
 }

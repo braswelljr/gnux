@@ -32,6 +32,14 @@ type Options struct {
 	// Zero (-z) ends each entry with NUL instead of whitespace, outside the
 	// default format.
 	Zero bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty, the default format is a panel for each identity, one
+	// labeled line an ID with its name, colored with Color in Theme (a
+	// built-in theme; "" takes GNUX_THEME's). -u, -g and -G are GNU's.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Identity is a set of user and group IDs. IDs are strings: numbers on Unix,
@@ -53,6 +61,9 @@ type ID struct {
 	// UserName and GroupName map an ID to a name.
 	UserName  func(id string) (string, bool)
 	GroupName func(id string) (string, bool)
+	// Getenv reads GNUX_THEME and the locale for the view; nil means
+	// os.Getenv.
+	Getenv func(string) string
 
 	streams core.Streams
 	diag    *core.Diag
@@ -142,6 +153,8 @@ func (i *ID) print(who Identity) {
 			fields = append(fields, i.groupField(g))
 		}
 		_, _ = i.out.WriteString(strings.Join(fields, sep) + end)
+	case i.Pretty:
+		_, _ = i.out.WriteString(i.panel(who))
 	default:
 		_, _ = i.out.WriteString(i.full(who) + "\n")
 	}

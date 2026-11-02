@@ -31,6 +31,16 @@ Every notable change to gnux, release by release, newest first. The format follo
 - `ddx status=progress` rewrites GNU's transfer line once a second while copying (it printed
   only the final statistics); on a terminal it draws a bar with the percentage, the rate and the
   time left.
+- `whox` and `pinkyx`: on a terminal, framed tables with a header and your own logins
+  emphasized, and `pinkyx -l` as a panel per user; `idx` as a panel of your IDs and groups;
+  `usersx` and `groupsx` with your name and primary group emphasized.
+- `uptimex`: on a terminal, a panel with each load average drawn as a bar against the CPU
+  count, turning yellow and then red as the machine fills up.
+- `odx`: on a terminal, each value colored by the class of its bytes (zero, printable,
+  whitespace, other control characters, above 0x7f), and the offsets dimmed, so the structure
+  of a binary file shows at a glance. New theme keys `yz`, `yp`, `yw`, `yc` and `yh`.
+- `uniqx -c`: on a terminal, a histogram, with each count colored by its share of the largest
+  and a bar before the line, so `sortx | uniqx -c` shows how values are spread.
 - `shredx -v`: on a terminal, each pass is one line with a bar, rewritten in place.
 - `wcx`: the counts as a framed table with a header and the total set apart.
 - `statx`: each file as a labeled panel, the mode painted; with `-f`, a bar of the space in use.

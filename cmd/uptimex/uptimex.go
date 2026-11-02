@@ -2,6 +2,8 @@
 package uptimex
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -10,12 +12,13 @@ import (
 	"github.com/braswelljr/gnux/internal/tool"
 )
 
-// Spec describes the uptimex tool. It has no options of its own.
+// Spec describes the uptimex tool. Its only options are the view's.
 func Spec() tool.Spec {
 	return tool.Spec{
-		Meta: Meta(),
-		GNU:  "uptime",
-		Run:  run,
+		Meta:  Meta(),
+		GNU:   "uptime",
+		Flags: tool.RegisterView,
+		Run:   run,
 	}
 }
 
@@ -36,7 +39,13 @@ func Meta() docmeta.Meta {
 			"Windows, where the users are the signed-in sessions; Windows keeps no load " +
 			"average, so that part is left out there, as GNU uptime leaves it out wherever " +
 			"the system cannot report it. If the boot time cannot be found the time up is " +
-			"shown as '????' and the exit status is 1.",
+			"shown as '????' and the exit status is 1.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, uptimex draws a panel titled with " +
+			"how long the system has been up, holding the time, the users, each load average " +
+			"as a bar of the load against the CPUs (yellow from 75% of them, red from 90%, " +
+			"full when work is queuing) and the CPU count. --pretty[=WHEN] and --theme=NAME, " +
+			"options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); piped or " +
+			"redirected output is GNU's line.",
 		Permissions: "Needs no permissions.",
 		UseCases: []string{
 			"Checking whether a server rebooted unexpectedly.",
@@ -110,6 +119,11 @@ func Meta() docmeta.Meta {
 	}
 }
 
-func run(_ *pflag.FlagSet, args []string, s core.Streams) error {
-	return uptime.New(uptime.Options{}, s).Run(args)
+func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), uptime.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts := uptime.Options{Pretty: view.Pretty, Color: view.Color, Theme: view.Theme}
+	return uptime.New(opts, s).Run(args)
 }

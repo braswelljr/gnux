@@ -266,9 +266,9 @@ is not reachable through `argv[0]` and is not in `--list`. Options stop at `SCRI
 ## The terminal view (`core/internal/visual`, `core/internal/gitstat`, `internal/tool/view.go`)
 
 On a terminal, the tools people read (`lsx`/`dirx`/`vdirx`, `findx`, `dfx`, `dux`, `grepx`,
-`ddx status=progress`, `shredx -v`, the checksum tools' `-c`, `headx`/`tailx` headers, the file
-tools' `-v`) show gnux's terminal view; anything piped or redirected is GNU's (BR-13, NFR-53,
-NFR-54).
+`ddx status=progress`, `shredx -v`, `uniqx -c`, `odx`, `uptimex`, `whox`, `pinkyx`, `idx`, `usersx`,
+`groupsx`, the checksum tools' `-c`, `headx`/`tailx` headers, the file tools' `-v`) show gnux's
+terminal view; anything piped or redirected is GNU's (BR-13, NFR-53, NFR-54).
 
 - **Opt-out on a terminal, never in a pipe.** `--pretty[=WHEN]`, else `GNUX_PRETTY`, else
   `auto` (`tool.ResolvePretty` / `tool.ViewOf`). `NO_COLOR` and `TERM=dumb` keep it uncolored.

@@ -46,6 +46,14 @@ type Options struct {
 	NoIdle bool
 	// Lookup (--lookup) canonicalizes host names through DNS.
 	Lookup bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty, the short format is a framed table and the caller's own
+	// logins are emphasized, and -l shows each user as a panel, colored
+	// with Color in Theme (a built-in theme; "" takes GNUX_THEME's).
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Account is what pinky shows about a user.
@@ -69,10 +77,16 @@ type Pinky struct {
 	Current    func() ([]utmp.Entry, error)
 	LookupUser func(name string) (*Account, error)
 	Stat       func(name string) (os.FileInfo, error)
+	// Self is the caller's login name, which the view emphasizes; nil asks
+	// the system. Getenv reads GNUX_THEME, COLUMNS and the locale for the
+	// view; nil means os.Getenv.
+	Self   func() string
+	Getenv func(string) string
 
 	streams core.Streams
 	diag    *core.Diag
 	out     *bufio.Writer
+	view    *pinkyView // the view's table (view.go)
 }
 
 // New builds a pinky engine writing to s.
@@ -98,6 +112,10 @@ func (p *Pinky) Run(args []string) (err error) {
 	defer core.FlushOutput(p.out, p.diag, &err)
 	if p.Long {
 		for _, name := range args {
+			if p.Pretty {
+				p.longPanel(name)
+				continue
+			}
 			p.long(name)
 		}
 		return nil
@@ -111,7 +129,8 @@ func (p *Pinky) Run(args []string) (err error) {
 		p.diag.Errorf("%s: %s", quotearg.Quote(where, quotearg.Options{Style: quotearg.ShellEscape, Also: ":"}), core.ErrText(rerr))
 		return p.diag.Result()
 	}
-	if !p.NoHeading {
+	p.prepareView()
+	if !p.NoHeading && p.view == nil {
 		p.heading()
 	}
 	for _, e := range entries {
@@ -123,6 +142,7 @@ func (p *Pinky) Run(args []string) (err error) {
 		}
 		p.entry(e)
 	}
+	p.drawView()
 	return nil
 }
 
@@ -179,7 +199,48 @@ func (p *Pinky) padded(s string) {
 	}
 }
 
+// row is one login as the short format shows it.
+type row struct {
+	user, name string
+	fullName   string // the name before GNU's cut to 19 columns
+	noName     bool   // the user is not in the user database
+	mesg       byte
+	line, idle string
+	when       string
+	where      string
+}
+
 func (p *Pinky) entry(e utmp.Entry) {
+	r := p.row(e)
+	if p.view != nil {
+		p.addRow(r)
+		return
+	}
+	p.padded(r.user)
+	if !p.NoFullName {
+		if r.noName {
+			fmt.Fprintf(p.out, " %19s", "        ???")
+		} else {
+			fmt.Fprintf(p.out, " %-19s", r.name)
+		}
+	}
+	_ = p.out.WriteByte(' ')
+	_ = p.out.WriteByte(r.mesg)
+	p.padded(r.line)
+	if !p.NoIdle {
+		fmt.Fprintf(p.out, " %-6s", r.idle)
+	}
+	fmt.Fprintf(p.out, " %s", r.when)
+	if r.where != "" {
+		_ = p.out.WriteByte(' ')
+		_, _ = p.out.WriteString(r.where)
+	}
+	_ = p.out.WriteByte('\n')
+}
+
+// row gathers what the short format shows of a login.
+func (p *Pinky) row(e utmp.Entry) row {
+	r := row{user: e.User, line: e.Line, mesg: '?'}
 	line := e.Line
 	if i := strings.IndexByte(line, ' '); i >= 0 {
 		line = line[i+1:]
@@ -188,46 +249,39 @@ func (p *Pinky) entry(e utmp.Entry) {
 	if !filepath.IsAbs(dev) {
 		dev = "/dev/" + dev
 	}
-	mesg := byte('?')
 	var lastChange time.Time
 	if info, err := p.Stat(dev); err == nil {
-		mesg = '*'
+		r.mesg = '*'
 		if info.Mode().Perm()&0o020 != 0 {
-			mesg = ' '
+			r.mesg = ' '
 		}
 		lastChange = sysstat.Of(info).Atime
 		if lastChange.IsZero() {
 			lastChange = info.ModTime()
 		}
 	}
-
-	p.padded(e.User)
 	if !p.NoFullName {
 		if a, err := p.LookupUser(e.User); err != nil || a == nil {
-			fmt.Fprintf(p.out, " %19s", "        ???")
+			r.noName = true
 		} else {
-			name := fullName(a)
-			if len(name) > 19 {
-				name = name[:19]
+			r.name = fullName(a)
+			r.fullName = r.name
+			if len(r.name) > 19 {
+				r.name = r.name[:19]
 			}
-			fmt.Fprintf(p.out, " %-19s", name)
 		}
 	}
-	_ = p.out.WriteByte(' ')
-	_ = p.out.WriteByte(mesg)
-	p.padded(e.Line)
 	if !p.NoIdle {
-		idle := "?????"
+		r.idle = "?????"
 		if !lastChange.IsZero() {
-			idle = p.idle(lastChange)
+			r.idle = p.idle(lastChange)
 		}
-		fmt.Fprintf(p.out, " %-6s", idle)
 	}
 	loc := p.Location
 	if loc == nil {
 		loc = time.Local
 	}
-	fmt.Fprintf(p.out, " %s", e.Time.In(loc).Format(timeLayout))
+	r.when = e.Time.In(loc).Format(timeLayout)
 	if !p.NoWhere && e.Host != "" {
 		host, display, hasDisplay := strings.Cut(e.Host, ":")
 		if host != "" && p.Lookup {
@@ -235,14 +289,12 @@ func (p *Pinky) entry(e utmp.Entry) {
 				host = strings.TrimSuffix(canon, ".")
 			}
 		}
-		_ = p.out.WriteByte(' ')
-		_, _ = p.out.WriteString(host)
+		r.where = host
 		if hasDisplay {
-			_ = p.out.WriteByte(':')
-			_, _ = p.out.WriteString(display)
+			r.where += ":" + display
 		}
 	}
-	_ = p.out.WriteByte('\n')
+	return r
 }
 
 // idle is how long ago the terminal was last used: blank under a minute,

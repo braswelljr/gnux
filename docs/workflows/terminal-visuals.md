@@ -16,7 +16,7 @@ flowchart LR
 
 | Package                  | What it gives a tool                                                                 |
 |--------------------------|--------------------------------------------------------------------------------------|
-| `core/internal/visual`   | `Use(color, name, getenv, warn)` (the theme an engine paints with, nil when uncolored), `LoadTheme(name, getenv)`, `Resolve` and `Dark` (a family's variant for the background), `Theme.Paint(key, s)`, `Theme.Bar(fraction, width, unicode)`, `Theme.Progress` (a bar that never turns to the warning colors), `Line` (one line rewritten in place with `\r`, padded and cut to the terminal), `Clock`, `Theme.Box(title, lines, unicode)`, `Theme.Render(Table)` (a framed table that fits `Table.MaxWidth`), `Truncate`, `PaintMode`, `Theme.Report(line)`, `Width(s)`, `SizeKey`, `AgeKey`, `BranchesFor(getenv).Prefix(last)`, `Icon(name, kind)`, `NewNames(lsColors).ModeColor(mode, name)` (a file name in its type's color, as GNU ls picks it from LS_COLORS: `lsx` and `findx` share it), `UTF8(getenv)`, `ThemeNames()`, `Preview` |
+| `core/internal/visual`   | `Use(color, name, getenv, warn)` (the theme an engine paints with, nil when uncolored), `LoadTheme(name, getenv)`, `Resolve` and `Dark` (a family's variant for the background), `Theme.Paint(key, s)`, `Theme.Bar(fraction, width, unicode)`, `Theme.Progress` (a bar that never turns to the warning colors), `Line` (one line rewritten in place with `\r`, padded and cut to the terminal), `Clock`, `Theme.Box(title, lines, unicode)`, `Theme.Render(Table)` (a framed table that fits `Table.MaxWidth`), `Truncate`, `PaintMode`, `Theme.Report(line)`, `Width(s)`, `SizeKey`, `AgeKey`, `BranchesFor(getenv).Prefix(last)`, `Icon(name, kind)`, `ByteKey(c)` and `BytesKey(b)` (a byte's class in a dump), `NewNames(lsColors).ModeColor(mode, name)` (a file name in its type's color, as GNU ls picks it from LS_COLORS: `lsx` and `findx` share it), `UTF8(getenv)`, `ThemeNames()`, `Preview` |
 | `core/internal/gitstat`  | `FindRoot(dir)`, `Open(root, getenv)`, `Repo.Status(path, isDir)`, `Repo.IsIgnored(path, isDir)`, `Repo.Close()` |
 | `internal/tool`          | `RegisterView(fs)` (the `--pretty[=WHEN]` and `--theme=NAME` options, as names of gnux's own), `ViewOf(fs, terminal, name, getenv, warn)`, `ReportView(fs, s, name, getenv)` (streams whose `Out` colors a `-v` report), `ResolvePretty`, `ParseWhen` |
 | `core`                   | `ThemeNames()`, `ReportWriter` and `WriteThemes`, for adapters and `gnux themes` (adapters cannot import `core/internal`); `TerminalWidth(w, getenv)`, the width a table must fit (`COLUMNS`, else the terminal's) |
@@ -187,6 +187,12 @@ not change the data.
 | `findx`               | `-print`'s names in their type's color (`visual.Names`, LS_COLORS, shared with `lsx`) and their directories dimmed; `--tree` draws the matches under each starting point, the directories leading to one dimmed, with a count; `--icons` |
 | `ddx`                 | `status=progress` as a bar rewritten in place (`visual.Line`, `Theme.Progress`): percentage, copied of the total, rate and time left; GNU's statistics after it |
 | `shredx`              | `-v`'s passes, each one line rewritten in place with a bar, the percentage and the amount written; a diagnostic ends the line first (`lineEnder`) |
+| `uniqx`               | With `-c`, a histogram: each count on the size gradient by its share of the largest, and a bar of that share before the line; held until the largest count is known, at most 4096 groups |
+| `odx`                 | Each value colored by its bytes' class (`visual.ByteKey`, `BytesKey`: keys `yz` `yp` `yw` `yc` `yh`), the `z` trailer too, offsets and `*` dimmed |
+| `uptimex`             | A panel (`Theme.Box`) titled with the time up: the time, the users, each load average as a bar against the CPUs (`Theme.Bar`, so a full machine turns yellow, then red) and the CPU count |
+| `whox`, `pinkyx`      | Framed tables with a header, the empty columns left out, the caller's own logins (`utmp.Self`) in the `uu` color; `pinkyx -l` a panel per user |
+| `idx`                 | The default format as a panel: each ID with its name, the effective IDs only when they differ, each group a line |
+| `usersx`, `groupsx`   | The caller's name, and each user's primary group, in the `uu` color; the text is GNU's |
 | `dux`                 | Aligned sizes on the size gradient, a bar and percentage of each line's share, names highlighted |
 | `grepx`               | Each file's name once, as a heading over its lines (key `fh`), a blank line between files, line numbers on; GNU's `--color` colors the rest |
 | `md5sumx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `b2sumx`, `cksumx` | With `-c`: `OK` (key `ok`) and `FAILED` (key `er`) colored, and a count for each list (`2 OK, 1 FAILED`) |
@@ -198,10 +204,6 @@ not change the data.
 
 | Tool                                   | The view to add                                                     |
 |----------------------------------------|---------------------------------------------------------------------|
-| `uniqx -c`, `sortx`                    | `uniqx -c`'s counts on a gradient with a bar                         |
-| `odx`                                  | Bytes colored by class (zero, printable, whitespace, other)          |
-| `uptimex`, `nprocx`                    | Load averages as bars against the CPU count                         |
-| `whox`, `usersx`, `pinkyx`, `idx`, `groupsx` | A header and the caller's own entries emphasized               |
 | `envx`, `printenvx`                    | Names colored apart from values (no arguments only)                  |
 | `killx -l`, `sttyx -a`                 | Tables with headers                                                 |
 | `commx`, `joinx`                       | Each column colored by origin                                       |
@@ -210,14 +212,16 @@ not change the data.
 
 ### No view, by design
 
-The output of these is data, so the view would change what the next command reads, or there
-is nothing to show: `archx`, `base32x`, `base64x`, `basencx`, `basenamex`, `catx`, `csplitx`,
+The output of these is data, so the view would change what the next command reads, or there is
+nothing to show: `archx`, `base32x`, `base64x`, `basencx`, `basenamex`, `catx`, `csplitx`,
 `cutx`, `dircolorsx`, `dirnamex`, `echox`, `expandx`, `exprx`, `factorx`, `falsex`, `fmtx`,
 `foldx`, `hostidx`, `hostnamex`, `linkx`, `lognamex`, `mkfifox`, `mknodx`, `mktempx`, `nicex`,
-`nlx`, `nohupx`, `numfmtx`, `pastex`, `pathchkx`, `printfx`, `prx`, `ptxx`, `pwdx`, `readlinkx`,
-`realpathx`, `sedx`, `seqx`, `shufx`, `sleepx`, `splitx`, `sumx`, `stdbufx`, `syncx`, `tacx`, `teex`,
-`testx`, `timeoutx`, `touchx`, `trx`, `truex`, `truncatex`, `tsortx`, `ttyx`, `unexpandx`,
-`unlinkx`, `whoamix`, `xargsx`, `yesx`.
+`nprocx` (one number, for `make -j$(nprocx)`; `uptimex` shows the load against it), `nlx`,
+`nohupx`, `numfmtx`, `pastex`, `pathchkx`, `printfx`, `prx`, `ptxx`, `pwdx`, `readlinkx`,
+`realpathx`, `sedx`, `seqx`, `shufx`, `sleepx`, `sortx` (its output is the data; pipe it into
+`uniqx -c` for a histogram), `splitx`, `sumx`, `stdbufx`, `syncx`, `tacx`, `teex`, `testx`,
+`timeoutx`, `touchx`, `trx`, `truex`, `truncatex`, `tsortx`, `ttyx`, `unexpandx`, `unlinkx`,
+`whoamix`, `xargsx`, `yesx`.
 
 ## Tests
 
@@ -227,6 +231,10 @@ is nothing to show: `archx`, `base32x`, `base64x`, `basencx`, `basenamex`, `catx
 | `core/internal/visual/box_test.go`, `report_test.go` | Boxes, tables (and fitting them to a width), `Width`, `Truncate`, `Preview`, the `-v` report coloring (a name holding a quote stays whole) |
 | `core/find/view_test.go`, `cmd/findx/findx_test.go` (`TestViewArgs`, `TestTreeCommand`) | The tree (`-depth`, ASCII, a file printed twice, the count), the colors over GNU's text, `-print0` and `-printf` untouched, the options read only before the starting points |
 | `core/dd/progress_test.go`, `core/shred/view_test.go`, `cmd/ddx/ddx_test.go` | GNU's `status=progress` line on a fake clock (padding, the newline before the statistics), the bar's line and its last state, each pass ending on a line of its own |
+| `core/who/view_test.go`, `core/pinky/view_test.go`, `core/id/view_test.go` | The tables and panels, the caller's rows colored, `-q` and `-u` untouched, empty columns left out |
+| `core/uptime/view_test.go`                          | The panel, the bars against the CPUs, and a missing boot time and load average |
+| `core/od/view_test.go`                              | Each class's color, a word's class, the trailer, the dimmed offsets and `*`, and the text unchanged |
+| `core/uniq/view_test.go`                            | The histogram, its colors over GNU's text, the 4096-group limit, and `-z` and no `-c` untouched |
 | `core/wc/wc_test.go`, `core/stat/view_test.go` (`TestPretty`) | The tables and boxes, and `--total=only`, `-c` and `-t` untouched |
 | `core/internal/gitstat/gitstat_test.go`             | Status and ignore rules against real git: loose objects, packs with deltas, SHA-256, deletions, an unborn branch |
 | `internal/tool/view_test.go` (`TestViewOf`)         | `--pretty`, `GNUX_PRETTY`, `NO_COLOR`, `TERM=dumb`, `--theme` (NFR-53, NFR-54) |

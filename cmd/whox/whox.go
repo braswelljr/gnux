@@ -2,6 +2,8 @@
 package whox
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -42,7 +44,8 @@ func Meta() docmeta.Meta {
 			"each system's own format: Linux utmp, macOS utmpx and FreeBSD utx.active. On " +
 			"Windows, which keeps sessions rather than a utmp file, whox lists the signed-in " +
 			"console and Remote Desktop sessions, so the same command answers 'who is on " +
-			"this machine' everywhere; there FILE is not supported.",
+			"this machine' everywhere; there FILE is not supported.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, the records are a framed table with a header (-H's heading becomes it), the columns empty in every row left out, and your own logins in the theme's color for what is yours. -q is GNU's. --pretty[=WHEN] and --theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); piped or redirected output is always GNU's.",
 		Permissions: "Needs read permission on the login records, which every user has.",
 		UseCases: []string{
 			"Checking who else is logged in to a shared server before rebooting it.",
@@ -139,6 +142,7 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "my-line")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into who.Options.
@@ -166,5 +170,11 @@ func buildOptions(fs *pflag.FlagSet) who.Options {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
-	return who.New(buildOptions(fs), s).Run(args)
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), who.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts := buildOptions(fs)
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
+	return who.New(opts, s).Run(args)
 }

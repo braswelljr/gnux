@@ -18,6 +18,7 @@ import (
 	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -73,6 +74,15 @@ type Options struct {
 	Width int
 	// Endian (--endian) is the byte order of multi-byte values.
 	Endian Endian
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty and Color, each value is colored by the class of its
+	// bytes (zero, printable, whitespace, other control, above 0x7f) and
+	// the offsets are dimmed, in Theme (a built-in theme; "" takes
+	// GNUX_THEME's). The text is GNU's.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // kind is the conversion of one output format.
@@ -101,11 +111,15 @@ type format struct {
 type Od struct {
 	Options
 
+	// Getenv reads GNUX_THEME for the view; nil means os.Getenv.
+	Getenv func(string) string
+
 	streams core.Streams
 	diag    *core.Diag
 	formats []format
 	scratch []byte // the output lines of the block being printed
 	order   binary.ByteOrder
+	theme   *visual.Theme // the view's colors, nil when uncolored
 }
 
 // New builds an od engine reading from and writing to s.
@@ -260,6 +274,7 @@ func (o *Od) Run(args []string) error {
 		r = io.LimitReader(in, max(o.Limit, 0))
 	}
 
+	o.prepareView()
 	w := core.NewWriter(o.streams.Out)
 	var err error
 	if o.Strings > 0 {
@@ -332,7 +347,7 @@ func (o *Od) dump(w *bufio.Writer, r io.Reader) error {
 		data := buf[:n]
 		if !o.Verbose && n == block && prev != nil && bytes.Equal(prev, data) {
 			if !starred {
-				if _, err := w.WriteString("*\n"); err != nil {
+				if _, err := w.WriteString(o.dim("*") + "\n"); err != nil {
 					return err
 				}
 				starred = true
@@ -351,7 +366,7 @@ func (o *Od) dump(w *bufio.Writer, r io.Reader) error {
 		}
 	}
 	if o.Radix != RadixNone {
-		if _, err := w.WriteString(o.address(addr) + "\n"); err != nil {
+		if _, err := w.WriteString(o.dim(o.address(addr)) + "\n"); err != nil {
 			return err
 		}
 	}
@@ -408,6 +423,10 @@ func (o *Od) line(w *bufio.Writer, addr int64, data []byte, block int) error {
 
 	out := o.appendAddress(o.scratch[:0], addr)
 	lead := len(out)
+	if o.theme != nil && lead > 0 {
+		painted := o.theme.Paint(visual.Punctuation, string(out))
+		out = append(out[:0], painted...)
+	}
 	var value [32]byte
 	for i, f := range o.formats {
 		if i > 0 {
@@ -423,17 +442,25 @@ func (o *Od) line(w *bufio.Writer, addr int64, data []byte, block int) error {
 			padLeft = next
 			v := o.appendValue(value[:0], f, padded[idx*f.size:(idx+1)*f.size])
 			out = appendSpaces(out, 1+max(adj-len(v), 0))
-			out = append(out, v...)
+			if o.theme != nil {
+				out = o.appendPainted(out, visual.BytesKey(data[min(idx*f.size, n):min((idx+1)*f.size, n)]), v)
+			} else {
+				out = append(out, v...)
+			}
 		}
 		if f.trailer {
 			// Space out the missing fields so the trailer lines up.
 			out = appendSpaces(out, blank*(f.width+1)+f.pad*blank/fields)
 			out = append(out, "  >"...)
 			for _, c := range data {
+				shown := byte('.')
 				if c >= 0x20 && c < 0x7f {
-					out = append(out, c)
+					shown = c
+				}
+				if o.theme != nil {
+					out = o.appendPainted(out, visual.ByteKey(c), []byte{shown})
 				} else {
-					out = append(out, '.')
+					out = append(out, shown)
 				}
 			}
 			out = append(out, '<')

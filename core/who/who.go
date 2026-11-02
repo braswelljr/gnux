@@ -57,6 +57,14 @@ type Options struct {
 	Mesg bool
 	// Users (-u) lists the users logged in, with idle time and PID.
 	Users bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty, the records are a framed table with a header and the
+	// caller's own logins emphasized, colored with Color in Theme (a
+	// built-in theme; "" takes GNUX_THEME's). -q is GNU's.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Who is the engine. Construct it with New.
@@ -67,6 +75,11 @@ type Who struct {
 	Now func() time.Time
 	// Location is the zone times are shown in; nil means the local zone.
 	Location *time.Location
+	// Self is the caller's login name, whose logins the view emphasizes;
+	// nil asks the system. Getenv reads GNUX_THEME, COLUMNS and the locale
+	// for the view; nil means os.Getenv.
+	Self   func() string
+	Getenv func(string) string
 
 	streams core.Streams
 	diag    *core.Diag
@@ -79,6 +92,8 @@ type Who struct {
 
 	needUsers, needBoot, needDead, needLogin, needInit, needRunLevel, needClock bool
 	includeIdle, includeExit, includeMesg                                       bool
+
+	view *whoView // the view's table (view.go)
 }
 
 // New builds a who engine reading standard input's terminal from s.
@@ -132,7 +147,9 @@ func (w *Who) Run(args []string) (err error) {
 		w.count(entries)
 		return nil
 	}
+	w.prepareView()
 	w.scan(entries)
+	w.drawView()
 	return nil
 }
 
@@ -185,7 +202,7 @@ func (w *Who) count(entries []utmp.Entry) {
 }
 
 func (w *Who) scan(entries []utmp.Entry) {
-	if w.Heading {
+	if w.Heading && w.view == nil {
 		w.line("NAME", ' ', "LINE", "TIME", "IDLE", "PID", "COMMENT", "EXIT")
 	}
 	myLine := ""
@@ -307,6 +324,10 @@ func (w *Who) idle(when, boot time.Time) string {
 
 // line prints one line in GNU's columns, without trailing blanks.
 func (w *Who) line(user string, state byte, line, when, idle, pid, comment, exit string) {
+	if w.view != nil {
+		w.addRow(user, state, line, when, idle, pid, comment, exit)
+		return
+	}
 	var b strings.Builder
 	fmt.Fprintf(&b, "%-8s", user)
 	if w.includeMesg {

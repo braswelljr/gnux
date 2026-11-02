@@ -222,6 +222,78 @@ shredx: old-backup.tar: pass 1/3 (random) ████████████�
 shredx: old-backup.tar: pass 2/3 (ffffff) ███████▋░░░░░░░░░░░░  38%  466MiB/1.2GiB
 ```
 
+`uniqx -c` draws its counts as a histogram when it writes to the terminal. Each count is
+colored by its share of the largest one, with a bar of that share. Here is how a web server's
+responses split between status codes:
+
+```text
+$ cutx -d' ' -f9 access.log | sortx | uniqx -c
+      8 ████████████████████ 200
+      1 ██▌░░░░░░░░░░░░░░░░░ 301
+      2 █████░░░░░░░░░░░░░░░ 304
+      3 ███████▌░░░░░░░░░░░░ 404
+      1 ██▌░░░░░░░░░░░░░░░░░ 500
+```
+
+The bars need the largest count, so `uniqx -c` writes them when its input ends (or after the
+first 4096 groups, for a long input). Piped on, into `sortx -rn` say, it prints GNU's
+`      8 200` lines.
+
+`odx` colors each byte by what it is: zero bytes dimmed, printable text, whitespace, other
+control characters and bytes above 0x7f each in a color of their own. A config file that a
+parser rejects, though it looks fine in an editor, shows its byte order mark (`ef bb bf`, above
+0x7f) and its Windows line ending (`0d 0a`, whitespace) apart from the text around them:
+
+```text
+$ odx -A x -t x1z -N 12 config.yaml
+000000 ef bb bf 6e 61 6d 65 3a 20 78 0d 0a              >...name: x..<
+00000c
+```
+
+`uptimex` draws a panel, with each load average as a bar against the number of CPUs. When a
+build has every core busy, the 1-minute bar fills and turns yellow, then red:
+
+```text
+$ uptimex
+╭─ up 2 days, 6:50 ──────────────────────╮
+│ Time    06:46:12                       │
+│ Users   1                              │
+│ Load     1 min  ██▌░░░░░░░░░░░░░  2.35 │
+│          5 min  ███▌░░░░░░░░░░░░  3.30 │
+│         15 min  ███▏░░░░░░░░░░░░  2.97 │
+│ CPUs    15                             │
+╰────────────────────────────────────────╯
+```
+
+`whox` and `pinkyx` show who is logged in as a table, with your own sessions in the color for
+what is yours, so on a shared server you can tell at a glance which logins are not yours:
+
+```text
+$ whox -u
+╭──────┬─────────┬──────────────┬───────┬──────┬───────────────╮
+│ NAME │ LINE    │ TIME         │ IDLE  │  PID │ COMMENT       │
+├──────┼─────────┼──────────────┼───────┼──────┼───────────────┤
+│ ada  │ pts/0   │ Nov  2 09:14 │ .     │ 4211 │ (10.0.0.23)   │
+│ lin  │ pts/1   │ Nov  2 08:02 │ 01:12 │ 3980 │ (192.168.1.7) │
+╰──────┴─────────┴──────────────┴───────┴──────┴───────────────╯
+```
+
+`idx` shows your IDs as a panel, one group a line, the primary one highlighted; when a program
+runs with someone else's rights (setuid), the effective IDs get lines of their own, in red:
+
+```text
+$ idx
+╭─ ada ─────────────────╮
+│ User    501  ada      │
+│ Group    20  staff    │
+│ Groups   20  staff    │
+│          12  everyone │
+│          80  admin    │
+╰───────────────────────╯
+```
+
+`usersx` and `groupsx` keep GNU's line and color your own name and your primary group.
+
 `headx` and `tailx` color their `==> FILE <==` headers. `rmx`, `cpx`, `mvx`, `lnx`,
 `installx`, `mkdirx`, `rmdirx`, `chmodx`, `chownx` and `chgrpx` color their `-v` reports: a
 removal in red, a creation in green, each quoted name, and the `->` arrows. In both, the words
@@ -323,8 +395,9 @@ from an hour to older than a year), `uu` `un` (yours, others'), `lc` (links), `i
 `bl` (blocks), `oc` (octal), `hd` (headers), `tb` (tree branches), `bf` `bw` `ba` `be` (bars:
 filled, warning, alert, empty) and `ga` `gm` `gd` `gv` `gt` `gi` `gc` `g-` (git: new,
 modified, deleted, renamed, type change, ignored, conflict, clean), `fh` (a file heading:
-grepx, headx, tailx), `ok` and `er` (OK and FAILED, a creation and a removal) and `pa` (a name
-in a `-v` report).
+grepx, headx, tailx), `ok` and `er` (OK and FAILED, a creation and a removal), `pa` (a name
+in a `-v` report) and `yz` `yp` `yw` `yc` `yh` (bytes in an `odx` dump: zero, printable,
+whitespace, other control characters, and above 0x7f).
 
 ## Turning it off
 
