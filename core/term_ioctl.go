@@ -1,6 +1,6 @@
 //go:build linux || darwin || freebsd || netbsd || openbsd || dragonfly
 
-package ls
+package core
 
 import (
 	"os"
@@ -8,9 +8,9 @@ import (
 	"unsafe"
 )
 
-// terminalWidth asks the terminal behind f for its width in columns, returning
+// fileWidth asks the terminal behind f for its width in columns, returning
 // 0 when f is not a terminal.
-func terminalWidth(f *os.File) int {
+func fileWidth(f *os.File) int {
 	// struct winsize from <sys/ioctl.h>.
 	var ws struct {
 		rows, cols, xpixel, ypixel uint16

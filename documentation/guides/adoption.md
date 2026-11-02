@@ -94,7 +94,7 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `sleep` | `sleepx` | NUMBER with `s`, `m`, `h`, `d`; fractions, exponents, hex floats, `infinity` | [sleepx](https://gnux.vercel.app/docs/tools/sleepx) |
 | `sort` | `sortx` | `-b`, `-c`/`--check[=WHEN]`, `-C`, `-d`, `-f`, `-g`, `-h`, `-i`, `-k KEYDEF`, `-m`, `-M`, `-n`, `-o FILE`, `-r`, `-R`, `-s`, `-t SEP`, `-u`, `-V`, `-z`, `--files0-from=F`, `--random-source=FILE`, `--sort=WORD`; `-S`, `-T`, `--parallel`, `--batch-size`, `--compress-program` accepted and ignored | [sortx](https://gnux.vercel.app/docs/tools/sortx) |
 | `split` | `splitx` | `--additional-suffix=SUFFIX`, `-b SIZE`, `-e`, `-x[=FROM]`, `-C SIZE`, `-l NUMBER`, `-n CHUNKS`, `-d[=FROM]`, `-t SEP`, `-a N`, `-u`, `--verbose` | [splitx](https://gnux.vercel.app/docs/tools/splitx) |
-| `stat` | `statx` | `--cached=STRING`, `-L`, `-f`, `-c FORMAT`, `--printf=FORMAT`, `-t` | [statx](https://gnux.vercel.app/docs/tools/statx) |
+| `stat` | `statx` | `--cached=STRING`, `-L`, `-f`, `-c FORMAT`, `--printf=FORMAT`, `-t`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [statx](https://gnux.vercel.app/docs/tools/statx) |
 | `stdbuf` | `stdbufx` | `-i MODE`, `-o MODE`, `-e MODE` | [stdbufx](https://gnux.vercel.app/docs/tools/stdbufx) |
 | `stty` | `sttyx` | `-a`, `-g`, `-F DEVICE`, and every setting GNU stty has on the platform | [sttyx](https://gnux.vercel.app/docs/tools/sttyx) |
 | `sum` | `sumx` | `-r`, `-s` | [sumx](https://gnux.vercel.app/docs/tools/sumx) |
@@ -117,7 +117,7 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `uptime` | `uptimex` | none | [uptimex](https://gnux.vercel.app/docs/tools/uptimex) |
 | `users` | `usersx` | none | [usersx](https://gnux.vercel.app/docs/tools/usersx) |
 | `vdir` | `vdirx` | every `lsx` option | [vdirx](https://gnux.vercel.app/docs/tools/vdirx) |
-| `wc` | `wcx` | `-c`, `-l`, `-L`, `-m`, `-w`, `--files0-from=F`, `--total=WHEN` | [wcx](https://gnux.vercel.app/docs/tools/wcx) |
+| `wc` | `wcx` | `-c`, `-l`, `-L`, `-m`, `-w`, `--files0-from=F`, `--total=WHEN`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [wcx](https://gnux.vercel.app/docs/tools/wcx) |
 | `who` | `whox` | `-a`, `-b`, `-q`, `-d`, `-H`, `-l`, `--lookup`, `-T`, `--message`, `-m`, `-p`, `-r`, `-s`, `-t`, `-u`, `-w` | [whox](https://gnux.vercel.app/docs/tools/whox) |
 | `whoami` | `whoamix` | none | [whoamix](https://gnux.vercel.app/docs/tools/whoamix) |
 | `xargs` (findutils) | `xargsx` | `-0`, `-a FILE`, `-d CHARACTER`, `-E END`, `-e[END]`, `-I R`, `-i[R]`, `-L MAX-LINES`, `-l[MAX-LINES]`, `-n MAX-ARGS`, `-P MAX-PROCS`, `-p`, `-r`, `-s MAX-CHARS`, `-t`, `-x`, `--show-limits` | [xargsx](https://gnux.vercel.app/docs/tools/xargsx) |

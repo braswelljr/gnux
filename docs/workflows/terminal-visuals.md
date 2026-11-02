@@ -16,10 +16,10 @@ flowchart LR
 
 | Package                  | What it gives a tool                                                                 |
 |--------------------------|--------------------------------------------------------------------------------------|
-| `core/internal/visual`   | `Use(color, name, getenv, warn)` (the theme an engine paints with, nil when uncolored), `LoadTheme(name, getenv)`, `Resolve` and `Dark` (a family's variant for the background), `Theme.Paint(key, s)`, `Theme.Bar(fraction, width, unicode)`, `Theme.Box(title, lines, unicode)`, `Theme.Report(line)`, `Width(s)`, `SizeKey`, `AgeKey`, `BranchesFor(getenv).Prefix(last)`, `Icon(name, kind)`, `UTF8(getenv)`, `ThemeNames()`, `Preview` |
+| `core/internal/visual`   | `Use(color, name, getenv, warn)` (the theme an engine paints with, nil when uncolored), `LoadTheme(name, getenv)`, `Resolve` and `Dark` (a family's variant for the background), `Theme.Paint(key, s)`, `Theme.Bar(fraction, width, unicode)`, `Theme.Box(title, lines, unicode)`, `Theme.Render(Table)` (a framed table that fits `Table.MaxWidth`), `Truncate`, `PaintMode`, `Theme.Report(line)`, `Width(s)`, `SizeKey`, `AgeKey`, `BranchesFor(getenv).Prefix(last)`, `Icon(name, kind)`, `UTF8(getenv)`, `ThemeNames()`, `Preview` |
 | `core/internal/gitstat`  | `FindRoot(dir)`, `Open(root, getenv)`, `Repo.Status(path, isDir)`, `Repo.IsIgnored(path, isDir)`, `Repo.Close()` |
 | `internal/tool`          | `RegisterView(fs)` (the `--pretty[=WHEN]` and `--theme=NAME` options, as names of gnux's own), `ViewOf(fs, terminal, name, getenv, warn)`, `ReportView(fs, s, name, getenv)` (streams whose `Out` colors a `-v` report), `ResolvePretty`, `ParseWhen` |
-| `core`                   | `ThemeNames()`, `ReportWriter` and `WriteThemes`, for adapters and `gnux themes` (adapters cannot import `core/internal`) |
+| `core`                   | `ThemeNames()`, `ReportWriter` and `WriteThemes`, for adapters and `gnux themes` (adapters cannot import `core/internal`); `TerminalWidth(w, getenv)`, the width a table must fit (`COLUMNS`, else the terminal's) |
 
 A nil `*visual.Theme` paints nothing, so an engine holds `nil` for "no color" and calls `Paint`
 and `Bar` the same way either way: the uncolored view (under `NO_COLOR`) is the same code path
@@ -181,7 +181,9 @@ not change the data.
 | Tool                  | The view                                                                 |
 |-----------------------|--------------------------------------------------------------------------|
 | `lsx`, `dirx`, `vdirx` | Field colors, header, readable sizes, directories first; `--tree`, `--level`, `--icons`, `--git`, `--git-ignore`, `--color-scale`, `--only-dirs`, `--only-files`, `--total-size`, `--octal-permissions` |
-| `dfx`                 | A usage bar after each percentage (green, yellow from 75%, red from 90%), themed header and mount points |
+| `dfx`                 | A framed table (`Theme.Render`) fitted to the terminal, a usage-bar column after each percentage (green, yellow from 75%, red from 90%), themed header and mount points, `--total` as the footer |
+| `wcx`                 | A framed table with a header naming each count and the total as the footer, written once every file is counted |
+| `statx`               | Each file a box (`Theme.Box`) titled with its name, one labeled line a value, the mode painted (`PaintMode`); with `-f`, a usage bar |
 | `dux`                 | Aligned sizes on the size gradient, a bar and percentage of each line's share, names highlighted |
 | `grepx`               | Each file's name once, as a heading over its lines (key `fh`), a blank line between files, line numbers on; GNU's `--color` colors the rest |
 | `md5sumx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `b2sumx`, `cksumx` | With `-c`: `OK` (key `ok`) and `FAILED` (key `er`) colored, and a count for each list (`2 OK, 1 FAILED`) |
@@ -195,8 +197,6 @@ not change the data.
 |----------------------------------------|---------------------------------------------------------------------|
 | `findx`                                | `--tree` for the matches, names colored and iconed as `lsx` does     |
 | `ddx`, `shredx`                        | A progress bar for `status=progress` and `-v`                       |
-| `statx`                                | Field names dimmed, the mode painted as `lsx` paints it, in a box (`Theme.Box`) |
-| `wcx`                                  | Aligned, colored counts with a header, the total emphasized          |
 | `uniqx -c`, `sortx`                    | `uniqx -c`'s counts on a gradient with a bar                         |
 | `odx`                                  | Bytes colored by class (zero, printable, whitespace, other)          |
 | `uptimex`, `nprocx`                    | Load averages as bars against the CPU count                         |
@@ -223,7 +223,8 @@ is nothing to show: `archx`, `base32x`, `base64x`, `basencx`, `basenamex`, `catx
 | Test                                                | Pins                                                         |
 |-----------------------------------------------------|--------------------------------------------------------------|
 | `core/internal/visual/visual_test.go`               | Theme overlays and precedence, families and `Dark`, gradients, branches (Unicode and ASCII), bars, icons (NFR-54) |
-| `core/internal/visual/box_test.go`, `report_test.go` | Boxes and `Width`, `Preview`, the `-v` report coloring (a name holding a quote stays whole) |
+| `core/internal/visual/box_test.go`, `report_test.go` | Boxes, tables (and fitting them to a width), `Width`, `Truncate`, `Preview`, the `-v` report coloring (a name holding a quote stays whole) |
+| `core/wc/wc_test.go`, `core/stat/view_test.go` (`TestPretty`) | The tables and boxes, and `--total=only`, `-c` and `-t` untouched |
 | `core/internal/gitstat/gitstat_test.go`             | Status and ignore rules against real git: loose objects, packs with deltas, SHA-256, deletions, an unborn branch |
 | `internal/tool/view_test.go` (`TestViewOf`)         | `--pretty`, `GNUX_PRETTY`, `NO_COLOR`, `TERM=dumb`, `--theme` (NFR-53, NFR-54) |
 | `core/ls/view_test.go`                              | Trees, `--level`, filters, icons in columns, header, octal, total size, themed long format, git (FR-60) |

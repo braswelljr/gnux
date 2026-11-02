@@ -50,9 +50,12 @@ func Meta() docmeta.Meta {
 			"drives) with the same columns, quietly skipping a card reader or DVD drive with " +
 			"no medium. --sync and --no-sync are accepted and have no effect, and -v is " +
 			"ignored, as in GNU. On a terminal, dfx shows gnux's view (--pretty=auto, the " +
-			"default; GNUX_PRETTY changes it): a usage bar after each percentage, green, then " +
-			"yellow from 75% and red from 90%, with the header and mount points colored in the " +
-			"theme --theme or GNUX_THEME names (NO_COLOR keeps it uncolored). Piped or " +
+			"default; GNUX_PRETTY changes it): the table is framed, with a rule under the header " +
+			"and before --total's row, a usage bar in a column after each percentage (green, then " +
+			"yellow from 75% and red from 90%), and the header and mount points colored in the " +
+			"theme --theme or GNUX_THEME names (NO_COLOR keeps it uncolored). A table wider " +
+			"than the terminal (COLUMNS, else its own width) cuts its widest text column short " +
+			"with an ellipsis, so the frame never wraps. Piped or " +
 			"redirected output, and -P, stay exactly GNU's; --pretty=always asks for the view " +
 			"anyway and --pretty=never turns it off.",
 		Permissions: "Needs no special permission; a mount point the user cannot examine is " +

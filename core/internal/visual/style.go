@@ -189,3 +189,34 @@ func UTF8(getenv func(string) string) bool {
 	}
 	return true
 }
+
+// PaintMode paints a mode string as lsx's long format does ("drwxr-xr-x"):
+// the type letter in its file type's color, each permission letter by who
+// it is for and what it allows, and a dash in the punctuation color.
+func PaintMode(t *Theme, mode string) string {
+	if t == nil || len(mode) < 10 {
+		return mode
+	}
+	keys := [...][3]string{{UserRead, UserWrite, UserExec}, {GroupRead, GroupWrite, GroupExec}, {OtherRead, OtherWrite, OtherExec}}
+	var b strings.Builder
+	typeKey := map[byte]string{'d': TypeDir, 'l': TypeLink, 'p': TypePipe, 's': TypeSocket, 'b': TypeDevice, 'c': TypeDevice}[mode[0]]
+	b.WriteString(t.Paint(typeKey, mode[:1]))
+	for i := 1; i < len(mode); i++ {
+		c := mode[i]
+		key := Punctuation
+		switch {
+		case c == '-':
+		case i > 9:
+			key = Special
+		case c == 's' || c == 'S' || c == 't' || c == 'T':
+			key = Special
+		default:
+			key = keys[(i-1)/3][(i-1)%3]
+			if key == UserExec && mode[0] == 'd' {
+				key = UserExecDir
+			}
+		}
+		b.WriteString(t.Paint(key, mode[i:i+1]))
+	}
+	return b.String()
+}

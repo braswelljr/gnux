@@ -281,6 +281,9 @@ piped or redirected is GNU's (BR-13, NFR-53, NFR-54).
   `FAMILY-light`; the family's name picks one by `visual.Dark` (`GNUX_BACKGROUND`, `COLORFGBG`,
   the system's appearance in build-tagged `background_*.go`, else dark). `gnux themes`
   (`cmd/themes.go`, in `Commands()` like `shell` and `mcp`) shows them all.
+- **Panels and tables:** `Theme.Box` and `Theme.Render(visual.Table{..., MaxWidth:
+  core.TerminalWidth(out, getenv)})` draw the framed layouts (`statx`, `dfx`, `wcx`); a table
+  never wraps, it cuts its widest text column with `…`.
 - **A `-v` report needs no engine change:** the adapter wraps its streams with
   `tool.ReportView` (after its own argument parsing, for a `RawArgs` tool like `chmodx`).
 - **Options are gnux's own** (`tool.RegisterView` and `tool.OwnNames`), so GNU abbreviations

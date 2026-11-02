@@ -22,7 +22,10 @@ Every notable change to gnux, release by release, newest first. The format follo
   (Nerd Font, `GNUX_ICONS`), `--git` and `--git-ignore` (read from the repository without
   running git), `--color-scale`, `--only-dirs`, `--only-files`, `--total-size` and
   `--octal-permissions`.
-- `dfx`: a usage bar after each percentage, turning yellow from 75% and red from 90%.
+- `dfx`: a framed table that fits the terminal, with a usage bar after each percentage,
+  turning yellow from 75% and red from 90%.
+- `wcx`: the counts as a framed table with a header and the total set apart.
+- `statx`: each file as a labeled panel, the mode painted; with `-f`, a bar of the space in use.
 - `dux`: aligned sizes colored by magnitude, with a bar and percentage of each line's share.
 - `grepx`: each file's matches under a colored heading of its name, numbered, with a blank line
   between files.

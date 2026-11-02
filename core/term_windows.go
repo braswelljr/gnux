@@ -1,6 +1,6 @@
 //go:build windows
 
-package ls
+package core
 
 import (
 	"os"
@@ -10,9 +10,9 @@ import (
 
 var getConsoleScreenBufferInfo = syscall.NewLazyDLL("kernel32.dll").NewProc("GetConsoleScreenBufferInfo")
 
-// terminalWidth asks the console behind f for its window width in columns,
+// fileWidth asks the console behind f for its window width in columns,
 // returning 0 when f is not a console.
-func terminalWidth(f *os.File) int {
+func fileWidth(f *os.File) int {
 	// CONSOLE_SCREEN_BUFFER_INFO from <wincon.h>.
 	var info struct {
 		sizeX, sizeY             int16

@@ -331,7 +331,7 @@ func NewAs(name string, opts Options, s core.Streams) *Ls {
 	}
 	l.TermWidth = func() int {
 		if f, ok := s.Out.(*os.File); ok {
-			return terminalWidth(f)
+			return core.TerminalWidth(f, nil)
 		}
 		return 0
 	}

@@ -2,6 +2,7 @@
 package statx
 
 import (
+	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -52,7 +53,8 @@ func Meta() docmeta.Meta {
 			"birth time prints '-' where the system does not record it (Linux without statx), " +
 			"and on Windows, which has no numeric owners, %u and %g print '?'. SELinux " +
 			"contexts (%C) are not supported. --cached is accepted for compatibility and has " +
-			"no effect.",
+			"no effect." +
+			" On a terminal, gnux's terminal view (--pretty=auto, the default) shows each file, in place of the default format, as a box titled with its name: one labeled line a value (type, size, mode painted as lsx paints it, owner, group, links, inode, the four times) and, with -f, a bar of the blocks in use. A format given with -c, --printf or -t is printed as it is, and piped or redirected output is exactly GNU's; --pretty=never or GNUX_PRETTY=never turns the view off.",
 		Permissions: "Needs search permission on the directories leading to each FILE; the " +
 			"FILE itself need not be readable. Owner and group names are read from the " +
 			"system's account databases.",
@@ -171,6 +173,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.VarP(&formatValue{f: f}, "format", "c", "use the specified FORMAT instead of the default; output a newline after each use of FORMAT")
 	fs.Var(&formatValue{f: f, printf: true}, "printf", "like --format, but interpret backslash escapes, and do not output a mandatory trailing newline")
 	fs.BoolP("terse", "t", false, "print the information in terse form")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into stat.Options.
@@ -227,5 +230,10 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	if err != nil {
 		return err
 	}
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), stat.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
 	return stat.New(opts, s).Run(args)
 }

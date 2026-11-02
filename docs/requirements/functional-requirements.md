@@ -883,10 +883,13 @@ dfx [OPTION]... [FILE]...
   file systems on Linux, macOS and FreeBSD, and on Windows lists every drive (C:\, D:\, network
   drives) with the same columns, quietly skipping a card reader or DVD drive with no medium.
   --sync and --no-sync are accepted and have no effect, and -v is ignored, as in GNU.
-- **Terminal view (BR-13).** On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`), a
-  usage bar follows each percentage, green, yellow from 75% and red from 90%, and the header,
-  percentages and mount points take the theme's colors (`--theme`, `GNUX_THEME`; uncolored under
-  `NO_COLOR`). Piped or redirected output, and `-P`, are GNU's (NFR-53).
+- **Terminal view (BR-13).** On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`), the
+  table is framed (rounded corners, a rule under the header and between columns, `--total`'s row
+  below a rule of its own), a usage bar has a column after each percentage, green, yellow from
+  75% and red from 90%, and the header, percentages and mount points take the theme's colors
+  (`--theme`, `GNUX_THEME`; uncolored under `NO_COLOR`). A frame wider than the terminal
+  (`COLUMNS`, else the terminal's width) cuts its widest left-aligned column short with `…`.
+  Piped or redirected output, and `-P`, are GNU's (NFR-53).
 - **Verified by.** `core/df/df_test.go` (`TestPretty`), `cmd/dfx/dfx_test.go`,
   `internal/tool/view_test.go`.
 
@@ -2936,6 +2939,7 @@ statx [OPTION]... FILE...
   '-' where the system does not record it (Linux without statx), and on Windows, which has no
   numeric owners, %u and %g print '?'. SELinux contexts (%C) are not supported. --cached is
   accepted for compatibility and has no effect.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, in place of the default format only, each file is a box titled with its name holding one labeled line a value: `Type`, `Device` (a device), `Points to` (a link), `Size`, `Mode` (octal, then the letters painted as `lsx` paints them), `Owner`, `Group`, `Links`, `Inode`, `Accessed`, `Modified`, `Changed`, `Born`; each value is the expansion of GNU's directive for it. With `-f` the box holds the file system's fields and a `Used` bar of the blocks in use. `-c`, `--printf` and `-t` print as GNU does, and so does piped or redirected output (NFR-53).
 - **Verified by.** `core/stat/stat_test.go`, `cmd/statx/statx_test.go`.
 
 ### FR-181: stdbufx
@@ -3510,6 +3514,7 @@ wcx [OPTION]... [FILE]...
   bytes but not characters. Columns are right-aligned to a width derived from the files' sizes.
   File operands cannot be combined with `--files0-from`. A read error keeps the partial counts.
 - **Deviations.** None known in the options listed. Not implemented: `--debug`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal the counts are a framed table: a header naming each count (`Lines`, `Words`, `Chars`, `Bytes`, `Longest`, then `File` when any row has a name), one row an operand, and the total as a footer below a rule, written once every operand is counted (a diagnostic comes first). `--total=only` prints the bare number, and piped or redirected output is GNU's (NFR-53).
 - **Verified by.** `core/wc/wc_test.go`, `cmd/wcx/wcx_test.go`.
 
 ### FR-146: whoamix

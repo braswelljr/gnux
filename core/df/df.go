@@ -639,7 +639,11 @@ func (d *Df) print() {
 	}()
 	theme := visual.Use(d.Pretty && d.Color, d.Theme, d.Getenv, d.diag.Warnf)
 	unicode := visual.UTF8(d.Getenv)
-	for r, row := range d.rows {
+	if d.Pretty {
+		_, _ = w.WriteString(d.table(theme, unicode))
+		return
+	}
+	for _, row := range d.rows {
 		for i, cell := range row {
 			c := d.columns[i]
 			if i > 0 {
@@ -649,28 +653,9 @@ func (d *Df) print() {
 			if c.right {
 				_, _ = w.WriteString(strings.Repeat(" ", max(fill, 0)))
 			}
-			percent := c.field == "pcent" || c.field == "ipcent"
-			used, isNumber := usedFraction(cell)
-			switch {
-			case r == 0:
-				_, _ = w.WriteString(theme.Paint(visual.Header, cell))
-			case percent && isNumber:
-				_, _ = w.WriteString(theme.Paint(barKey(used), cell))
-			case c.field == "target":
-				_, _ = w.WriteString(theme.Paint(visual.TypeDir, cell))
-			default:
-				_, _ = w.WriteString(cell)
-			}
+			_, _ = w.WriteString(cell)
 			if !c.right && i+1 < len(row) {
 				_, _ = w.WriteString(strings.Repeat(" ", max(fill, 0)))
-			}
-			if d.Pretty && percent {
-				_ = w.WriteByte(' ')
-				if r > 0 && isNumber {
-					_, _ = w.WriteString(theme.Bar(used, barWidth, unicode))
-				} else {
-					_, _ = w.WriteString(strings.Repeat(" ", barWidth))
-				}
 			}
 		}
 		_ = w.WriteByte('\n')
@@ -692,4 +677,52 @@ func barKey(used float64) string {
 		return visual.BarWarn
 	}
 	return visual.BarFull
+}
+
+// table lays the rows out for the pretty view: a framed table (visual.Table)
+// whose percentages are colored by how full they are and followed by a usage
+// bar of their own column, with --total's row as the footer.
+func (d *Df) table(theme *visual.Theme, unicode bool) string {
+	var tb visual.Table
+	for _, c := range d.columns {
+		tb.Right = append(tb.Right, c.right)
+		if c.field == "pcent" || c.field == "ipcent" {
+			tb.Right = append(tb.Right, false)
+		}
+	}
+	for r, row := range d.rows {
+		var cells []string
+		for i, cell := range row {
+			c := d.columns[i]
+			percent := c.field == "pcent" || c.field == "ipcent"
+			used, isNumber := usedFraction(cell)
+			switch {
+			case r == 0:
+				cells = append(cells, cell)
+			case percent && isNumber:
+				cells = append(cells, theme.Paint(barKey(used), cell))
+			case c.field == "target":
+				cells = append(cells, theme.Paint(visual.TypeDir, cell))
+			default:
+				cells = append(cells, cell)
+			}
+			if percent {
+				bar := ""
+				if r > 0 && isNumber {
+					bar = theme.Bar(used, barWidth, unicode)
+				}
+				cells = append(cells, bar)
+			}
+		}
+		switch {
+		case r == 0:
+			tb.Header = cells
+		case d.Total && r == len(d.rows)-1:
+			tb.Footer = append(tb.Footer, cells)
+		default:
+			tb.Rows = append(tb.Rows, cells)
+		}
+	}
+	tb.MaxWidth = core.TerminalWidth(d.streams.Out, d.Getenv)
+	return theme.Render(tb, unicode)
 }

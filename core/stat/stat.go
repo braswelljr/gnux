@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/braswelljr/gnux/core/fsys"
+	"github.com/braswelljr/gnux/core/internal/visual"
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/fsstat"
@@ -65,6 +66,16 @@ type Options struct {
 	PrintfSet bool
 	// Terse (-t) prints everything on one line.
 	Terse bool
+
+	// Pretty is gnux's terminal view, not a GNU option: in place of the
+	// default format, each file is a box titled with its name, one labeled
+	// line a value, the mode painted as lsx paints it and, with FileSystem,
+	// a bar of the blocks in use; Color colors it in Theme (a built-in
+	// theme; "" takes GNUX_THEME's). A format given with -c, --printf or -t
+	// is printed as it is.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Stat is the engine. Construct it with New.
@@ -83,6 +94,8 @@ type Stat struct {
 	streams core.Streams
 	diag    *core.Diag
 	out     *bufio.Writer
+	theme   *visual.Theme // the pretty view's colors, once loaded
+	themed  bool
 }
 
 // New builds a stat engine writing to s.
@@ -222,7 +235,11 @@ func (st *Stat) stat(name, format, format2 string, escapes bool, trailing string
 	if info.Mode()&os.ModeDevice != 0 {
 		format = format2
 	}
-	return st.print(format, escapes, trailing, func(d directive) { st.fileDirective(d, f) })
+	each := func(d directive) { st.fileDirective(d, f) }
+	if st.pretty() {
+		return st.filePanel(f, each)
+	}
+	return st.print(format, escapes, trailing, each)
 }
 
 func (st *Stat) statfs(name, format string, escapes bool, trailing string) error {
@@ -235,7 +252,11 @@ func (st *Stat) statfs(name, format string, escapes bool, trailing string) error
 		st.diag.Errorf("cannot read file system information for '%s': %s", name, core.ErrText(err))
 		return nil
 	}
-	return st.print(format, escapes, trailing, func(d directive) { st.fsDirective(d, name, fs) })
+	each := func(d directive) { st.fsDirective(d, name, fs) }
+	if st.pretty() {
+		return st.panel(name, visual.TypeDir, prettyFS, each)
+	}
+	return st.print(format, escapes, trailing, each)
 }
 
 // directive is one %-directive: its flags, width and precision as written,

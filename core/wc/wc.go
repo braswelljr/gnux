@@ -19,6 +19,7 @@ import (
 	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -64,6 +65,15 @@ type Options struct {
 	Files0From string
 	// Total (--total=WHEN) controls the summary line.
 	Total TotalMode
+
+	// Pretty is gnux's terminal view, not a GNU option: the counts are drawn
+	// as a framed table with a header naming each count and the total as its
+	// footer, colored with Color in Theme (a built-in theme; "" takes
+	// GNUX_THEME's). The table is written once every operand is counted.
+	// It has no effect with --total=only, whose bare number is for a script.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // counts holds the tallies for one input, or the running total.
@@ -83,11 +93,17 @@ func (c *counts) add(o counts) {
 type Wc struct {
 	Options
 
-	streams core.Streams
-	diag    *core.Diag
-	out     *bufio.Writer
-	width   int
-	buf     []byte
+	// Getenv reads GNUX_THEME, COLUMNS and the locale for the pretty view;
+	// nil means os.Getenv.
+	Getenv func(string) string
+
+	streams  core.Streams
+	diag     *core.Diag
+	out      *bufio.Writer
+	width    int
+	buf      []byte
+	table    *visual.Table // the pretty view's rows, while they are counted
+	totaling bool          // the operands are counted: what is printed now is the total
 }
 
 // New builds a wc engine reading from and writing to s.
@@ -131,6 +147,9 @@ func (w *Wc) Run(args []string) error {
 	}
 
 	w.width = w.numberWidth(names)
+	if w.Pretty && w.Total != TotalOnly {
+		w.table = &visual.Table{}
+	}
 
 	var total counts
 	for _, name := range names {
@@ -148,6 +167,7 @@ func (w *Wc) Run(args []string) error {
 		}
 	}
 
+	w.totaling = true
 	switch w.Total {
 	case TotalAuto:
 		if len(names) > 1 {
@@ -158,6 +178,9 @@ func (w *Wc) Run(args []string) error {
 	case TotalOnly:
 		w.print(total, nil)
 	case TotalNever:
+	}
+	if w.table != nil {
+		w.render()
 	}
 	w.flush()
 	return w.diag.Result()
@@ -476,6 +499,23 @@ func (w *Wc) print(c counts, name *string) {
 		{w.Bytes, c.bytes},
 		{w.MaxLineLength, c.maxLen},
 	}
+	if w.table != nil {
+		var row []string
+		for _, f := range fields {
+			if f.on {
+				row = append(row, strconv.FormatInt(f.n, 10))
+			}
+		}
+		if name != nil {
+			row = append(row, *name)
+		}
+		if w.totaling {
+			w.table.Footer = append(w.table.Footer, row)
+		} else {
+			w.table.Rows = append(w.table.Rows, row)
+		}
+		return
+	}
 	first := true
 	for _, f := range fields {
 		if !f.on {
@@ -522,4 +562,42 @@ func ignoreEOF(err error) error {
 // away (wc | true), which ends the run quietly rather than as a failure.
 func closedPipe(err error) bool {
 	return errors.Is(err, syscall.EPIPE) || errors.Is(err, io.ErrClosedPipe)
+}
+
+// render writes the pretty view's table.
+func (w *Wc) render() {
+	getenv := w.Getenv
+	if getenv == nil {
+		getenv = os.Getenv
+	}
+	theme := visual.Use(w.Color, w.Theme, getenv, w.diag.Warnf)
+	tb := w.table
+	for _, h := range []struct {
+		on    bool
+		label string
+	}{{w.Lines, "Lines"}, {w.Words, "Words"}, {w.Chars, "Chars"}, {w.Bytes, "Bytes"}, {w.MaxLineLength, "Longest"}} {
+		if h.on {
+			tb.Header = append(tb.Header, h.label)
+			tb.Right = append(tb.Right, true)
+		}
+	}
+	named := false
+	for _, r := range append(tb.Rows, tb.Footer...) {
+		named = named || len(r) > len(tb.Right)
+	}
+	if named {
+		tb.Header = append(tb.Header, "File")
+	}
+	for _, r := range tb.Footer {
+		if len(r) > len(tb.Right) {
+			r[len(r)-1] = theme.Paint(visual.Punctuation, r[len(r)-1])
+		}
+		for i := range tb.Right {
+			if i < len(r) {
+				r[i] = theme.Paint(visual.Size, r[i])
+			}
+		}
+	}
+	tb.MaxWidth = core.TerminalWidth(w.streams.Out, getenv)
+	_, _ = w.out.WriteString(theme.Render(*tb, visual.UTF8(getenv)))
 }

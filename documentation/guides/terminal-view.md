@@ -1,6 +1,6 @@
 # Terminal view
 
-On a terminal, gnux shows what the tools print in color and in a layout made for reading: `lsx` colors every column and can draw trees, show icons and git status, `dfx` draws a usage bar per disk, `dux` shows each folder's share of the space, `grepx` heads each file's matches with its name, the checksum tools color OK and FAILED, and the file tools color their `-v` reports. Anything piped or redirected stays exactly GNU's, so scripts are unaffected. This guide shows the view, how to pick one of the built-in themes (in a dark and a light variant that follows your system), how to make your choices the default, and how to turn it off.
+On a terminal, gnux shows what the tools print in color and in a layout made for reading: `lsx` colors every column and can draw trees, show icons and git status, `dfx`, `wcx` and `statx` draw framed tables and panels, `dux` shows each folder's share of the space, `grepx` heads each file's matches with its name, the checksum tools color OK and FAILED, and the file tools color their `-v` reports. Anything piped or redirected stays exactly GNU's, so scripts are unaffected. This guide shows the view, how to pick one of the built-in themes (in a dark and a light variant that follows your system), how to make your choices the default, and how to turn it off.
 
 ## What you see by default
 
@@ -17,7 +17,56 @@ means:
 Each of those follows an option you give, so `lsx -l --color=never` is the view without color,
 and `lsx -l --si` keeps powers of 1000.
 
-`dfx` adds a bar after `Use%`, green, then yellow from 75% and red from 90%. `dux` aligns the
+`dfx` draws its table in a frame, with a usage bar after `Use%`, green, then yellow from 75%
+and red from 90%. A table wider than your terminal shortens its longest column with `…`, so the
+frame never wraps:
+
+```text
+$ dfx -h / /System/Volumes/Data
+╭────────────────┬──────┬──────┬───────┬──────┬──────────────┬─────────────────╮
+│ Filesystem     │ Size │ Used │ Avail │ Use% │              │ Mounted on      │
+├────────────────┼──────┼──────┼───────┼──────┼──────────────┼─────────────────┤
+│ /dev/disk3s1s1 │ 927G │ 618G │  309G │  67% │ ████████░░░░ │ /               │
+│ /dev/disk3s5   │ 927G │ 618G │  309G │  67% │ ████████░░░░ │ /System/Volume… │
+╰────────────────┴──────┴──────┴───────┴──────┴──────────────┴─────────────────╯
+```
+
+`wcx` does the same for its counts, the total set apart at the bottom:
+
+```text
+$ wcx go.mod Makefile README.md
+╭───────┬───────┬───────┬───────────╮
+│ Lines │ Words │ Bytes │ File      │
+├───────┼───────┼───────┼───────────┤
+│    20 │    44 │   537 │ go.mod    │
+│   259 │  1378 │ 11884 │ Makefile  │
+│   615 │  4566 │ 31366 │ README.md │
+├───────┼───────┼───────┼───────────┤
+│   894 │  5988 │ 43787 │ total     │
+╰───────┴───────┴───────┴───────────╯
+```
+
+`statx` gives each file a panel of its own, the mode painted as `lsx` paints it (`statx -f`
+adds a bar of the space in use):
+
+```text
+$ statx notes.txt
+╭─ notes.txt ─────────────────────────────────────────╮
+│ Type      regular file                              │
+│ Size      537 bytes, 8 blocks of 512, IO block 4096 │
+│ Mode      0644 -rw-r--r--                           │
+│ Owner     ada (501)                                 │
+│ Group     staff (20)                                │
+│ Links     1                                         │
+│ Inode     73018274 on device 1,17                   │
+│ Accessed  2026-10-19 22:10:56.548756669 +0000       │
+│ Modified  2026-10-19 22:10:55.449463899 +0000       │
+│ Changed   2026-10-19 22:10:55.449463899 +0000       │
+│ Born      2026-10-19 22:10:55.449434316 +0000       │
+╰─────────────────────────────────────────────────────╯
+```
+
+`statx -c FORMAT`, `--printf` and `-t`, and `wcx --total=only`, print as GNU does. `dux` aligns the
 sizes, colors them by magnitude, and gives each line a bar and the percentage of its folder:
 
 ```text
