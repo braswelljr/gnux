@@ -2,6 +2,8 @@
 package chgrpx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -41,7 +43,8 @@ func Meta() docmeta.Meta {
 			"safeguard off unless --preserve-root is given, chgrpx refuses to work " +
 			"recursively on '/' unless --no-preserve-root is given; when both are given, " +
 			"--preserve-root wins. On Windows, which has no Unix groups, every change fails " +
-			"with 'Operation not supported'.",
+			"with 'Operation not supported'." +
+			" On a terminal, gnux's terminal view colors the -v report: the verb (removed, created, renamed), each quoted name and the arrows, in the theme --theme or GNUX_THEME names; the words are GNU's, and piped or redirected output is never colored (--pretty=never or GNUX_PRETTY=never turns it off).",
 		Permissions: "The owner of a file may change its group to any group they belong to; " +
 			"any other change requires root (or CAP_CHOWN). Search permission is needed on " +
 			"the directories leading to each FILE, and with -R read and search permission on " +
@@ -138,6 +141,7 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "dereference-all", "dereference-args", "physical")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into chgrp.Options.
@@ -170,5 +174,12 @@ func buildOptions(fs *pflag.FlagSet) chgrp.Options {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	// gnux's terminal view colors the -v report.
+	s, viewDone, viewErr := tool.ReportView(fs, s, "chgrpx", os.Getenv)
+	if viewErr != nil {
+		return viewErr
+	}
+	defer viewDone()
+
 	return chgrp.New(buildOptions(fs), s).Run(args)
 }

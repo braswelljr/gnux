@@ -8,16 +8,29 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 - A terminal view for the tools people read, on by default on a terminal and never through a
   pipe, so scripts still get GNU's output (BR-13, NFR-53, NFR-54). `--pretty[=WHEN]` and
-  `GNUX_PRETTY` choose it, `--theme=NAME` and `GNUX_THEME` pick one of seven built-in themes
-  (default, mono, dracula, nord, gruvbox, solarized, catppuccin) with single colors overridden
-  in eza's `EZA_COLORS` keys, and `NO_COLOR` keeps it uncolored.
-- `lsx`: eza's features. The long format colored column by column, with a header, readable
+  `GNUX_PRETTY` choose it, `--theme=NAME` and `GNUX_THEME` pick a built-in theme with single
+  colors overridden by two-letter keys, and `NO_COLOR` keeps it uncolored.
+- Built-in themes after editor themes, most in a dark and a light variant (`vscode`, `github`,
+  `one`, `solarized`, `gruvbox`, `catppuccin`, `tokyo-night`, `ayu`, `rose-pine`, `everforest`,
+  `night-owl`, `high-contrast`); the family's name follows the background, read from
+  `GNUX_BACKGROUND`, `COLORFGBG` or the system's dark mode (macOS, Windows, GTK). Also
+  `dracula`, `nord`, `monokai`, `kanagawa`, `palenight`, `ayu-mirage`, `default` and `mono`.
+- `gnux themes`: every built-in theme drawn on a sample row, with the theme in use and the
+  background gnux read (FR-184).
+- `lsx`: the long format colored column by column, with a header, readable
   sizes and directories first in the view; `--tree` and `--level` (also for `-R`), `--icons`
   (Nerd Font, `GNUX_ICONS`), `--git` and `--git-ignore` (read from the repository without
   running git), `--color-scale`, `--only-dirs`, `--only-files`, `--total-size` and
   `--octal-permissions`.
 - `dfx`: a usage bar after each percentage, turning yellow from 75% and red from 90%.
 - `dux`: aligned sizes colored by magnitude, with a bar and percentage of each line's share.
+- `grepx`: each file's matches under a colored heading of its name, numbered, with a blank line
+  between files.
+- `md5sumx`, `sha1sumx` to `sha512sumx`, `b2sumx`, `cksumx`: with `-c`, `OK` and `FAILED`
+  colored and a count after each list.
+- `headx`, `tailx`: the `==> FILE <==` headers colored.
+- `rmx`, `cpx`, `mvx`, `lnx`, `installx`, `mkdirx`, `rmdirx`, `chmodx`, `chownx`, `chgrpx`: the
+  `-v` report colored (the verb, each name, the arrows).
 - The guide [Terminal view](documentation/guides/terminal-view.md), and the plan for the view
   in every other tool in `docs/workflows/terminal-visuals.md`.
 

@@ -2,6 +2,8 @@
 package mkdirx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -33,7 +35,8 @@ func Meta() docmeta.Meta {
 			"and treats a directory that is already there as success, which makes the command " +
 			"safe to repeat. -m sets the permissions of the new directory using either an " +
 			"octal mode (755) or a chmod-style symbolic one (u=rwx,go=rx), and -v reports each " +
-			"directory as it is created.",
+			"directory as it is created." +
+			" On a terminal, gnux's terminal view colors the -v report: the verb (removed, created, renamed), each quoted name and the arrows, in the theme --theme or GNUX_THEME names; the words are GNU's, and piped or redirected output is never colored (--pretty=never or GNUX_PRETTY=never turns it off).",
 		Permissions: "Creating a directory needs write and search permission on its parent. " +
 			"New directories get a=rwx minus the umask. A mode given with -m is applied " +
 			"exactly, without being reduced by the umask, but only to the operand: parents " +
@@ -130,6 +133,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.StringP("mode", "m", "", "set file `MODE` (as in chmod), not a=rwx - umask")
 	fs.BoolP("parents", "p", false, "no error if existing, make parent directories as needed")
 	fs.BoolP("verbose", "v", false, "print a message for each created directory")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into mkdir.Options.
@@ -142,5 +146,12 @@ func buildOptions(fs *pflag.FlagSet) mkdir.Options {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	// gnux's terminal view colors the -v report.
+	s, viewDone, viewErr := tool.ReportView(fs, s, "mkdirx", os.Getenv)
+	if viewErr != nil {
+		return viewErr
+	}
+	defer viewDone()
+
 	return mkdir.New(buildOptions(fs), s).Run(args)
 }

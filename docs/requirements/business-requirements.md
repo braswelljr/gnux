@@ -254,13 +254,14 @@ gnux must present its output for people as well as it presents it for programs: 
 the tools that show tables, sizes, trees or listings use a shared, themeable visual layer
 (colors, bars, trees, icons, git status), while anything a program reads stays GNU's.
 
-- **Rationale.** The GNU tools print for the 1970s terminal, and people install eza, dust or
-  duf to read their own disks. A portable gnux can give everyone that view with no extra tool,
+- **Rationale.** The GNU tools print for the 1970s terminal, and people install other listing,
+  disk-usage and search tools just to read their own files and disks. A portable gnux can give everyone that view with no extra tool,
   without giving up the compatibility scripts depend on (BR-1).
 - **Acceptance.** On a terminal the view is on by default; piped or redirected output, and every
   option that promises a machine format (`--zero`, `-0`, `-P`), is byte-for-byte GNU's. One
   variable (`GNUX_PRETTY`) or option (`--pretty=never`) restores GNU's look everywhere, and the
-  built-in themes (`GNUX_THEME`, `--theme`) include a monochrome one. Which tools have the
+  built-in themes (`GNUX_THEME`, `--theme`, shown by `gnux themes`) come in dark and light
+  variants that follow the system's appearance, and include a monochrome one. Which tools have the
   view, and which are planned, is listed in
   [terminal-visuals](../workflows/terminal-visuals.md).
 - **Verified by.** NFR-53 and NFR-54; the view tests of each tool that has one.

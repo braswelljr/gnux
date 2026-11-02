@@ -4,6 +4,7 @@ package grepx
 import (
 	"errors"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 
@@ -95,7 +96,8 @@ func Meta() docmeta.Meta {
 			"accepted. A file that is also the output is " +
 			"not detected. A missing pattern is reported as 'missing PATTERNS operand' rather " +
 			"than with a usage line. Directory entries are searched in name order, where GNU " +
-			"uses directory order.",
+			"uses directory order." +
+			" On a terminal, gnux's terminal view (--pretty=auto, the default) prints each file's name once, as a colored heading above its lines with a blank line between files, and numbers the lines (as -n), each unless an option already decides it (--color=never keeps it uncolored); -c, -l, -L, -q, -Z and -z output is GNU's. Piped or redirected output is exactly GNU's; --pretty asks for the view anyway and --pretty=never or GNUX_PRETTY=never turns it off.",
 		Permissions: "Needs read permission on every FILE searched and on the files named by -f " +
 			"and --exclude-from, and search (execute) permission on the directories leading to " +
 			"them. A recursive search also needs read permission on each directory it descends " +
@@ -279,6 +281,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.Lookup(flagI).Hidden = true
 	fs.Lookup(flagY).Hidden = true
 	registerDigits(fs)
+	tool.RegisterView(fs)
 }
 
 // flagColour is the second spelling GNU accepts for --color. It is written
@@ -609,5 +612,26 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		}
 		return err
 	}
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), grep.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	applyView(fs, &opts, view)
 	return grep.New(opts, s).Run(args)
+}
+
+// applyView folds in gnux's terminal view: file names as headings, line
+// numbers, and color, each unless an option already decides it.
+func applyView(fs *pflag.FlagSet, o *grep.Options, view tool.View) {
+	if !view.Pretty {
+		return
+	}
+	o.Pretty, o.Theme = true, view.Theme
+	o.LineNumber = true
+	if !fs.Changed("color") && !fs.Changed(flagColour) {
+		o.Color = grep.ColorNever
+		if view.Color {
+			o.Color = grep.ColorAlways
+		}
+	}
 }

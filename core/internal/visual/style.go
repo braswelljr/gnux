@@ -13,8 +13,8 @@ import (
 	"time"
 )
 
-// The theme keys. They follow eza's EZA_COLORS names where eza has one, so
-// a theme written for eza carries over; the age keys are gnux's own.
+// The theme keys: two letters each, as GNUX_THEME's KEY=CODE overrides
+// name them.
 const (
 	UserRead    = "ur" // r in the owner's permission triplet
 	UserWrite   = "uw"
@@ -57,6 +57,10 @@ const (
 	Blocks    = "bl"
 	Octal     = "oc"
 	Header    = "hd" // a column header row
+	Heading   = "fh" // a file name heading a group of lines (grepx, headx, tailx)
+	Path      = "pa" // a quoted file name in a -v report
+	Good      = "ok" // a check that passed (OK), something created
+	Bad       = "er" // a check that failed (FAILED)
 	Branch    = "tb" // tree branches (falls back to Punctuation)
 	BarFull   = "bf" // the filled part of a bar under the warning level
 	BarWarn   = "bw" // ... at or above it
@@ -72,7 +76,7 @@ const (
 	GitClean  = "g-"
 )
 
-// defaults is the built-in theme, close to eza's own.
+// defaults is the default theme, in the 16 basic colors.
 var defaults = map[string]string{
 	UserRead: "1;33", UserWrite: "1;31", UserExec: "1;4;32", UserExecDir: "1;32",
 	GroupRead: "33", GroupWrite: "31", GroupExec: "32",
@@ -82,7 +86,7 @@ var defaults = map[string]string{
 	Size: "1;32", SizeByte: "32", SizeKilo: "1;32", SizeMega: "1;33", SizeGiga: "1;31", SizeTera: "1;35",
 	Date: "34", AgeHour: "1;96", AgeDay: "96", AgeWeek: "1;34", AgeMonth: "34", AgeYear: "2;34", AgeOlder: "90",
 	You: "1;33", Others: "", Links: "1;31", Inode: "35", Blocks: "36", Octal: "35",
-	Header: "4", Branch: "90",
+	Header: "4", Heading: "1;35", Good: "1;32", Bad: "1;31", Path: "1;36", Branch: "90",
 	BarFull: "32", BarWarn: "33", BarAlert: "1;31", BarEmpty: "90",
 	GitNew: "32", GitMod: "34", GitDel: "31", GitRename: "33", GitType: "35", GitIgnore: "90", GitClash: "1;31", GitClean: "90",
 }
@@ -94,8 +98,8 @@ type Theme struct {
 }
 
 // NewTheme returns the built-in theme overlaid with each spec in turn. A
-// spec is a colon-separated list of KEY=CODE pairs, as EZA_COLORS is
-// written ("ur=33:da=2;34"); pairs whose key is not a theme key (eza's file
+// spec is a colon-separated list of KEY=CODE pairs, as GNUX_THEME's
+// overrides are written ("ur=33:da=2;34"); pairs whose key is not a theme key (file
 // globs, "reset") are ignored, and a CODE of "0" or "00" switches a key off.
 func NewTheme(specs ...string) *Theme {
 	t := &Theme{codes: maps.Clone(defaults)}

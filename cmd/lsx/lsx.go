@@ -8,7 +8,6 @@ import (
 	"os"
 	"slices"
 	"strconv"
-	"strings"
 
 	"github.com/spf13/pflag"
 
@@ -75,21 +74,23 @@ func Meta() docmeta.Meta {
 			"line indented two spaces, then //DIRED// and //SUBDIRED// with the byte offsets " +
 			"of each name and directory header; it implies -l, turns --hyperlink off, and " +
 			"cannot be combined with --zero. " +
-			"Beyond GNU, lsx has an eza-style view, all of it in options of gnux's own that GNU ls " +
+			"Beyond GNU, lsx has gnux's terminal view, all of it in options of gnux's own that GNU ls " +
 			"does not have. On a terminal it is on by default (--pretty=auto): every column of " +
 			"the long format is colored (permission bits, owner, size, date, link count), with a " +
 			"--header row, -h sizes and --group-directories-first, each unless an option already " +
 			"decides it. When the output is piped or redirected nothing changes, so scripts and " +
 			"other programs still read GNU's output; --pretty (or GNUX_PRETTY=always) asks for the " +
 			"view anyway, and --pretty=never (or GNUX_PRETTY=never) turns it off everywhere. " +
-			"--theme=NAME, or GNUX_THEME=NAME[:KEY=CODE...], picks a built-in theme (default, mono, " +
-			"dracula, nord, gruvbox, solarized, catppuccin) and overrides single colors with eza's " +
-			"EZA_COLORS keys, which are read too; NO_COLOR keeps the view uncolored. " +
+			"--theme=NAME, or GNUX_THEME=NAME[:KEY=CODE...], picks one of the built-in themes that " +
+			"gnux themes shows (vscode, github, one, solarized, gruvbox, catppuccin, tokyo-night and " +
+			"more, each in a dark and a light variant that the family's name picks from the " +
+			"background, or GNUX_BACKGROUND) and overrides single colors by their two-letter keys; " +
+			"NO_COLOR keeps the view uncolored. " +
 			"--color-scale[=size|age|all] colors sizes by magnitude and timestamps by age. --tree " +
 			"draws the operands as trees, as one table in the long format, and --level=DEPTH " +
 			"limits --tree and -R. --icons[=WHEN] (GNUX_ICONS) puts a Nerd Font icon before each " +
 			"name; it needs a Nerd Font in the terminal, so it is off unless asked for. --git adds " +
-			"eza's two-letter git status column (staged, then unstaged: - unchanged, N new, M " +
+			"a two-letter git status column (staged, then unstaged: - unchanged, N new, M " +
 			"modified, D deleted, T type changed, I ignored, U conflicted; a directory shows the " +
 			"most significant status inside it), read from the repository without running git, " +
 			"and --git-ignore leaves out what .gitignore rules exclude. --only-dirs and " +
@@ -116,7 +117,7 @@ func Meta() docmeta.Meta {
 			"Auditing which files changed recently by sorting on modification, access or change time.",
 			"Producing stable, script-friendly listings (one per line, no colors) that behave the same on every platform.",
 			"Spotting oddly named files (spaces, control characters) with -Q, -b or -q.",
-			"Getting an eza-style, colored overview of a project on a terminal, with no other tool installed.",
+			"Getting a colored overview of a project on a terminal, with no other tool installed.",
 			"Seeing a project's layout at a glance with --tree and --level.",
 			"Checking which files a change touched, and what git ignores, with --git and --git-ignore.",
 		},
@@ -272,9 +273,9 @@ func Meta() docmeta.Meta {
 				PowerShell:  "lsx -lS --total-size --only-dirs --color-scale=size $HOME\\Downloads",
 			},
 			{
-				Description: "Your terminal has a Nerd Font and a dark theme: make icons and the Dracula colors the default in every new shell:",
-				Bash:        "echox 'export GNUX_ICONS=auto GNUX_THEME=dracula' >> ~/.bashrc",
-				PowerShell:  "Add-Content $PROFILE '$env:GNUX_ICONS = \"auto\"; $env:GNUX_THEME = \"dracula\"'",
+				Description: "Your terminal has a Nerd Font and switches between light and dark with the system: make icons and the GitHub colors, in the matching variant, the default in every new shell:",
+				Bash:        "echox 'export GNUX_ICONS=auto GNUX_THEME=github' >> ~/.bashrc",
+				PowerShell:  "Add-Content $PROFILE '$env:GNUX_ICONS = \"auto\"; $env:GNUX_THEME = \"github\"'",
 			},
 			{
 				Description: "Page through the colored view, which a pipe would otherwise turn off:",
@@ -389,17 +390,17 @@ func Register(fs *pflag.FlagSet) {
 	flag("sort-extension", "X", "sort alphabetically by entry extension")
 	flag("one-per-line", "1", "list one file per line")
 
-	// gnux's own view (eza's features): a tree, icons, a themed long format,
+	// gnux's own terminal view: a tree, icons, a themed long format,
 	// git status. None of it changes GNU's output unless asked for, and the
 	// pretty bundle applies on a terminal only.
 	fs.Bool("tree", false, "list subdirectories recursively, drawn as a tree")
 	fs.String("level", "", "with -R or --tree, go at most `DEPTH` levels deep")
 	word("icons", "show an icon (Nerd Font) before each name `WHEN`: 'always' (the default when WHEN is omitted), 'auto', or 'never'; GNUX_ICONS sets the default")
 	fs.Lookup("icons").NoOptDefVal = "always"
-	word("pretty", "the eza-style view `WHEN`: 'always' (the default when WHEN is omitted), 'auto' (the default: on a terminal), or 'never'; "+
+	word("pretty", "the gnux terminal view `WHEN`: 'always' (the default when WHEN is omitted), 'auto' (the default: on a terminal), or 'never'; "+
 		"colors every column, adds --header, -h and --group-directories-first; GNUX_PRETTY sets the default")
 	fs.Lookup("pretty").NoOptDefVal = "always"
-	fs.String("theme", "", "color the view with the built-in theme `NAME`: "+strings.Join(ls.ThemeNames(), ", ")+"; GNUX_THEME sets the default")
+	fs.String("theme", "", "color the view with the built-in theme `NAME` (gnux themes shows them all); GNUX_THEME sets the default")
 	word("color-scale", "color `WHICH` columns on a gradient by value: 'all' (the default when WHICH is omitted), 'size', 'age' or 'none'")
 	fs.Lookup("color-scale").NoOptDefVal = "all"
 	fs.Bool("header", false, "with -l, print a row naming each column")

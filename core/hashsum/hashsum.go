@@ -20,11 +20,13 @@ import (
 	"hash"
 	"io"
 	"io/fs"
+	"os"
 	"strconv"
 	"strings"
 	"syscall"
 
 	"github.com/braswelljr/gnux/core/fsys"
+	"github.com/braswelljr/gnux/core/internal/visual"
 
 	"golang.org/x/crypto/blake2b"
 
@@ -157,16 +159,30 @@ type Options struct {
 	Strict bool
 	// Warn (-w) diagnoses each improperly formatted line.
 	Warn bool
+
+	// Pretty is gnux's terminal view, not a GNU option: with -c, each list
+	// ends with a line counting what was verified and what failed, and with
+	// Color OK and FAILED are in the colors of Theme (a built-in theme; ""
+	// takes GNUX_THEME's). It has no effect with --status.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Sum is the engine. Construct it with New.
 type Sum struct {
 	Options
 
+	// Getenv reads GNUX_THEME and GNUX_BACKGROUND for the pretty view; nil
+	// means os.Getenv.
+	Getenv func(string) string
+
 	prog    string
 	alg     Algorithm
 	streams core.Streams
 	diag    *core.Diag
+	theme   *visual.Theme
+	themed  bool
 }
 
 // New builds an engine that digests with alg and prefixes its diagnostics
@@ -397,6 +413,9 @@ func (h *Sum) checkList(list string) bool {
 		h.verify(e, &res)
 	}
 
+	if h.Pretty && !h.Status && res.proper > 0 {
+		h.summary(res)
+	}
 	ok := true
 	switch {
 	case res.proper == 0:
@@ -454,18 +473,18 @@ func (h *Sum) verify(e entry, res *checkResult) {
 		res.unreadable++
 		h.diag.Warnf("%s: %s", e.name, core.ErrText(err))
 		if !h.Status {
-			fmt.Fprintf(h.streams.Out, "%s%s: FAILED open or read\n", prefix, shown)
+			fmt.Fprintf(h.streams.Out, "%s%s: %s\n", prefix, shown, h.paint(visual.Bad, "FAILED open or read"))
 		}
 	case bytes.Equal(sum, e.sum):
 		res.verified++
 		if !h.Quiet && !h.Status {
-			fmt.Fprintf(h.streams.Out, "%s%s: OK\n", prefix, shown)
+			fmt.Fprintf(h.streams.Out, "%s%s: %s\n", prefix, shown, h.paint(visual.Good, "OK"))
 		}
 	default:
 		res.verified++
 		res.mismatched++
 		if !h.Status {
-			fmt.Fprintf(h.streams.Out, "%s%s: FAILED\n", prefix, shown)
+			fmt.Fprintf(h.streams.Out, "%s%s: %s\n", prefix, shown, h.paint(visual.Bad, "FAILED"))
 		}
 	}
 }
@@ -574,4 +593,37 @@ func isHex(s string) bool {
 		}
 	}
 	return true
+}
+
+// paint colors s for the pretty view; s as it is otherwise.
+func (h *Sum) paint(key, s string) string {
+	if !h.Pretty || !h.Color {
+		return s
+	}
+	if !h.themed {
+		h.themed = true
+		getenv := h.Getenv
+		if getenv == nil {
+			getenv = os.Getenv
+		}
+		h.theme = visual.Use(true, h.Theme, getenv, h.diag.Warnf)
+	}
+	return h.theme.Paint(key, s)
+}
+
+// summary writes the pretty view's count for one list: "3 OK", then the
+// failures, if any.
+func (h *Sum) summary(res checkResult) {
+	good := res.verified - res.mismatched
+	line := h.paint(visual.Good, fmt.Sprintf("%d OK", good))
+	if res.mismatched > 0 {
+		line += ", " + h.paint(visual.Bad, fmt.Sprintf("%d FAILED", res.mismatched))
+	}
+	if res.unreadable > 0 {
+		line += ", " + h.paint(visual.Bad, fmt.Sprintf("%d unreadable", res.unreadable))
+	}
+	if res.improper > 0 {
+		line += fmt.Sprintf(", %d improperly formatted", res.improper)
+	}
+	fmt.Fprintln(h.streams.Out, line)
 }

@@ -148,9 +148,9 @@ func TestLoadTheme(t *testing.T) {
 	}
 
 	// The flag's name wins over the variable's; overrides still apply.
-	th, _ = visual.LoadTheme("dracula", env(map[string]string{"GNUX_THEME": "nord:hd=1", "EZA_COLORS": "hd=7"}))
+	th, _ = visual.LoadTheme("dracula", env(map[string]string{"GNUX_THEME": "nord:hd=1"}))
 	if got := th.Code(visual.Header); got != "1" {
-		t.Errorf("GNUX_THEME overrides should win over EZA_COLORS: hd = %q", got)
+		t.Errorf("GNUX_THEME overrides should apply: hd = %q", got)
 	}
 	if got := th.Code(visual.TypeDir); !strings.Contains(got, "38;2;189;147;249") {
 		t.Errorf("dracula di = %q", got)
@@ -168,5 +168,67 @@ func TestLoadTheme(t *testing.T) {
 		if _, err := visual.LoadTheme(name, env(nil)); err != nil {
 			t.Errorf("built-in theme %s: %v", name, err)
 		}
+	}
+}
+
+func TestDark(t *testing.T) {
+	env := func(m map[string]string) func(string) string { return func(k string) string { return m[k] } }
+	tests := []struct {
+		env  map[string]string
+		want bool
+	}{
+		{map[string]string{"GNUX_BACKGROUND": "light", "COLORFGBG": "15;0"}, false},
+		{map[string]string{"GNUX_BACKGROUND": "DARK"}, true},
+		{map[string]string{"COLORFGBG": "0;15"}, false},
+		{map[string]string{"COLORFGBG": "15;default;0"}, true},
+		{map[string]string{"COLORFGBG": "0;7"}, false},
+	}
+	for _, tt := range tests {
+		if got := visual.Dark(env(tt.env)); got != tt.want {
+			t.Errorf("Dark(%v) = %v, want %v", tt.env, got, tt.want)
+		}
+	}
+}
+
+func TestFamilies(t *testing.T) {
+	light := func(k string) string { return map[string]string{"GNUX_BACKGROUND": "light"}[k] }
+	dark := func(k string) string { return map[string]string{"GNUX_BACKGROUND": "dark"}[k] }
+	if got := visual.Resolve("GitHub", light); got != "github-light" {
+		t.Errorf("github on light = %q", got)
+	}
+	if got := visual.Resolve("github", dark); got != "github-dark" {
+		t.Errorf("github on dark = %q", got)
+	}
+	if got := visual.Resolve("github-light", dark); got != "github-light" {
+		t.Errorf("a variant is kept: %q", got)
+	}
+	if got := visual.Resolve("dracula", light); got != "dracula" {
+		t.Errorf("a theme with one variant is kept: %q", got)
+	}
+
+	// Every family name resolves to a theme, on either background, and the
+	// two variants differ.
+	names := visual.ThemeNames()
+	for _, name := range names {
+		d, l := visual.Resolve(name, dark), visual.Resolve(name, light)
+		if d == l {
+			continue
+		}
+		dt, err := visual.LoadTheme(d, dark)
+		if err != nil {
+			t.Errorf("%s: %v", d, err)
+			continue
+		}
+		lt, err := visual.LoadTheme(l, light)
+		if err != nil {
+			t.Errorf("%s: %v", l, err)
+			continue
+		}
+		if dt.Code(visual.TypeDir) == lt.Code(visual.TypeDir) && dt.Code(visual.Punctuation) == lt.Code(visual.Punctuation) {
+			t.Errorf("%s: the dark and light variants look the same", name)
+		}
+	}
+	if len(names) < 40 {
+		t.Errorf("only %d themes", len(names))
 	}
 }

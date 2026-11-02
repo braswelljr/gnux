@@ -52,6 +52,7 @@ gnux/
     root.go                # NewRoot(streams) - gnux root command, one subcommand per tool
     registry.go            # Tools() / Commands() / Lookup(name) - THE list of tools
     shell.go               # `gnux shell` command (ShellSpec) + NewShell for library use
+    themes.go              # `gnux themes` command (ThemesSpec): every built-in theme, drawn
     docs/                  # Reference generator (cobra/doc: md/man/yaml/rest); tool-only dep
     <gnu>x/                # One adapter package per tool: Spec, Meta, Register, buildOptions, run
     rmx/<flag>/            # rmx alone keeps one sub-package per flag (force, interactive, …)
@@ -264,17 +265,24 @@ is not reachable through `argv[0]` and is not in `--list`. Options stop at `SCRI
 
 ## The terminal view (`core/internal/visual`, `core/internal/gitstat`, `internal/tool/view.go`)
 
-On a terminal, the tools people read (`lsx`/`dirx`/`vdirx`, `dfx`, `dux`) show an eza-style
-view; anything piped or redirected is GNU's (BR-13, NFR-53, NFR-54).
+On a terminal, the tools people read (`lsx`/`dirx`/`vdirx`, `dfx`, `dux`, `grepx`, the checksum
+tools' `-c`, `headx`/`tailx` headers, the file tools' `-v`) show gnux's terminal view; anything
+piped or redirected is GNU's (BR-13, NFR-53, NFR-54).
 
 - **Opt-out on a terminal, never in a pipe.** `--pretty[=WHEN]`, else `GNUX_PRETTY`, else
   `auto` (`tool.ResolvePretty` / `tool.ViewOf`). `NO_COLOR` and `TERM=dumb` keep it uncolored.
   A machine format (`lsx --zero`, `dux -0`, `dfx -P`) always wins. The engine side is fields of
   its own (`Pretty`, `Color`, `Theme`) whose zero value is GNU's output: only adapters set them.
-- **One palette.** Colors come from theme keys (`visual.Size`, `visual.GitMod`, eza's
-  `EZA_COLORS` names) through `visual.LoadTheme` (default < `--theme`/`GNUX_THEME` name <
-  `EZA_COLORS` < `GNUX_THEME` overrides); a nil `*visual.Theme` paints nothing. Never hardcode
-  an escape in a tool.
+- **One palette.** Colors come from two-letter theme keys (`visual.Size`, `visual.GitMod`,
+  `visual.Heading`, ...) through `visual.Use` / `visual.LoadTheme` (default < `--theme`/`GNUX_THEME`
+  name < `GNUX_THEME` overrides); a nil `*visual.Theme` paints nothing. Never hardcode an escape
+  in a tool, and never name another program's theme variables.
+- **Themes come in pairs.** Most are a `scheme` after an editor theme, as `FAMILY-dark` and
+  `FAMILY-light`; the family's name picks one by `visual.Dark` (`GNUX_BACKGROUND`, `COLORFGBG`,
+  the system's appearance in build-tagged `background_*.go`, else dark). `gnux themes`
+  (`cmd/themes.go`, in `Commands()` like `shell` and `mcp`) shows them all.
+- **A `-v` report needs no engine change:** the adapter wraps its streams with
+  `tool.ReportView` (after its own argument parsing, for a `RawArgs` tool like `chmodx`).
 - **Options are gnux's own** (`tool.RegisterView` and `tool.OwnNames`), so GNU abbreviations
   keep their meaning. Icons need a Nerd Font: off unless `--icons` or `GNUX_ICONS`.
 - **`gitstat`** reads the index, HEAD (loose objects and packs, SHA-1 and SHA-256) and the

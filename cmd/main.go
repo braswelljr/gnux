@@ -40,7 +40,7 @@ func Main(argv []string, s core.Streams) int {
 		// script should not wait for every tool's command to be built.
 		// Match the name before building a spec: building one writes out
 		// its documentation, which a script run should not pay for.
-		for name, spec := range map[string]func() tool.Spec{"shell": ShellSpec, "mcp": MCPSpec} {
+		for name, spec := range map[string]func() tool.Spec{"shell": ShellSpec, "mcp": MCPSpec, "themes": ThemesSpec} {
 			if args[0] == name {
 				return runCommand(spec().Command(s), args[1:], s)
 			}

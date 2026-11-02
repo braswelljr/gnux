@@ -46,7 +46,8 @@ func Meta() docmeta.Meta {
 			"(which asks for backups by itself), or the SIMPLE_BACKUP_SUFFIX variable. A destination " +
 			"directory is backed up too, so with a backup a directory may replace a file " +
 			"and a file a directory; --backup cannot be combined with -n. GNU mv lets the last of -f, -i and -n win; mvx cannot see option order, " +
-			"so it prefers the most cautious instead: -n over -i over -f.",
+			"so it prefers the most cautious instead: -n over -i over -f." +
+			" On a terminal, gnux's terminal view colors the -v report: the verb (removed, created, renamed), each quoted name and the arrows, in the theme --theme or GNUX_THEME names; the words are GNU's, and piped or redirected output is never colored (--pretty=never or GNUX_PRETTY=never turns it off).",
 		Permissions: "Renaming needs write and search permission on both the source and " +
 			"destination directories, not on the file itself; in a sticky directory you must " +
 			"also own the entry. On a terminal, replacing a write-protected destination asks " +
@@ -162,6 +163,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.StringP("update", "u", "", "control which existing files are updated: all, none, or older (the default for -u)")
 	fs.Lookup("update").NoOptDefVal = "older"
 	fs.BoolP("verbose", "v", false, "explain what is being done")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into mv.Options. GNU mv lets the last
@@ -215,6 +217,13 @@ func buildOptions(fs *pflag.FlagSet) (mv.Options, error) {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	// gnux's terminal view colors the -v report.
+	s, viewDone, viewErr := tool.ReportView(fs, s, "mvx", os.Getenv)
+	if viewErr != nil {
+		return viewErr
+	}
+	defer viewDone()
+
 	opts, err := buildOptions(fs)
 	if err != nil {
 		return err

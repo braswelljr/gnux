@@ -14,7 +14,7 @@ Task-oriented guides for gnux, a portable, GNU-compatible implementation of the 
 | [Node and npm](node-and-npm.md) | JavaScript and TypeScript developers | Installing from npm, replacing rimraf, mkdirp, cpy-cli, shx and cross-env in package scripts, globs on Windows, and the JavaScript API |
 | [CI and containers](ci-and-containers.md) | CI and DevOps engineers | GitHub Actions, GitLab CI and Docker recipes, and one `gnux shell` script as a cross-OS build step |
 | [Go library](go-library.md) | Go developers | Embedding the engines: options, streams, captured output, injected prompts and clocks, errors, `cmd.RunTool`, `cmd.NewShell`, and seventeen complete programs |
-| [Terminal view](terminal-view.md) | Everyone at a terminal | The eza-style view: colored columns, trees, icons, git status, usage bars, built-in themes, and making your choices the default |
+| [Terminal view](terminal-view.md) | Everyone at a terminal | The terminal view: colored columns, trees, icons, git status, usage bars, grep headings, colored checks and reports, dark and light themes, and making your choices the default |
 | [Adoption](adoption.md) | Users of GNU coreutils | All 108 tools side by side with their GNU counterparts, supported flags, every documented deviation and what is not implemented yet |
 | [Troubleshooting](troubleshooting.md) | Everyone | What each error and exit status means, prompts you did not expect, refusals, and a FAQ |
 

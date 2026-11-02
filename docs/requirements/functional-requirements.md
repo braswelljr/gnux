@@ -308,6 +308,7 @@ b2sumx [OPTION]... [FILE]...
   formatted line and --strict fails because of them. The exit status is 0 when everything was read
   (and, with -c, matched), 1 otherwise. -l BITS shortens the digest to BITS bits, a multiple of 8
   up to 512; tagged lines then name the length ('BLAKE2b-256').
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, with `-c`, `OK` is in the theme's `ok` color and `FAILED` (and `FAILED open or read`) in its `er` color, and each list ends with a line counting what was verified and what failed (`2 OK, 1 FAILED, 1 unreadable, 1 improperly formatted`, the parts that apply). `--status` still prints nothing, and `-z`, piped or redirected output is exactly GNU's (NFR-53).
 - **Verified by.** `core/b2sum/b2sum_test.go`, `cmd/b2sumx/b2sumx_test.go`.
 
 ### FR-97: base32x
@@ -475,6 +476,7 @@ chgrpx [OPTION]... GROUP FILE...
   GNU chgrp, which leaves the safeguard off unless --preserve-root is given, chgrpx refuses to work
   recursively on '/' unless --no-preserve-root is given; when both are given, --preserve-root wins.
   On Windows, which has no Unix groups, every change fails with 'Operation not supported'.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`) each `-v` line is colored: the verb by what it reports (a removal in the `er` color, a creation in the `ok` color), each quoted name in the `pa` color (a name holding a quote stays whole), the `->` arrows and a `TOOL: ` prefix in the punctuation color. The text is GNU's; piped or redirected output is never colored, and `--pretty=never`, `GNUX_PRETTY=never` or `NO_COLOR` leave it plain (NFR-53).
 - **Verified by.** `core/chgrp/chgrp_test.go`, `cmd/chgrpx/chgrpx_test.go`.
 
 ### FR-100: chmodx
@@ -521,6 +523,7 @@ chmodx [OPTION]... MODE[,MODE]... FILE...
   is given, chmodx refuses to work recursively on '/' unless --no-preserve-root is given; when both
   are given, --preserve-root wins. On Windows only the owner's write bit maps onto the file system
   (the read-only attribute), so the other bits are accepted but have no effect.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`) each `-v` line is colored: the verb by what it reports (a removal in the `er` color, a creation in the `ok` color), each quoted name in the `pa` color (a name holding a quote stays whole), the `->` arrows and a `TOOL: ` prefix in the punctuation color. The text is GNU's; piped or redirected output is never colored, and `--pretty=never`, `GNUX_PRETTY=never` or `NO_COLOR` leave it plain (NFR-53).
 - **Verified by.** `core/chmod/chmod_test.go`, `cmd/chmodx/chmodx_test.go`.
 
 ### FR-101: chownx
@@ -562,6 +565,7 @@ chownx [OPTION]... [OWNER][:[GROUP]] FILE...
   given, chownx refuses to work recursively on '/' unless --no-preserve-root is given; when both
   are given, --preserve-root wins. On Windows, which has no Unix owners, every change fails with
   'Operation not supported'.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`) each `-v` line is colored: the verb by what it reports (a removal in the `er` color, a creation in the `ok` color), each quoted name in the `pa` color (a name holding a quote stays whole), the `->` arrows and a `TOOL: ` prefix in the punctuation color. The text is GNU's; piped or redirected output is never colored, and `--pretty=never`, `GNUX_PRETTY=never` or `NO_COLOR` leave it plain (NFR-53).
 - **Verified by.** `core/chown/chown_test.go`, `cmd/chownx/chownx_test.go`.
 
 ### FR-102: cksumx
@@ -600,6 +604,7 @@ cksumx [OPTION]... [FILE]...
   listed in tagged or untagged digest lines, detecting the algorithm from each tagged line when -a
   is not given, with --ignore-missing, --quiet, --status, --strict and -w as in md5sumx. The
   legacy algorithms cannot be checked.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, with `-c`, `OK` is in the theme's `ok` color and `FAILED` (and `FAILED open or read`) in its `er` color, and each list ends with a line counting what was verified and what failed (`2 OK, 1 FAILED, 1 unreadable, 1 improperly formatted`, the parts that apply). `--status` still prints nothing, and `-z`, piped or redirected output is exactly GNU's (NFR-53).
 - **Verified by.** `core/cksum/cksum_test.go`, `cmd/cksumx/cksumx_test.go`.
 
 ### FR-103: commx
@@ -686,6 +691,7 @@ cpx [OPTION]... SOURCE... DIRECTORY
   long name `--backup-default`. Not implemented: `--reflink`, `--sparse`, `--attributes-only`,
   `--copy-contents`, `--keep-directory-symlink`, `-Z` and `--context`,
   `--debug`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`) each `-v` line is colored: the verb by what it reports (a removal in the `er` color, a creation in the `ok` color), each quoted name in the `pa` color (a name holding a quote stays whole), the `->` arrows and a `TOOL: ` prefix in the punctuation color. The text is GNU's; piped or redirected output is never colored, and `--pretty=never`, `GNUX_PRETTY=never` or `NO_COLOR` leave it plain (NFR-53).
 - **Verified by.** `core/cp/cp_test.go`, `cmd/cpx/cpx_test.go`.
 
 ### FR-104: csplitx
@@ -1293,6 +1299,7 @@ grepx [OPTION]... PATTERNS [FILE]...
   UTF-8. Directory entries are searched in name order. A missing pattern is a usage error in
   gnux's form, not GNU's usage line. `GREP_COLOR` is not read, and an input file that is also
   the output is not detected. Not implemented: `-P`, `-u`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`), when the lines carry file names each file's name is printed once, as a heading in the theme's `fh` color above its lines, with a blank line between files and no group separator before a file's first group; `-n` and `--color=auto` are turned on, each unless an option already decides it (`--color=never` keeps the headings uncolored). `-c`, `-l`, `-L`, `-q`, `-Z` and `-z` output is GNU's, and so is piped or redirected output unless `--pretty=always` (NFR-53).
 - **Verified by.** `core/grep/grep_test.go`, `core/grep/grep_unix_test.go`,
   `cmd/grepx/grepx_test.go`.
 
@@ -1336,6 +1343,7 @@ headx [OPTION]... [FILE]...
   `==> name <==` header. When `-n`, `-c` and `-NUM` are combined, the last one given wins, as
   in GNU. Reading stops as soon as enough has been seen.
 - **Deviations.** None known.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal the `==> name <==` headers are in the theme's `fh` color; the text is GNU's, and `-z`, piped or redirected output is never colored (NFR-53).
 - **Verified by.** `core/head/head_test.go`, `cmd/headx/headx_test.go`.
 
 ### FR-172: hostidx
@@ -1441,6 +1449,7 @@ installx [OPTION]... SOURCE... DEST
   the gnux long name --create-leading. A symbolic -m starts from no permissions (u=rwx,go=rx is
   755), as GNU install does. With a backup (FR-167) an existing DEST is renamed to its backup
   name instead of being removed.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`) each `-v` line is colored: the verb by what it reports (a removal in the `er` color, a creation in the `ok` color), each quoted name in the `pa` color (a name holding a quote stays whole), the `->` arrows and a `TOOL: ` prefix in the punctuation color. The text is GNU's; piped or redirected output is never colored, and `--pretty=never`, `GNUX_PRETTY=never` or `NO_COLOR` leave it plain (NFR-53).
 - **Verified by.** `core/install/install_test.go`, `cmd/installx/installx_test.go`.
 
 ### FR-116: joinx
@@ -1563,6 +1572,7 @@ lnx [OPTION]... TARGET... [LINK_NAME|DIRECTORY]
 - **Deviations.** Option order is not visible, so `-i` overrides `-f` and `-L` overrides `-P`.
   On Windows, creating symbolic links needs Developer Mode or an elevated prompt. `-b` also
   answers to the long name `--backup-default`. Not implemented: `-d`, `-F` and `--directory`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`) each `-v` line is colored: the verb by what it reports (a removal in the `er` color, a creation in the `ok` color), each quoted name in the `pa` color (a name holding a quote stays whole), the `->` arrows and a `TOOL: ` prefix in the punctuation color. The text is GNU's; piped or redirected output is never colored, and `--pretty=never`, `GNUX_PRETTY=never` or `NO_COLOR` leave it plain (NFR-53).
 - **Verified by.** `core/ln/ln_test.go`, `cmd/lnx/lnx_test.go`.
 
 ### FR-162: lognamex
@@ -1649,7 +1659,7 @@ lsx [OPTION]... [FILE]...
 | `-X`                            | Sort alphabetically by entry extension                                  |
 | `-1`                            | List one file per line                                                  |
 | `--zero`                        | End each output line with NUL, not newline                              |
-| `--pretty[=WHEN]`               | gnux's own: the eza-style view `always`, `auto` (the default) or `never` |
+| `--pretty[=WHEN]`               | gnux's own: the terminal view `always`, `auto` (the default) or `never` |
 | `--theme=NAME`                  | gnux's own: default, mono, dracula, nord, gruvbox, solarized, catppuccin |
 | `--color-scale[=WHICH]`         | gnux's own: color sizes by magnitude, timestamps by age: all, size, age, none |
 | `--tree`                        | gnux's own: list subdirectories recursively, drawn as a tree            |
@@ -1702,20 +1712,20 @@ lsx [OPTION]... [FILE]...
   `-p`, `-S`, `-t`, `-u`, `-U`, `-v`, `-x`, `-X` and `-1` also answer to long names of gnux's
   own (`--ctime`, `--columns`, `--long-no-owner`, `--long`, `--commas`, `--long-no-group`,
   `--slash`, `--sort-size`, `--sort-time`, `--atime`, `--unsorted`, `--sort-version`,
-  `--across`, `--sort-extension`, `--one-per-line`). The options of the eza-style view below
+  `--across`, `--sort-extension`, `--one-per-line`). The options of the terminal view below
   are gnux's own too: each answers only when written in full, so no GNU abbreviation changes
   meaning. A multibyte name is read as UTF-8 in
   every locale, so in the C locale a printable non-ASCII character is shown where GNU escapes
   its bytes. Not implemented: `-f`, `-Z` and `--context`.
-- **Eza-style view (BR-13).** On a terminal the view is on by default (`--pretty=auto`, or
+- **Terminal view (BR-13).** On a terminal the view is on by default (`--pretty=auto`, or
   `GNUX_PRETTY`): every column of the long format takes the theme's colors (each permission
   letter, the link count, an owner or group that is the caller's, the size, the date, `->`), and
   `--header`, `-h` and `--group-directories-first` are turned on, each unless an option (or
   `LS_BLOCK_SIZE`, `BLOCK_SIZE`) already decides it. Piped or redirected output is GNU's unless
   `--pretty=always` or `GNUX_PRETTY=always`, which also color through the pipe; `--pretty=never`
   or `GNUX_PRETTY=never` turn the view off; `--zero` keeps color off (NFR-53). The theme is the
-  default (eza's look in the 16 basic colors), or the one `--theme` or `GNUX_THEME=NAME` names,
-  overridden key by key by `EZA_COLORS` and then by `GNUX_THEME=NAME:KEY=CODE:...` (eza's keys:
+  default (the 16 basic colors), or the one `--theme` or `GNUX_THEME=NAME` names (FR-184),
+  overridden key by key by `GNUX_THEME=NAME:KEY=CODE:...` (the two-letter keys:
   `ur`, `uw`, `ux`, `ue`, `gr`, ..., `sn`, `nb`...`nt`, `da`, `uu`, `un`, `lc`, `hd`, `ga`...`gc`;
   gnux's own `dh`...`do` for ages, `tb` for tree branches); `NO_COLOR` keeps it uncolored, an
   unknown name in `GNUX_THEME` is warned about and ignored, and an unknown `--theme` exits 1.
@@ -1727,7 +1737,7 @@ lsx [OPTION]... [FILE]...
   (1 or more) limits `--tree` and `-R`; without either it is a usage error (status 2).
   `--icons` puts a Nerd Font glyph (by name, extension and type) and a space before each name,
   colored as the name; `auto` is on a terminal only, and `GNUX_ICONS` sets the default, which is
-  `never`. `--git` adds, after the date, eza's two letters (staged, then unstaged: `-`
+  `never`. `--git` adds, after the date, two letters (staged, then unstaged: `-`
   unchanged, `N` new, `M` modified, `D` deleted, `T` type changed, `I` ignored, `U`
   conflicted); a directory shows the most significant status of what is under it, and an entry
   outside a repository shows two spaces. The repository is read directly (the index in versions
@@ -1778,6 +1788,7 @@ md5sumx [OPTION]... [FILE]...
   formatted line and --strict fails because of them. The exit status is 0 when everything was read
   (and, with -c, matched), 1 otherwise. MD5 (RFC 1321) is broken for security purposes: use it to
   detect accidental corruption, not tampering, and prefer sha256sumx or b2sumx otherwise.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, with `-c`, `OK` is in the theme's `ok` color and `FAILED` (and `FAILED open or read`) in its `er` color, and each list ends with a line counting what was verified and what failed (`2 OK, 1 FAILED, 1 unreadable, 1 improperly formatted`, the parts that apply). `--status` still prints nothing, and `-z`, piped or redirected output is exactly GNU's (NFR-53).
 - **Verified by.** `core/md5sum/md5sum_test.go`, `cmd/md5sumx/md5sumx_test.go`.
 
 ### FR-61: mkdirx
@@ -1801,6 +1812,7 @@ mkdirx [OPTION]... DIRECTORY...
   error.
 - **Deviations.** On Windows only the read-only attribute is representable, so most of a mode
   has no effect there. Not implemented: `-Z` and `--context`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`) each `-v` line is colored: the verb by what it reports (a removal in the `er` color, a creation in the `ok` color), each quoted name in the `pa` color (a name holding a quote stays whole), the `->` arrows and a `TOOL: ` prefix in the punctuation color. The text is GNU's; piped or redirected output is never colored, and `--pretty=never`, `GNUX_PRETTY=never` or `NO_COLOR` leave it plain (NFR-53).
 - **Verified by.** `core/mkdir/mkdir_test.go`, `core/mkdir/mkdir_unix_test.go`,
   `core/mkdir/mode_test.go`, `cmd/mkdirx/mkdirx_test.go`.
 
@@ -1914,6 +1926,7 @@ mvx [OPTION]... SOURCE... DIRECTORY
 - **Deviations.** Option order is not visible, so `-n` overrides `-i`, which overrides `-f`.
   `-b` also answers to the long name `--backup-default`. Not implemented: `-Z` and
   `--context`, `--exchange`, `--debug`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`) each `-v` line is colored: the verb by what it reports (a removal in the `er` color, a creation in the `ok` color), each quoted name in the `pa` color (a name holding a quote stays whole), the `->` arrows and a `TOOL: ` prefix in the punctuation color. The text is GNU's; piped or redirected output is never colored, and `--pretty=never`, `GNUX_PRETTY=never` or `NO_COLOR` leave it plain (NFR-53).
 - **Verified by.** `core/mv/mv_test.go`, `cmd/mvx/mvx_test.go`.
 
 ### FR-121: nicex
@@ -2419,6 +2432,7 @@ rmdirx [OPTION]... DIRECTORY...
   refused rather than followed. With `-p`, removal stops at the first ancestor that cannot be
   removed.
 - **Deviations.** None known.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`) each `-v` line is colored: the verb by what it reports (a removal in the `er` color, a creation in the `ok` color), each quoted name in the `pa` color (a name holding a quote stays whole), the `->` arrows and a `TOOL: ` prefix in the punctuation color. The text is GNU's; piped or redirected output is never colored, and `--pretty=never`, `GNUX_PRETTY=never` or `NO_COLOR` leave it plain (NFR-53).
 - **Verified by.** `core/rmdir/rmdir_test.go`, `cmd/rmdirx/rmdirx_test.go`.
 
 ### FR-66: rmx
@@ -2454,6 +2468,7 @@ rmx [OPTION]... [FILE]...
   whatever the final prompt mode. `-i` and `-I` also answer to the long names `--prompt-each`
   and `--prompt-once`. Off Unix, `--one-file-system` has no effect, because no device number is
   available. Not implemented: `--preserve-root=all`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal (`--pretty=auto`, the default, or `GNUX_PRETTY`) each `-v` line is colored: the verb by what it reports (a removal in the `er` color, a creation in the `ok` color), each quoted name in the `pa` color (a name holding a quote stays whole), the `->` arrows and a `TOOL: ` prefix in the punctuation color. The text is GNU's; piped or redirected output is never colored, and `--pretty=never`, `GNUX_PRETTY=never` or `NO_COLOR` leave it plain (NFR-53).
 - **Verified by.** `core/rm/rm_test.go`, `cmd/rmx/rmx_test.go`.
 
 ### FR-150: sedx
@@ -2560,6 +2575,7 @@ sha1sumx [OPTION]... [FILE]...
   formatted line and --strict fails because of them. The exit status is 0 when everything was read
   (and, with -c, matched), 1 otherwise. SHA-1 (FIPS 180-4) is broken for security purposes: use it
   to detect accidental corruption, not tampering, and prefer sha256sumx or b2sumx otherwise.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, with `-c`, `OK` is in the theme's `ok` color and `FAILED` (and `FAILED open or read`) in its `er` color, and each list ends with a line counting what was verified and what failed (`2 OK, 1 FAILED, 1 unreadable, 1 improperly formatted`, the parts that apply). `--status` still prints nothing, and `-z`, piped or redirected output is exactly GNU's (NFR-53).
 - **Verified by.** `core/sha1sum/sha1sum_test.go`, `cmd/sha1sumx/sha1sumx_test.go`.
 
 ### FR-130: sha224sumx
@@ -2595,6 +2611,7 @@ sha224sumx [OPTION]... [FILE]...
   nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly
   formatted line and --strict fails because of them. The exit status is 0 when everything was read
   (and, with -c, matched), 1 otherwise.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, with `-c`, `OK` is in the theme's `ok` color and `FAILED` (and `FAILED open or read`) in its `er` color, and each list ends with a line counting what was verified and what failed (`2 OK, 1 FAILED, 1 unreadable, 1 improperly formatted`, the parts that apply). `--status` still prints nothing, and `-z`, piped or redirected output is exactly GNU's (NFR-53).
 - **Verified by.** `core/sha224sum/sha224sum_test.go`, `cmd/sha224sumx/sha224sumx_test.go`.
 
 ### FR-131: sha256sumx
@@ -2630,6 +2647,7 @@ sha256sumx [OPTION]... [FILE]...
   nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly
   formatted line and --strict fails because of them. The exit status is 0 when everything was read
   (and, with -c, matched), 1 otherwise.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, with `-c`, `OK` is in the theme's `ok` color and `FAILED` (and `FAILED open or read`) in its `er` color, and each list ends with a line counting what was verified and what failed (`2 OK, 1 FAILED, 1 unreadable, 1 improperly formatted`, the parts that apply). `--status` still prints nothing, and `-z`, piped or redirected output is exactly GNU's (NFR-53).
 - **Verified by.** `core/sha256sum/sha256sum_test.go`, `cmd/sha256sumx/sha256sumx_test.go`.
 
 ### FR-132: sha384sumx
@@ -2665,6 +2683,7 @@ sha384sumx [OPTION]... [FILE]...
   nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly
   formatted line and --strict fails because of them. The exit status is 0 when everything was read
   (and, with -c, matched), 1 otherwise.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, with `-c`, `OK` is in the theme's `ok` color and `FAILED` (and `FAILED open or read`) in its `er` color, and each list ends with a line counting what was verified and what failed (`2 OK, 1 FAILED, 1 unreadable, 1 improperly formatted`, the parts that apply). `--status` still prints nothing, and `-z`, piped or redirected output is exactly GNU's (NFR-53).
 - **Verified by.** `core/sha384sum/sha384sum_test.go`, `cmd/sha384sumx/sha384sumx_test.go`.
 
 ### FR-133: sha512sumx
@@ -2700,6 +2719,7 @@ sha512sumx [OPTION]... [FILE]...
   nothing, --ignore-missing skips listed files that do not exist, -w warns about each improperly
   formatted line and --strict fails because of them. The exit status is 0 when everything was read
   (and, with -c, matched), 1 otherwise.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, with `-c`, `OK` is in the theme's `ok` color and `FAILED` (and `FAILED open or read`) in its `er` color, and each list ends with a line counting what was verified and what failed (`2 OK, 1 FAILED, 1 unreadable, 1 improperly formatted`, the parts that apply). `--status` still prints nothing, and `-z`, piped or redirected output is exactly GNU's (NFR-53).
 - **Verified by.** `core/sha512sum/sha512sum_test.go`, `cmd/sha512sumx/sha512sumx_test.go`.
 
 ### FR-180: shredx
@@ -3071,6 +3091,7 @@ tailx [OPTION]... [FILE]...
   long name `--follow-retry`. `--follow=name` checks the name on every poll, where GNU waits for
   `--max-unchanged-stats` polls without growth, so a rotation is noticed at once; N is validated
   (`invalid maximum number of unchanged stats between opens`) but changes nothing.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal the `==> name <==` headers are in the theme's `fh` color; the text is GNU's, and `-z`, piped or redirected output is never colored (NFR-53).
 - **Verified by.** `core/tail/tail_test.go`, `cmd/tailx/tailx_test.go`.
 
 ### FR-92: teex
@@ -4015,6 +4036,28 @@ tools to an AI agent over the Model Context Protocol, sandboxed to DIR.
   when the status is not 0. Requests are handled concurrently.
 - **Verified by.** `internal/mcp/mcp_test.go` (the protocol), `cmd/mcp_test.go` (the output
   limit, the directory check, the result text).
+
+### FR-184: gnux themes
+
+`gnux themes [--pretty[=WHEN]] [--theme=NAME]` must show the built-in themes of the terminal view
+(BR-13).
+
+- **Acceptance.** The themes are `default` (the 16 basic colors), `mono` (bold, dim and
+  underline only), a dark and a light variant of each family (`vscode`, `github`, `one`,
+  `solarized`, `gruvbox`, `catppuccin`, `tokyo-night`, `ayu`, `rose-pine`, `everforest`,
+  `night-owl`, `high-contrast`), named `FAMILY-dark` and `FAMILY-light`, and the dark-only
+  `dracula`, `nord`, `monokai`, `kanagawa`, `palenight` and `ayu-mirage`. A family's own name,
+  wherever a theme is named (`--theme`, `GNUX_THEME`), takes the variant for the background:
+  `GNUX_BACKGROUND` (`dark` or `light`) when set, else the background color in `COLORFGBG`
+  (0 to 6 and 8 dark), else the system's appearance (macOS dark mode, the Windows app mode, a
+  `GTK_THEME` naming dark), else dark. On a terminal `gnux themes` draws a box naming the theme
+  in use (and the variant a family resolved to) and the background, then each family with its
+  variant and each theme, every one on a sample row in its own colors, the one in use marked;
+  otherwise, or under `NO_COLOR`, it prints every name, one a line, sorted. An operand is a
+  usage error.
+- **Verified by.** `core/internal/visual/visual_test.go` (`TestFamilies`, `TestDark`),
+  `core/internal/visual/box_test.go` (`TestPreview`), and the registry checks in
+  `cmd/main_test.go`.
 
 ## 6. The Go library
 

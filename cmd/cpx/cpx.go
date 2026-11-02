@@ -57,7 +57,8 @@ func Meta() docmeta.Meta {
 			"its backup name, as in GNU; and --backup cannot be combined with -n. GNU cp " +
 			"lets the last of conflicting options win; cpx cannot see option order, so it " +
 			"prefers the most cautious instead: -n overrides -i, and an explicit -P/-d overrides " +
-			"-H, which overrides -L.",
+			"-H, which overrides -L." +
+			" On a terminal, gnux's terminal view colors the -v report: the verb (removed, created, renamed), each quoted name and the arrows, in the theme --theme or GNUX_THEME names; the words are GNU's, and piped or redirected output is never colored (--pretty=never or GNUX_PRETTY=never turns it off).",
 		Permissions: "Copying needs read permission on each source and write and search " +
 			"permission on the destination directory. Without -p the copy is owned by the " +
 			"invoking user and its mode is the source's mode minus the umask. Preserving " +
@@ -230,6 +231,7 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "dereference-args", "no-dereference-links", "preserve-default")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into cp.Options. GNU cp resolves
@@ -341,6 +343,13 @@ func setPreserve(p *cp.Preserve, list string, on bool, option string) error {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	// gnux's terminal view colors the -v report.
+	s, viewDone, viewErr := tool.ReportView(fs, s, "cpx", os.Getenv)
+	if viewErr != nil {
+		return viewErr
+	}
+	defer viewDone()
+
 	opts, err := buildOptions(fs)
 	if err != nil {
 		return err

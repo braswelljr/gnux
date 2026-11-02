@@ -176,12 +176,7 @@ func (d *Du) Run(args []string) (err error) {
 
 	d.out = core.NewWriter(d.streams.Out)
 	defer core.FlushOutput(d.out, d.diag, &err)
-	if d.Pretty && d.Color {
-		var err error
-		if d.theme, err = visual.LoadTheme(d.Theme, d.Getenv); err != nil {
-			d.diag.Warnf("ignoring the theme: %v", err)
-		}
-	}
+	d.theme = visual.Use(d.Pretty && d.Color, d.Theme, d.Getenv, d.diag.Warnf)
 	var grand sums
 	for _, name := range operands {
 		root := d.scanRoot(name)

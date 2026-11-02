@@ -519,8 +519,8 @@ format. The generated reference is not committed: it is built whenever it is nee
 
 ### The terminal view
 
-On a terminal, gnux shows its listings the way eza, dust and duf do, with nothing else to
-install; through a pipe the output is GNU's, so scripts are unaffected:
+On a terminal, gnux shows what its tools print in color and in a layout made for reading, with
+nothing else to install; through a pipe the output is GNU's, so scripts are unaffected:
 
 ```bash
 lsx -l                            # every column colored, a header, readable sizes
@@ -528,11 +528,17 @@ lsx --tree --level=2              # a project's layout as a tree
 lsx -l --git --git-ignore src/    # git status per file, ignored files left out
 dfx -h                            # a usage bar per disk, red when nearly full
 dux -h -d 1 ~                     # each folder's share of your home folder
+grepx -r TODO src/                # each file's matches under its name, numbered
+sha256sumx -c checksums.txt       # OK in green, FAILED in red, and a count
+gnux themes                       # every built-in theme, drawn in its colors
 ```
 
-Pick a built-in theme with `--theme` (default, mono, dracula, nord, gruvbox, solarized,
-catppuccin), make your choice the default with `GNUX_THEME`, `GNUX_ICONS` and `GNUX_PRETTY`, or
-switch the view off with `GNUX_PRETTY=never`. The
+Pick a built-in theme with `--theme`: `vscode`, `github`, `one`, `solarized`, `gruvbox`,
+`catppuccin`, `tokyo-night`, `ayu`, `rose-pine`, `everforest`, `night-owl` and `high-contrast`
+each come in a dark and a light variant that follows your system's appearance (or
+`GNUX_BACKGROUND`), beside `dracula`, `nord`, `monokai`, `kanagawa`, `palenight`, `default` and
+`mono`. Make your choice the default with `GNUX_THEME`, `GNUX_ICONS` and `GNUX_PRETTY`, or switch
+the view off with `GNUX_PRETTY=never`. The
 [Terminal view guide](documentation/guides/terminal-view.md) has it all.
 
 ## Documentation

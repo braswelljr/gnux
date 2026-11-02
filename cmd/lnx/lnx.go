@@ -48,7 +48,8 @@ func Meta() docmeta.Meta {
 			"'TARGET'. For hard links, -L " +
 			"links to what a symbolic link TARGET points at and -P (the default) to the link " +
 			"itself. GNU ln lets the last of conflicting options win; lnx cannot see option " +
-			"order, so it prefers the most cautious (-i over -f) and -L over -P.",
+			"order, so it prefers the most cautious (-i over -f) and -L over -P." +
+			" On a terminal, gnux's terminal view colors the -v report: the verb (removed, created, renamed), each quoted name and the arrows, in the theme --theme or GNUX_THEME names; the words are GNU's, and piped or redirected output is never colored (--pretty=never or GNUX_PRETTY=never turns it off).",
 		Permissions: "Creating a link needs write and search permission on the directory that " +
 			"will hold it. A symbolic link needs no access to TARGET, which may not even exist; " +
 			"a hard link requires TARGET to exist on the same filesystem and cannot point at a " +
@@ -160,6 +161,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.StringP("target-directory", "t", "", "specify the DIRECTORY in which to create the links")
 	fs.BoolP("no-target-directory", "T", false, "treat LINK_NAME as a normal file always")
 	fs.BoolP("verbose", "v", false, "print name of each linked file")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into ln.Options. GNU ln lets the last
@@ -196,6 +198,13 @@ func buildOptions(fs *pflag.FlagSet) (ln.Options, error) {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	// gnux's terminal view colors the -v report.
+	s, viewDone, viewErr := tool.ReportView(fs, s, "lnx", os.Getenv)
+	if viewErr != nil {
+		return viewErr
+	}
+	defer viewDone()
+
 	opts, err := buildOptions(fs)
 	if err != nil {
 		return err

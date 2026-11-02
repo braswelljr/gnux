@@ -19,6 +19,7 @@ import (
 	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -72,6 +73,11 @@ type Options struct {
 	SleepInterval time.Duration
 	// PID (--pid), when positive, ends follow mode once that process dies.
 	PID int
+	// Color is gnux's terminal view, not a GNU option: the file-name
+	// headers in the heading color of Theme (a built-in theme; "" takes
+	// GNUX_THEME's). The text is GNU's either way.
+	Color bool
+	Theme string
 }
 
 // Tail is the engine. Construct it with New.
@@ -83,10 +89,11 @@ type Tail struct {
 	out     *bufio.Writer
 	delim   byte
 	headers bool
-	last    *target // whose data was printed last, to know when a header is due
-	printed bool    // a header has been written, so the next one needs a blank line
-	lost    bool    // a followed file was given up on
-	stopped bool    // standard output is gone
+	last    *target       // whose data was printed last, to know when a header is due
+	theme   *visual.Theme // the headers' colors; nil when uncolored
+	printed bool          // a header has been written, so the next one needs a blank line
+	lost    bool          // a followed file was given up on
+	stopped bool          // standard output is gone
 }
 
 // target is one operand being followed.
@@ -112,6 +119,7 @@ func New(opts Options, s core.Streams) *Tail {
 	if opts.ZeroTerminated {
 		t.delim = 0
 	}
+	t.theme = visual.Use(opts.Color, opts.Theme, os.Getenv, t.diag.Warnf)
 	if t.SleepInterval <= 0 {
 		t.SleepInterval = DefaultSleepInterval
 	}
@@ -610,7 +618,7 @@ func (t *Tail) header(tg *target) {
 	if t.printed {
 		_ = t.out.WriteByte('\n')
 	}
-	fmt.Fprintf(t.out, "==> %s <==\n", tg.display)
+	fmt.Fprintf(t.out, "%s\n", t.theme.Paint(visual.Heading, "==> "+tg.display+" <=="))
 	t.printed, t.last = true, tg
 }
 

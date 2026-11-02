@@ -1,6 +1,6 @@
 # Terminal view
 
-On a terminal, gnux shows its listings the way eza, dust and duf do: `lsx` colors every column and can draw trees, show icons and git status, `dfx` draws a usage bar per disk, and `dux` shows each folder's share of the space. Anything piped or redirected stays exactly GNU's, so scripts are unaffected. This guide shows the view, how to make your choices the default with the built-in themes and a few environment variables, and how to turn it off.
+On a terminal, gnux shows what the tools print in color and in a layout made for reading: `lsx` colors every column and can draw trees, show icons and git status, `dfx` draws a usage bar per disk, `dux` shows each folder's share of the space, `grepx` heads each file's matches with its name, the checksum tools color OK and FAILED, and the file tools color their `-v` reports. Anything piped or redirected stays exactly GNU's, so scripts are unaffected. This guide shows the view, how to pick one of the built-in themes (in a dark and a light variant that follows your system), how to make your choices the default, and how to turn it off.
 
 ## What you see by default
 
@@ -63,7 +63,7 @@ With `-l`, the whole tree is one table, so every column lines up. Where the loca
 
 ## Git status
 
-`--git` adds eza's two letters after the date: what is staged, then what is not. `-` is
+`--git` adds two letters after the date: what is staged, then what is not. `-` is
 unchanged, `N` new, `M` modified, `D` deleted, `T` type changed, `I` ignored and `U`
 conflicted. A directory shows the most significant letter of what is inside it.
 `--git-ignore` leaves out what `.gitignore` excludes:
@@ -100,21 +100,89 @@ folders first, sized by their contents:
 lsx -lS --total-size --only-dirs --color-scale=size ~/Downloads
 ```
 
+## The other tools
+
+`grepx` prints each file's name once, as a heading over its lines, numbers the lines, and
+leaves a blank line between files:
+
+```text
+$ grepx -r 'visual.Use(' core --include='*.go'
+core/df/df.go
+640:	theme := visual.Use(d.Pretty && d.Color, d.Theme, d.Getenv, d.diag.Warnf)
+
+core/du/du.go
+179:	d.theme = visual.Use(d.Pretty && d.Color, d.Theme, d.Getenv, d.diag.Warnf)
+```
+
+(Some files left out.) `-c`, `-l`, `-L`, `-q`, `-Z` and `-z` print GNU's format, and
+`--color=never` keeps the headings without color.
+
+The checksum tools (`md5sumx`, `sha1sumx` to `sha512sumx`, `b2sumx`, `cksumx`) color `OK`
+green and `FAILED` red in `-c` output and end each list with a count, so one bad download
+in a long list stands out:
+
+```text
+$ sha256sumx -c checksums.txt
+gnux-darwin-arm64.tar.gz: OK
+gnux-linux-amd64.tar.gz: OK
+gnux-windows-amd64.zip: FAILED
+2 OK, 1 FAILED
+sha256sumx: WARNING: 1 computed checksum did NOT match
+```
+
+`headx` and `tailx` color their `==> FILE <==` headers. `rmx`, `cpx`, `mvx`, `lnx`,
+`installx`, `mkdirx`, `rmdirx`, `chmodx`, `chownx` and `chgrpx` color their `-v` reports: a
+removal in red, a creation in green, each quoted name, and the `->` arrows. In both, the words
+are GNU's; only the color is added.
+
 ## Themes
 
-`--theme=NAME` picks one of the built-in themes:
+`--theme=NAME` picks a built-in theme, and `gnux themes` shows every one of them, each on a
+sample row in its own colors, with a panel naming the theme in use and the background gnux
+has read:
 
-| Theme        | Looks like                                                            |
-|--------------|-----------------------------------------------------------------------|
-| `default`    | eza's colors in the 16 basic terminal colors, so it follows your terminal's scheme |
-| `mono`       | Bold, underline and dim only: no hues, for monochrome terminals and color blindness |
-| `dracula`    | The Dracula palette                                                   |
-| `nord`       | The Nord palette                                                      |
-| `gruvbox`    | The Gruvbox dark palette                                              |
-| `solarized`  | The Solarized palette                                                 |
-| `catppuccin` | The Catppuccin Mocha palette                                          |
+```bash
+gnux themes
+```
 
-The named themes use 24-bit color, which current terminals show, Windows Terminal included.
+Most themes follow an editor theme and come in a dark and a light variant, named
+`FAMILY-dark` and `FAMILY-light`. Give the family's own name and gnux picks the variant that
+suits your background:
+
+| Family          | After                                    |
+|-----------------|------------------------------------------|
+| `vscode`        | VS Code's Dark+ and Light+               |
+| `github`        | GitHub Dark and GitHub Light             |
+| `one`           | One Dark and One Light                   |
+| `solarized`     | Solarized Dark and Solarized Light       |
+| `gruvbox`       | Gruvbox Dark and Gruvbox Light           |
+| `catppuccin`    | Catppuccin Mocha and Catppuccin Latte    |
+| `tokyo-night`   | Tokyo Night and Tokyo Night Day          |
+| `ayu`           | Ayu Dark and Ayu Light (and `ayu-mirage`) |
+| `rose-pine`     | Rosé Pine and Rosé Pine Dawn             |
+| `everforest`    | Everforest Dark and Everforest Light     |
+| `night-owl`     | Night Owl and Light Owl                  |
+| `high-contrast` | High-contrast colors on dark and on light |
+
+`dracula`, `nord`, `monokai`, `kanagawa`, `palenight` and `ayu-mirage` come in one, dark,
+variant. `default` uses the 16 basic terminal colors, so it follows your terminal's own
+scheme, and `mono` uses bold, underline and dim only: no hues, for monochrome terminals and
+color blindness. The named themes use 24-bit color, which current terminals show, Windows
+Terminal included.
+
+### Dark or light
+
+A family's variant follows the first of these that says something:
+
+1. `GNUX_BACKGROUND=dark` or `GNUX_BACKGROUND=light`;
+2. `COLORFGBG`, which many terminals (rxvt, Konsole, iTerm2) set to their colors;
+3. the system's appearance: dark mode on macOS and on Windows, or a dark GTK theme
+   (`GTK_THEME`) on a Linux desktop;
+4. otherwise dark, which most terminals are.
+
+So with `GNUX_THEME=github`, switching macOS or Windows to dark mode switches your listings
+too. If your terminal keeps its own colors whatever the system does, say which it is once,
+with `GNUX_BACKGROUND`.
 
 ## Making it your default
 
@@ -124,19 +192,21 @@ Four variables carry your choices to every shell and every tool that has the vie
 |----------------|-----------------------------------------|----------|
 | `GNUX_PRETTY`  | `auto` (on a terminal), `always`, `never` | `auto`   |
 | `GNUX_THEME`   | `NAME`, `NAME:KEY=CODE:...` or `KEY=CODE:...` | `default` |
+| `GNUX_BACKGROUND` | `dark`, `light`: which variant a family takes | from the system |
 | `GNUX_ICONS`   | `auto`, `always`, `never` (lsx)         | `never`  |
 | `NO_COLOR`     | any value: keep the view, without color | unset    |
 
-For example, with a Nerd Font and a dark terminal, add to `~/.bashrc` or `~/.zshrc`:
+For example, with a Nerd Font and a system that switches between light and dark during the
+day, add to `~/.bashrc` or `~/.zshrc`:
 
 ```bash
-export GNUX_THEME=dracula GNUX_ICONS=auto
+export GNUX_THEME=github GNUX_ICONS=auto
 ```
 
 and in PowerShell, to `$PROFILE`:
 
 ```powershell
-$env:GNUX_THEME = 'dracula'; $env:GNUX_ICONS = 'auto'
+$env:GNUX_THEME = 'github'; $env:GNUX_ICONS = 'auto'
 ```
 
 An option always wins over the variable, for one command: `lsx --theme=nord`,
@@ -144,9 +214,9 @@ An option always wins over the variable, for one command: `lsx --theme=nord`,
 
 ### Changing single colors
 
-After the theme's name, `GNUX_THEME` takes `KEY=CODE` pairs, with eza's keys and SGR codes,
-and `EZA_COLORS` is read too, so a theme written for eza carries over. A code of `0` switches a
-color off.
+After the theme's name, `GNUX_THEME` takes `KEY=CODE` pairs: a two-letter key below and an
+SGR code (`1` bold, `2` dim, `4` underline, `31` to `37` and `90` to `97` the basic colors,
+`38;2;R;G;B` any color). A code of `0` switches a color off.
 
 ```bash
 # Nord, with dates dimmed and your own files in cyan
@@ -160,12 +230,15 @@ The keys: `ur` `uw` `ux` `ue` (the owner's read, write, execute, and search on a
 from an hour to older than a year), `uu` `un` (yours, others'), `lc` (links), `in` (inode),
 `bl` (blocks), `oc` (octal), `hd` (headers), `tb` (tree branches), `bf` `bw` `ba` `be` (bars:
 filled, warning, alert, empty) and `ga` `gm` `gd` `gv` `gt` `gi` `gc` `g-` (git: new,
-modified, deleted, renamed, type change, ignored, conflict, clean).
+modified, deleted, renamed, type change, ignored, conflict, clean), `fh` (a file heading:
+grepx, headx, tailx), `ok` and `er` (OK and FAILED, a creation and a removal) and `pa` (a name
+in a `-v` report).
 
 ## Turning it off
 
 - For one command: `lsx --pretty=never`.
 - Everywhere: `export GNUX_PRETTY=never`. gnux then looks exactly like GNU coreutils.
+- In `grepx` only, keep the headings but drop the colors: `--color=never`.
 - Keep the layout but drop the colors: `NO_COLOR=1`.
 
 ## Through a pipe
@@ -176,8 +249,9 @@ A pipe turns the view off, which keeps scripts safe. To page through it, ask for
 lsx -l --pretty=always /etc | less -R
 ```
 
-`--pretty=always` also colors through the pipe. `lsx --zero`, `dux -0` and `dfx -P` always
-print GNU's format, whatever you set.
+`--pretty=always` also colors through the pipe. `lsx --zero`, `dux -0`, `dfx -P` and the
+`-z` of `grepx`, `headx`, `tailx` and the checksum tools always print GNU's format, whatever
+you set.
 
 ## Related
 

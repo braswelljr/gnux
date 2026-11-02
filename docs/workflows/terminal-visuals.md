@@ -1,25 +1,25 @@
 # Terminal visuals
 
-How gnux's terminal view works and how a tool adopts it: the shared layer in `core/internal/visual` (themes, gradients, bars, tree branches, icons) and `core/internal/gitstat` (git status read straight from the repository), the `--pretty` and `--theme` options and the `GNUX_PRETTY`, `GNUX_THEME`, `GNUX_ICONS` and `NO_COLOR` variables that `internal/tool` resolves the same way for every tool, the rules that keep the view away from anything a program reads (BR-13, NFR-53, NFR-54), and the plan for every tool: which have the view, which will get it and with what, and which never will.
+How gnux's terminal view works and how a tool adopts it: the shared layer in `core/internal/visual` (themes in dark and light variants, gradients, bars, boxes, tree branches, icons, report coloring) and `core/internal/gitstat` (git status read straight from the repository), the `--pretty` and `--theme` options and the `GNUX_PRETTY`, `GNUX_THEME`, `GNUX_BACKGROUND`, `GNUX_ICONS` and `NO_COLOR` variables that `internal/tool` resolves the same way for every tool, the rules that keep the view away from anything a program reads (BR-13, NFR-53, NFR-54), and the plan for every tool: which have the view, which will get it and with what, and which never will.
 
 ## The pieces
 
 ```mermaid
 flowchart LR
   flags["--pretty / --theme\n(tool.RegisterView)"] --> resolve["tool.ViewOf / ResolvePretty\nGNUX_PRETTY, NO_COLOR, TERM, terminal?"]
-  env["GNUX_PRETTY\nGNUX_THEME\nEZA_COLORS\nNO_COLOR"] --> resolve
+  env["GNUX_PRETTY\nGNUX_THEME\nGNUX_BACKGROUND\nNO_COLOR"] --> resolve
   resolve --> opts["engine Options\nPretty, Color, Theme"]
   opts --> engine["core/<gnu> engine"]
-  engine --> visual["core/internal/visual\nLoadTheme, Paint, Bar,\nBranches, Icon, SizeKey, AgeKey"]
+  engine --> visual["core/internal/visual\nUse, LoadTheme, Paint, Bar, Box,\nReport, Branches, Icon, SizeKey, AgeKey"]
   engine --> git["core/internal/gitstat\nFindRoot, Open, Status, IsIgnored"]
 ```
 
 | Package                  | What it gives a tool                                                                 |
 |--------------------------|--------------------------------------------------------------------------------------|
-| `core/internal/visual`   | `LoadTheme(name, getenv)`, `Theme.Paint(key, s)`, `Theme.Bar(fraction, width, unicode)`, `SizeKey`, `AgeKey`, `BranchesFor(getenv).Prefix(last)`, `Icon(name, kind)`, `UTF8(getenv)`, `ThemeNames()` |
+| `core/internal/visual`   | `Use(color, name, getenv, warn)` (the theme an engine paints with, nil when uncolored), `LoadTheme(name, getenv)`, `Resolve` and `Dark` (a family's variant for the background), `Theme.Paint(key, s)`, `Theme.Bar(fraction, width, unicode)`, `Theme.Box(title, lines, unicode)`, `Theme.Report(line)`, `Width(s)`, `SizeKey`, `AgeKey`, `BranchesFor(getenv).Prefix(last)`, `Icon(name, kind)`, `UTF8(getenv)`, `ThemeNames()`, `Preview` |
 | `core/internal/gitstat`  | `FindRoot(dir)`, `Open(root, getenv)`, `Repo.Status(path, isDir)`, `Repo.IsIgnored(path, isDir)`, `Repo.Close()` |
-| `internal/tool`          | `RegisterView(fs)` (the `--pretty[=WHEN]` and `--theme=NAME` options, as names of gnux's own), `ViewOf(fs, terminal, name, getenv, warn)`, `ResolvePretty`, `ParseWhen` |
-| `core`                   | `ThemeNames()`, for an adapter's help text (adapters cannot import `core/internal`)  |
+| `internal/tool`          | `RegisterView(fs)` (the `--pretty[=WHEN]` and `--theme=NAME` options, as names of gnux's own), `ViewOf(fs, terminal, name, getenv, warn)`, `ReportView(fs, s, name, getenv)` (streams whose `Out` colors a `-v` report), `ResolvePretty`, `ParseWhen` |
+| `core`                   | `ThemeNames()`, `ReportWriter` and `WriteThemes`, for adapters and `gnux themes` (adapters cannot import `core/internal`) |
 
 A nil `*visual.Theme` paints nothing, so an engine holds `nil` for "no color" and calls `Paint`
 and `Bar` the same way either way: the uncolored view (under `NO_COLOR`) is the same code path
@@ -40,10 +40,20 @@ for with `always`. `lsx` resolves the same `When` with `tool.ResolvePretty`, bec
 `--group-directories-first`, `--color`), each only when no option already decides it.
 
 The theme, inside the engine (`visual.LoadTheme`), in increasing precedence: the built-in
-default (eza's look in the 16 basic colors, so it follows the terminal's own scheme), the theme
-named by `--theme` or else by `GNUX_THEME`, then `EZA_COLORS`, then the `KEY=CODE` pairs after
-the name in `GNUX_THEME` (`GNUX_THEME=nord:da=2;34`, or just `GNUX_THEME=ur=36`). An unknown
-name from the variable is warned about and skipped; an unknown `--theme` is a usage error.
+default (the 16 basic colors, so it follows the terminal's own scheme), the theme named by
+`--theme` or else by `GNUX_THEME`, then the `KEY=CODE` pairs after the name in `GNUX_THEME`
+(`GNUX_THEME=nord:da=2;34`, or just `GNUX_THEME=ur=36`). An unknown name from the variable is
+warned about and skipped; an unknown `--theme` is a usage error.
+
+Most built-in themes are a `scheme` (nine colors from the editor theme they follow, mapped
+onto the keys the same way for every theme) in a `FAMILY-dark` and a `FAMILY-light` variant.
+A family's own name (`github`) is resolved by `visual.Resolve` to the variant `visual.Dark`
+picks: `GNUX_BACKGROUND`, else the background in `COLORFGBG`, else `systemDark` (build-tagged:
+`defaults read -g AppleInterfaceStyle` on macOS, asked once per process; the
+`AppsUseLightTheme` registry value on Windows; `GTK_THEME` elsewhere), else dark. A new theme
+is one line in `schemes`; a new family also goes in `families`, and `TestFamilies` checks that
+both variants load and differ. `gnux themes` (`cmd/themes.go`, `visual.Preview`) draws every
+theme on a sample row; piped, it prints the names, one a line.
 
 ```text
 $ GNUX_THEME=mono lsx -l      # bold, underline and dim only
@@ -83,14 +93,11 @@ These are what BR-13, NFR-53 and NFR-54 ask for, as a checklist for each adoptin
    Theme  string
    ```
 
-   Load the theme once, only when colored, and warn rather than fail on a bad `GNUX_THEME`:
+   Load the theme once, only when colored; `visual.Use` returns nil otherwise and warns rather
+   than fails on a bad `GNUX_THEME`:
 
    ```go
-   if d.Pretty && d.Color {
-       if d.theme, err = visual.LoadTheme(d.Theme, d.Getenv); err != nil {
-           d.diag.Warnf("ignoring the theme: %v", err)
-       }
-   }
+   d.theme = visual.Use(d.Pretty && d.Color, d.Theme, d.Getenv, d.diag.Warnf)
    ```
 
    Then paint at the point of writing: pad first, then `theme.Paint(key, padded)`, so alignment
@@ -109,6 +116,12 @@ These are what BR-13, NFR-53 and NFR-54 ask for, as a checklist for each adoptin
    ```
 
    Switch `Pretty` off for any option that promises a machine format.
+
+   A tool whose view is only its `-v` report colored needs no engine change at all: the
+   adapter wraps the streams with `tool.ReportView`, which colors each line written to `Out`
+   (`visual.Theme.Report`: the verb by what it reports, each quoted name, the arrows) and
+   leaves them as they were when the view is off or uncolored. A tool that parses its own
+   arguments (`chmodx`, `RawArgs`) calls it after parsing.
 3. **Tests.** An engine test with `Pretty` and no `Color` (the layout), one with `Color` (a few
    escapes), and one showing that the machine format is untouched. `tool.ViewOf` itself is
    covered once, in `internal/tool/view_test.go`.
@@ -170,18 +183,19 @@ not change the data.
 | `lsx`, `dirx`, `vdirx` | Field colors, header, readable sizes, directories first; `--tree`, `--level`, `--icons`, `--git`, `--git-ignore`, `--color-scale`, `--only-dirs`, `--only-files`, `--total-size`, `--octal-permissions` |
 | `dfx`                 | A usage bar after each percentage (green, yellow from 75%, red from 90%), themed header and mount points |
 | `dux`                 | Aligned sizes on the size gradient, a bar and percentage of each line's share, names highlighted |
+| `grepx`               | Each file's name once, as a heading over its lines (key `fh`), a blank line between files, line numbers on; GNU's `--color` colors the rest |
+| `md5sumx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `b2sumx`, `cksumx` | With `-c`: `OK` (key `ok`) and `FAILED` (key `er`) colored, and a count for each list (`2 OK, 1 FAILED`) |
+| `headx`, `tailx`      | The `==> file <==` headers in the heading color                          |
+| `cpx`, `mvx`, `rmx`, `lnx`, `installx`, `mkdirx`, `rmdirx`, `chmodx`, `chownx`, `chgrpx` | With `-v`: the verb (a removal red, a creation green), each quoted name (key `pa`) and the arrows colored, through `tool.ReportView` |
+| `gnux themes`         | Every theme on a sample row, in a box naming the theme in use and the background |
 
 ### Planned, in this order
 
 | Tool                                   | The view to add                                                     |
 |----------------------------------------|---------------------------------------------------------------------|
-| `grepx`                                | Matches grouped under a colored file heading, line numbers dimmed (GNU's `--color` stays as it is) |
 | `findx`                                | `--tree` for the matches, names colored and iconed as `lsx` does     |
-| `md5sumx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `b2sumx`, `cksumx` | With `-c`: `OK` in green, `FAILED` in red, and a colored summary   |
-| `cpx`, `mvx`, `rmx`, `lnx`, `installx`, `mkdirx`, `rmdirx`, `chmodx`, `chownx`, `chgrpx` | With `-v`: the verb, the arrow and each path colored (old in red, new in green for `chmodx`'s modes) |
 | `ddx`, `shredx`                        | A progress bar for `status=progress` and `-v`                       |
-| `headx`, `tailx`                       | The `==> file <==` headings colored                                 |
-| `statx`                                | Field names dimmed, the mode painted as `lsx` paints it              |
+| `statx`                                | Field names dimmed, the mode painted as `lsx` paints it, in a box (`Theme.Box`) |
 | `wcx`                                  | Aligned, colored counts with a header, the total emphasized          |
 | `uniqx -c`, `sortx`                    | `uniqx -c`'s counts on a gradient with a bar                         |
 | `odx`                                  | Bytes colored by class (zero, printable, whitespace, other)          |
@@ -208,12 +222,16 @@ is nothing to show: `archx`, `base32x`, `base64x`, `basencx`, `basenamex`, `catx
 
 | Test                                                | Pins                                                         |
 |-----------------------------------------------------|--------------------------------------------------------------|
-| `core/internal/visual/visual_test.go`               | Theme overlays and precedence, gradients, branches (Unicode and ASCII), bars, icons (NFR-54) |
+| `core/internal/visual/visual_test.go`               | Theme overlays and precedence, families and `Dark`, gradients, branches (Unicode and ASCII), bars, icons (NFR-54) |
+| `core/internal/visual/box_test.go`, `report_test.go` | Boxes and `Width`, `Preview`, the `-v` report coloring (a name holding a quote stays whole) |
 | `core/internal/gitstat/gitstat_test.go`             | Status and ignore rules against real git: loose objects, packs with deltas, SHA-256, deletions, an unborn branch |
 | `internal/tool/view_test.go` (`TestViewOf`)         | `--pretty`, `GNUX_PRETTY`, `NO_COLOR`, `TERM=dumb`, `--theme` (NFR-53, NFR-54) |
 | `core/ls/view_test.go`                              | Trees, `--level`, filters, icons in columns, header, octal, total size, themed long format, git (FR-60) |
 | `cmd/lsx/view_test.go`                              | The flags, and the pretty bundle's defaults and their precedence (NFR-53) |
 | `core/df/df_test.go`, `core/du/du_test.go` (`TestPretty`) | The bars and layout, and the machine formats untouched (FR-107, FR-108) |
+| `core/grep/view_test.go`, `cmd/grepx/view_test.go`  | Headings, context separators within a file only, `-c` and `-Z` untouched, the adapter's defaults |
+| `core/hashsum/hashsum_test.go` (`TestCheckPretty`)  | The count line, the colors, and `--status` still silent        |
+| `core/head/head_test.go`, `core/tail/tail_test.go` (`TestColoredHeaders`) | The headers' color, the text unchanged              |
 
 ## Related documents
 

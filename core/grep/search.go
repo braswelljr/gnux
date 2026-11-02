@@ -6,6 +6,8 @@ import (
 	"errors"
 	"io"
 	"strconv"
+
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Separators between the parts of an output line.
@@ -19,6 +21,7 @@ const (
 func (g *Grep) search(r io.Reader, name string) {
 	g.in.Reset(r)
 	g.ringHead, g.ringLen = 0, 0
+	g.headed = false
 
 	var (
 		selected  int64 // selected lines so far
@@ -104,7 +107,11 @@ func (g *Grep) search(r io.Reader, name string) {
 		selected++
 		if !quiet {
 			first := lineno - int64(g.ringLen)
-			if g.separator != nil && g.used && (lastOut == 0 || first != lastOut+1) {
+			// A file's heading starts its lines, and a new file needs no
+			// group separator.
+			if g.heading && g.withName && !g.headed {
+				g.writeHeading(name)
+			} else if g.separator != nil && g.used && (lastOut == 0 || first != lastOut+1) {
 				g.write(g.separator)
 			}
 			for i := 0; i < g.ringLen; i++ {
@@ -298,7 +305,7 @@ func (g *Grep) emit(b []byte) {
 // number and the byte offset, each followed by sep. size is the length of
 // what follows, which -T needs: an empty line gets no tab.
 func (g *Grep) appendHead(b []byte, name string, lineno, offset int64, sep byte, size int) []byte {
-	if g.withName {
+	if g.withName && !g.heading {
 		b = g.pal.paint(b, g.pal.fn, name)
 		if g.Null {
 			b = append(b, 0)
@@ -318,7 +325,7 @@ func (g *Grep) appendHead(b []byte, name string, lineno, offset int64, sep byte,
 		b = g.pal.end(b, g.pal.bn)
 		b = g.appendSep(b, sep)
 	}
-	if g.InitialTab && (g.withName || g.LineNumber || g.ByteOffset) && size > 0 {
+	if g.InitialTab && (g.withName && !g.heading || g.LineNumber || g.ByteOffset) && size > 0 {
 		b = append(b, '\t')
 	}
 	return b
@@ -328,4 +335,17 @@ func (g *Grep) appendSep(b []byte, sep byte) []byte {
 	b = g.pal.start(b, g.pal.se)
 	b = append(b, sep)
 	return g.pal.end(b, g.pal.se)
+}
+
+// writeHeading writes the name heading a file's lines in the pretty view,
+// after a blank line when another file's lines came before.
+func (g *Grep) writeHeading(name string) {
+	g.headed = true
+	b := g.buf[:0]
+	if g.used {
+		b = append(b, '\n')
+	}
+	b = append(b, g.theme.Paint(visual.Heading, name)...)
+	b = append(b, '\n')
+	g.emit(b)
 }

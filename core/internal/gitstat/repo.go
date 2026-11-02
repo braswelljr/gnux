@@ -1,5 +1,5 @@
 // Package gitstat reads what git knows about the files of a working tree,
-// without running git: each file's status (staged and unstaged, as eza's
+// without running git: each file's status (staged and unstaged, as gnux's
 // --git column shows it) and whether .gitignore rules exclude it. It reads
 // the repository directly (the index, HEAD's tree from loose objects and
 // pack files, the ignore files), through core/fsys, so it behaves the same
@@ -29,7 +29,7 @@ import (
 // Code is one column of a file's status.
 type Code byte
 
-// The status codes, as eza prints them.
+// The status codes, as the git column prints them.
 const (
 	Clean      Code = '-'
 	New        Code = 'N'

@@ -3,6 +3,7 @@ package tailx
 
 import (
 	"math"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -47,7 +48,8 @@ func Meta() docmeta.Meta {
 			"whether a followed name has been rotated only after --max-unchanged-stats=N " +
 			"polls without growth (5 by default); tailx checks it on every poll, so it " +
 			"notices a rotation at once, and N is validated but changes nothing. On a regular file tailx seeks " +
-			"to the end and reads backward, so its cost does not depend on the file's size.",
+			"to the end and reads backward, so its cost does not depend on the file's size." +
+			" On a terminal, gnux's terminal view colors the '==> FILE <==' headers in the theme's heading color; the text is GNU's, and piped or redirected output is never colored.",
 		Permissions: "Needs read permission on each FILE and search permission on the " +
 			"directories leading to it. Nothing is ever modified. With --follow=name the file " +
 			"is reopened on every poll, so permissions are re-checked as it is rotated.",
@@ -180,6 +182,7 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "follow-retry")
+	tool.RegisterView(fs)
 }
 
 // order stamps each count-setting flag as it is parsed. GNU tail lets the last
@@ -356,5 +359,11 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		core.NewDiag(tail.Name, s).Errorf("invalid maximum number of unchanged stats between opens: '%s'", n)
 		return core.ErrFailed
 	}
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), tail.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	// The view colors the file-name headers; -z output is for a program.
+	opts.Color, opts.Theme = view.Pretty && view.Color && !opts.ZeroTerminated, view.Theme
 	return tail.New(opts, s).Run(args)
 }

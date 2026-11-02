@@ -27,7 +27,8 @@ func TestBuildView(t *testing.T) {
 		{"bare color scale is all", []string{"--color-scale"}, want(func(o *ls.Options) { o.ColorScale = ls.ScaleAll })},
 		{"color scale age", []string{"--color-scale=age"}, want(func(o *ls.Options) { o.ColorScale = ls.ScaleAge })},
 		{"theme", []string{"--theme=nord"}, want(func(o *ls.Options) { o.Theme = "nord" })},
-		{"theme abbreviated", []string{"--theme=gru"}, want(func(o *ls.Options) { o.Theme = "gruvbox" })},
+		{"theme abbreviated", []string{"--theme=gruvbox-l"}, want(func(o *ls.Options) { o.Theme = "gruvbox-light" })},
+		{"theme exact beats longer names", []string{"--theme=gruvbox"}, want(func(o *ls.Options) { o.Theme = "gruvbox" })},
 		{"header git octal", []string{"--header", "--git", "--octal-permissions"}, want(func(o *ls.Options) {
 			o.Header, o.Git, o.OctalPermissions = true, true, true
 		})},

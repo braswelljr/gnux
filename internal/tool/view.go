@@ -46,8 +46,7 @@ func RegisterView(fs *pflag.FlagSet) {
 	fs.String("pretty", "", "the gnux terminal view `WHEN`: 'always' (the default when WHEN is omitted), "+
 		"'auto' (the default: on a terminal only), or 'never'; GNUX_PRETTY sets the default")
 	fs.Lookup("pretty").NoOptDefVal = "always"
-	fs.String("theme", "", "color the view with the built-in theme `NAME`: "+strings.Join(core.ThemeNames(), ", ")+
-		"; GNUX_THEME sets the default")
+	fs.String("theme", "", "color the view with the built-in theme `NAME` (gnux themes shows them all); GNUX_THEME sets the default")
 	OwnNames(fs, "pretty", "theme")
 }
 
@@ -107,4 +106,18 @@ func validTheme(name string) bool {
 		}
 	}
 	return false
+}
+
+// ReportView colors a -v report on standard output when the view is on
+// and colored: it resolves the view (ViewOf) for the tool called name and,
+// if so, returns streams whose Out paints each line, with a function to
+// call once the tool has run. Otherwise s comes back as it was.
+func ReportView(fs *pflag.FlagSet, s core.Streams, name string, getenv func(string) string) (core.Streams, func(), error) {
+	view, err := ViewOf(fs, core.IsTerminal(s.Out), name, getenv, s.Err)
+	if err != nil || !view.Pretty || !view.Color {
+		return s, func() {}, err
+	}
+	w := core.ReportWriter(s.Out, view.Theme, getenv, core.NewDiag(name, s).Warnf)
+	s.Out = w
+	return s, func() { _ = w.Flush() }, nil
 }

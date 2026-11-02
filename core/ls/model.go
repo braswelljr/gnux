@@ -213,7 +213,7 @@ type Options struct {
 	Dired     bool // -D, --dired: Emacs dired output, with -l
 	Zero      bool // --zero: end each output line with NUL, not newline
 
-	// gnux's own options, for an eza-style view. Their zero values leave
+	// gnux's own options, for the terminal view. Their zero values leave
 	// the output as GNU ls prints it.
 
 	Tree  bool // --tree: list directories recursively, drawn as a tree

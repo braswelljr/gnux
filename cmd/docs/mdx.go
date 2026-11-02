@@ -26,6 +26,7 @@ import (
 //	dir/library.mdx        using the engines from Go
 //	dir/shell.mdx          the gnux shell
 //	dir/mcp.mdx            gnux mcp, the MCP server
+//	dir/themes.mdx         gnux themes, the terminal view's themes
 //	dir/tools/<tool>/index.mdx    one page per tool that has options
 //	dir/tools/<tool>/<flag>.mdx   one page per option, with its usage and examples
 //	dir/tools/<tool>.mdx          the page of a tool without options
@@ -62,6 +63,8 @@ func GenerateMDX(dir string, extra ...Page) error {
 	docs = append(docs, doc{"", "shell", "gnux shell", sh.Meta.Short, mdxTool(sh, sh.Command(discard).Flags(), nil)})
 	mcp := cmd.MCPSpec()
 	docs = append(docs, doc{"", "mcp", "gnux mcp", mcp.Meta.Short, mdxTool(mcp, mcp.Command(discard).Flags(), nil)})
+	themes := cmd.ThemesSpec()
+	docs = append(docs, doc{"", "themes", "gnux themes", themes.Meta.Short, mdxTool(themes, themes.Command(discard).Flags(), nil)})
 
 	var names []string
 	toolFolders := map[string][]string{} // tool -> its option pages, in order
@@ -87,7 +90,7 @@ func GenerateMDX(dir string, extra ...Page) error {
 	// folder. The hand-written folders (the guides) come first, each page named
 	// by its path so the folder's landing page is not repeated under a heading
 	// of its own name; then the tools, laid out with "...tools".
-	order := []string{"index", "guide", "shell", "mcp", "library"}
+	order := []string{"index", "guide", "shell", "mcp", "themes", "library"}
 	var sections []string            // extra folders, in order of first appearance
 	folders := map[string][]string{} // extra folder -> its pages, in order
 	for _, e := range extra {

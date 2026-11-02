@@ -637,14 +637,8 @@ func (d *Df) print() {
 			d.diag.Errorf("write error: %s", core.ErrText(err))
 		}
 	}()
-	var theme *visual.Theme
+	theme := visual.Use(d.Pretty && d.Color, d.Theme, d.Getenv, d.diag.Warnf)
 	unicode := visual.UTF8(d.Getenv)
-	if d.Pretty && d.Color {
-		var err error
-		if theme, err = visual.LoadTheme(d.Theme, d.Getenv); err != nil {
-			d.diag.Warnf("ignoring the theme: %v", err)
-		}
-	}
 	for r, row := range d.rows {
 		for i, cell := range row {
 			c := d.columns[i]

@@ -10,7 +10,7 @@ type Branches struct {
 }
 
 var (
-	// Unicode draws with box-drawing characters, as eza and tree(1) do.
+	// Unicode draws with box-drawing characters, as tree(1) does.
 	Unicode = Branches{Mid: "├── ", Last: "└── ", Pipe: "│   ", Blank: "    "}
 	// ASCII is the fallback for a locale that cannot show those.
 	ASCII = Branches{Mid: "|-- ", Last: "`-- ", Pipe: "|   ", Blank: "    "}

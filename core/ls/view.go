@@ -12,7 +12,7 @@ import (
 	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
-// This file holds gnux's own, eza-style view: the tree, icons, the themed
+// This file holds gnux's own terminal view: the tree, icons, the themed
 // long format, the git column and the filters. None of it runs unless an
 // option of gnux's own asks for it, so GNU's output is untouched by default.
 
