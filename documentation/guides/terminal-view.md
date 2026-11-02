@@ -200,6 +200,28 @@ gnux-windows-amd64.zip: FAILED
 sha256sumx: WARNING: 1 computed checksum did NOT match
 ```
 
+`ddx status=progress` draws a bar while it copies, rewritten in place, with how much is done,
+the speed and the time left. You can tell at a glance whether writing a 4 GB image to a USB
+stick will take one minute or twenty:
+
+```text
+$ ddx if=debian-13.iso of=/dev/sdb bs=4M status=progress
+██████████████▍░░░░░░░░░  60%  2.4 GB of 4.0 GB  31 MB/s  0:52 left
+```
+
+When the copy ends, the bar shows its last state and GNU's statistics follow. The total is
+known when the input is a regular file or `count=` is given; reading from a pipe, the line
+shows what was copied, the speed and the time so far. With standard error redirected to a log
+file, `ddx` writes GNU's own progress line instead, once a second.
+
+`shredx -v` draws each pass the same way, on a line of its own:
+
+```text
+$ shredx -v -u old-backup.tar
+shredx: old-backup.tar: pass 1/3 (random) ████████████████████ 100%  1.2GiB/1.2GiB
+shredx: old-backup.tar: pass 2/3 (ffffff) ███████▋░░░░░░░░░░░░  38%  466MiB/1.2GiB
+```
+
 `headx` and `tailx` color their `==> FILE <==` headers. `rmx`, `cpx`, `mvx`, `lnx`,
 `installx`, `mkdirx`, `rmdirx`, `chmodx`, `chownx` and `chgrpx` color their `-v` reports: a
 removal in red, a creation in green, each quoted name, and the `->` arrows. In both, the words

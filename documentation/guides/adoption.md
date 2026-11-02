@@ -30,7 +30,7 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `csplit` | `csplitx` | `-n DIGITS`, `-z`, `-k`, `-f PREFIX`, `-s`, `-q`, `-b FORMAT`, `--suppress-matched` | [csplitx](https://gnux.vercel.app/docs/tools/csplitx) |
 | `cut` | `cutx` | `-b LIST`, `-c LIST`, `-d DELIM`, `-f LIST`, `-n`, `-s`, `-z`, `--complement`, `--output-delimiter=STRING` | [cutx](https://gnux.vercel.app/docs/tools/cutx) |
 | `date` | `datex` | `-d STRING`, `-f DATEFILE`, `-I[=FMT]`, `-r FILE`, `--resolution`, `--rfc-3339=FMT`, `-R`, `-s STRING`, `--universal`, `-u` | [datex](https://gnux.vercel.app/docs/tools/datex) |
-| `dd` | `ddx` | operands `if=`, `of=`, `bs=`, `ibs=`, `obs=`, `cbs=`, `skip=`/`iseek=`, `seek=`/`oseek=`, `count=`, `conv=`, `iflag=`, `oflag=`, `status=` | [ddx](https://gnux.vercel.app/docs/tools/ddx) |
+| `dd` | `ddx` | operands `if=`, `of=`, `bs=`, `ibs=`, `obs=`, `cbs=`, `skip=`/`iseek=`, `seek=`/`oseek=`, `count=`, `conv=`, `iflag=`, `oflag=`, `status=`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [ddx](https://gnux.vercel.app/docs/tools/ddx) |
 | `df` | `dfx` | `-a`, `-B SIZE`, `-x TYPE`, `-h`, `-i`, `-k`, `-l`, `--no-sync`, `--output[=FIELD_LIST]`, `-P`, `-T`, `-H`, `--sync`, `-v`, `--total`, `-t TYPE`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [dfx](https://gnux.vercel.app/docs/tools/dfx) |
 | `dir` | `dirx` | every `lsx` option | [dirx](https://gnux.vercel.app/docs/tools/dirx) |
 | `dircolors` | `dircolorsx` | `-b`, `-c`, `-p`, `--print-ls-colors` | [dircolorsx](https://gnux.vercel.app/docs/tools/dircolorsx) |
@@ -89,7 +89,7 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `sha256sum` | `sha256sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [sha256sumx](https://gnux.vercel.app/docs/tools/sha256sumx) |
 | `sha384sum` | `sha384sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [sha384sumx](https://gnux.vercel.app/docs/tools/sha384sumx) |
 | `sha512sum` | `sha512sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [sha512sumx](https://gnux.vercel.app/docs/tools/sha512sumx) |
-| `shred` | `shredx` | `-f`, `-n N`, `--random-source=FILE`, `-s N`, `-u`, `--remove[=HOW]`, `-v`, `-x`, `-z` | [shredx](https://gnux.vercel.app/docs/tools/shredx) |
+| `shred` | `shredx` | `-f`, `-n N`, `--random-source=FILE`, `-s N`, `-u`, `--remove[=HOW]`, `-v`, `-x`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [shredx](https://gnux.vercel.app/docs/tools/shredx) |
 | `shuf` | `shufx` | `-e`, `-n COUNT`, `-i LO-HI`, `-o FILE`, `--random-source=FILE`, `-r`, `-z` | [shufx](https://gnux.vercel.app/docs/tools/shufx) |
 | `sleep` | `sleepx` | NUMBER with `s`, `m`, `h`, `d`; fractions, exponents, hex floats, `infinity` | [sleepx](https://gnux.vercel.app/docs/tools/sleepx) |
 | `sort` | `sortx` | `-b`, `-c`/`--check[=WHEN]`, `-C`, `-d`, `-f`, `-g`, `-h`, `-i`, `-k KEYDEF`, `-m`, `-M`, `-n`, `-o FILE`, `-r`, `-R`, `-s`, `-t SEP`, `-u`, `-V`, `-z`, `--files0-from=F`, `--random-source=FILE`, `--sort=WORD`; `-S`, `-T`, `--parallel`, `--batch-size`, `--compress-program` accepted and ignored | [sortx](https://gnux.vercel.app/docs/tools/sortx) |
@@ -185,7 +185,7 @@ The rule is in the project's [rules](../../docs/rules/README.md) as "conflicts r
 | `commx`, `joinx` | Lines compare byte by byte (the C locale). `-1`, `-2`, `-3` of commx also answer to `--suppress-file1`, `--suppress-file2`, `--suppress-common`. joinx refuses the obsolescent `-j1 FIELD` and `-j2 FIELD` |
 | `csplitx`, `nlx` | Regular expressions are POSIX basic ones translated to Go's RE2, so back references (`\1`) are refused |
 | `datex` | `-d` understands the common forms (ISO dates, `@SECONDS`, `yesterday`, `next friday`, `3 days ago`, `tomorrow 09:00`) but not all of GNU's grammar. It never sets the clock: `-s` and a `MMDDhhmm` operand fail with "Operation not supported". `--debug` is not implemented |
-| `ddx` | See its reference page: `status=progress` prints only the final statistics; some conversions and flags (`ascii`, `ebcdic`, `sparse`, `direct`, ...) are refused |
+| `ddx` | See its reference page: some conversions and flags (`ascii`, `ebcdic`, `sparse`, `direct`, ...) are refused |
 | `dfx` | On Windows, lists every drive with the same columns, and skips a card reader or DVD drive with no medium. `--sync` is accepted and has no effect |
 | `dux` | Reads directories in parallel and lists entries in name order, so the output and which path a hard-linked file is counted under are the same on every run (GNU lists them in file-system order) |
 | digest tools (`md5sumx`, `sha*sumx`, `b2sumx`) | `-t` wins over `-b` when both are given |

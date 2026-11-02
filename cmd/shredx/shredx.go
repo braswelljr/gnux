@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 
@@ -37,6 +38,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("verbose", "v", false, "show progress")
 	fs.BoolP("exact", "x", false, "do not round file sizes up to the next full block; this is the default for non-regular files")
 	fs.BoolP("zero", "z", false, "add a final overwrite with zeros to hide shredding")
+	tool.RegisterView(fs)
 }
 
 // sources remembers every --random-source given: GNU refuses two different
@@ -177,6 +179,13 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	if err != nil {
 		return err
 	}
+	// gnux's terminal view draws -v's passes in place, where standard
+	// error, which they go to, is a terminal.
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Err), shred.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
 	return shred.New(opts, s).Run(args)
 }
 
@@ -202,7 +211,14 @@ func Meta() docmeta.Meta {
 			"system's generator, or from --random-source; the order of the passes differs " +
 			"from GNU's run for run, as GNU's own does. CAUTION: on journaled, " +
 			"copy-on-write and log-structured file systems, on SSDs, and on anything with " +
-			"backups or snapshots, the old data may survive elsewhere; shredx cannot reach it.",
+			"backups or snapshots, the old data may survive elsewhere; shredx cannot reach it.\n\n" +
+			"gnux's terminal view (BR-13): when standard error is a terminal, -v draws each " +
+			"pass as one line rewritten in place, GNU's words followed by a bar, the " +
+			"percentage and the amount written of the size, five times a second, ending on " +
+			"100%; the renaming and removal reports are GNU's lines. --pretty[=WHEN] and " +
+			"--theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); " +
+			"--pretty=never, or standard error redirected, gives GNU's lines, one every five " +
+			"seconds.",
 		Permissions: "Needs write permission on each FILE (or ownership of it, with -f), " +
 			"and write permission on its directory to remove it. Overwrites the data in place: " +
 			"what it shreds cannot be recovered.",

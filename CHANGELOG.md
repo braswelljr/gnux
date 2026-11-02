@@ -28,6 +28,10 @@ Every notable change to gnux, release by release, newest first. The format follo
   the directories before it dimmed; `--tree` draws the matches as a tree under each starting
   point with a count, and `--icons` puts an icon before each name. Both go before the starting
   points; `-print0`, `-printf` and `-ls` are unchanged.
+- `ddx status=progress` rewrites GNU's transfer line once a second while copying (it printed
+  only the final statistics); on a terminal it draws a bar with the percentage, the rate and the
+  time left.
+- `shredx -v`: on a terminal, each pass is one line with a bar, rewritten in place.
 - `wcx`: the counts as a framed table with a header and the total set apart.
 - `statx`: each file as a labeled panel, the mode painted; with `-f`, a bar of the space in use.
 - `dux`: aligned sizes colored by magnitude, with a bar and percentage of each line's share.

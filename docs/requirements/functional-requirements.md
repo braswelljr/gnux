@@ -829,15 +829,24 @@ ddx [OPERAND]...
   (newline-terminated lines to fixed cbs-sized records) and unblock (the reverse). iflag= accepts
   fullblock, count_bytes and skip_bytes; oflag= accepts seek_bytes and append; binary and text are
   accepted by both and ignored. status=none prints nothing but errors, status=noxfer omits the
-  transfer line. The summary reads '1+0 records in / 1+0 records out / 512 bytes copied, 0.0001 s,
+  transfer line, and status=progress rewrites the transfer line on standard error once a second
+  while copying (`\r` before it, the seconds whole, padded over a longer line, a newline before
+  the final statistics), as GNU does. The summary reads '1+0 records in / 1+0 records out / 512 bytes copied, 0.0001 s,
   5.1 MB/s', where N+M counts full and partial blocks. Unless conv=notrunc, a regular output file
   is truncated at the seek offset; an output that cannot seek is advanced by writing NUL bytes.
-  Differences from GNU dd: status=progress prints only the final statistics; the conversions
+  Differences from GNU dd: the conversions
   ascii, ebcdic, ibm, sparse and nocache and the flags direct, dsync, sync, nonblock, noatime,
   noctty, nofollow and cio are not implemented and are refused as invalid; block and unblock do
   nothing without cbs; a closed output pipe ends ddx quietly instead of by SIGPIPE; and no
   statistics are printed on SIGINFO or SIGUSR1.
-- **Verified by.** `core/dd/dd_test.go`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`, which ddx sets
+  apart from its operands. When standard error is a terminal, status=progress draws a bar, the
+  percentage, what was copied of the total, the rate and the time left, five times a second, and
+  its last state before the statistics; the total is what is left of a regular input file, or
+  count=, whichever is less, and without one the line shows what was copied, the rate and the
+  time so far. The final statistics are GNU's; with standard error redirected, or
+  `--pretty=never`, the progress line is GNU's (NFR-53).
+- **Verified by.** `core/dd/dd_test.go`, `core/dd/progress_test.go`, `cmd/ddx/ddx_test.go`.
 
 ### FR-107: dfx
 
@@ -2763,7 +2772,13 @@ shredx [OPTION]... FILE...
   the rest are shredded. - shreds standard output.
 - **Deviations.** The order of the fixed patterns is drawn from Go's generator (or --random-source)
   rather than GNU's ISAAC. A bad block ends the file's shredding instead of being skipped.
-- **Verified by.** `core/shred/shred_test.go`, `cmd/shredx/shredx_test.go`, the GNU conformance
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. When standard
+  error is a terminal, -v draws each pass as one line rewritten in place: GNU's words
+  (`shredx: FILE: pass 1/3 (random)`), a bar, the percentage and the amount written of the size,
+  five times a second, ending on 100% and a newline. The file is still flushed on GNU's
+  five-second beat; any other report or error starts on a line of its own, in GNU's words.
+  Redirected, or with `--pretty=never`, -v prints GNU's lines (NFR-53).
+- **Verified by.** `core/shred/shred_test.go`, `core/shred/view_test.go`, `cmd/shredx/shredx_test.go`, the GNU conformance
   cases in `cmd/testdata/conformance/more-tools.txt`.
 
 ### FR-134: shufx

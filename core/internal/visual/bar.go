@@ -16,10 +16,6 @@ const (
 // filled part takes the theme's BarFull, BarWarn or BarAlert color by
 // fraction and the rest BarEmpty; a nil theme draws it uncolored.
 func (t *Theme) Bar(fraction float64, width int, unicode bool) string {
-	if width <= 0 {
-		return ""
-	}
-	fraction = min(max(fraction, 0), 1)
 	key := BarFull
 	switch {
 	case fraction >= Alert:
@@ -27,6 +23,20 @@ func (t *Theme) Bar(fraction float64, width int, unicode bool) string {
 	case fraction >= Warn:
 		key = BarWarn
 	}
+	return t.meter(fraction, width, unicode, key)
+}
+
+// Progress draws a bar as Bar does, always in the BarFull color: work
+// nearly done is no warning.
+func (t *Theme) Progress(fraction float64, width int, unicode bool) string {
+	return t.meter(fraction, width, unicode, BarFull)
+}
+
+func (t *Theme) meter(fraction float64, width int, unicode bool, key string) string {
+	if width <= 0 {
+		return ""
+	}
+	fraction = min(max(fraction, 0), 1)
 
 	var full, empty string
 	if unicode {

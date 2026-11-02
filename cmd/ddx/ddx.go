@@ -2,6 +2,10 @@
 package ddx
 
 import (
+	"io"
+	"os"
+	"strings"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -16,6 +20,7 @@ func Spec() tool.Spec {
 	return tool.Spec{
 		Meta:    Meta(),
 		GNU:     "dd",
+		Flags:   tool.RegisterView,
 		Run:     run,
 		RawArgs: true,
 	}
@@ -45,16 +50,25 @@ func Meta() docmeta.Meta {
 			"bytes), block (newline-terminated lines to fixed cbs-sized records) and unblock " +
 			"(the reverse). iflag= accepts fullblock, count_bytes and skip_bytes; oflag= " +
 			"accepts seek_bytes and append; binary and text are accepted by both and ignored. " +
-			"status=none prints nothing but errors, status=noxfer omits the transfer line. " +
+			"status=none prints nothing but errors, status=noxfer omits the transfer line, " +
+			"and status=progress also rewrites the transfer line on standard error once a " +
+			"second while copying. " +
 			"The summary reads '1+0 records in / 1+0 records out / 512 bytes copied, 0.0001 s, " +
 			"5.1 MB/s', where N+M counts full and partial blocks. Unless conv=notrunc, a " +
 			"regular output file is truncated at the seek offset; an output that cannot seek " +
-			"is advanced by writing NUL bytes. Differences from GNU dd: status=progress " +
-			"prints only the final statistics; the conversions ascii, ebcdic, ibm, sparse " +
+			"is advanced by writing NUL bytes. Differences from GNU dd: the conversions ascii, ebcdic, ibm, sparse " +
 			"and nocache and the flags direct, dsync, sync, nonblock, noatime, noctty, " +
 			"nofollow and cio are not implemented and are refused as invalid; block and " +
 			"unblock do nothing without cbs; a closed output pipe ends ddx quietly instead of " +
-			"by SIGPIPE; and no statistics are printed on SIGINFO or SIGUSR1.",
+			"by SIGPIPE; and no statistics are printed on SIGINFO or SIGUSR1.\n\n" +
+			"gnux's terminal view (BR-13): when standard error is a terminal, status=progress " +
+			"draws a bar instead, with the percentage, what was copied of the total, the rate " +
+			"and the time left, five times a second; the total is known when the input is a " +
+			"regular file or count= is given, and otherwise the line shows what was copied, " +
+			"the rate and the time so far. The final statistics are GNU's. --pretty[=WHEN] " +
+			"and --theme=NAME, options of gnux's own that GNU dd does not have, choose the view " +
+			"(GNUX_PRETTY, GNUX_THEME); --pretty=never, or standard error redirected, gives " +
+			"GNU's line.",
 		Permissions: "Needs read permission on the input file and write permission on the " +
 			"output file, or on its directory when ddx creates it (with mode 0666 less the " +
 			"umask). Writing to a device file such as a disk needs the permissions the " +
@@ -139,6 +153,44 @@ func Meta() docmeta.Meta {
 	}
 }
 
-func run(_ *pflag.FlagSet, args []string, s core.Streams) error {
-	return dd.New(dd.Options{}, s).Run(args)
+func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	view, operands := viewArgs(args)
+	if err := tool.ParseFlagSet(fs, view, false); err != nil {
+		return core.Usagef("%s", err)
+	}
+	opts, err := buildOptions(fs, core.IsTerminal(s.Err), os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	return dd.New(opts, s).Run(operands)
+}
+
+// viewArgs sets gnux's view options (--pretty, --theme) apart from the
+// operands, which are KEY=VALUE and so never look like one.
+func viewArgs(args []string) (view, operands []string) {
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		name, _, _ := strings.Cut(a, "=")
+		switch name {
+		case "--pretty", "--theme":
+			view = append(view, a)
+			if a == "--theme" && i+1 < len(args) {
+				i++
+				view = append(view, args[i])
+			}
+		default:
+			operands = append(operands, a)
+		}
+	}
+	return view, operands
+}
+
+// buildOptions folds the view into the engine's options; the operands are
+// read by the engine (dd.Parse). terminal is whether standard error, where
+// the progress goes, is one.
+func buildOptions(fs *pflag.FlagSet, terminal bool, getenv func(string) string, warn io.Writer) (dd.Options, error) {
+	var o dd.Options
+	view, err := tool.ViewOf(fs, terminal, dd.Name, getenv, warn)
+	o.Pretty, o.Color, o.Theme = view.Pretty, view.Color, view.Theme
+	return o, err
 }
