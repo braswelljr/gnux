@@ -294,6 +294,44 @@ $ idx
 
 `usersx` and `groupsx` keep GNU's line and color your own name and your primary group.
 
+`envx` and `printenvx`, listing the environment, color each name apart from its value, and dim
+the `:` between the directories of `PATH` and every other `*PATH` variable, so you can find the
+one directory you are looking for in a long search path. `printenvx PATH`, which prints just the
+value, and `-0` stay GNU's.
+
+`killx -l` lists every signal as a table of number, name and description, so you can see what
+`killx -s HUP` will do before you send it. The names are colored by what the signal does: `KILL`
+and `STOP`, which no program can catch, stand out from the rest. `killx -l 9` still prints just
+`KILL`.
+
+`sttyx -a` shows the terminal's settings as a panel titled with the device: the control
+characters in an aligned grid, then the control, input, output and local flags, each group on
+lines of its own, the flags that are off dimmed. When a program has left the terminal in a
+strange state, you can see at a glance that `echo` or `icanon` is off:
+
+```text
+$ sttyx -a
+╭─ standard input ─────────────────────────────────────────────────────────╮
+│ Speed       38400 baud                                                   │
+│ Size        24 rows, 80 columns                                          │
+│                                                                          │
+│ Characters  intr    ^C      quit    ^\      erase   ^?      kill    ^U   │
+│             eof     ^D      eol     <undef> eol2    <undef> start   ^Q   │
+│             stop    ^S      susp    ^Z      rprnt   ^R      werase  ^W   │
+│             lnext   ^V      discard ^O      min     1       time    0    │
+│                                                                          │
+│ Control     -parenb -parodd cs8 hupcl -cstopb cread -clocal -crtscts     │
+│ Input       -ignbrk brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr  │
+│             icrnl ixon -ixoff -iuclc ixany imaxbel iutf8                 │
+│ Output      opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0   │
+│             cr0 tab0 bs0 vt0 ff0                                         │
+│ Local       isig icanon iexten echo echoe echok -echonl -noflsh -xcase   │
+│             -tostop -echoprt echoctl echoke -flusho -extproc             │
+╰──────────────────────────────────────────────────────────────────────────╯
+```
+
+`sttyx -g` and `sttyx` with no option print GNU's text.
+
 `headx` and `tailx` color their `==> FILE <==` headers. `rmx`, `cpx`, `mvx`, `lnx`,
 `installx`, `mkdirx`, `rmdirx`, `chmodx`, `chownx` and `chgrpx` color their `-v` reports: a
 removal in red, a creation in green, each quoted name, and the `->` arrows. In both, the words
@@ -396,7 +434,7 @@ from an hour to older than a year), `uu` `un` (yours, others'), `lc` (links), `i
 filled, warning, alert, empty) and `ga` `gm` `gd` `gv` `gt` `gi` `gc` `g-` (git: new,
 modified, deleted, renamed, type change, ignored, conflict, clean), `fh` (a file heading:
 grepx, headx, tailx), `ok` and `er` (OK and FAILED, a creation and a removal), `pa` (a name
-in a `-v` report) and `yz` `yp` `yw` `yc` `yh` (bytes in an `odx` dump: zero, printable,
+in a `-v` report), `ev` (a variable's name in `envx` and `printenvx`) and `yz` `yp` `yw` `yc` `yh` (bytes in an `odx` dump: zero, printable,
 whitespace, other control characters, and above 0x7f).
 
 ## Turning it off

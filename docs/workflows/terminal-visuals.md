@@ -16,7 +16,7 @@ flowchart LR
 
 | Package                  | What it gives a tool                                                                 |
 |--------------------------|--------------------------------------------------------------------------------------|
-| `core/internal/visual`   | `Use(color, name, getenv, warn)` (the theme an engine paints with, nil when uncolored), `LoadTheme(name, getenv)`, `Resolve` and `Dark` (a family's variant for the background), `Theme.Paint(key, s)`, `Theme.Bar(fraction, width, unicode)`, `Theme.Progress` (a bar that never turns to the warning colors), `Line` (one line rewritten in place with `\r`, padded and cut to the terminal), `Clock`, `Theme.Box(title, lines, unicode)`, `Theme.Render(Table)` (a framed table that fits `Table.MaxWidth`), `Truncate`, `PaintMode`, `Theme.Report(line)`, `Width(s)`, `SizeKey`, `AgeKey`, `BranchesFor(getenv).Prefix(last)`, `Icon(name, kind)`, `ByteKey(c)` and `BytesKey(b)` (a byte's class in a dump), `NewNames(lsColors).ModeColor(mode, name)` (a file name in its type's color, as GNU ls picks it from LS_COLORS: `lsx` and `findx` share it), `UTF8(getenv)`, `ThemeNames()`, `Preview` |
+| `core/internal/visual`   | `Use(color, name, getenv, warn)` (the theme an engine paints with, nil when uncolored), `LoadTheme(name, getenv)`, `Resolve` and `Dark` (a family's variant for the background), `Theme.Paint(key, s)`, `Theme.Bar(fraction, width, unicode)`, `Theme.Progress` (a bar that never turns to the warning colors), `Line` (one line rewritten in place with `\r`, padded and cut to the terminal), `Clock`, `Theme.Box(title, lines, unicode)`, `Theme.Render(Table)` (a framed table that fits `Table.MaxWidth`), `Truncate`, `PaintMode`, `Theme.Report(line)`, `Width(s)`, `SizeKey`, `AgeKey`, `BranchesFor(getenv).Prefix(last)`, `Icon(name, kind)`, `Theme.EnvEntry(kv, listSep)` (a NAME=value entry, painted), `ByteKey(c)` and `BytesKey(b)` (a byte's class in a dump), `NewNames(lsColors).ModeColor(mode, name)` (a file name in its type's color, as GNU ls picks it from LS_COLORS: `lsx` and `findx` share it), `UTF8(getenv)`, `ThemeNames()`, `Preview` |
 | `core/internal/gitstat`  | `FindRoot(dir)`, `Open(root, getenv)`, `Repo.Status(path, isDir)`, `Repo.IsIgnored(path, isDir)`, `Repo.Close()` |
 | `internal/tool`          | `RegisterView(fs)` (the `--pretty[=WHEN]` and `--theme=NAME` options, as names of gnux's own), `ViewOf(fs, terminal, name, getenv, warn)`, `ReportView(fs, s, name, getenv)` (streams whose `Out` colors a `-v` report), `ResolvePretty`, `ParseWhen` |
 | `core`                   | `ThemeNames()`, `ReportWriter` and `WriteThemes`, for adapters and `gnux themes` (adapters cannot import `core/internal`); `TerminalWidth(w, getenv)`, the width a table must fit (`COLUMNS`, else the terminal's) |
@@ -193,6 +193,9 @@ not change the data.
 | `whox`, `pinkyx`      | Framed tables with a header, the empty columns left out, the caller's own logins (`utmp.Self`) in the `uu` color; `pinkyx -l` a panel per user |
 | `idx`                 | The default format as a panel: each ID with its name, the effective IDs only when they differ, each group a line |
 | `usersx`, `groupsx`   | The caller's name, and each user's primary group, in the `uu` color; the text is GNU's |
+| `envx`, `printenvx`   | A listing of the environment (`Theme.EnvEntry`): each name in the `ev` color, the `=` and a `*PATH` variable's separators dimmed; a value asked for by name and `-0` are GNU's |
+| `killx -l`, `-L`      | Every signal in a framed table, the name colored by the signal's default action; converting an operand is GNU's |
+| `sttyx -a`            | A panel titled with the device: speed and size, the control characters in a grid, each group of flags on its lines, set flags colored and unset ones dimmed |
 | `dux`                 | Aligned sizes on the size gradient, a bar and percentage of each line's share, names highlighted |
 | `grepx`               | Each file's name once, as a heading over its lines (key `fh`), a blank line between files, line numbers on; GNU's `--color` colors the rest |
 | `md5sumx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `b2sumx`, `cksumx` | With `-c`: `OK` (key `ok`) and `FAILED` (key `er`) colored, and a count for each list (`2 OK, 1 FAILED`) |
@@ -204,8 +207,6 @@ not change the data.
 
 | Tool                                   | The view to add                                                     |
 |----------------------------------------|---------------------------------------------------------------------|
-| `envx`, `printenvx`                    | Names colored apart from values (no arguments only)                  |
-| `killx -l`, `sttyx -a`                 | Tables with headers                                                 |
 | `commx`, `joinx`                       | Each column colored by origin                                       |
 | `datex`, `unamex`                      | Field names with `--pretty` only (`auto` would change data a script may capture from a terminal) |
 | `gnux shell`                           | A colored prompt and `help`, and the view passed to the tools it runs |
@@ -231,6 +232,8 @@ nothing to show: `archx`, `base32x`, `base64x`, `basencx`, `basenamex`, `catx`, 
 | `core/internal/visual/box_test.go`, `report_test.go` | Boxes, tables (and fitting them to a width), `Width`, `Truncate`, `Preview`, the `-v` report coloring (a name holding a quote stays whole) |
 | `core/find/view_test.go`, `cmd/findx/findx_test.go` (`TestViewArgs`, `TestTreeCommand`) | The tree (`-depth`, ASCII, a file printed twice, the count), the colors over GNU's text, `-print0` and `-printf` untouched, the options read only before the starting points |
 | `core/dd/progress_test.go`, `core/shred/view_test.go`, `cmd/ddx/ddx_test.go` | GNU's `status=progress` line on a fake clock (padding, the newline before the statistics), the bar's line and its last state, each pass ending on a line of its own |
+| `core/kill/view_test.go`, `core/stty/view_test.go` | The signal table under `-l` and `-L`, an operand still converted; the `-a` panel fitted to the screen |
+| `core/env/view_test.go`, `core/printenv/view_test.go` | The colored listing, a `*PATH` variable's separators, a value asked for by name and `-0` untouched |
 | `core/who/view_test.go`, `core/pinky/view_test.go`, `core/id/view_test.go` | The tables and panels, the caller's rows colored, `-q` and `-u` untouched, empty columns left out |
 | `core/uptime/view_test.go`                          | The panel, the bars against the CPUs, and a missing boot time and load average |
 | `core/od/view_test.go`                              | Each class's color, a word's class, the trailer, the dimmed offsets and `*`, and the text unchanged |

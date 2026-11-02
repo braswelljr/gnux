@@ -3,6 +3,7 @@ package sttyx
 
 import (
 	"errors"
+	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -33,6 +34,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("all", "a", false, "print all current settings in human-readable form")
 	fs.BoolP("save", "g", false, "print all current settings in a stty-readable form")
 	fs.StringP("file", "F", "", "open and use the specified `DEVICE` instead of stdin")
+	tool.RegisterView(fs)
 }
 
 // fatal is a mistake GNU reports without the --help hint.
@@ -123,7 +125,11 @@ func parseArgs(args []string) (opts stty.Options, settings []string, err error) 
 // abbreviates reports whether name is long, or an abbreviation of it.
 func abbreviates(name, long string) bool { return strings.HasPrefix(long, name) }
 
-func run(_ *pflag.FlagSet, args []string, s core.Streams) error {
+func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	view, args, err := viewArgs(fs, args, s)
+	if err != nil {
+		return err
+	}
 	opts, settings, err := parseArgs(args)
 	var f *fatal
 	if errors.As(err, &f) {
@@ -134,7 +140,41 @@ func run(_ *pflag.FlagSet, args []string, s core.Streams) error {
 	if err != nil {
 		return err
 	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
 	return stty.New(opts, s).Run(settings)
+}
+
+// viewArgs takes gnux's view options, --pretty[=WHEN] and --theme=NAME, off
+// the command line before "--". They are matched only in full, so no GNU
+// setting or abbreviation changes meaning, and resolved as every tool's.
+func viewArgs(fs *pflag.FlagSet, args []string, s core.Streams) (tool.View, []string, error) {
+	var rest []string
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		name, value, hasValue := strings.Cut(strings.TrimPrefix(a, "--"), "=")
+		switch {
+		case a == "--":
+			rest = append(rest, args[i:]...)
+			i = len(args)
+			continue
+		case !strings.HasPrefix(a, "--") || (name != "pretty" && name != "theme"):
+			rest = append(rest, a)
+			continue
+		case name == "pretty" && !hasValue:
+			value = "always"
+		case name == "theme" && !hasValue:
+			if i+1 >= len(args) {
+				return tool.View{}, nil, core.Usagef("option '--theme' requires an argument")
+			}
+			i++
+			value = args[i]
+		}
+		if err := fs.Set(name, value); err != nil {
+			return tool.View{}, nil, core.Usagef("%s", err)
+		}
+	}
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), stty.Name, os.Getenv, s.Err)
+	return view, rest, err
 }
 
 // Meta returns the documentation metadata for sttyx.
@@ -160,7 +200,8 @@ func Meta() docmeta.Meta {
 			"macOS and FreeBSD, as with GNU stty built there. After setting, " + n + " reads the " +
 			"settings back and fails if the terminal did not take them all. Windows has no " +
 			"termios, so there every SETTING is checked and then fails with 'Operation not " +
-			"supported'.",
+			"supported'.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, -a is a panel titled with the device: the speed and size, the control characters in an aligned grid, and the control, input, output and local flags each on lines of their own, set flags colored and unset ones dimmed. -g, the plain listing and settings are GNU's. --pretty[=WHEN] and --theme=NAME, options of gnux's own matched only in full, choose the view (GNUX_PRETTY, GNUX_THEME); piped or redirected output is always GNU's.",
 		Permissions: "Needs read access to the terminal; changing it needs no more, but a DEVICE " +
 			"given with -F must be one you may open.",
 		UseCases: []string{

@@ -29,6 +29,14 @@ type Options struct {
 	Save bool
 	// File (-F) is the device to use instead of standard input.
 	File string
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty, -a is one panel, the control characters in a grid and
+	// each group of flags on lines of its own, colored with Color in Theme
+	// (a built-in theme; "" takes GNUX_THEME's). -g and settings are GNU's.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Stty is the engine. Construct it with New.
@@ -36,7 +44,8 @@ type Stty struct {
 	Options
 
 	// Getenv reads COLUMNS, for the width of the output when standard
-	// output is not a terminal. It defaults to os.Getenv.
+	// output is not a terminal, and GNUX_THEME and the locale for the
+	// view. It defaults to os.Getenv.
 	Getenv func(string) string
 
 	streams core.Streams
@@ -124,6 +133,8 @@ func (s *Stty) Run(settings []string) (err error) {
 	if s.All || s.Save || noargs {
 		s.maxCol, s.col = s.screenColumns(), 0
 		switch {
+		case s.All && s.Pretty:
+			s.displayPretty(&mode)
 		case s.All:
 			s.displayAll(&mode)
 		case s.Save:

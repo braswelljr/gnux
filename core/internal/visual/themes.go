@@ -37,6 +37,7 @@ func (p palette) codes() map[string]string {
 		Heading: bold(p.special), Good: bold(p.exec), Bad: bold(p.alert), Path: bold(p.link), Branch: p.dim, BarFull: p.exec, BarWarn: p.warn, BarAlert: bold(p.alert), BarEmpty: p.dim,
 		GitNew: p.exec, GitMod: p.dir, GitDel: p.alert, GitRename: p.warn, GitType: p.special,
 		GitIgnore: p.dim, GitClash: bold(p.alert), GitClean: p.dim,
+		EnvName:  bold(p.dir),
 		ByteZero: p.dim, BytePrint: p.link, ByteSpace: p.exec, ByteControl: p.special, ByteHigh: p.warn,
 	}
 }
@@ -118,6 +119,7 @@ var themes = func() map[string]map[string]string {
 			You: "1", Links: "1", Inode: "2", Blocks: "2", Octal: "2", Heading: "1;4", Good: "1", Bad: "1;4", Path: "1", Branch: "2",
 			BarFull: "", BarWarn: "1", BarAlert: "1;4", BarEmpty: "2",
 			GitNew: "1", GitMod: "1", GitDel: "1;4", GitRename: "1", GitType: "1", GitIgnore: "2", GitClash: "1;4", GitClean: "2",
+			EnvName:  "1",
 			ByteZero: "2", BytePrint: "", ByteSpace: "4", ByteControl: "1", ByteHigh: "1;4",
 		},
 	}

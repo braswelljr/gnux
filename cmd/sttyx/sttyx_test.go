@@ -18,7 +18,9 @@ func TestSettingsAreNotOptions(t *testing.T) {
 		t.Fatal("sttyx must read its arguments itself")
 	}
 	var out, errb bytes.Buffer
-	err := run(pflag.NewFlagSet("sttyx", pflag.ContinueOnError), []string{"-echo"}, core.Streams{In: strings.NewReader(""), Out: &out, Err: &errb})
+	fs := pflag.NewFlagSet("sttyx", pflag.ContinueOnError)
+	Register(fs)
+	err := run(fs, []string{"-echo"}, core.Streams{In: strings.NewReader(""), Out: &out, Err: &errb})
 	if err == nil || !strings.Contains(errb.String(), "standard input") {
 		t.Fatalf("err=%v stderr=%q", err, errb.String())
 	}
@@ -49,5 +51,21 @@ func TestParseArgs(t *testing.T) {
 	}
 	if _, _, err := parseArgs([]string{"-F", "a", "-F", "b"}); err == nil || err.Error() != "only one device may be specified" {
 		t.Errorf("two devices: %v", err)
+	}
+}
+
+func TestViewArgs(t *testing.T) {
+	fs := pflag.NewFlagSet("sttyx", pflag.ContinueOnError)
+	Register(fs)
+	s := core.Streams{In: strings.NewReader(""), Out: &bytes.Buffer{}, Err: &bytes.Buffer{}}
+	view, rest, err := viewArgs(fs, []string{"-a", "--pretty", "--theme", "nord", "--pr", "--", "--pretty"}, s)
+	// Only the full names are gnux's; after "--" everything is a setting.
+	if err != nil || !view.Pretty || view.Theme != "nord" || strings.Join(rest, " ") != "-a --pr -- --pretty" {
+		t.Fatalf("view %+v, rest %q, err %v", view, rest, err)
+	}
+	fs = pflag.NewFlagSet("sttyx", pflag.ContinueOnError)
+	Register(fs)
+	if view, _, _ = viewArgs(fs, []string{"-a"}, s); view.Pretty {
+		t.Fatal("the view is on off a terminal")
 	}
 }

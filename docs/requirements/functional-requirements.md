@@ -1078,7 +1078,11 @@ envx [OPTION]... [-] [NAME=VALUE]... [COMMAND [ARG]...]
   connected to the same standard streams and exits with its status, so the behavior is the
   same on platforms that cannot replace a running process. Not implemented: `--block-signal`,
   `--default-signal`, `--ignore-signal`, `--list-signal-handling`.
-- **Verified by.** `core/env/env_test.go`, `core/env/env_unix_test.go`,
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, a
+  listing of the environment has each name in the `ev` color and the `=` in the punctuation
+  color, and in a variable whose name ends in `PATH` each list separator is dimmed too; the text
+  is GNU's. The view's options are read before any `-S` string. `-0` and piped output are never colored (NFR-53).
+- **Verified by.** `core/env/env_test.go`, `core/env/env_unix_test.go`, `core/env/view_test.go`,
   `cmd/envx/envx_test.go`.
 
 ### FR-109: expandx
@@ -1552,7 +1556,12 @@ killx [-s SIGNAL | -SIGNAL] PID...
   is an error. On Windows, which has no signals, only KILL and TERM can be sent, both by
   terminating the process, and 0 checks that it exists; any other signal fails with 'Operation not
   supported'.
-- **Verified by.** `core/kill/kill_test.go`, `cmd/killx/killx_test.go`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`, matched only in full (the tool reads its own command line). On a terminal, `-l` and `-L` with no operand
+  draw every signal as a framed table of number, name and description, the name colored by what
+  the signal does by default (`KILL` and `STOP`, which no program can catch, in the alert color;
+  the stop signals in the warning color; those that end the process in the `er` color). Converting
+  an operand, and piped output, are GNU's (NFR-53).
+- **Verified by.** `core/kill/kill_test.go`, `core/kill/view_test.go`, `cmd/killx/killx_test.go`.
 
 ### FR-118: linkx
 
@@ -2266,7 +2275,11 @@ printenvx [OPTION]... [VARIABLE]...
   to the empty string prints an empty line. Names are matched exactly, including their case, on
   every platform. -0 ends each item with NUL instead of a newline, so values containing newlines
   survive.
-- **Verified by.** `core/printenv/printenv_test.go`, `cmd/printenvx/printenvx_test.go`.
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`. On a terminal, a
+  listing of the environment has each name in the `ev` color and the `=` in the punctuation
+  color, and in a variable whose name ends in `PATH` each list separator is dimmed too; the text
+  is GNU's. The value of a variable named as an operand is data and is never colored. `-0` and piped output are never colored (NFR-53).
+- **Verified by.** `core/printenv/printenv_test.go`, `core/printenv/view_test.go`, `cmd/printenvx/printenvx_test.go`.
 
 ### FR-94: printfx
 
@@ -3035,7 +3048,12 @@ sttyx [-F DEVICE | --file=DEVICE] [-g|--save]
 - **Deviations.** On macOS and the BSDs the kernel-set PENDIN flag is left out of that check. When
   the Linux kernel ignores a setting, the failure is worded as "unable to perform all requested
   operations" where glibc's tcsetattr gives "Invalid argument". Windows has no termios.
-- **Verified by.** `core/stty/stty_test.go`, `cmd/sttyx/sttyx_test.go`, the GNU conformance cases in
+- **Terminal view (BR-13).** gnux's own `--pretty[=WHEN]` and `--theme=NAME`, matched only in full (the tool reads its own command line). On a terminal, `-a` is a panel titled with the
+  device: the speed and size, the control characters in an aligned grid, and each group of flags
+  (control, input, output, local) on lines of its own, a set flag in the `gd` color and an unset
+  one dimmed, fitted to the screen. `-g`, the plain listing, settings and piped output are GNU's
+  (NFR-53).
+- **Verified by.** `core/stty/stty_test.go`, `core/stty/view_test.go`, `cmd/sttyx/sttyx_test.go`, the GNU conformance cases in
   `cmd/testdata/conformance/more-tools.txt`.
 
 ### FR-158: sumx

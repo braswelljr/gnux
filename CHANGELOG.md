@@ -31,6 +31,12 @@ Every notable change to gnux, release by release, newest first. The format follo
 - `ddx status=progress` rewrites GNU's transfer line once a second while copying (it printed
   only the final statistics); on a terminal it draws a bar with the percentage, the rate and the
   time left.
+- `killx -l` and `-L`: on a terminal, every signal in a framed table, the names colored by what
+  the signal does. `sttyx -a`: a panel with the control characters in a grid and each group of
+  flags on its own lines, the flags that are off dimmed.
+- `envx` and `printenvx`: on a terminal, a listing of the environment has the names colored
+  apart from the values, and the directories of `PATH` (and every `*PATH` variable) set apart.
+  New theme key `ev`.
 - `whox` and `pinkyx`: on a terminal, framed tables with a header and your own logins
   emphasized, and `pinkyx -l` as a panel per user; `idx` as a panel of your IDs and groups;
   `usersx` and `groupsx` with your name and primary group emphasized.

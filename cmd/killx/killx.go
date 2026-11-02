@@ -2,6 +2,7 @@
 package killx
 
 import (
+	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -44,7 +45,8 @@ func Meta() docmeta.Meta {
 			"than signaling process group 9; a negative PID (a process group, or -1 for every " +
 			"process) must follow '--'. Giving two signals is an error. On Windows, which has " +
 			"no signals, only KILL and TERM can be sent, both by terminating the process, and " +
-			"0 checks that it exists; any other signal fails with 'Operation not supported'.",
+			"0 checks that it exists; any other signal fails with 'Operation not supported'.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, -l and -L with no operand draw every signal as a framed table of number, name and description, each name colored by what the signal does by default (KILL and STOP, which no program can catch, stand out). Converting an operand (-l 9) is GNU's. --pretty[=WHEN] and --theme=NAME, options of gnux's own matched only in full, choose the view (GNUX_PRETTY, GNUX_THEME); piped or redirected output is always GNU's.",
 		Permissions: "A process may be signaled by its owner, or by root (or with CAP_KILL). " +
 			"On Windows, terminating a process needs the right to terminate it, which an " +
 			"administrator has for every process.",
@@ -130,6 +132,7 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "number")
+	tool.RegisterView(fs)
 }
 
 // parsed is a command line split into its parts.
@@ -138,6 +141,7 @@ type parsed struct {
 	operands []string
 	help     bool
 	version  bool
+	view     map[string]string // gnux's view options, by name, as given
 }
 
 // parseArgs reads GNU kill's command line. Options may appear anywhere before
@@ -188,6 +192,16 @@ func parseArgs(args []string) (parsed, error) {
 				err = setMode(kill.ModeList)
 			case "table":
 				err = setMode(kill.ModeTable)
+			case "pretty":
+				if !hasVal {
+					val = "always"
+				}
+				p.setView(name, val)
+			case "theme":
+				if !hasVal {
+					val, err = value(&i, "theme")
+				}
+				p.setView(name, val)
 			case "signal":
 				if !hasVal {
 					val, err = value(&i, "signal")
@@ -237,5 +251,24 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		tool.PrintVersion(s.Out, kill.Name)
 		return nil
 	}
+	// gnux's terminal view draws the signal table.
+	for name, val := range p.view {
+		if err := fs.Set(name, val); err != nil {
+			return core.Usagef("%s", err)
+		}
+	}
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), kill.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	p.opts.Pretty, p.opts.Color, p.opts.Theme = view.Pretty, view.Color, view.Theme
 	return kill.New(p.opts, s).Run(p.operands)
+}
+
+// setView records one of gnux's view options; the last one given wins.
+func (p *parsed) setView(name, val string) {
+	if p.view == nil {
+		p.view = map[string]string{}
+	}
+	p.view[name] = val
 }

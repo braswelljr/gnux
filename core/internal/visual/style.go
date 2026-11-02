@@ -73,6 +73,8 @@ const (
 	GitType   = "gt"
 	GitIgnore = "gi"
 	GitClash  = "gc"
+	// EnvName is a variable's name in a listing of the environment.
+	EnvName = "ev"
 	// The classes of a byte in a dump (odx): zero, printable ASCII, ASCII
 	// whitespace, any other ASCII control, and above 0x7f.
 	ByteZero    = "yz"
@@ -96,6 +98,7 @@ var defaults = map[string]string{
 	Header: "4", Heading: "1;35", Good: "1;32", Bad: "1;31", Path: "1;36", Branch: "90",
 	BarFull: "32", BarWarn: "33", BarAlert: "1;31", BarEmpty: "90",
 	GitNew: "32", GitMod: "34", GitDel: "31", GitRename: "33", GitType: "35", GitIgnore: "90", GitClash: "1;31", GitClean: "90",
+	EnvName:  "1;34",
 	ByteZero: "90", BytePrint: "36", ByteSpace: "32", ByteControl: "35", ByteHigh: "33",
 }
 
