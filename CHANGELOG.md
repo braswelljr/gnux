@@ -4,6 +4,15 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-02
+
+gnux 1.3.0 gives the tools people read a terminal view: on a terminal, colored, framed and
+fitted to the screen, in a built-in theme after an editor theme that follows the system's light
+or dark appearance; through a pipe or into a file, GNU's output exactly as before, so scripts
+and the conformance harness see no change. `lsx` gains a tree, icons and Git status, `findx` a
+tree, `ddx status=progress` a live transfer line, and `gnux themes` shows every theme. The
+playground draws the view too.
+
 ### Added
 
 - A terminal view for the tools people read, on by default on a terminal and never through a
@@ -67,8 +76,14 @@ Every notable change to gnux, release by release, newest first. The format follo
 - `headx`, `tailx`: the `==> FILE <==` headers colored.
 - `rmx`, `cpx`, `mvx`, `lnx`, `installx`, `mkdirx`, `rmdirx`, `chmodx`, `chownx`, `chgrpx`: the
   `-v` report colored (the verb, each name, the arrows).
-- The guide [Terminal view](documentation/guides/terminal-view.md), and the plan for the view
-  in every other tool in `docs/workflows/terminal-visuals.md`.
+- The playground shows the terminal view: the scrollback is a terminal to the tools, so they
+  draw their view there while a pipe or a redirection still gets GNU's output. A theme picker
+  in the side panel (kept in the link as `?theme=`) draws the scrollback in the editor theme's
+  own background and colors, a family following the page's light or dark theme, and `COLUMNS`
+  follows the terminal's width. The WebAssembly API gains `themes`, `setenv` and `surface`
+  (FR-186).
+- The guide [Terminal view](documentation/guides/terminal-view.md), and how each tool adopts
+  the view in `docs/workflows/terminal-visuals.md`.
 
 ## [1.2.0] - 2026-10-21
 
@@ -434,7 +449,8 @@ reach Homebrew, Scoop, winget, the Snap Store, the AUR and `.deb` / `.rpm` / `.a
 
 - The project is now gnux, a portable implementation of the GNU core utilities. `rmx`, which it started as, was rewritten as one of its tools, with GNU's full `rm` flag surface.
 
-[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/braswelljr/gnux/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/braswelljr/gnux/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/braswelljr/gnux/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/braswelljr/gnux/compare/v0.0.2...v1.0.0
