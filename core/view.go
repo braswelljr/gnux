@@ -14,6 +14,15 @@ func ThemeNames() []string {
 	return visual.ThemeNames()
 }
 
+// ThemeSurface returns the background and foreground (#rrggbb) of the
+// editor theme a built-in theme follows, its family's variant chosen from
+// getenv (GNUX_BACKGROUND, COLORFGBG). The tools never paint a background;
+// it is for a host that draws the whole terminal, such as the playground.
+// ok is false for default, mono and an unknown name.
+func ThemeSurface(name string, getenv func(string) string) (background, foreground string, ok bool) {
+	return visual.Surface(name, getenv)
+}
+
 // ReportWriter returns w with each line written to it colored as gnux's
 // terminal view shows a -v report (visual.Theme.Report), in the built-in
 // theme named by theme ("" takes GNUX_THEME's). An unknown GNUX_THEME is

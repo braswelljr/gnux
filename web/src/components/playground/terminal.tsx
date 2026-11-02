@@ -13,6 +13,7 @@ import {
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { suggest } from 'lib/playground/commands.ts';
 import { type Completion } from 'lib/playground/complete.ts';
+import { type ThemeSurface } from 'lib/playground/runtime.ts';
 import { cn } from 'lib/utils';
 import { AnsiText } from '@/components/playground/ansi-text';
 import { ShareButton } from '@/components/playground/share-button';
@@ -37,8 +38,51 @@ type TerminalProps = {
   /** Whether the terminal fills the screen, and the control that toggles it. */
   fullscreen: boolean;
   onFullscreen: () => void;
+  /** The theme's own colors to draw the scrollback in; undefined keeps the page's. */
+  surface?: ThemeSurface;
+  /** Called with the scrollback's width in characters, as it changes: the tools' COLUMNS. */
+  onColumns: (columns: number) => void;
   className?: string;
 };
+
+/** Whether text on a background needs the light or the dark palette: its relative luminance. */
+function toneOf(background: string): 'light' | 'dark' {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(background.slice(i, i + 2), 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.5 ? 'light' : 'dark';
+}
+
+/**
+ * Measures the scrollback in characters of its font and reports each change,
+ * so the tools fit their tables to what is on screen, as COLUMNS tells them.
+ */
+function useColumns(
+  scroller: RefObject<HTMLDivElement | null>,
+  probe: RefObject<HTMLSpanElement | null>,
+  onColumns: (columns: number) => void
+) {
+  useEffect(() => {
+    const el = scroller.current;
+    const glyph = probe.current;
+    if (!el || !glyph || typeof ResizeObserver === 'undefined') return;
+    let last = 0;
+    const measure = () => {
+      const style = getComputedStyle(el);
+      const width = el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      // The probe holds ten characters, which averages out subpixel widths.
+      const char = glyph.getBoundingClientRect().width / 10;
+      if (char <= 0) return;
+      const columns = Math.max(20, Math.floor(width / char));
+      if (columns !== last) {
+        last = columns;
+        onColumns(columns);
+      }
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [scroller, probe, onColumns]);
+}
 
 /** Shows the home directory as `~`, as a shell prompt does. */
 function shortPath(path: string, home: string) {
@@ -49,10 +93,10 @@ function shortPath(path: string, home: string) {
 function Prompt({ cwd, home }: { cwd: string; home: string }) {
   return (
     <span className="shrink-0 select-none">
-      <span className="text-green-700 dark:text-green-300">guest@gnux</span>
-      <span className="text-fd-muted-foreground">:</span>
-      <span className="text-blue-700 dark:text-blue-300">{shortPath(cwd, home)}</span>
-      <span className="text-fd-muted-foreground">$ </span>
+      <span className="text-(--ansi-2)">guest@gnux</span>
+      <span className="text-(--ansi-8)">:</span>
+      <span className="text-(--ansi-4)">{shortPath(cwd, home)}</span>
+      <span className="text-(--ansi-8)">$ </span>
     </span>
   );
 }
@@ -73,8 +117,8 @@ const Line = memo(function Line({ entry, home }: { entry: Entry; home: string })
     <div
       className={cn(
         'break-words whitespace-pre-wrap',
-        entry.kind === 'stderr' && 'text-red-700 dark:text-red-300',
-        entry.kind === 'info' && 'text-fd-muted-foreground'
+        entry.kind === 'stderr' && 'text-(--ansi-1)',
+        entry.kind === 'info' && 'text-(--ansi-8)'
       )}
     >
       {/* Color alone must not carry the meaning: the stream is named for screen readers. */}
@@ -102,7 +146,9 @@ export function Terminal(props: TerminalProps) {
     onPrint,
     onRefresh,
     fullscreen,
-    onFullscreen
+    onFullscreen,
+    surface,
+    onColumns
   } = props;
   const [value, setValue] = useState(props.initialValue);
   // Position in history while browsing it; null while editing a new line.
@@ -111,6 +157,8 @@ export function Terminal(props: TerminalProps) {
   // The grey suggestion is only offered with the caret at the end of the line.
   const [atEnd, setAtEnd] = useState(true);
   const scroller = useRef<HTMLDivElement>(null);
+  const probe = useRef<HTMLSpanElement>(null);
+  useColumns(scroller, probe, onColumns);
   const inputId = useId();
   const hintId = useId();
 
@@ -259,12 +307,23 @@ export function Terminal(props: TerminalProps) {
           is what a keyboard or screen reader user reaches. */}
       <div
         ref={scroller}
-        className="min-h-0 flex-1 cursor-text overflow-y-auto overscroll-contain px-3 pt-3 sm:px-4"
+        // A theme with colors of its own draws the scrollback as its editor
+        // does, with the ANSI palette that reads on that background.
+        data-surface={surface && toneOf(surface.background)}
+        style={surface && { background: surface.background, color: surface.foreground }}
+        className="term-palette relative min-h-0 flex-1 cursor-text overflow-y-auto overscroll-contain px-3 pt-3 transition-colors duration-150 motion-reduce:transition-none sm:px-4"
         onClick={() => {
           // Not while text is being selected for copying.
           if (window.getSelection()?.isCollapsed !== false) inputRef.current?.focus();
         }}
       >
+        <span
+          ref={probe}
+          aria-hidden="true"
+          className="pointer-events-none invisible absolute whitespace-pre"
+        >
+          0000000000
+        </span>
         <div
           role="log"
           aria-live="polite"
@@ -284,7 +343,7 @@ export function Terminal(props: TerminalProps) {
           {running ? (
             <span
               role="status"
-              className="text-fd-muted-foreground"
+              className="text-(--ansi-8)"
             >
               running… (Esc or Ctrl+C starts over, if it never returns)
             </span>
@@ -339,7 +398,7 @@ export function Terminal(props: TerminalProps) {
                 className="pointer-events-none absolute inset-0 overflow-hidden text-base whitespace-pre sm:text-sm"
               >
                 <span className="invisible">{value}</span>
-                <span className="text-fd-muted-foreground opacity-70">{suggestion}</span>
+                <span className="text-(--ansi-8) opacity-70">{suggestion}</span>
               </span>
             )}
           </span>

@@ -1,6 +1,6 @@
 # WebAssembly Playground
 
-How the website's playground runs the real gnux in a browser: `make web/wasm` compiles `tools/wasm` for `js/wasm`, the page boots it against an in-memory POSIX filesystem (`web/lib/playground/memfs.ts`) that it installs as the Node-style `fs`, `path` and `process` objects Go's runtime expects, and the program publishes a small JavaScript API (`gnux.run`, `gnux.cwd`, `gnux.onOutput`, `gnux.version`, `gnux.tools`). A line typed in the terminal goes through `useTerminal`, `GnuxSession.run`, the Go `run` callback and `shell.Eval` to `cmd.RunTool`, exactly the path a command line takes on a real machine. It covers the output budget that keeps a runaway command from freezing the page, how Reset starts a fresh instance, and the Node test suite in `web/test` that drives the real `gnux.wasm`.
+How the website's playground runs the real gnux in a browser: `make web/wasm` compiles `tools/wasm` for `js/wasm`, the page boots it against an in-memory POSIX filesystem (`web/lib/playground/memfs.ts`) that it installs as the Node-style `fs`, `path` and `process` objects Go's runtime expects, and the program publishes a small JavaScript API (`gnux.run`, `gnux.cwd`, `gnux.onOutput`, `gnux.version`, `gnux.tools`, and `gnux.themes`, `gnux.setenv` and `gnux.surface` for the terminal view). A line typed in the terminal goes through `useTerminal`, `GnuxSession.run`, the Go `run` callback and `shell.Eval` to `cmd.RunTool`, exactly the path a command line takes on a real machine. It covers the output budget that keeps a runaway command from freezing the page, how Reset starts a fresh instance, and the Node test suite in `web/test` that drives the real `gnux.wasm`.
 
 ## The pieces
 
@@ -93,6 +93,20 @@ web/wasm:
    | `cwd()`                 | `string`                              | `os.Getwd()`, or `/` on error                         |
    | `run(line)`             | `Promise<number>`                     | `sh.Eval(line)` on a goroutine                        |
    | `onOutput = (fd, chunk)`| set by the page                       | called with `1` or `2` and a `Uint8Array`             |
+   | `themes`                | `string[]`                            | `core.ThemeNames()`                                   |
+   | `setenv(name, value)`   | `boolean`                             | `os.Setenv`, or `os.Unsetenv` for `""`                |
+   | `surface(theme)`        | `{background, foreground}` or `null`  | `core.ThemeSurface`: the editor theme's own colors    |
+
+   The streams the shell writes to implement `core.Terminal` and say they are a terminal, so
+   the tools draw gnux's terminal view in the scrollback (BR-13) and, as on a real machine,
+   write GNU's bytes into a pipe or a file. The seeded environment has `TERM=xterm-256color`
+   and `COLUMNS=80`; the page then sets `GNUX_THEME`, `GNUX_BACKGROUND` (the page's light or
+   dark theme) and `COLUMNS` (the scrollback's width in characters, from a `ResizeObserver`)
+   through `setenv` as they change. The view's colors, 24-bit and 256-color included, are
+   drawn by `parseAnsi`; a theme with a palette (`surface`) also gives the scrollback its
+   editor's background and foreground, and the 16 ANSI colors switch to the set that reads on
+   that background (`term-palette` and `data-surface` in `main.css`). The theme picker is in
+   the side panel and the choice lives in the URL as `?theme=`, checked against `themes`.
 
 3. **Sets `globalThis.gnux`** to that object and calls `globalThis.gnuxReady(api)` if the page
    defined it.
@@ -224,8 +238,9 @@ instantiate the module.
    because another boot may have replaced them while the module was downloading.
 6. Read `globalThis.gnux` and delete it, then validate it with `readApi`: the object comes from
    another program, so `run` and `cwd` must be functions, `version` falls back to `'unknown'`
-   and `tools` keeps only strings.
-7. Return a `GnuxSession`: `version`, `tools`, `fs`, `run(line)` (a non-number status becomes
+   and `tools` and `themes` keep only strings. `setenv` and `surface` are optional (an older
+   build lacks them), and a surface is used only if both colors are `#rrggbb`.
+7. Return a `GnuxSession`: `version`, `tools`, `themes`, `setenv`, `surface`, `fs`, `run(line)` (a non-number status becomes
    1), `cwd()`, `onOutput(handler)`, and `dispose()`, which disconnects output and clears Go's
    pending timeouts (a `sleepx` in flight).
 
@@ -296,7 +311,7 @@ tests. `boot()` returns a `Harness` whose `run(line)` collects stdout and stderr
 
 | Suite                  | What it covers                                                                       | Requirement |
 |------------------------|--------------------------------------------------------------------------------------|-------------|
-| `wasm.test.ts`         | "publishes its API"; dispatch by GNU name; `cd` and variables carrying over; globbing; pipelines; the connectors; diagnostics and statuses; each tool against the virtual filesystem; "runaway output is cut off instead of hanging"; "filling the filesystem fails cleanly"; "sessions are independent" | FR-47, FR-84, FR-85, NFR-11, NFR-33 |
+| `wasm.test.ts`         | "publishes its API"; dispatch by GNU name; `cd` and variables carrying over; globbing; pipelines; the connectors; diagnostics and statuses; each tool against the virtual filesystem; "runaway output is cut off instead of hanging"; "filling the filesystem fails cleanly"; "sessions are independent" (all with `GNUX_PRETTY=never`); and "the terminal view in the scrollback": the view on the scrollback but never in a pipe or a file, `setenv`, `themes` and `surface` | BR-13, NFR-53, FR-47, FR-84, FR-85, NFR-11, NFR-33 |
 | `memfs.test.ts`        | descriptor offsets, `O_APPEND`/`O_TRUNC`/`O_EXCL`, links, permissions, umask, `ENOSPC`, the callback surface | NFR-19, NFR-33 |
 | `complete.test.ts`     | command and file completion; ANSI escapes                                            | FR-48       |
 | `rules.test.ts`        | house rules over the web source, including "no em dashes in anything we write"       | NFR-42      |

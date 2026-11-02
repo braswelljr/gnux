@@ -13,7 +13,8 @@ describe('gnux.wasm on the in-memory filesystem', () => {
   let h: Harness;
 
   before(async () => {
-    h = await boot();
+    // These check GNU's output; the terminal view has tests of its own below.
+    h = await boot({ GNUX_PRETTY: 'never' });
   });
   after(() => h.dispose());
 
@@ -411,6 +412,64 @@ describe('gnux.wasm on the in-memory filesystem', () => {
       assert.equal(await ok('catx out.txt'), 'x\n');
     } finally {
       other.dispose();
+    }
+  });
+});
+
+describe('the terminal view in the scrollback', () => {
+  let h: Harness;
+
+  before(async () => {
+    h = await boot();
+  });
+  after(() => h.dispose());
+
+  const ESC = '\u001b[';
+
+  test('the scrollback gets the view, a pipe and a file get GNU bytes', async () => {
+    const shown = await h.run('lsx -l notes');
+    assert.equal(shown.status, 0, shown.stderr);
+    assert.ok(shown.stdout.includes(ESC), 'no color on the scrollback');
+
+    const piped = await h.run('lsx -l notes | catx');
+    assert.equal(piped.status, 0, piped.stderr);
+    assert.ok(!piped.stdout.includes(ESC), 'color went into a pipe');
+
+    await h.run('lsx -l notes > listing.txt');
+    assert.ok(!h.fs.readTextSync(`${HOME}/listing.txt`).includes(ESC), 'color went into a file');
+  });
+
+  test('GNUX_PRETTY=never set from the page turns it off', async () => {
+    h.setenv('GNUX_PRETTY', 'never');
+    try {
+      assert.ok(!(await h.run('lsx -l notes')).stdout.includes(ESC));
+    } finally {
+      h.setenv('GNUX_PRETTY', '');
+    }
+    assert.ok((await h.run('lsx -l notes')).stdout.includes(ESC), 'removing it restores the view');
+  });
+
+  test('themes and their surfaces', () => {
+    for (const name of ['default', 'mono', 'github', 'nord', 'dracula']) {
+      assert.ok(h.themes.includes(name), `missing ${name}`);
+    }
+    assert.equal(h.surface('default'), undefined);
+    assert.equal(h.surface('no-such-theme'), undefined);
+    assert.deepEqual(h.surface('nord'), { background: '#2e3440', foreground: '#d8dee9' });
+
+    h.setenv('GNUX_BACKGROUND', 'light');
+    assert.equal(h.surface('github')?.background, '#ffffff');
+    h.setenv('GNUX_BACKGROUND', 'dark');
+    assert.equal(h.surface('github')?.background, '#0d1117');
+    h.setenv('GNUX_BACKGROUND', '');
+  });
+
+  test('a theme set from the page reaches the tools', async () => {
+    h.setenv('GNUX_THEME', 'mono');
+    try {
+      assert.ok(!(await h.run('lsx -l notes')).stdout.includes(`${ESC}3`), 'mono has no colors');
+    } finally {
+      h.setenv('GNUX_THEME', '');
     }
   });
 });

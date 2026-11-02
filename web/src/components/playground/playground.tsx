@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LoaderCircle, TriangleAlert } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { parseAsString, useQueryState } from 'nuqs';
 import { completeSlash, helpText, parseSlash, type ToolHelp } from 'lib/playground/commands.ts';
 import { complete } from 'lib/playground/complete.ts';
@@ -33,6 +34,11 @@ function readCommand(value: unknown): string {
     .replace(/\p{Cc}/gu, ' ')
     .trim()
     .slice(0, MAX_COMMAND);
+}
+
+/** A theme name from the URL: one short word, checked against the build's list later. */
+function readTheme(value: unknown): string {
+  return typeof value === 'string' && /^[a-z0-9-]{1,40}$/.test(value) ? value : '';
 }
 
 /** The examples as `/examples` lists them: numbered, so `/examples N` can run one. */
@@ -81,6 +87,30 @@ function useFullscreen(target: React.RefObject<HTMLElement | null>) {
   return [full, toggle] as const;
 }
 
+/**
+ * The terminal view's theme, as the tools see it. The page sets
+ * `GNUX_THEME` and `GNUX_BACKGROUND` (a family's variant follows the page's
+ * light or dark theme) and returns the colors to draw the scrollback in, if
+ * the theme has its own; `default` and `mono` keep the page's.
+ */
+function useViewTheme(session: GnuxSession, theme: string) {
+  const { resolvedTheme } = useTheme();
+  const background = resolvedTheme === 'light' ? 'light' : 'dark';
+
+  useEffect(() => {
+    session.setenv('GNUX_THEME', theme);
+    session.setenv('GNUX_BACKGROUND', background);
+  }, [session, theme, background]);
+
+  // The variant is named outright (`github-light`), so the colors do not wait
+  // on the environment the effect sets.
+  return useMemo(() => {
+    if (theme === '') return undefined;
+    const variant = `${theme}-${background}`;
+    return session.surface(session.themes.includes(variant) ? variant : theme);
+  }, [session, theme, background]);
+}
+
 type WorkspaceProps = {
   session: GnuxSession;
   /** What each tool does, for `/help`. */
@@ -88,12 +118,22 @@ type WorkspaceProps = {
   /** The command in the URL when the session started. */
   initialCommand: string;
   onCommand: (command: string) => void;
+  /** The theme in the URL; "" or a name the build lacks is the default. */
+  theme: string;
+  onTheme: (theme: string) => void;
   onReset: () => void;
 };
 
 /** A running session: the terminal and the panel that drives it. */
-function Workspace({ session, toolHelp, initialCommand, onCommand, onReset }: WorkspaceProps) {
+function Workspace(props: WorkspaceProps) {
+  const { session, toolHelp, initialCommand, onCommand, onTheme, onReset } = props;
   const { fs } = session;
+  const theme = session.themes.includes(props.theme) ? props.theme : '';
+  const surface = useViewTheme(session, theme);
+  const onColumns = useCallback(
+    (columns: number) => session.setenv('COLUMNS', String(columns)),
+    [session]
+  );
   const banner = `gnux ${session.version}, ${session.tools.length} tools. Type /help for every command, or pick an example.\n`;
   const terminal = useTerminal(session, banner);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -221,6 +261,8 @@ function Workspace({ session, toolHelp, initialCommand, onCommand, onReset }: Wo
         onRefresh={onReset}
         fullscreen={fullscreen}
         onFullscreen={toggleFullscreen}
+        surface={surface}
+        onColumns={onColumns}
       />
       {!fullscreen && (
         <SidePanel
@@ -230,6 +272,9 @@ function Workspace({ session, toolHelp, initialCommand, onCommand, onReset }: Wo
           examples={available}
           busy={terminal.running}
           onRun={runExample}
+          themes={session.themes}
+          theme={theme}
+          onTheme={onTheme}
         />
       )}
     </div>
@@ -292,6 +337,9 @@ function Placeholder({ error, onReset }: { error?: string; onReset: () => void }
         examples={[]}
         busy={false}
         onRun={() => {}}
+        themes={[]}
+        theme=""
+        onTheme={() => {}}
       />
     </div>
   );
@@ -307,6 +355,13 @@ export function Playground({ toolHelp }: { toolHelp: ToolHelp[] }) {
   // playground with a command ready at the prompt.
   const [cmd, setCmd] = useQueryState('cmd', parseAsString.withDefault(''));
   const onCommand = useCallback((command: string) => void setCmd(command), [setCmd]);
+  // The terminal view's theme is a choice a link can carry too. Only a name
+  // the build knows is used; anything else is the default.
+  const [theme, setTheme] = useQueryState('theme', parseAsString.withDefault(''));
+  const onTheme = useCallback(
+    (name: string) => void setTheme(name === '' ? null : name),
+    [setTheme]
+  );
 
   if (state.status === 'ready') {
     return (
@@ -316,6 +371,8 @@ export function Playground({ toolHelp }: { toolHelp: ToolHelp[] }) {
         toolHelp={toolHelp}
         initialCommand={readCommand(cmd)}
         onCommand={onCommand}
+        theme={readTheme(theme)}
+        onTheme={onTheme}
         onReset={reset}
       />
     );

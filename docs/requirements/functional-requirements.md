@@ -4439,7 +4439,8 @@ running also resets it, since a running command cannot otherwise be stopped.
 The WebAssembly build must publish a small, stable JavaScript API.
 
 - **Acceptance.** On start it sets `globalThis.gnux` with `version`, `tools`, `run(line)`,
-  `cwd()` and an assignable `onOutput(fd, chunk)`, and calls `globalThis.gnuxReady` if it is a
+  `cwd()` and an assignable `onOutput(fd, chunk)` (and, for the terminal view, `themes`,
+  `setenv` and `surface`: FR-186), and calls `globalThis.gnuxReady` if it is a
   function. `run` returns a promise of the exit status. One line runs at a time.
 - **Verified by.** "publishes its API" and the rest of `web/test/wasm.test.ts`.
 
@@ -4451,6 +4452,22 @@ Lines run in the playground must share one shell session, and resetting must sta
   the session. Separate sessions do not see each other's files.
 - **Verified by.** "cd carries over between lines", "variables carry over and expand" and
   "sessions are independent" in `web/test/wasm.test.ts`.
+
+### FR-186: the terminal view in the playground
+
+The playground's scrollback must show gnux's terminal view as a terminal would, in a theme the
+visitor picks, while a pipe or a redirection still gets GNU's output.
+
+- **Acceptance.** The tools treat the scrollback as a terminal (`core.Terminal`), so `lsx -l`
+  there is colored and `lsx -l | catx` or `lsx -l > f` is not. The build publishes `themes`,
+  `setenv(name, value)` and `surface(theme)`. The side panel picks a built-in theme, kept in the
+  URL as `?theme=` and checked against `themes`; a family takes the variant of the page's light
+  or dark theme. A theme with a palette draws the scrollback in its editor's background and
+  foreground, with ANSI colors that read on it. `COLUMNS` follows the scrollback's width, and
+  24-bit and 256-color foregrounds are drawn exactly.
+- **Verified by.** "the terminal view in the scrollback" in `web/test/wasm.test.ts`, the ANSI
+  tests in `web/test/complete.test.ts`, and `TestSurfaces` in `core/internal/visual`. The picker
+  and the surface colors are interface behavior with no automated test.
 
 ## 11. Search and sharing
 

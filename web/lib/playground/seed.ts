@@ -14,7 +14,11 @@ export const ENV: Record<string, string> = {
   SHELL: '/bin/gnux',
   TMPDIR: '/tmp',
   LANG: 'C.UTF-8',
-  TERM: 'dumb'
+  // The scrollback shows colors, so the tools draw gnux's terminal view in
+  // them; a pipe or a file still gets GNU's bytes. The page sets
+  // GNUX_THEME, GNUX_BACKGROUND and COLUMNS as the visitor's choices change.
+  TERM: 'xterm-256color',
+  COLUMNS: '80'
 };
 
 const README = `Welcome to the gnux playground.

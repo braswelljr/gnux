@@ -36,6 +36,12 @@ type Globals = {
   gnux?: unknown;
 };
 
+/** A theme's own colors, as #rrggbb. */
+export interface ThemeSurface {
+  background: string;
+  foreground: string;
+}
+
 export interface BootOptions {
   fs: MemFS;
   env: Record<string, string>;
@@ -51,6 +57,20 @@ export interface GnuxSession {
   version: string;
   /** Every tool in the build, by its gnux name (`rmx`, `lsx`, ...). */
   tools: string[];
+  /** The built-in themes of the terminal view (`nord`, `github`, ...). */
+  themes: string[];
+  /**
+   * Sets an environment variable the tools read from the next command on
+   * (`GNUX_THEME`, `GNUX_BACKGROUND`, `GNUX_PRETTY`, `COLUMNS`); an empty
+   * value removes it.
+   */
+  setenv(name: string, value: string): void;
+  /**
+   * The background and foreground of the editor theme a built-in theme
+   * follows, its variant chosen by `GNUX_BACKGROUND`; undefined for
+   * `default`, `mono` and an unknown name, which keep the page's colors.
+   */
+  surface(theme: string): ThemeSurface | undefined;
   fs: MemFS;
   /**
    * Runs one shell line in the session, where variables and `cd` carry over,
@@ -122,7 +142,18 @@ export async function bootGnux(options: BootOptions): Promise<GnuxSession> {
   return {
     version: api.version,
     tools: api.tools,
+    themes: api.themes,
     fs: memfs,
+    setenv(name, value) {
+      api.setenv?.(name, value);
+    },
+    surface(theme) {
+      const value = api.surface?.(theme);
+      if (!isRecord(value)) return undefined;
+      const background = prop(value, 'background');
+      const foreground = prop(value, 'foreground');
+      return isColor(background) && isColor(foreground) ? { background, foreground } : undefined;
+    },
     async run(line) {
       const status: unknown = await api.run(line);
       // A status that is not a number means the contract changed; report failure.
@@ -165,11 +196,28 @@ function readApi(value: unknown) {
     throw new Error('gnux.wasm published an API without run() and cwd()');
   }
 
+  // The theme calls came later than run() and cwd(): an older build lacks
+  // them, and the playground then simply has no theme to pick.
+  const setenv = prop(value, 'setenv');
+  const surface = prop(value, 'surface');
+
   return {
     object: value,
     version: isString(version) ? version : 'unknown',
     tools: arrayOf(prop(value, 'tools'), isString),
+    themes: arrayOf(prop(value, 'themes'), isString),
+    setenv: isFunction(setenv)
+      ? (name: string, val: string): unknown => setenv.call(value, name, val)
+      : undefined,
+    surface: isFunction(surface)
+      ? (theme: string): unknown => surface.call(value, theme)
+      : undefined,
     run: (line: string): unknown => run.call(value, line),
     cwd: (): unknown => cwd.call(value)
   };
+}
+
+/** A #rrggbb color, the only form the build reports. */
+function isColor(value: unknown): value is string {
+  return isString(value) && /^#[0-9a-f]{6}$/i.test(value);
 }

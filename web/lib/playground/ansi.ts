@@ -9,6 +9,8 @@ export interface AnsiSpan {
   text: string;
   /** Foreground color index: 0-7 normal, 8-15 bright. */
   fg?: number;
+  /** A foreground given exactly (24-bit, or the 256-color cube), as #rrggbb. */
+  color?: string;
   bold?: boolean;
   dim?: boolean;
   underline?: boolean;
@@ -52,6 +54,7 @@ function applySgr(style: Omit<AnsiSpan, 'text'>, params: string): Omit<AnsiSpan,
     const code = codes[i];
     if (code === 0) {
       delete next.fg;
+      delete next.color;
       delete next.bold;
       delete next.dim;
       delete next.underline;
@@ -62,14 +65,50 @@ function applySgr(style: Omit<AnsiSpan, 'text'>, params: string): Omit<AnsiSpan,
       delete next.bold;
       delete next.dim;
     } else if (code === 24) delete next.underline;
-    else if (code >= 30 && code <= 37) next.fg = code - 30;
-    else if (code >= 90 && code <= 97) next.fg = code - 90 + 8;
-    else if (code === 39) delete next.fg;
-    else if (code === 38 || code === 48) {
-      // Extended colors carry arguments (5;n or 2;r;g;b). They are not
-      // rendered, but their arguments must not be read as codes of their own.
-      i += codes[i + 1] === 5 ? 2 : codes[i + 1] === 2 ? 4 : 0;
+    else if (code >= 30 && code <= 37) setIndex(next, code - 30);
+    else if (code >= 90 && code <= 97) setIndex(next, code - 90 + 8);
+    else if (code === 39) {
+      delete next.fg;
+      delete next.color;
+    } else if (code === 38 || code === 48) {
+      // Extended colors carry arguments (5;n or 2;r;g;b), which must not be
+      // read as codes of their own. Only the foreground is drawn: the
+      // terminal keeps its own background, as the tools expect.
+      const kind = codes[i + 1];
+      if (code === 38 && kind === 2) {
+        next.color = hex(codes[i + 2], codes[i + 3], codes[i + 4]);
+        delete next.fg;
+      } else if (code === 38 && kind === 5) {
+        const n = codes[i + 2] ?? 0;
+        if (n < 16) setIndex(next, n);
+        else {
+          next.color = cube(n);
+          delete next.fg;
+        }
+      }
+      i += kind === 5 ? 2 : kind === 2 ? 4 : 0;
     }
   }
   return next;
+}
+
+function setIndex(style: Omit<AnsiSpan, 'text'>, n: number) {
+  style.fg = n;
+  delete style.color;
+}
+
+function hex(r = 0, g = 0, b = 0): string {
+  const part = (v: number) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0');
+  return `#${part(r)}${part(g)}${part(b)}`;
+}
+
+/** A color of the 256-color palette past the first 16: the 6x6x6 cube, then 24 greys. */
+function cube(n: number): string {
+  if (n >= 232) {
+    const v = 8 + (Math.min(n, 255) - 232) * 10;
+    return hex(v, v, v);
+  }
+  const i = n - 16;
+  const level = (v: number) => (v === 0 ? 0 : 55 + v * 40);
+  return hex(level(Math.floor(i / 36)), level(Math.floor(i / 6) % 6), level(i % 6));
 }
