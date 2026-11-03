@@ -170,7 +170,7 @@ mechanism is in [documentation-generation](documentation-generation.md).
 
 **Job `web`** on `ubuntu-latest`, path-filtered to `web/**`, `**.go`, `go.mod` and the workflow
 itself, with `cancel-in-progress` concurrency. Go from `go.mod`; pnpm from
-`web/package.json`'s `packageManager`; Node.js 24 with the pnpm cache keyed on
+`web/package.json`'s `packageManager`; Node.js 26 with the pnpm cache keyed on
 `web/pnpm-lock.yaml`.
 
 | Step                                         | Command (in `web/` unless noted)       | Enforces                                  |

@@ -2,7 +2,7 @@
 # compiles to WebAssembly, the playground's in-memory filesystem passes its
 # tests against that real binary, and the Fumadocs site lints, type-checks and
 # builds, and the built pages carry their SEO metadata. Needs Go (version from
-# go.mod), Node.js 24 and pnpm (version from web/package.json).
+# go.mod), Node.js 26 and pnpm (version from web/package.json).
 name: Web
 
 on:
@@ -56,7 +56,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Cache the pnpm store
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0

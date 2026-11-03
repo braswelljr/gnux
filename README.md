@@ -175,7 +175,7 @@ it back to the system's own tools, which differ between Linux, macOS and Windows
 
 **To work on the website** (`web/`: documentation and playground)
 
-- Node.js 24 and [pnpm](https://pnpm.io/), plus Go to compile the tools to WebAssembly.
+- Node.js 26 and [pnpm](https://pnpm.io/), plus Go to compile the tools to WebAssembly.
 
 **To use gnux as a library**
 

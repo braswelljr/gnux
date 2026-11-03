@@ -9,7 +9,7 @@ that runs the real gnux in the browser.
 
 ## Requirements
 
-- Node.js 24 (the tests run TypeScript directly, which needs Node's type
+- Node.js 26 (the tests run TypeScript directly, which needs Node's type
   stripping) and pnpm 12.
 - Go 1.25 or newer, to regenerate the documentation and the WebAssembly build. Without Go the
   site still builds from the copies already under `content/docs/` and `public/`.

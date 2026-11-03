@@ -165,7 +165,7 @@ go build -ldflags "-X github.com/braswelljr/gnux/internal/common.Version=$(git d
 - **golangci-lint v2** for `make lint` and `make format`; **lefthook** for the Git hooks
   (`make hooks`): on commit, staged Go files are formatted and their packages linted, and staged
   web files go through Prettier and ESLint.
-- **Node.js 24 and pnpm**, only for `web/` (pinned in `web/package.json`).
+- **Node.js 26 and pnpm**, only for `web/` (pinned in `web/package.json`).
 - No cgo anywhere: the binary must stay statically linked and cross-compile for linux, darwin,
   freebsd, windows **and js/wasm** (the playground). Releases cover linux amd64/arm64/riscv64,
   darwin and freebsd amd64/arm64, and windows amd64/arm64. Anything platform-specific needs a fallback that
