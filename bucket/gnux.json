@@ -1,19 +1,19 @@
 {
-    "version": "1.2.0",
+    "version": "1.4.0",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/braswelljr/gnux/releases/download/v1.2.0/gnux-v1.2.0-windows-amd64.zip",
+            "url": "https://github.com/braswelljr/gnux/releases/download/v1.4.0/gnux-v1.4.0-windows-amd64.zip",
             "bin": [
-                "gnux-v1.2.0-windows-amd64/gnux.exe"
+                "gnux-v1.4.0-windows-amd64/gnux.exe"
             ],
-            "hash": "2c93f90b73020d01d7b7cbf6648138972c2a6114098461cf485f3264cca86d7b"
+            "hash": "4eb674daab674f1a4503cda9cf52f64270183a7341a49ba25afd495bb3977fdc"
         },
         "arm64": {
-            "url": "https://github.com/braswelljr/gnux/releases/download/v1.2.0/gnux-v1.2.0-windows-arm64.zip",
+            "url": "https://github.com/braswelljr/gnux/releases/download/v1.4.0/gnux-v1.4.0-windows-arm64.zip",
             "bin": [
-                "gnux-v1.2.0-windows-arm64/gnux.exe"
+                "gnux-v1.4.0-windows-arm64/gnux.exe"
             ],
-            "hash": "59ecae591f2eeb464db9a8f576e0480956a9425771d44edde80da8bf82fa8c7a"
+            "hash": "d6b5e6ac56e42c668157e215540db6a4e685edb0dc5cbee27cc3cc4e28c66855"
         }
     },
     "homepage": "https://github.com/braswelljr/gnux",
