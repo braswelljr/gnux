@@ -6,42 +6,42 @@ cask "gnux" do
     end
   end
 
-  version "1.5.0"
+  version "1.5.1"
 
   on_macos do
     on_arm do
-      sha256 "b1a7055d13ab9bb48c79191a2e3081ba609a49604fc5b18f13d79c3d7ec6d073"
+      sha256 "494e2a4eb7855429cfb4a40cc99606ed90c4f5687ce83d08a949b533ccfe0542"
       url "https://github.com/braswelljr/gnux/releases/download/v#{version}/gnux-v#{version}-darwin-arm64.tar.gz"
-      rename "gnux-v1.5.0-darwin-arm64/gnux", "gnux"
-      rename "gnux-v1.5.0-darwin-arm64/completions/gnux.bash", "completions/gnux.bash"
-      rename "gnux-v1.5.0-darwin-arm64/completions/gnux.fish", "completions/gnux.fish"
-      rename "gnux-v1.5.0-darwin-arm64/completions/gnux.zsh", "completions/gnux.zsh"
+      rename "gnux-v1.5.1-darwin-arm64/gnux", "gnux"
+      rename "gnux-v1.5.1-darwin-arm64/completions/gnux.bash", "completions/gnux.bash"
+      rename "gnux-v1.5.1-darwin-arm64/completions/gnux.fish", "completions/gnux.fish"
+      rename "gnux-v1.5.1-darwin-arm64/completions/gnux.zsh", "completions/gnux.zsh"
     end
     on_intel do
-      sha256 "5c639d12395f0aee371b1876948e7e0b652fdb0de59613ae95cc6e65dcf1fdb3"
+      sha256 "95dba2fd7b327292b4775a674ef5d35965729c6478a0756fe0d8df71c2e396b7"
       url "https://github.com/braswelljr/gnux/releases/download/v#{version}/gnux-v#{version}-darwin-amd64.tar.gz"
-      rename "gnux-v1.5.0-darwin-amd64/gnux", "gnux"
-      rename "gnux-v1.5.0-darwin-amd64/completions/gnux.bash", "completions/gnux.bash"
-      rename "gnux-v1.5.0-darwin-amd64/completions/gnux.fish", "completions/gnux.fish"
-      rename "gnux-v1.5.0-darwin-amd64/completions/gnux.zsh", "completions/gnux.zsh"
+      rename "gnux-v1.5.1-darwin-amd64/gnux", "gnux"
+      rename "gnux-v1.5.1-darwin-amd64/completions/gnux.bash", "completions/gnux.bash"
+      rename "gnux-v1.5.1-darwin-amd64/completions/gnux.fish", "completions/gnux.fish"
+      rename "gnux-v1.5.1-darwin-amd64/completions/gnux.zsh", "completions/gnux.zsh"
     end
   end
   on_linux do
     on_arm do
-      sha256 "c1bc272542fe550ca859b79bfea478e4b1184a33da81c91c42eea6f5cc5480c0"
+      sha256 "8c13d8a468d6d75954d071c5f58b9ffb581a28fbd770bbd232ef446264944662"
       url "https://github.com/braswelljr/gnux/releases/download/v#{version}/gnux-v#{version}-linux-arm64.tar.gz"
-      rename "gnux-v1.5.0-linux-arm64/gnux", "gnux"
-      rename "gnux-v1.5.0-linux-arm64/completions/gnux.bash", "completions/gnux.bash"
-      rename "gnux-v1.5.0-linux-arm64/completions/gnux.fish", "completions/gnux.fish"
-      rename "gnux-v1.5.0-linux-arm64/completions/gnux.zsh", "completions/gnux.zsh"
+      rename "gnux-v1.5.1-linux-arm64/gnux", "gnux"
+      rename "gnux-v1.5.1-linux-arm64/completions/gnux.bash", "completions/gnux.bash"
+      rename "gnux-v1.5.1-linux-arm64/completions/gnux.fish", "completions/gnux.fish"
+      rename "gnux-v1.5.1-linux-arm64/completions/gnux.zsh", "completions/gnux.zsh"
     end
     on_intel do
-      sha256 "144b5ff736fecb0d46a7256418994ce725f885f2d18589296ed4213201a8aa3e"
+      sha256 "fb2ff7f7731ec8dd5b0c15adc1889608c01722ee4d286c2714ea67997431a241"
       url "https://github.com/braswelljr/gnux/releases/download/v#{version}/gnux-v#{version}-linux-amd64.tar.gz"
-      rename "gnux-v1.5.0-linux-amd64/gnux", "gnux"
-      rename "gnux-v1.5.0-linux-amd64/completions/gnux.bash", "completions/gnux.bash"
-      rename "gnux-v1.5.0-linux-amd64/completions/gnux.fish", "completions/gnux.fish"
-      rename "gnux-v1.5.0-linux-amd64/completions/gnux.zsh", "completions/gnux.zsh"
+      rename "gnux-v1.5.1-linux-amd64/gnux", "gnux"
+      rename "gnux-v1.5.1-linux-amd64/completions/gnux.bash", "completions/gnux.bash"
+      rename "gnux-v1.5.1-linux-amd64/completions/gnux.fish", "completions/gnux.fish"
+      rename "gnux-v1.5.1-linux-amd64/completions/gnux.zsh", "completions/gnux.zsh"
     end
   end
 
