@@ -37,7 +37,7 @@ var guideSections = []section{
 			`links and the install directory on PATH; on Windows, where creating a symlink needs ` +
 			`Developer Mode or an elevated shell, copy gnux.exe to the tool's name instead.`,
 		`make, bash and Docker are optional conveniences. Working on the website additionally needs ` +
-			`Node.js 22.18 or newer and pnpm.`,
+			`Node.js 24 and pnpm.`,
 	}},
 	{"Installation", []string{
 		`Install the latest version with go install, or build from source with make build (the ` +

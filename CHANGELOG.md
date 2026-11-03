@@ -4,6 +4,12 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+### Changed
+
+- The website builds on Node.js 24: `web/package.json` pins `"node": "24.x"`, so Vercel no longer
+  moves it to a new major version on its own, and CI sets up Node.js 24. pnpm moves to 12.16.1,
+  which records itself in `web/pnpm-lock.yaml` so every install uses that exact release.
+
 ## [1.4.0] - 2026-11-03
 
 gnux 1.4.0 gives the tools people read a terminal view, and closes the largest gaps with GNU
