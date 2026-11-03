@@ -117,10 +117,10 @@ function docsRoute(file) {
 }
 
 const pageFiles = docsFiles();
-// A release's snapshot (content/docs/v0/...) is served but neither listed in
-// the sitemap nor in llms.txt, and is marked noindex, so that searches lead to
-// the latest docs.
-const isVersioned = (file) => /^v\d+\.\d+\//.test(file);
+// An older version's docs (content/docs/v0/..., or v1.1/... from before
+// 1.4.0) are served but neither listed in the sitemap nor in llms.txt, and
+// are marked noindex, so that searches lead to the latest docs.
+const isVersioned = (file) => /^v\d+(\.\d+)?\//.test(file);
 const expectedDocs = pageFiles.filter((file) => !isVersioned(file)).map(docsRoute);
 const versionedDocs = pageFiles.filter(isVersioned).map(docsRoute);
 
