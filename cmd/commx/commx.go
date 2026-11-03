@@ -3,6 +3,7 @@ package commx
 
 import (
 	"errors"
+	"os"
 
 	"github.com/spf13/pflag"
 
@@ -43,7 +44,8 @@ func Meta() docmeta.Meta {
 			"locale, whatever LANG says, so sort the inputs with sortx (or LC_ALL=C sort). The " +
 			"framework requires a long name for every option, so -1, -2 and -3 also answer to " +
 			"gnux's own --suppress-file1, --suppress-file2 and --suppress-common. When both " +
-			"--check-order and --nocheck-order are given, --check-order wins.",
+			"--check-order and --nocheck-order are given, --check-order wins.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, a header row names each column's file (cut to fit a tab stop, so it sits over its column), and every line is in its column's color, so the columns stay apart however long the lines are. The lines and their tabs are GNU's. --pretty[=WHEN] and --theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); -z and piped or redirected output are always GNU's.",
 		Permissions: "Needs read permission on FILE1 and FILE2 and search permission on the " +
 			"directories leading to them. Nothing is ever modified.",
 		UseCases: []string{
@@ -131,6 +133,7 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "suppress-common", "suppress-file1", "suppress-file2")
+	tool.RegisterView(fs)
 }
 
 // fatalError is a mistake GNU comm reports without the --help hint.
@@ -178,5 +181,10 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		d.Errorf("%s", fatal.msg)
 		return d.Result()
 	}
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), comm.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
 	return comm.New(opts, s).Run(args)
 }

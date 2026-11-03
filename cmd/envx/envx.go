@@ -55,7 +55,8 @@ func Meta() docmeta.Meta {
 			"that cannot replace a running process. The exit status is 125 if envx itself " +
 			"fails, 126 if COMMAND is found but cannot be run, 127 if COMMAND cannot be " +
 			"found, and otherwise the exit status of COMMAND (128 plus the signal number when " +
-			"a signal killed it).",
+			"a signal killed it).\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, a listing of the environment has each name colored apart from its value and the '=' dimmed, and the ':' between the directories of PATH and every other *PATH variable dimmed too; the text is GNU's. The view's options must come before any assignment or -S string. --pretty[=WHEN] and --theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); -0 and piped or redirected output are always GNU's.",
 		Permissions: "Printing the environment needs no permissions. Running a command needs " +
 			"execute permission on the program and search permission on the directories " +
 			"leading to it, plus search permission on the -C directory when one is given.",
@@ -161,6 +162,7 @@ func Register(fs *pflag.FlagSet) {
 		"used to pass multiple arguments on shebang lines")
 	fs.StringP("argv0", "a", "", "pass `ARG` as the zeroth argument of COMMAND")
 	fs.BoolP("debug", "v", false, "print verbose information for each processing step")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into env.Options. -S is not part of it:
@@ -192,6 +194,13 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		core.NewDiag(env.Name, s).Errorf("%v", err)
 		return &core.ExitError{Code: env.ExitCanceled}
 	}
+	// gnux's terminal view colors a listing; it is read from the options
+	// before any -S string, which is for shebang lines.
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), env.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
 	return env.New(opts, s).Run(args)
 }
 

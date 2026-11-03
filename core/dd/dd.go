@@ -10,6 +10,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/braswelljr/gnux/core/fsys"
@@ -33,7 +34,8 @@ const (
 	StatusNone
 	// StatusNoXfer prints the record counts only.
 	StatusNoXfer
-	// StatusProgress is accepted; gnux prints the final statistics only.
+	// StatusProgress also rewrites a line of transfer statistics on
+	// standard error once a second while copying.
 	StatusProgress
 )
 
@@ -68,6 +70,15 @@ type Options struct {
 	// Output flags (oflag=...): SeekBytes reads seek= as bytes, Append
 	// appends to the output.
 	SeekBytes, Append bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU operands:
+	// with Pretty, status=progress draws a bar, the percentage and the time
+	// left (when the size of what is copied is known), five times a second,
+	// colored with Color in Theme (a built-in theme; "" takes GNUX_THEME's).
+	// The final statistics are GNU's.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Dd is the engine. Construct it with New.
@@ -77,6 +88,9 @@ type Dd struct {
 	// Now is the clock the transfer statistics are timed with; it defaults
 	// to time.Now.
 	Now func() time.Time
+	// Getenv reads GNUX_THEME, COLUMNS and the locale for the view; nil
+	// means os.Getenv.
+	Getenv func(string) string
 
 	streams core.Streams
 	diag    *core.Diag
@@ -93,8 +107,9 @@ type stats struct {
 }
 
 // Run copies the input to the output. Operands (KEY=VALUE), when given,
-// replace the engine's Options, as on the command line. The returned error
-// is core.ErrFailed if anything failed, otherwise nil.
+// replace the engine's Options, as on the command line, all but the view
+// (Pretty, Color, Theme). The returned error is core.ErrFailed if anything
+// failed, otherwise nil.
 func (d *Dd) Run(args []string) error {
 	if len(args) > 0 {
 		o, err := Parse(args)
@@ -106,6 +121,8 @@ func (d *Dd) Run(args []string) error {
 		if err != nil {
 			return err
 		}
+		// The view is not an operand: it stays as the caller set it.
+		o.Pretty, o.Color, o.Theme = d.Pretty, d.Color, d.Theme
 		d.Options = o
 	}
 
@@ -138,6 +155,9 @@ func (d *Dd) Run(args []string) error {
 		direct: d.BlockSize > 0 && !d.Block && !d.Unblock,
 	}
 	d.skip(in, inName, ibs)
+	if d.Status == StatusProgress {
+		c.progress = d.newProgress(start, d.total(in, ibs))
+	}
 	quiet := c.run()
 	if quiet {
 		return d.diag.Result()
@@ -149,6 +169,7 @@ func (d *Dd) Run(args []string) error {
 			}
 		}
 	}
+	c.endProgress()
 	d.report(c.st, d.Now().Sub(start))
 	return d.diag.Result()
 }
@@ -271,6 +292,9 @@ type copier struct {
 	col    int64 // block/unblock: bytes in the current record
 	rec    []byte
 	failed bool
+
+	progress *progress // status=progress
+	inBytes  int64     // read so far, for the view's percentage
 }
 
 // run copies until the input or the count runs out. It reports true when
@@ -279,6 +303,7 @@ func (c *copier) run() (quiet bool) {
 	buf := make([]byte, c.ibs)
 	remaining := c.d.Count
 	for {
+		c.tick()
 		want := c.ibs
 		if c.d.HasCount {
 			if c.d.CountBytes {
@@ -299,6 +324,7 @@ func (c *copier) run() (quiet bool) {
 				c.st.inPart++
 			}
 			remaining -= int64(n)
+			c.inBytes += int64(n)
 		}
 		data := buf[:n]
 		if n > 0 && int64(n) < c.ibs && c.d.Sync {
@@ -498,21 +524,38 @@ func (d *Dd) report(st stats, elapsed time.Duration) {
 		return
 	}
 
-	si, iec := human(float64(st.bytes), 1000, siUnits), human(float64(st.bytes), 1024, iecUnits)
+	fmt.Fprintf(w, "%s\n", xfer(st.bytes, elapsed, false))
+}
+
+// xfer is GNU's line of transfer statistics, without its newline. The
+// progress line gives the seconds whole.
+func xfer(bytes int64, elapsed time.Duration, progress bool) string {
+	var b strings.Builder
+	si, iec := human(float64(bytes), 1000, siUnits), human(float64(bytes), 1024, iecUnits)
 	switch {
-	case st.bytes < 1000:
-		fmt.Fprintf(w, "%d byte%s copied", st.bytes, core.Plural(int(st.bytes)))
-	case st.bytes < 1024:
-		fmt.Fprintf(w, "%d bytes (%s) copied", st.bytes, si)
+	case bytes < 1000:
+		fmt.Fprintf(&b, "%d byte%s copied", bytes, core.Plural(int(bytes)))
+	case bytes < 1024:
+		fmt.Fprintf(&b, "%d bytes (%s) copied", bytes, si)
 	default:
-		fmt.Fprintf(w, "%d bytes (%s, %s) copied", st.bytes, si, iec)
+		fmt.Fprintf(&b, "%d bytes (%s, %s) copied", bytes, si, iec)
 	}
 	secs := elapsed.Seconds()
-	rate := "Infinity B"
-	if secs > 0 {
-		rate = human(float64(st.bytes)/secs, 1000, siUnits)
+	if progress {
+		fmt.Fprintf(&b, ", %.0f s", secs)
+	} else {
+		fmt.Fprintf(&b, ", %g s", secs)
 	}
-	fmt.Fprintf(w, ", %g s, %s/s\n", secs, rate)
+	fmt.Fprintf(&b, ", %s/s", rate(bytes, elapsed))
+	return b.String()
+}
+
+// rate is bytes per second over elapsed, as GNU writes it ("85 MB").
+func rate(bytes int64, elapsed time.Duration) string {
+	if secs := elapsed.Seconds(); secs > 0 {
+		return human(float64(bytes)/secs, 1000, siUnits)
+	}
+	return "Infinity B"
 }
 
 var (

@@ -48,7 +48,7 @@ runs:
         VERSION: ${{ inputs.version }}
         LINKS: ${{ inputs.links }}
         GNU_NAMES: ${{ inputs.gnu-names }}
-      run: |
+      run: | # zizmor: ignore[github-env] the path is under $RUNNER_TEMP and the tag is checked
         set -euo pipefail
         repo="braswelljr/gnux"
 
@@ -71,10 +71,11 @@ runs:
           url="$(curl -fsSLI -o /dev/null -w '%{url_effective}' "https://github.com/$repo/releases/latest")"
           tag="${url##*/}"
         fi
-        case "$tag" in
-          v*) ;;
-          *) echo "::error::cannot resolve gnux version '$VERSION' (got '$tag')"; exit 1 ;;
-        esac
+        # Only a release tag goes further: it is written to $GITHUB_OUTPUT and
+        # into URLs, where a newline or a slash would mean something else.
+        if ! printf '%s' "$tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'; then
+          echo "::error::cannot resolve gnux version '$VERSION' (got '$tag')"; exit 1
+        fi
 
         name="gnux-${tag}-${os}-${arch}"
         ext="tar.gz"
@@ -138,6 +139,7 @@ runs:
 
         path="$bin"
         if command -v cygpath > /dev/null 2>&1; then path="$(cygpath -w "$bin")"; fi
+        # $path is under $RUNNER_TEMP, and $tag was checked above.
         echo "$path" >> "$GITHUB_PATH"
         echo "version=$tag" >> "$GITHUB_OUTPUT"
         echo "path=$path" >> "$GITHUB_OUTPUT"

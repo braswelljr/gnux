@@ -17,6 +17,11 @@ var seeds = []string{
 	`mkdirx -p "dist/$NAME" && cpx -r assets dist/ || echox 'failed: $?'`,
 	"A=1 B=${A}x; echox $A $B ${UNSET} $?",
 	`catx < in.txt >> out.txt 2> err.txt`,
+	"catx missing > log 2>&1; echox oops >&2 1>> log",
+	"echox a & echox b",
+	"echox ${#A} ${A%.go} ${A:-${B}} ${A",
+	`echox ${A:-"a b"} ${A#*/} ${A##*/} ${A%%.*} ${A:=x} ${A:+y} ${A?} ${1%e} "${A:-'q'}"`,
+	"while read -r a b; do echox $a; done < /dev/null; read",
 	`echox C:\tools\bin \$HOME \"q\" # comment`,
 	"rmx -rf build/*.o ~/tmp/[ab]?.log",
 	"| x",
@@ -108,7 +113,7 @@ func FuzzParse(f *testing.F) {
 				t.Fatalf("parse(%q): a command has neither words nor a body", line)
 			}
 			for _, r := range c.redirects {
-				if len(r.target) == 0 {
+				if len(r.target) == 0 && !isDup(r.op) {
 					t.Fatalf("parse(%q): redirect %q has no target", line, r.op)
 				}
 			}

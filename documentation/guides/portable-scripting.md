@@ -15,7 +15,7 @@ The same file serves a developer laptop and every CI runner.
 ## Running scripts
 
 ```bash
-gnux shell                          # interactive session (prompt: gnux> )
+gnux shell                          # interactive session
 gnux shell build.gnux               # run a script file
 gnux shell -e build.gnux            # ... stopping at the first failing command
 gnux shell -eu build.gnux           # ... and refusing a variable that was never set
@@ -118,6 +118,33 @@ dist/my-service my-service_v2 my-service.log my-service-x
 - A name not set in the script is looked up in the environment, so `$HOME`, `$PATH` and CI variables such as `$GITHUB_SHA` work.
 - An unset variable expands to nothing, unless the script runs with `-u`, which makes it an error (see [Refusing unset variables with `-u`](#refusing-unset-variables-with--u)).
 - `${NAME:-default}` is the variable, or `default` when it is unset or empty: `OUT=${OUT:-dist}`.
+
+The other POSIX forms work too: cutting a path apart, giving a variable a default for good, and refusing to go on without one:
+
+```bash
+f=src/app/main.tar.gz
+echox ${f##*/} ${f%/*} ${f%%.*} ${f%.gz} ${#f}
+echox ${OUT:-dist} ${OUT:=build} $OUT ${CI:+on-ci}
+echox ${REQUIRED:?set REQUIRED first}
+```
+
+```text
+main.tar.gz src/app src/app/main src/app/main.tar 19
+dist build build
+gnux: REQUIRED: set REQUIRED first
+```
+
+| Form | Gives |
+|------|-------|
+| `${#NAME}` | the length of the value, in characters |
+| `${NAME#pat}`, `${NAME##pat}` | the value without the shortest / longest prefix `pat` matches |
+| `${NAME%pat}`, `${NAME%%pat}` | the value without the shortest / longest suffix `pat` matches |
+| `${NAME:-word}`, `${NAME-word}` | `word` when NAME is unset or empty / unset |
+| `${NAME:=word}`, `${NAME=word}` | the same, and NAME is set to `word` |
+| `${NAME:+word}`, `${NAME+word}` | `word` when NAME is set and not empty / set, else nothing |
+| `${NAME:?msg}`, `${NAME?msg}` | the value, or `msg` as an error that stops the script |
+
+A pattern uses `*`, `?` and `[...]`; the parts of it in quotes, and a variable's value, match only themselves. Any other `${...}` (bash's `${x/a/b}`, `${x:1}`) is refused as a bad substitution rather than expanded to nothing.
 
 ### Script arguments
 
@@ -264,6 +291,8 @@ echox done >> build.log       # append
 wcx -l < listing.txt          # read standard input
 catx missing 2> errors.txt    # standard error to a file
 catx missing 2>> errors.txt   # ... appended
+catx missing > all.txt 2>&1   # standard error to wherever standard output goes
+echox 'warning' >&2           # standard output to standard error
 rmx -rv build > /dev/null     # discard; /dev/null works on Windows too
 ```
 
@@ -305,11 +334,25 @@ mkdirx -p site   # idempotent
 | `cd [DIR]` | Change directory; with no argument, go home. `cd -` is not supported |
 | `exit [STATUS]` | Stop the script with STATUS, or with the last command's status |
 | `help [TOOL [OPTION]]` | Print the language summary, a tool's manual, or one option of it |
+| `read [-r] [NAME...]` | Read one line of standard input into the NAMEs, split at `$IFS` (blanks by default), the last NAME taking the rest; with no NAME, into `REPLY`. Status 1 at the end of the input. Without `-r` a backslash escapes the next character |
 | `set -e`, `set -u` | Turn on stopping at the first failure, and refusing unset variables; `+e` and `+u` turn them off |
 | `set -- ARG...` | Replace the script's arguments |
 | `shift [N]` | Drop the first N arguments (1 when absent) |
 | `break [N]`, `continue [N]` | Leave, or start the next turn of, the Nth enclosing loop |
 | `[ EXPRESSION ]` | Run `testx EXPRESSION` |
+
+`read` takes a file or a pipeline a line at a time, and reads no further than its line, so the command after it gets the rest:
+
+```bash
+while read -r name age; do echox "$name is $age"; done < people.txt
+IFS=:; echox root:x:0 | while read user pw uid; do echox $user $uid; done
+```
+
+```text
+alice is 30
+bob is 25
+root 0
+```
 
 `cd` changes the directory for the rest of the script and for every tool it runs. When the script ends, `gnux shell` restores the directory it started in. Inside a pipeline, these builtins run as in a subshell and do not affect the script; the same goes for an `if`, loop or `case` that is a stage of a pipeline, and for `$(...)`.
 
@@ -452,8 +495,9 @@ A command that `xargsx` or `findx -exec` is told to run is a gnux tool when it h
 name, run inside the gnux process, so `xargsx rm` behaves the same on Windows as on Linux. Any
 other name is a program found on `PATH`.
 
-Patterns are regular expressions without back references: `grepx 'a\(b\)\1'` is refused
-rather than matched some other way.
+Patterns are POSIX regular expressions, back references included: `grepx '\(.\)\1'` finds a
+doubled character and `sedx 's/\(\w*\) \1/\1/g'` removes a doubled word. `grepx -P` takes Perl
+syntax, with lookahead and lookbehind: `grepx -Po '(?<=version=)[0-9.]+'`.
 
 ## Running external programs through `envx`
 
@@ -700,6 +744,16 @@ catx $OUT
 ## Interactive use
 
 `gnux shell` with no arguments on a terminal is an interactive session with the prompt `gnux> `. A syntax error is reported and the session carries on; `exit` leaves it. A command that is not finished yet (an `if` waiting for its `fi`, a loop for its `done`) is continued on the next line, at the prompt `> `. It is a consistent shell for machines without the GNU tools installed: the same commands, flags and globbing on a Windows server as on a Linux laptop.
+
+On a terminal the prompt shows where you are, and the status of a command that failed, so you notice it before you go on:
+
+```text
+gnux ~/site ❯ cd public
+gnux ~/site/public ❯ testx -f index.html
+gnux ~/site/public [1] ❯ lsx
+```
+
+`--pretty=never` (or `GNUX_PRETTY=never`) brings back the plain `gnux> `. `gnux shell --theme=nord` picks the theme for the prompt and for every tool you run in the session, and `--pretty=always` turns the tools' view on even in a pipeline. See [Terminal view](terminal-view.md).
 
 ## Embedding scripts in Go
 

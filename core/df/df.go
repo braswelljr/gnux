@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -18,6 +19,7 @@ import (
 	"github.com/braswelljr/gnux/core/internal/fsstat"
 	"github.com/braswelljr/gnux/core/internal/human"
 	"github.com/braswelljr/gnux/core/internal/sysstat"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -51,6 +53,13 @@ type Options struct {
 	// fields, all of them.
 	Output    []string
 	OutputSet bool
+
+	// Pretty is gnux's terminal view, not a GNU option: a usage bar after
+	// each percentage, and with Color the table in the colors of Theme (a
+	// built-in theme; "" takes GNUX_THEME's).
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Df is the engine. Construct it with New.
@@ -615,7 +624,12 @@ func clean(s string) string {
 	}, s)
 }
 
+// barWidth is the width of the --pretty usage bar.
+const barWidth = 12
+
 // print writes the table: text columns left-aligned, numbers right-aligned.
+// The pretty view adds a bar after each percentage and paints the header,
+// the percentages and the mount points.
 func (d *Df) print() {
 	w := core.NewWriter(d.streams.Out)
 	defer func() {
@@ -623,6 +637,12 @@ func (d *Df) print() {
 			d.diag.Errorf("write error: %s", core.ErrText(err))
 		}
 	}()
+	theme := visual.Use(d.Pretty && d.Color, d.Theme, d.Getenv, d.diag.Warnf)
+	unicode := visual.UTF8(d.Getenv)
+	if d.Pretty {
+		_, _ = w.WriteString(d.table(theme, unicode))
+		return
+	}
 	for _, row := range d.rows {
 		for i, cell := range row {
 			c := d.columns[i]
@@ -640,4 +660,69 @@ func (d *Df) print() {
 		}
 		_ = w.WriteByte('\n')
 	}
+}
+
+// usedFraction reads a percentage cell ("42%"); "-" is not a number.
+func usedFraction(cell string) (float64, bool) {
+	n, err := strconv.Atoi(strings.TrimSuffix(strings.TrimSpace(cell), "%"))
+	return float64(n) / 100, err == nil && strings.HasSuffix(cell, "%")
+}
+
+// barKey colors a percentage as its bar is colored.
+func barKey(used float64) string {
+	switch {
+	case used >= visual.Alert:
+		return visual.BarAlert
+	case used >= visual.Warn:
+		return visual.BarWarn
+	}
+	return visual.BarFull
+}
+
+// table lays the rows out for the pretty view: a framed table (visual.Table)
+// whose percentages are colored by how full they are and followed by a usage
+// bar of their own column, with --total's row as the footer.
+func (d *Df) table(theme *visual.Theme, unicode bool) string {
+	var tb visual.Table
+	for _, c := range d.columns {
+		tb.Right = append(tb.Right, c.right)
+		if c.field == "pcent" || c.field == "ipcent" {
+			tb.Right = append(tb.Right, false)
+		}
+	}
+	for r, row := range d.rows {
+		var cells []string
+		for i, cell := range row {
+			c := d.columns[i]
+			percent := c.field == "pcent" || c.field == "ipcent"
+			used, isNumber := usedFraction(cell)
+			switch {
+			case r == 0:
+				cells = append(cells, cell)
+			case percent && isNumber:
+				cells = append(cells, theme.Paint(barKey(used), cell))
+			case c.field == "target":
+				cells = append(cells, theme.Paint(visual.TypeDir, cell))
+			default:
+				cells = append(cells, cell)
+			}
+			if percent {
+				bar := ""
+				if r > 0 && isNumber {
+					bar = theme.Bar(used, barWidth, unicode)
+				}
+				cells = append(cells, bar)
+			}
+		}
+		switch {
+		case r == 0:
+			tb.Header = cells
+		case d.Total && r == len(d.rows)-1:
+			tb.Footer = append(tb.Footer, cells)
+		default:
+			tb.Rows = append(tb.Rows, cells)
+		}
+	}
+	tb.MaxWidth = core.TerminalWidth(d.streams.Out, d.Getenv)
+	return theme.Render(tb, unicode)
 }

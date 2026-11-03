@@ -1,6 +1,8 @@
 package ptx
 
 import (
+	"github.com/braswelljr/gnux/core/internal/regex"
+
 	"bytes"
 	"errors"
 	"os"
@@ -43,8 +45,15 @@ func TestTranslateEmacs(t *testing.T) {
 			t.Errorf("translateEmacs(%q) = %q, %v; want %q", tt.in, got, err, tt.want)
 		}
 	}
-	if _, err := translateEmacs(`\(a\)\1`); err == nil {
-		t.Error("a back reference was accepted")
+	if _, err := translateEmacs(`\(a\)\2`); err == nil {
+		t.Error("a reference to a missing group was accepted")
+	}
+	expr, err := translateEmacs(`\(.\)\1`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if re := regex.MustCompile(expr); !re.MatchString("xaay") || re.MatchString("xay") {
+		t.Errorf("back reference %q not matched as written", expr)
 	}
 }
 

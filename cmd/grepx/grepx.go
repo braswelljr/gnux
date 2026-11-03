@@ -4,6 +4,7 @@ package grepx
 import (
 	"errors"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 
@@ -72,14 +73,21 @@ func Meta() docmeta.Meta {
 			"error instead (as GNU grep has done since 3.5), unless -a treats it as text or -I as " +
 			"a file without a match.\n\n" +
 			"Where GNU grep lets the last of several conflicting options win, grepx applies a " +
-			"fixed order, whatever order they were given in: -F beats -E, which beats -G; -H " +
+			"fixed order, whatever order they were given in: -F beats -P, which beats -E, which beats -G; -H " +
 			"beats -h; --no-ignore-case beats -i; -A and -B beat -C, which beats -NUM; -I beats " +
 			"-a, and either beats --binary-files; -R beats -r, and either beats -d; -l beats -L; " +
 			"--no-group-separator beats --group-separator; --color beats --" + flagColour + ". As in GNU, -q " +
 			"overrides -l and -L, which override -c.\n\n" +
-			"Differences from GNU grep: -P (Perl-compatible regular expressions) is refused, " +
-			"because the regular expression engine is RE2, not PCRE. Back references (\\1 to \\9) " +
-			"are refused for the same reason. \\< and \\> both match at any word boundary, as \\b " +
+			"Back references (\\1 to \\9) work in every syntax; a pattern that has one is " +
+			"matched by a backtracking engine, every other pattern by Go's linear-time one. " +
+			"-P takes Perl's syntax, matching the first match as Perl does, with back " +
+			"references (\\1, \\g{N}, \\g{-N}, \\k<name>), lookahead and lookbehind ((?=...), " +
+			"(?!...), (?<=...), (?<!...), of any length), lazy quantifiers, named groups, " +
+			"\\Q...\\E and \\d \\w \\s \\h \\v \\R \\N.\n\n" +
+			"Differences from GNU grep: -P refuses what Go's engine cannot run, naming it: " +
+			"possessive quantifiers, atomic groups, recursion, conditionals, \\K, \\G and \\X. " +
+			"A back-reference search that would take exponential time is given up after a " +
+			"fixed number of steps and reported, with status 2. \\< and \\> both match at any word boundary, as \\b " +
 			"does, and the boundary escapes see ASCII words only; \\w, \\W, -w and the " +
 			"letter classes know Unicode letters and digits. Input is read as UTF-8 whatever the " +
 			"locale, a byte that is not valid UTF-8 matches like any other character, and such " +
@@ -95,7 +103,8 @@ func Meta() docmeta.Meta {
 			"accepted. A file that is also the output is " +
 			"not detected. A missing pattern is reported as 'missing PATTERNS operand' rather " +
 			"than with a usage line. Directory entries are searched in name order, where GNU " +
-			"uses directory order.",
+			"uses directory order." +
+			" On a terminal, gnux's terminal view (--pretty=auto, the default) prints each file's name once, as a colored heading above its lines with a blank line between files, and numbers the lines (as -n), each unless an option already decides it (--color=never keeps it uncolored); -c, -l, -L, -q, -Z and -z output is GNU's. Piped or redirected output is exactly GNU's; --pretty asks for the view anyway and --pretty=never or GNUX_PRETTY=never turns it off.",
 		Permissions: "Needs read permission on every FILE searched and on the files named by -f " +
 			"and --exclude-from, and search (execute) permission on the directories leading to " +
 			"them. A recursive search also needs read permission on each directory it descends " +
@@ -212,7 +221,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("extended-regexp", "E", false, "PATTERNS are extended regular expressions")
 	fs.BoolP("fixed-strings", "F", false, "PATTERNS are strings")
 	fs.BoolP("basic-regexp", "G", false, "PATTERNS are basic regular expressions (the default)")
-	fs.BoolP("perl-regexp", "P", false, "PATTERNS are Perl regular expressions (not supported: refused)")
+	fs.BoolP("perl-regexp", "P", false, "PATTERNS are Perl regular expressions")
 	fs.VarP(&listValue{}, "regexp", "e", "use `PATTERNS` for matching")
 	fs.VarP(&listValue{}, "file", "f", "take PATTERNS from `FILE`")
 	fs.BoolP("ignore-case", "i", false, "ignore case distinctions in patterns and data")
@@ -279,6 +288,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.Lookup(flagI).Hidden = true
 	fs.Lookup(flagY).Hidden = true
 	registerDigits(fs)
+	tool.RegisterView(fs)
 }
 
 // flagColour is the second spelling GNU accepts for --color. It is written
@@ -445,10 +455,6 @@ func buildOptions(fs *pflag.FlagSet) (grep.Options, error) {
 		return s
 	}
 
-	if on("perl-regexp") {
-		return grep.Options{}, &trouble{"Perl-compatible regular expressions (-P) are not supported"}
-	}
-
 	o := grep.Options{
 		IgnoreCase:        (on("ignore-case") || on(flagY)) && !on("no-ignore-case"),
 		Invert:            on("invert-match"),
@@ -483,6 +489,8 @@ func buildOptions(fs *pflag.FlagSet) (grep.Options, error) {
 	switch {
 	case on("fixed-strings"):
 		o.Syntax = grep.SyntaxFixed
+	case on("perl-regexp"):
+		o.Syntax = grep.SyntaxPerl
 	case on("extended-regexp"):
 		o.Syntax = grep.SyntaxExtended
 	}
@@ -609,5 +617,26 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		}
 		return err
 	}
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), grep.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	applyView(fs, &opts, view)
 	return grep.New(opts, s).Run(args)
+}
+
+// applyView folds in gnux's terminal view: file names as headings, line
+// numbers, and color, each unless an option already decides it.
+func applyView(fs *pflag.FlagSet, o *grep.Options, view tool.View) {
+	if !view.Pretty {
+		return
+	}
+	o.Pretty, o.Theme = true, view.Theme
+	o.LineNumber = true
+	if !fs.Changed("color") && !fs.Changed(flagColour) {
+		o.Color = grep.ColorNever
+		if view.Color {
+			o.Color = grep.ColorAlways
+		}
+	}
 }

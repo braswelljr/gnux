@@ -150,6 +150,9 @@ func TestParameters(t *testing.T) {
 		{"default for unset", "args ${NOPE:-fallback} ${1:-x}", "[fallback]\n[one]\n"},
 		{"default expands", "D=dist; args ${OUT:-$D/bin}", "[dist/bin]\n"},
 		{"default for empty", "E=; args ${E:-was-empty}", "[was-empty]\n"},
+		{"a default holds a braced variable", "B=inner; args ${A:-${B}} ${A:-${B}x}y", "[inner]\n[innerxy]\n"},
+		{"braced specials", "args ${#} ${?}", "[3]\n[0]\n"},
+		{"quoted braces are text", `args "\${#x}" '${x%y}'`, "[${#x}]\n[${x%y}]\n"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -168,6 +171,89 @@ func TestParameters(t *testing.T) {
 		status, _, errb := run(t, shell.Options{}, "shift 4", withArgs)
 		if status != 1 || errb != "gnux: shift: 4: shift count out of range\n" {
 			t.Fatalf("status=%d stderr=%q", status, errb)
+		}
+	})
+}
+
+// TestBadSubstitution checks that a ${...} form the shell does not have (the
+// bash extensions among them) is refused and stops the script, rather than
+// read as a variable of that literal name that expands to nothing.
+func TestBadSubstitution(t *testing.T) {
+	for _, form := range []string{"${}", "${x/a/b}", "${x:1}", "${!x}", "${x^^}", "${x,}", "${1x}"} {
+		t.Run(form, func(t *testing.T) {
+			status, out, errb := run(t, shell.Options{}, "x=a.go; echo "+form+"\necho after")
+			if status != 1 || out != "" || errb != "gnux: "+form+": bad substitution\n" {
+				t.Fatalf("status=%d out=%q stderr=%q", status, out, errb)
+			}
+		})
+	}
+	t.Run("unclosed", func(t *testing.T) {
+		status, out, errb := run(t, shell.Options{}, "echo ${x\necho after")
+		if status != 2 || out != "" || errb != "gnux: syntax error: missing '}' after '${'\n" {
+			t.Fatalf("status=%d out=%q stderr=%q", status, out, errb)
+		}
+	})
+}
+
+func TestParameterExpansion(t *testing.T) {
+	withArgs := func(sh *shell.Shell) { sh.SetArgs("s", []string{"one", "two"}) }
+	tests := []struct {
+		name, script, want string
+	}{
+		{"length", `x=héllo; args ${#x} ${#NOPE} ${#1}`, "[5]\n[0]\n[3]\n"},
+		{"length of the count", `args ${##}`, "[1]\n"},
+		{"shortest suffix", `f=src/main.tar.gz; args ${f%.*}`, "[src/main.tar]\n"},
+		{"longest suffix", `f=src/main.tar.gz; args ${f%%.*}`, "[src/main]\n"},
+		{"shortest prefix", `f=src/a/main.go; args ${f#*/}`, "[a/main.go]\n"},
+		{"longest prefix", `f=src/a/main.go; args ${f##*/}`, "[main.go]\n"},
+		{"dirname idiom", `f=src/a/main.go; args ${f%/*}`, "[src/a]\n"},
+		{"no match keeps the value", `f=main.go; args ${f%.txt} ${f#x}`, "[main.go]\n[main.go]\n"},
+		{"quoted pattern is literal", `f='a*b'; args ${f%"*b"} ${f%*b} ${f%%*b}`, "[a]\n[a*]\n[]\n"},
+		{"pattern from a variable is literal", `f=a.go; p='.*'; args ${f%$p} ${f%.*}`, "[a.go]\n[a]\n"},
+		{"class in a pattern", `f=v1.2; args ${f#[a-z]}`, "[1.2]\n"},
+		{"default without colon", `E=; args ${E-dflt} ${NOPE-dflt}`, "[]\n[dflt]\n"},
+		{"default with colon", `E=; args ${E:-dflt}`, "[dflt]\n"},
+		{"default with quotes and blanks", `args ${NOPE:-"a b"} "${NOPE:-c  d}"`, "[a b]\n[c  d]\n"},
+		{"default with single quotes", `args ${NOPE:-'$x'}`, "[$x]\n"},
+		{"nested default", `B=b; args ${A:-${C:-$B}}`, "[b]\n"},
+		{"assign default", `args ${N:=set}; args $N`, "[set]\n[set]\n"},
+		{"assign keeps a value", `N=old; args ${N:=new} ${N=newer}`, "[old]\n[old]\n"},
+		{"assign over empty with colon only", `E=; args ${E=x}; args ${E:=y}`, "[]\n[y]\n"},
+		{"alternate", `S=1; E=; args ${S:+yes} ${E:+no} ${E+empty-but-set} ${NOPE+no}`, "[yes]\n[]\n[empty-but-set]\n[]\n"},
+		{"error check passes", `S=1; args ${S:?missing}`, "[1]\n"},
+		{"arguments", `args ${1%e} ${2#t} ${@} ${*}`, "[on]\n[wo]\n[one]\n[two]\n[one two]\n"},
+		{"in double quotes", `f=a.b.c; args "${f%.*}-${f#*.}"`, "[a.b-b.c]\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if status, out, errb := run(t, shell.Options{}, tt.script, withArgs); status != 0 || out != tt.want {
+				t.Fatalf("status=%d out=%q (stderr %q); want %q", status, out, errb, tt.want)
+			}
+		})
+	}
+
+	t.Run("error check fails", func(t *testing.T) {
+		for script, msg := range map[string]string{
+			`args ${NOPE?}`:          "gnux: NOPE: parameter not set\n",
+			`E=; args ${E:?}`:        "gnux: E: parameter null or not set\n",
+			`args ${NOPE:?no $HOME}`: "gnux: NOPE: no /home/u\n",
+		} {
+			status, out, errb := run(t, shell.Options{}, "HOME=/home/u; "+script+"\nargs after")
+			if status != 1 || out != "" || errb != msg {
+				t.Errorf("%s: status=%d out=%q stderr=%q, want %q", script, status, out, errb, msg)
+			}
+		}
+	})
+	t.Run("cannot assign to an argument", func(t *testing.T) {
+		status, _, errb := run(t, shell.Options{}, "args ${1:=x}")
+		if status != 1 || errb != "gnux: ${1:=x}: cannot assign in this way\n" {
+			t.Fatalf("status=%d stderr=%q", status, errb)
+		}
+	})
+	t.Run("-u spares the forms that test for unset", func(t *testing.T) {
+		status, out, errb := run(t, shell.Options{NoUnset: true}, "args ${A-a} ${B:-b} ${C+c} ${D:=d}\nargs ${#E}")
+		if status != 1 || out != "[a]\n[b]\n[]\n[d]\n" || errb != "gnux: E: unbound variable\n" {
+			t.Fatalf("status=%d out=%q stderr=%q", status, out, errb)
 		}
 	})
 }

@@ -4,9 +4,11 @@ package uname
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -40,6 +42,14 @@ type Options struct {
 	Processor        bool
 	HardwarePlatform bool
 	OperatingSystem  bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty, the fields are a panel titled with the host's name, one
+	// labeled line each, every field when none is selected, colored with
+	// Color in Theme (a built-in theme; "" takes GNUX_THEME's).
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Uname is the engine. Construct it with New.
@@ -49,6 +59,9 @@ type Uname struct {
 	// System reads the information; it defaults to the platform's own source
 	// (uname(2) on Linux, sysctl on macOS and FreeBSD, the registry on Windows).
 	System func() (Info, error)
+	// Getenv reads GNUX_THEME and the locale for the view; nil means
+	// os.Getenv.
+	Getenv func(string) string
 
 	streams core.Streams
 	diag    *core.Diag
@@ -77,27 +90,37 @@ func (u *Uname) Run(args []string) error {
 	}
 
 	o := u.Options
+	o.Pretty, o.Color, o.Theme = false, false, ""
 	if o == (Options{}) {
+		if u.Pretty {
+			o.All = true
+		}
 		o.KernelName = true
 	}
 	fields := []struct {
 		on, all bool
+		label   string
 		value   string
 	}{
-		{o.KernelName, true, info.KernelName},
-		{o.Nodename, true, info.Nodename},
-		{o.KernelRelease, true, info.KernelRelease},
-		{o.KernelVersion, true, info.KernelVersion},
-		{o.Machine, true, info.Machine},
-		{o.Processor, info.Processor != unknown, info.Processor},
-		{o.HardwarePlatform, info.HardwarePlatform != unknown, info.HardwarePlatform},
-		{o.OperatingSystem, true, info.OperatingSystem},
+		{o.KernelName, true, "Kernel", info.KernelName},
+		{o.Nodename, true, "Host", info.Nodename},
+		{o.KernelRelease, true, "Release", info.KernelRelease},
+		{o.KernelVersion, true, "Version", info.KernelVersion},
+		{o.Machine, true, "Machine", info.Machine},
+		{o.Processor, info.Processor != unknown, "Processor", info.Processor},
+		{o.HardwarePlatform, info.HardwarePlatform != unknown, "Platform", info.HardwarePlatform},
+		{o.OperatingSystem, true, "System", info.OperatingSystem},
 	}
-	var out []string
+	var out, labels []string
 	for _, f := range fields {
 		if f.on || (o.All && f.all) {
 			out = append(out, orUnknown(f.value))
+			labels = append(labels, f.label)
 		}
+	}
+	if u.Pretty {
+		u.panel(orUnknown(info.Nodename), labels, out)
+		return nil
 	}
 	fmt.Fprintln(u.streams.Out, strings.Join(out, " "))
 	return nil
@@ -115,4 +138,26 @@ func orUnknown(s string) string {
 		return unknown
 	}
 	return s
+}
+
+// panel is gnux's terminal view (BR-13): the fields as one panel titled
+// with the host's name, each on a labeled line.
+func (u *Uname) panel(host string, labels, values []string) {
+	getenv := u.Getenv
+	if getenv == nil {
+		getenv = os.Getenv
+	}
+	t := visual.Use(u.Color, u.Theme, getenv, u.diag.Warnf)
+	unicode := visual.UTF8(getenv)
+	// The frame takes four columns; a long kernel version is cut to fit
+	// (width is -4 off a terminal with COLUMNS unset: no limit).
+	width := core.TerminalWidth(u.streams.Out, getenv) - 4
+	lines := make([]string, len(values))
+	for i, v := range values {
+		lines[i] = t.Paint(visual.Punctuation, fmt.Sprintf("%-10s", labels[i])) + v
+		if width > 0 {
+			lines[i] = visual.Truncate(lines[i], width, unicode)
+		}
+	}
+	fmt.Fprint(u.streams.Out, t.Box(host, lines, unicode))
 }

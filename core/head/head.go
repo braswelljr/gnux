@@ -15,6 +15,7 @@ import (
 	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -42,6 +43,11 @@ type Options struct {
 	Verbose bool
 	// ZeroTerminated (-z) makes NUL, not newline, the line delimiter.
 	ZeroTerminated bool
+	// Color is gnux's terminal view, not a GNU option: the file-name
+	// headers in the heading color of Theme (a built-in theme; "" takes
+	// GNUX_THEME's). The text is GNU's either way.
+	Color bool
+	Theme string
 }
 
 // Head is the engine. Construct it with New.
@@ -52,7 +58,8 @@ type Head struct {
 	diag    *core.Diag
 	out     *bufio.Writer
 	delim   byte
-	printed bool // a header has been written, so the next one needs a blank line
+	theme   *visual.Theme // the headers' colors; nil when uncolored
+	printed bool          // a header has been written, so the next one needs a blank line
 }
 
 // New builds a head engine reading from and writing to s.
@@ -66,6 +73,7 @@ func New(opts Options, s core.Streams) *Head {
 	if opts.ZeroTerminated {
 		h.delim = 0
 	}
+	h.theme = visual.Use(opts.Color, opts.Theme, os.Getenv, h.diag.Warnf)
 	return h
 }
 
@@ -114,7 +122,7 @@ func (h *Head) file(name string, headers bool) bool {
 		if h.printed {
 			_ = h.out.WriteByte('\n')
 		}
-		fmt.Fprintf(h.out, "==> %s <==\n", display)
+		fmt.Fprintf(h.out, "%s\n", h.theme.Paint(visual.Heading, "==> "+display+" <=="))
 		h.printed = true
 	}
 

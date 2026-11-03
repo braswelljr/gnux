@@ -205,8 +205,8 @@ type segment struct {
 	items   []string
 }
 
-// vars substitutes the parameters in s: $NAME, ${NAME}, ${NAME:-default}, the
-// positional $1 to $9 and ${10}, and $? $# $0 $@ $*.
+// vars substitutes the parameters in s: $NAME, ${NAME} and the other forms
+// param reads, the positional $1 to $9 and ${10}, and $? $# $0 $@ $*.
 func (ex *expander) vars(s string) []segment {
 	var out []segment
 	var lit strings.Builder
@@ -223,17 +223,24 @@ func (ex *expander) vars(s string) []segment {
 			continue
 		}
 
-		name, fallback, hasFallback, width := "", "", false, 0
+		name, width := "", 0
 		switch next := s[i+1]; {
 		case strings.IndexByte("?#@*", next) >= 0, next >= '0' && next <= '9':
 			name, width = string(next), 1
 		case next == '{':
-			if end := strings.IndexByte(s[i+2:], '}'); end >= 0 {
-				name, width = s[i+2:i+2+end], end+2
-				if at := strings.Index(name, ":-"); at >= 0 {
-					name, fallback, hasFallback = name[:at], name[at+2:], true
-				}
+			end := braceEnd(s, i+2)
+			if end < 0 {
+				ex.badSubstitution(s[i:])
+				return nil
 			}
+			seg, ok := ex.param(s[i+2:end], s[i:end+1])
+			if !ok {
+				return nil
+			}
+			flush()
+			out = append(out, seg)
+			i = end
+			continue
 		case isNameStart(next):
 			j := i + 1
 			for j < len(s) && isNameChar(s[j]) {
@@ -254,26 +261,39 @@ func (ex *expander) vars(s string) []segment {
 			continue
 		}
 		value, set := ex.sh.lookup(name)
-		switch {
-		case hasFallback && value == "":
-			// The default is text of its own, with its own variables.
-			var b strings.Builder
-			for _, seg := range ex.vars(fallback) {
-				if seg.list {
-					b.WriteString(strings.Join(seg.items, " "))
-				} else {
-					b.WriteString(seg.text)
-				}
-			}
-			value = b.String()
-		case !set && ex.sh.NoUnset && !ex.failed:
-			ex.sh.errorf(ex.s, "%s: unbound variable", name)
-			ex.failed = true
+		if !set {
+			ex.unbound(name)
 		}
 		out = append(out, segment{text: value, fromVar: true})
 	}
 	flush()
 	return out
+}
+
+// isParameter reports whether name, from inside ${...}, is one the shell
+// knows: a variable name, an argument number, or one of ? # @ *.
+func isParameter(name string) bool {
+	if isName(name) || (len(name) == 1 && strings.IndexByte("?#@*", name[0]) >= 0) {
+		return true
+	}
+	if name == "" {
+		return false
+	}
+	for i := 0; i < len(name); i++ {
+		if name[i] < '0' || name[i] > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+// badSubstitution reports a ${...} the shell cannot expand and fails the
+// expansion, which stops the command (and a script) as -u does.
+func (ex *expander) badSubstitution(text string) {
+	if !ex.failed {
+		ex.sh.errorf(ex.s, "%s: bad substitution", text)
+		ex.failed = true
+	}
 }
 
 // lookup resolves a parameter: the special ones first, then shell variables,

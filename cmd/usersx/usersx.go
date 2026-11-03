@@ -2,6 +2,8 @@
 package usersx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -13,9 +15,10 @@ import (
 // Spec describes the usersx tool.
 func Spec() tool.Spec {
 	return tool.Spec{
-		Meta: Meta(),
-		GNU:  "users",
-		Run:  run,
+		Meta:  Meta(),
+		GNU:   "users",
+		Flags: tool.RegisterView,
+		Run:   run,
 	}
 }
 
@@ -33,7 +36,8 @@ func Meta() docmeta.Meta {
 			"left out) and utmpx on macOS. FILE reads another file in that format instead, such " +
 			"as /var/log/wtmp, without leaving any session out. On Windows the sessions are the " +
 			"signed-in console and Remote Desktop sessions, and FILE is not supported; in the " +
-			"browser playground there are no records.",
+			"browser playground there are no records.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, your own name is in the theme's color for what is yours. The text is GNU's. --pretty[=WHEN] and --theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); piped or redirected output is always GNU's.",
 		Permissions: "Needs read permission on the login records (normally readable by " +
 			"everyone) or on FILE. Writes nothing.",
 		UseCases: []string{
@@ -58,6 +62,11 @@ func Meta() docmeta.Meta {
 	}
 }
 
-func run(_ *pflag.FlagSet, args []string, s core.Streams) error {
-	return users.New(users.Options{}, s).Run(args)
+func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), users.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts := users.Options{Pretty: view.Pretty, Color: view.Color, Theme: view.Theme}
+	return users.New(opts, s).Run(args)
 }

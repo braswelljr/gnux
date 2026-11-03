@@ -2,6 +2,8 @@
 package idx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -37,7 +39,8 @@ func Meta() docmeta.Meta {
 			"context) is not supported and fails, as GNU id does on a kernel without " +
 			"SELinux. An unknown USER is reported ('no such user') and the remaining USERs " +
 			"are still printed. On Windows the IDs are security identifiers (SIDs) and the " +
-			"names come from the account database.",
+			"names come from the account database.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, the default format is a panel titled with the user's name: one labeled line an ID and its name, the effective IDs only when they differ from the real ones, and each group on a line of its own, the primary group in the theme's color for what is yours. -u, -g and -G are GNU's. --pretty[=WHEN] and --theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); piped or redirected output is always GNU's.",
 		Permissions: "Needs no permissions; names are read from the system's user and group " +
 			"databases.",
 		UseCases: []string{
@@ -120,6 +123,7 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "all")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into id.Options.
@@ -144,5 +148,11 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		d.Errorf("--context (-Z) works only on an SELinux-enabled kernel")
 		return d.Result()
 	}
-	return id.New(buildOptions(fs), s).Run(args)
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), id.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts := buildOptions(fs)
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
+	return id.New(opts, s).Run(args)
 }

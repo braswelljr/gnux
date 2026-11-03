@@ -15,92 +15,92 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | GNU | gnux | Supported options | Reference |
 |-----|------|-------------------|-----------|
 | `arch` | `archx` | none | [archx](https://gnux.vercel.app/docs/tools/archx) |
-| `b2sum` | `b2sumx` | `-b`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [b2sumx](https://gnux.vercel.app/docs/tools/b2sumx) |
+| `b2sum` | `b2sumx` | `-b`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [b2sumx](https://gnux.vercel.app/docs/tools/b2sumx) |
 | `base32` | `base32x` | `-d`, `-i`, `-w COLS` | [base32x](https://gnux.vercel.app/docs/tools/base32x) |
 | `base64` | `base64x` | `-d`, `-i`, `-w COLS` | [base64x](https://gnux.vercel.app/docs/tools/base64x) |
 | `basename` | `basenamex` | `-a`, `-s SUFFIX`, `-z` | [basenamex](https://gnux.vercel.app/docs/tools/basenamex) |
 | `basenc` | `basencx` | `--base64`, `--base64url`, `--base32`, `--base32hex`, `--base16`, `--base2msbf`, `--base2lsbf`, `--z85`, `-d`, `-i`, `-w COLS` | [basencx](https://gnux.vercel.app/docs/tools/basencx) |
 | `cat` | `catx` | `-A`, `-b`, `-e`, `-E`, `-n`, `-s`, `-t`, `-T`, `-u`, `-v` | [catx](https://gnux.vercel.app/docs/tools/catx) |
-| `chgrp` | `chgrpx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chgrpx](https://gnux.vercel.app/docs/tools/chgrpx) |
-| `chmod` | `chmodx` | `-c`, `--dereference`, `-L`, `-H`, `-h`, `-P`, `--no-preserve-root`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chmodx](https://gnux.vercel.app/docs/tools/chmodx) |
-| `chown` | `chownx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v` | [chownx](https://gnux.vercel.app/docs/tools/chownx) |
-| `cksum` | `cksumx` | `-a TYPE`, `--base64`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--raw`, `--status`, `--strict`, `--tag`, `--untagged`, `-w`, `-z` | [cksumx](https://gnux.vercel.app/docs/tools/cksumx) |
-| `comm` | `commx` | `--check-order`, `--nocheck-order`, `--output-delimiter=STR`, `-3`, `-1`, `-2`, `--total`, `-z` | [commx](https://gnux.vercel.app/docs/tools/commx) |
-| `cp` | `cpx` | `-a`, `--backup[=CONTROL]`, `-b`, `-d`, `-f`, `-H`, `-i`, `-l`, `-L`, `-n`, `-p`, `-P`, `-r`/`-R`, `-s`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `-x`, `--parents`, `--preserve[=LIST]`, `--no-preserve=LIST`, `--remove-destination`, `-S SUFFIX`, `--strip-trailing-slashes` | [cpx](https://gnux.vercel.app/docs/tools/cpx) |
+| `chgrp` | `chgrpx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [chgrpx](https://gnux.vercel.app/docs/tools/chgrpx) |
+| `chmod` | `chmodx` | `-c`, `--dereference`, `-L`, `-H`, `-h`, `-P`, `--no-preserve-root`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [chmodx](https://gnux.vercel.app/docs/tools/chmodx) |
+| `chown` | `chownx` | `-c`, `--dereference`, `-L`, `-H`, `--from=CURRENT_OWNER:CURRENT_GROUP`, `-h`, `--no-preserve-root`, `-P`, `--preserve-root`, `--quiet`, `-R`, `--reference=RFILE`, `-f`, `-v`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [chownx](https://gnux.vercel.app/docs/tools/chownx) |
+| `cksum` | `cksumx` | `-a TYPE`, `--base64`, `-c`, `--ignore-missing`, `-l BITS`, `--quiet`, `--raw`, `--status`, `--strict`, `--tag`, `--untagged`, `-w`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [cksumx](https://gnux.vercel.app/docs/tools/cksumx) |
+| `comm` | `commx` | `--check-order`, `--nocheck-order`, `--output-delimiter=STR`, `-3`, `-1`, `-2`, `--total`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [commx](https://gnux.vercel.app/docs/tools/commx) |
+| `cp` | `cpx` | `-a`, `--backup[=CONTROL]`, `-b`, `-d`, `-f`, `-H`, `-i`, `-l`, `-L`, `-n`, `-p`, `-P`, `-r`/`-R`, `-s`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `-x`, `--parents`, `--preserve[=LIST]`, `--no-preserve=LIST`, `--remove-destination`, `-S SUFFIX`, `--strip-trailing-slashes`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [cpx](https://gnux.vercel.app/docs/tools/cpx) |
 | `csplit` | `csplitx` | `-n DIGITS`, `-z`, `-k`, `-f PREFIX`, `-s`, `-q`, `-b FORMAT`, `--suppress-matched` | [csplitx](https://gnux.vercel.app/docs/tools/csplitx) |
 | `cut` | `cutx` | `-b LIST`, `-c LIST`, `-d DELIM`, `-f LIST`, `-n`, `-s`, `-z`, `--complement`, `--output-delimiter=STRING` | [cutx](https://gnux.vercel.app/docs/tools/cutx) |
-| `date` | `datex` | `-d STRING`, `-f DATEFILE`, `-I[=FMT]`, `-r FILE`, `--resolution`, `--rfc-3339=FMT`, `-R`, `-s STRING`, `--universal`, `-u` | [datex](https://gnux.vercel.app/docs/tools/datex) |
-| `dd` | `ddx` | operands `if=`, `of=`, `bs=`, `ibs=`, `obs=`, `cbs=`, `skip=`/`iseek=`, `seek=`/`oseek=`, `count=`, `conv=`, `iflag=`, `oflag=`, `status=` | [ddx](https://gnux.vercel.app/docs/tools/ddx) |
-| `df` | `dfx` | `-a`, `-B SIZE`, `-x TYPE`, `-h`, `-i`, `-k`, `-l`, `--no-sync`, `--output[=FIELD_LIST]`, `-P`, `-T`, `-H`, `--sync`, `-v`, `--total`, `-t TYPE` | [dfx](https://gnux.vercel.app/docs/tools/dfx) |
+| `date` | `datex` | `-d STRING`, `-f DATEFILE`, `-I[=FMT]`, `-r FILE`, `--resolution`, `--rfc-3339=FMT`, `-R`, `-s STRING`, `--universal`, `-u`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [datex](https://gnux.vercel.app/docs/tools/datex) |
+| `dd` | `ddx` | operands `if=`, `of=`, `bs=`, `ibs=`, `obs=`, `cbs=`, `skip=`/`iseek=`, `seek=`/`oseek=`, `count=`, `conv=`, `iflag=`, `oflag=`, `status=`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [ddx](https://gnux.vercel.app/docs/tools/ddx) |
+| `df` | `dfx` | `-a`, `-B SIZE`, `-x TYPE`, `-h`, `-i`, `-k`, `-l`, `--no-sync`, `--output[=FIELD_LIST]`, `-P`, `-T`, `-H`, `--sync`, `-v`, `--total`, `-t TYPE`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [dfx](https://gnux.vercel.app/docs/tools/dfx) |
 | `dir` | `dirx` | every `lsx` option | [dirx](https://gnux.vercel.app/docs/tools/dirx) |
 | `dircolors` | `dircolorsx` | `-b`, `-c`, `-p`, `--print-ls-colors` | [dircolorsx](https://gnux.vercel.app/docs/tools/dircolorsx) |
 | `dirname` | `dirnamex` | `-z` | [dirnamex](https://gnux.vercel.app/docs/tools/dirnamex) |
-| `du` | `dux` | `-a`, `-A`, `-B SIZE`, `-b`, `-l`, `-L`, `-D`, `--exclude=PATTERN`, `-X FILE`, `--files0-from=F`, `-h`, `--inodes`, `-k`, `-d N`, `-m`, `-P`, `-0`, `-x`, `-S`, `--si`, `-s`, `-t SIZE`, `--time[=WORD]`, `--time-style=STYLE`, `-c` | [dux](https://gnux.vercel.app/docs/tools/dux) |
+| `du` | `dux` | `-a`, `-A`, `-B SIZE`, `-b`, `-l`, `-L`, `-D`, `--exclude=PATTERN`, `-X FILE`, `--files0-from=F`, `-h`, `--inodes`, `-k`, `-d N`, `-m`, `-P`, `-0`, `-x`, `-S`, `--si`, `-s`, `-t SIZE`, `--time[=WORD]`, `--time-style=STYLE`, `-c`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [dux](https://gnux.vercel.app/docs/tools/dux) |
 | `echo` | `echox` | `-n`, `-e`, `-E` | [echox](https://gnux.vercel.app/docs/tools/echox) |
-| `env` | `envx` | `-0`, `-a ARG`, `-C DIR`, `-i`/`-`, `-S STRING`, `-u NAME`, `-v` | [envx](https://gnux.vercel.app/docs/tools/envx) |
+| `env` | `envx` | `-0`, `-a ARG`, `-C DIR`, `-i`/`-`, `-S STRING`, `-u NAME`, `-v`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [envx](https://gnux.vercel.app/docs/tools/envx) |
 | `expand` | `expandx` | `-i`, `-t N, LIST` | [expandx](https://gnux.vercel.app/docs/tools/expandx) |
 | `expr` | `exprx` | EXPRESSION: `\|`, `&`, comparisons, `+ - * / %`, `:`, `match`, `substr`, `index`, `length`, `+ TOKEN`, parentheses | [exprx](https://gnux.vercel.app/docs/tools/exprx) |
 | `factor` | `factorx` | `-h` | [factorx](https://gnux.vercel.app/docs/tools/factorx) |
 | `false` | `falsex` | none (arguments ignored) | [falsex](https://gnux.vercel.app/docs/tools/falsex) |
-| `find` (findutils) | `findx` | An expression, not options: `-H`, `-L`, `-P`; `( )`, `!`, `-a`, `-o`, `,`; tests such as `-name`, `-path`, `-regex`, `-type`, `-size`, `-newer`, `-mtime`, `-perm`, `-user`, `-empty`; `-maxdepth`, `-mindepth`, `-depth`, `-xdev`; actions `-print`, `-print0`, `-printf`, `-ls`, `-delete`, `-prune`, `-quit`, `-exec`, `-execdir`, `-ok` | [findx](https://gnux.vercel.app/docs/tools/findx) |
+| `find` (findutils) | `findx` | An expression, not options: `-H`, `-L`, `-P`; `( )`, `!`, `-a`, `-o`, `,`; tests such as `-name`, `-path`, `-regex`, `-type`, `-size`, `-newer`, `-mtime`, `-perm`, `-user`, `-empty`; `-maxdepth`, `-mindepth`, `-depth`, `-xdev`; actions `-print`, `-print0`, `-printf`, `-ls`, `-delete`, `-prune`, `-quit`, `-exec`, `-execdir`, `-ok`; plus gnux's own `--tree`, `--icons`, `--pretty`, `--theme` before the starting points ([Terminal view](terminal-view.md)) | [findx](https://gnux.vercel.app/docs/tools/findx) |
 | `fmt` | `fmtx` | `-c`, `-g STRING`, `-p STRING`, `-s`, `-t`, `-u`, `-w WIDTH` | [fmtx](https://gnux.vercel.app/docs/tools/fmtx) |
 | `fold` | `foldx` | `-b`, `-s`, `-w WIDTH` | [foldx](https://gnux.vercel.app/docs/tools/foldx) |
-| `grep` (GNU grep) | `grepx` | `-E`, `-F`, `-G`, `-e PATTERNS`, `-f FILE`, `-i`, `-v`, `-w`, `-x`, `-c`, `-l`, `-L`, `-m NUM`, `-o`, `-q`, `-s`, `-b`, `-H`, `-h`, `-n`, `-T`, `-Z`, `-z`, `-A NUM`, `-B NUM`, `-C NUM`, `-NUM`, `-r`, `-R`, `-d ACTION`, `-D ACTION`, `-a`, `-I`, `-U`, `--binary-files=TYPE`, `--color[=WHEN]`, `--include=GLOB`, `--exclude=GLOB`, `--exclude-from=FILE`, `--exclude-dir=GLOB`, `--group-separator=SEP`, `--no-group-separator`, `--label=LABEL`, `--line-buffered`, `--no-ignore-case` | [grepx](https://gnux.vercel.app/docs/tools/grepx) |
-| `groups` | `groupsx` | none | [groupsx](https://gnux.vercel.app/docs/tools/groupsx) |
-| `head` | `headx` | `-c [-]NUM`, `-n [-]NUM`, `-NUM`, `-q`, `-v`, `-z`, size suffixes | [headx](https://gnux.vercel.app/docs/tools/headx) |
+| `grep` (GNU grep) | `grepx` | `-E`, `-F`, `-G`, `-e PATTERNS`, `-f FILE`, `-i`, `-v`, `-w`, `-x`, `-c`, `-l`, `-L`, `-m NUM`, `-o`, `-q`, `-s`, `-b`, `-H`, `-h`, `-n`, `-T`, `-Z`, `-z`, `-A NUM`, `-B NUM`, `-C NUM`, `-NUM`, `-r`, `-R`, `-d ACTION`, `-D ACTION`, `-a`, `-I`, `-U`, `--binary-files=TYPE`, `--color[=WHEN]`, `--include=GLOB`, `--exclude=GLOB`, `--exclude-from=FILE`, `--exclude-dir=GLOB`, `--group-separator=SEP`, `--no-group-separator`, `--label=LABEL`, `--line-buffered`, `--no-ignore-case`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [grepx](https://gnux.vercel.app/docs/tools/grepx) |
+| `groups` | `groupsx` | none; gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [groupsx](https://gnux.vercel.app/docs/tools/groupsx) |
+| `head` | `headx` | `-c [-]NUM`, `-n [-]NUM`, `-NUM`, `-q`, `-v`, `-z`, size suffixes; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [headx](https://gnux.vercel.app/docs/tools/headx) |
 | `hostid` | `hostidx` | none | [hostidx](https://gnux.vercel.app/docs/tools/hostidx) |
 | `hostname` | `hostnamex` | none | [hostnamex](https://gnux.vercel.app/docs/tools/hostnamex) |
-| `id` | `idx` | `-a`, `-Z`, `-g`, `-G`, `-n`, `-r`, `-u`, `-z` | [idx](https://gnux.vercel.app/docs/tools/idx) |
-| `install` | `installx` | `--backup[=CONTROL]`, `-b`, `-C`, `-c`, `-D`, `-d`, `-g GROUP`, `-m MODE`, `-T`, `-o OWNER`, `-p`, `-s`, `-S SUFFIX`, `-t DIRECTORY`, `-v` | [installx](https://gnux.vercel.app/docs/tools/installx) |
-| `join` | `joinx` | `--check-order`, `-e EMPTY`, `-1 FIELD`, `-2 FIELD`, `--header`, `-i`, `-j STRINGARRAY`, `--nocheck-order`, `-v STRINGARRAY`, `-o FORMAT`, `-t CHAR`, `-a FILENUM`, `-z` | [joinx](https://gnux.vercel.app/docs/tools/joinx) |
-| `kill` | `killx` | `-l`, `-n NUMBER`, `-s STRING`, `-L` | [killx](https://gnux.vercel.app/docs/tools/killx) |
+| `id` | `idx` | `-a`, `-Z`, `-g`, `-G`, `-n`, `-r`, `-u`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [idx](https://gnux.vercel.app/docs/tools/idx) |
+| `install` | `installx` | `--backup[=CONTROL]`, `-b`, `-C`, `-c`, `-D`, `-d`, `-g GROUP`, `-m MODE`, `-T`, `-o OWNER`, `-p`, `-s`, `-S SUFFIX`, `-t DIRECTORY`, `-v`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [installx](https://gnux.vercel.app/docs/tools/installx) |
+| `join` | `joinx` | `--check-order`, `-e EMPTY`, `-1 FIELD`, `-2 FIELD`, `--header`, `-i`, `-j STRINGARRAY`, `--nocheck-order`, `-v STRINGARRAY`, `-o FORMAT`, `-t CHAR`, `-a FILENUM`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [joinx](https://gnux.vercel.app/docs/tools/joinx) |
+| `kill` | `killx` | `-l`, `-n NUMBER`, `-s STRING`, `-L`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [killx](https://gnux.vercel.app/docs/tools/killx) |
 | `link` | `linkx` | none | [linkx](https://gnux.vercel.app/docs/tools/linkx) |
-| `ln` | `lnx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-L`, `-n`, `-P`, `-r`, `-s`, `-S SUFFIX`, `-t`, `-T`, `-v` | [lnx](https://gnux.vercel.app/docs/tools/lnx) |
+| `ln` | `lnx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-L`, `-n`, `-P`, `-r`, `-s`, `-S SUFFIX`, `-t`, `-T`, `-v`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [lnx](https://gnux.vercel.app/docs/tools/lnx) |
 | `logname` | `lognamex` | none | [lognamex](https://gnux.vercel.app/docs/tools/lognamex) |
-| `ls` | `lsx` | `-1`, `-a`, `-A`, `-B`, `-b`, `-c`, `-C`, `-d`, `-F`, `-g`, `-G`, `-h`, `-H`, `-i`, `-I`, `-l`, `-L`, `-m`, `-n`, `-o`, `-p`, `-q`, `-Q`, `-r`, `-R`, `-s`, `-S`, `-t`, `-T`, `-u`, `-U`, `-v`, `-w`, `-x`, `-X`, `--author`, `--block-size`, `--color`, `-D`/`--dired`, `--file-type`, `--format`, `--full-time`, `--group-directories-first`, `--hide`, `--hyperlink`, `--indicator-style`, `-k`, `-N`, `--quoting-style`, `--show-control-chars`, `--si`, `--sort`, `--time`, `--time-style`, `--zero` | [lsx](https://gnux.vercel.app/docs/tools/lsx) |
-| `md5sum` | `md5sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [md5sumx](https://gnux.vercel.app/docs/tools/md5sumx) |
-| `mkdir` | `mkdirx` | `-m MODE`, `-p`, `-v` | [mkdirx](https://gnux.vercel.app/docs/tools/mkdirx) |
+| `ls` | `lsx` | `-1`, `-a`, `-A`, `-B`, `-b`, `-c`, `-C`, `-d`, `-F`, `-g`, `-G`, `-h`, `-H`, `-i`, `-I`, `-l`, `-L`, `-m`, `-n`, `-o`, `-p`, `-q`, `-Q`, `-r`, `-R`, `-s`, `-S`, `-t`, `-T`, `-u`, `-U`, `-v`, `-w`, `-x`, `-X`, `--author`, `--block-size`, `--color`, `-D`/`--dired`, `--file-type`, `--format`, `--full-time`, `--group-directories-first`, `--hide`, `--hyperlink`, `--indicator-style`, `-k`, `-N`, `--quoting-style`, `--show-control-chars`, `--si`, `--sort`, `--time`, `--time-style`, `--zero`; plus gnux's own terminal view: `--pretty`, `--theme`, `--tree`, `--level`, `--icons`, `--git`, `--git-ignore`, `--header`, `--color-scale`, `--only-dirs`, `--only-files`, `--total-size`, `--octal-permissions` ([Terminal view](terminal-view.md)) | [lsx](https://gnux.vercel.app/docs/tools/lsx) |
+| `md5sum` | `md5sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [md5sumx](https://gnux.vercel.app/docs/tools/md5sumx) |
+| `mkdir` | `mkdirx` | `-m MODE`, `-p`, `-v`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [mkdirx](https://gnux.vercel.app/docs/tools/mkdirx) |
 | `mkfifo` | `mkfifox` | `-m MODE`, `-Z`, `--context[=CTX]` | [mkfifox](https://gnux.vercel.app/docs/tools/mkfifox) |
 | `mknod` | `mknodx` | `-m MODE`, `-Z`, `--context[=CTX]` | [mknodx](https://gnux.vercel.app/docs/tools/mknodx) |
 | `mktemp` | `mktempx` | `-p DIR`, `-d`, `-u`, `-t`, `-q`, `--suffix=SUFF`, `--tmpdir[=DIR]` | [mktempx](https://gnux.vercel.app/docs/tools/mktempx) |
-| `mv` | `mvx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-n`, `--no-copy`, `-S SUFFIX`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `--strip-trailing-slashes` | [mvx](https://gnux.vercel.app/docs/tools/mvx) |
+| `mv` | `mvx` | `--backup[=CONTROL]`, `-b`, `-f`, `-i`, `-n`, `--no-copy`, `-S SUFFIX`, `-t`, `-T`, `-u[=WHEN]`, `-v`, `--strip-trailing-slashes`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [mvx](https://gnux.vercel.app/docs/tools/mvx) |
 | `nice` | `nicex` | `-n N` | [nicex](https://gnux.vercel.app/docs/tools/nicex) |
 | `nl` | `nlx` | `-b STYLE`, `-f STYLE`, `-h STYLE`, `-l NUMBER`, `-i STRING`, `-p`, `-n FORMAT`, `-s STRING`, `-w NUMBER`, `-d CC`, `-v STRING` | [nlx](https://gnux.vercel.app/docs/tools/nlx) |
 | `nohup` | `nohupx` | none | [nohupx](https://gnux.vercel.app/docs/tools/nohupx) |
 | `nproc` | `nprocx` | `--all`, `--ignore=N` | [nprocx](https://gnux.vercel.app/docs/tools/nprocx) |
 | `numfmt` | `numfmtx` | `--debug`, `-d X`, `--field=FIELDS`, `--format=FORMAT`, `--from=UNIT`, `--from-unit=N`, `--grouping`, `--header[=N]`, `--invalid=MODE`, `--padding=N`, `--round=METHOD`, `--suffix=SUFFIX`, `--to=UNIT`, `--to-unit=N`, `-z` | [numfmtx](https://gnux.vercel.app/docs/tools/numfmtx) |
-| `od` | `odx` | `-A RADIX`, `-c[=STRING]`, `-s[=STRING]`, `-i[=STRING]`, `-l[=STRING]`, `--endian=ORDER`, `-f[=STRING]`, `-t TYPE`, `-x[=STRING]`, `-a[=STRING]`, `-o[=STRING]`, `-b[=STRING]`, `-v`, `-N BYTES`, `-j BYTES`, `-S BYTES`, `-d[=STRING]`, `-w BYTES` | [odx](https://gnux.vercel.app/docs/tools/odx) |
+| `od` | `odx` | `-A RADIX`, `-c[=STRING]`, `-s[=STRING]`, `-i[=STRING]`, `-l[=STRING]`, `--endian=ORDER`, `-f[=STRING]`, `-t TYPE`, `-x[=STRING]`, `-a[=STRING]`, `-o[=STRING]`, `-b[=STRING]`, `-v`, `-N BYTES`, `-j BYTES`, `-S BYTES`, `-d[=STRING]`, `-w BYTES`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [odx](https://gnux.vercel.app/docs/tools/odx) |
 | `paste` | `pastex` | `-d LIST`, `-s`, `-z` | [pastex](https://gnux.vercel.app/docs/tools/pastex) |
 | `pathchk` | `pathchkx` | `-p`, `-P`, `--portability` | [pathchkx](https://gnux.vercel.app/docs/tools/pathchkx) |
-| `pinky` | `pinkyx` | `-l`, `-b`, `-h`, `-p`, `-s`, `-f`, `-w`, `-i`, `-q`, `--lookup` | [pinkyx](https://gnux.vercel.app/docs/tools/pinkyx) |
+| `pinky` | `pinkyx` | `-l`, `-b`, `-h`, `-p`, `-s`, `-f`, `-w`, `-i`, `-q`, `--lookup`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [pinkyx](https://gnux.vercel.app/docs/tools/pinkyx) |
 | `pr` | `prx` | `+FIRST[:LAST]`, `--pages`, `-COLUMN`, `--columns`, `-a`, `-c`, `-d`, `-D FORMAT`, `-e[CHAR[WIDTH]]`, `-F`/`-f`, `-h HEADER`, `-i[CHAR[WIDTH]]`, `-J`, `-l LENGTH`, `-m`, `-n[SEP[DIGITS]]`, `-N NUMBER`, `-o MARGIN`, `-r`, `-s[CHAR]`, `-S[STRING]`, `-t`, `-T`, `-v`, `-w WIDTH`, `-W WIDTH` | [prx](https://gnux.vercel.app/docs/tools/prx) |
-| `printenv` | `printenvx` | `-0` | [printenvx](https://gnux.vercel.app/docs/tools/printenvx) |
+| `printenv` | `printenvx` | `-0`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [printenvx](https://gnux.vercel.app/docs/tools/printenvx) |
 | `printf` | `printfx` | FORMAT [ARGUMENT]... (no options) | [printfx](https://gnux.vercel.app/docs/tools/printfx) |
 | `ptx` | `ptxx` | `-A`, `-G`, `-F STRING`, `-M STRING`, `-O`, `-R`, `-S REGEXP`, `-T`, `--format=FORMAT`, `-W REGEXP`, `-b FILE`, `-f`, `-g NUMBER`, `-i FILE`, `-o FILE`, `-r`, `-t`, `-w NUMBER` | [ptxx](https://gnux.vercel.app/docs/tools/ptxx) |
 | `pwd` | `pwdx` | `-L`, `-P` | [pwdx](https://gnux.vercel.app/docs/tools/pwdx) |
 | `readlink` | `readlinkx` | `-f`, `-e`, `-m`, `-n`, `-q`, `-s`, `-v`, `-z` | [readlinkx](https://gnux.vercel.app/docs/tools/readlinkx) |
 | `realpath` | `realpathx` | `-e`, `-L`, `-m`, `-P`, `-q`, `-s`/`--no-symlinks`, `-z`, `--relative-to`, `--relative-base` | [realpathx](https://gnux.vercel.app/docs/tools/realpathx) |
-| `rm` | `rmx` | `-d`, `-f`, `-i`, `-I`, `-r`/`-R`, `-v`, `--interactive[=WHEN]`, `--one-file-system`, `--preserve-root`, `--no-preserve-root` | [rmx](https://gnux.vercel.app/docs/tools/rmx) |
-| `rmdir` | `rmdirx` | `-p`, `-v`, `--ignore-fail-on-non-empty` | [rmdirx](https://gnux.vercel.app/docs/tools/rmdirx) |
+| `rm` | `rmx` | `-d`, `-f`, `-i`, `-I`, `-r`/`-R`, `-v`, `--interactive[=WHEN]`, `--one-file-system`, `--preserve-root`, `--no-preserve-root`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [rmx](https://gnux.vercel.app/docs/tools/rmx) |
+| `rmdir` | `rmdirx` | `-p`, `-v`, `--ignore-fail-on-non-empty`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [rmdirx](https://gnux.vercel.app/docs/tools/rmdirx) |
 | `sed` (GNU sed) | `sedx` | `-n`, `-e SCRIPT`, `-f SCRIPT-FILE`, `-E`/`-r`, `-i[SUFFIX]`, `-s`, `-z`, `-u`, `-l N`, `-b`, `--follow-symlinks`, `--posix`, `--sandbox`; the whole script language except the `e` command | [sedx](https://gnux.vercel.app/docs/tools/sedx) |
 | `seq` | `seqx` | `-f FORMAT`, `-s STRING`, `-w` | [seqx](https://gnux.vercel.app/docs/tools/seqx) |
-| `sha1sum` | `sha1sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha1sumx](https://gnux.vercel.app/docs/tools/sha1sumx) |
-| `sha224sum` | `sha224sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha224sumx](https://gnux.vercel.app/docs/tools/sha224sumx) |
-| `sha256sum` | `sha256sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha256sumx](https://gnux.vercel.app/docs/tools/sha256sumx) |
-| `sha384sum` | `sha384sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha384sumx](https://gnux.vercel.app/docs/tools/sha384sumx) |
-| `sha512sum` | `sha512sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z` | [sha512sumx](https://gnux.vercel.app/docs/tools/sha512sumx) |
-| `shred` | `shredx` | `-f`, `-n N`, `--random-source=FILE`, `-s N`, `-u`, `--remove[=HOW]`, `-v`, `-x`, `-z` | [shredx](https://gnux.vercel.app/docs/tools/shredx) |
+| `sha1sum` | `sha1sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [sha1sumx](https://gnux.vercel.app/docs/tools/sha1sumx) |
+| `sha224sum` | `sha224sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [sha224sumx](https://gnux.vercel.app/docs/tools/sha224sumx) |
+| `sha256sum` | `sha256sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [sha256sumx](https://gnux.vercel.app/docs/tools/sha256sumx) |
+| `sha384sum` | `sha384sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [sha384sumx](https://gnux.vercel.app/docs/tools/sha384sumx) |
+| `sha512sum` | `sha512sumx` | `-b`, `-c`, `--ignore-missing`, `--quiet`, `--status`, `--strict`, `--tag`, `-t`, `-w`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [sha512sumx](https://gnux.vercel.app/docs/tools/sha512sumx) |
+| `shred` | `shredx` | `-f`, `-n N`, `--random-source=FILE`, `-s N`, `-u`, `--remove[=HOW]`, `-v`, `-x`, `-z`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [shredx](https://gnux.vercel.app/docs/tools/shredx) |
 | `shuf` | `shufx` | `-e`, `-n COUNT`, `-i LO-HI`, `-o FILE`, `--random-source=FILE`, `-r`, `-z` | [shufx](https://gnux.vercel.app/docs/tools/shufx) |
 | `sleep` | `sleepx` | NUMBER with `s`, `m`, `h`, `d`; fractions, exponents, hex floats, `infinity` | [sleepx](https://gnux.vercel.app/docs/tools/sleepx) |
 | `sort` | `sortx` | `-b`, `-c`/`--check[=WHEN]`, `-C`, `-d`, `-f`, `-g`, `-h`, `-i`, `-k KEYDEF`, `-m`, `-M`, `-n`, `-o FILE`, `-r`, `-R`, `-s`, `-t SEP`, `-u`, `-V`, `-z`, `--files0-from=F`, `--random-source=FILE`, `--sort=WORD`; `-S`, `-T`, `--parallel`, `--batch-size`, `--compress-program` accepted and ignored | [sortx](https://gnux.vercel.app/docs/tools/sortx) |
 | `split` | `splitx` | `--additional-suffix=SUFFIX`, `-b SIZE`, `-e`, `-x[=FROM]`, `-C SIZE`, `-l NUMBER`, `-n CHUNKS`, `-d[=FROM]`, `-t SEP`, `-a N`, `-u`, `--verbose` | [splitx](https://gnux.vercel.app/docs/tools/splitx) |
-| `stat` | `statx` | `--cached=STRING`, `-L`, `-f`, `-c FORMAT`, `--printf=FORMAT`, `-t` | [statx](https://gnux.vercel.app/docs/tools/statx) |
+| `stat` | `statx` | `--cached=STRING`, `-L`, `-f`, `-c FORMAT`, `--printf=FORMAT`, `-t`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [statx](https://gnux.vercel.app/docs/tools/statx) |
 | `stdbuf` | `stdbufx` | `-i MODE`, `-o MODE`, `-e MODE` | [stdbufx](https://gnux.vercel.app/docs/tools/stdbufx) |
-| `stty` | `sttyx` | `-a`, `-g`, `-F DEVICE`, and every setting GNU stty has on the platform | [sttyx](https://gnux.vercel.app/docs/tools/sttyx) |
+| `stty` | `sttyx` | `-a`, `-g`, `-F DEVICE`, and every setting GNU stty has on the platform; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [sttyx](https://gnux.vercel.app/docs/tools/sttyx) |
 | `sum` | `sumx` | `-r`, `-s` | [sumx](https://gnux.vercel.app/docs/tools/sumx) |
 | `sync` | `syncx` | `-d`, `-f` | [syncx](https://gnux.vercel.app/docs/tools/syncx) |
 | `tac` | `tacx` | `-b`, `-r`, `-s STRING` | [tacx](https://gnux.vercel.app/docs/tools/tacx) |
-| `tail` | `tailx` | `-c [+]NUM`, `-f[=HOW]`, `-F`, `-n [+]NUM`, `-q`, `-s N`, `-v`, `-z`, `--max-unchanged-stats=N`, `--pid`, `--retry`, size suffixes | [tailx](https://gnux.vercel.app/docs/tools/tailx) |
+| `tail` | `tailx` | `-c [+]NUM`, `-f[=HOW]`, `-F`, `-n [+]NUM`, `-q`, `-s N`, `-v`, `-z`, `--max-unchanged-stats=N`, `--pid`, `--retry`, size suffixes; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [tailx](https://gnux.vercel.app/docs/tools/tailx) |
 | `tee` | `teex` | `-a`, `-i`, `-p`, `--output-error[=MODE]` | [teex](https://gnux.vercel.app/docs/tools/teex) |
 | `test`, `[` | `testx`, `[` | EXPRESSION: string, integer and file tests, `-l STRING`, `-nt`/`-ot`/`-ef`, `!`, `-a`, `-o`, parentheses | [testx](https://gnux.vercel.app/docs/tools/testx) |
 | `timeout` | `timeoutx` | `--foreground`, `-k DURATION`, `--preserve-status`, `-s SIGNAL`, `-v` | [timeoutx](https://gnux.vercel.app/docs/tools/timeoutx) |
@@ -110,15 +110,15 @@ How to adopt gnux next to the GNU coreutils you already know. gnux does not repl
 | `truncate` | `truncatex` | `-o`, `-c`, `-r RFILE`, `-s SIZE` | [truncatex](https://gnux.vercel.app/docs/tools/truncatex) |
 | `tsort` | `tsortx` | none | [tsortx](https://gnux.vercel.app/docs/tools/tsortx) |
 | `tty` | `ttyx` | `--quiet`, `-s` | [ttyx](https://gnux.vercel.app/docs/tools/ttyx) |
-| `uname` | `unamex` | `-a`, `-i`, `-s`, `-r`, `-v`, `-m`, `-n`, `-o`, `-p` | [unamex](https://gnux.vercel.app/docs/tools/unamex) |
+| `uname` | `unamex` | `-a`, `-i`, `-s`, `-r`, `-v`, `-m`, `-n`, `-o`, `-p`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [unamex](https://gnux.vercel.app/docs/tools/unamex) |
 | `unexpand` | `unexpandx` | `-a`, `--first-only`, `-t N, LIST` | [unexpandx](https://gnux.vercel.app/docs/tools/unexpandx) |
-| `uniq` | `uniqx` | `-c`, `-d`, `-D`, `-f N`, `-i`, `-s N`, `-u`, `-w N`, `-z`, `--all-repeated[=METHOD]`, `--group[=METHOD]` | [uniqx](https://gnux.vercel.app/docs/tools/uniqx) |
+| `uniq` | `uniqx` | `-c`, `-d`, `-D`, `-f N`, `-i`, `-s N`, `-u`, `-w N`, `-z`, `--all-repeated[=METHOD]`, `--group[=METHOD]`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [uniqx](https://gnux.vercel.app/docs/tools/uniqx) |
 | `unlink` | `unlinkx` | none | [unlinkx](https://gnux.vercel.app/docs/tools/unlinkx) |
-| `uptime` | `uptimex` | none | [uptimex](https://gnux.vercel.app/docs/tools/uptimex) |
-| `users` | `usersx` | none | [usersx](https://gnux.vercel.app/docs/tools/usersx) |
+| `uptime` | `uptimex` | none; gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [uptimex](https://gnux.vercel.app/docs/tools/uptimex) |
+| `users` | `usersx` | none; gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [usersx](https://gnux.vercel.app/docs/tools/usersx) |
 | `vdir` | `vdirx` | every `lsx` option | [vdirx](https://gnux.vercel.app/docs/tools/vdirx) |
-| `wc` | `wcx` | `-c`, `-l`, `-L`, `-m`, `-w`, `--files0-from=F`, `--total=WHEN` | [wcx](https://gnux.vercel.app/docs/tools/wcx) |
-| `who` | `whox` | `-a`, `-b`, `-q`, `-d`, `-H`, `-l`, `--lookup`, `-T`, `--message`, `-m`, `-p`, `-r`, `-s`, `-t`, `-u`, `-w` | [whox](https://gnux.vercel.app/docs/tools/whox) |
+| `wc` | `wcx` | `-c`, `-l`, `-L`, `-m`, `-w`, `--files0-from=F`, `--total=WHEN`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [wcx](https://gnux.vercel.app/docs/tools/wcx) |
+| `who` | `whox` | `-a`, `-b`, `-q`, `-d`, `-H`, `-l`, `--lookup`, `-T`, `--message`, `-m`, `-p`, `-r`, `-s`, `-t`, `-u`, `-w`; plus gnux's own `--pretty`, `--theme` ([Terminal view](terminal-view.md)) | [whox](https://gnux.vercel.app/docs/tools/whox) |
 | `whoami` | `whoamix` | none | [whoamix](https://gnux.vercel.app/docs/tools/whoamix) |
 | `xargs` (findutils) | `xargsx` | `-0`, `-a FILE`, `-d CHARACTER`, `-E END`, `-e[END]`, `-I R`, `-i[R]`, `-L MAX-LINES`, `-l[MAX-LINES]`, `-n MAX-ARGS`, `-P MAX-PROCS`, `-p`, `-r`, `-s MAX-CHARS`, `-t`, `-x`, `--show-limits` | [xargsx](https://gnux.vercel.app/docs/tools/xargsx) |
 | `yes` | `yesx` | STRING... (no options) | [yesx](https://gnux.vercel.app/docs/tools/yesx) |
@@ -183,17 +183,17 @@ The rule is in the project's [rules](../../docs/rules/README.md) as "conflicts r
 | `chownx`, `chgrpx` | Refuse to work recursively on `/` unless `--no-preserve-root` (GNU's default is the opposite). On Windows, which has no Unix owners, every change fails with "Operation not supported" |
 | `cksumx` | `-a` accepts unambiguous abbreviations, as GNU's argmatch does; `--tag` wins over `--untagged` |
 | `commx`, `joinx` | Lines compare byte by byte (the C locale). `-1`, `-2`, `-3` of commx also answer to `--suppress-file1`, `--suppress-file2`, `--suppress-common`. joinx refuses the obsolescent `-j1 FIELD` and `-j2 FIELD` |
-| `csplitx`, `nlx` | Regular expressions are POSIX basic ones translated to Go's RE2, so back references (`\1`) are refused |
+| `csplitx`, `nlx` | Regular expressions are POSIX basic ones, translated to Go's RE2 (one with a back reference runs on a backtracking matcher) |
 | `datex` | `-d` understands the common forms (ISO dates, `@SECONDS`, `yesterday`, `next friday`, `3 days ago`, `tomorrow 09:00`) but not all of GNU's grammar. It never sets the clock: `-s` and a `MMDDhhmm` operand fail with "Operation not supported". `--debug` is not implemented |
-| `ddx` | See its reference page: `status=progress` prints only the final statistics; some conversions and flags (`ascii`, `ebcdic`, `sparse`, `direct`, ...) are refused |
+| `ddx` | See its reference page: some conversions and flags (`ascii`, `ebcdic`, `sparse`, `direct`, ...) are refused |
 | `dfx` | On Windows, lists every drive with the same columns, and skips a card reader or DVD drive with no medium. `--sync` is accepted and has no effect |
 | `dux` | Reads directories in parallel and lists entries in name order, so the output and which path a hard-linked file is counted under are the same on every run (GNU lists them in file-system order) |
 | digest tools (`md5sumx`, `sha*sumx`, `b2sumx`) | `-t` wins over `-b` when both are given |
 | `expandx`, `unexpandx` | GNU's comma form `-4,8` is not accepted, and two `-N` options in a row run together (`-4 -8` reads as `-48`); write `-t 4,8` |
-| `exprx` | Strings are measured and compared in bytes; back references and `[= =]`/`[. .]` are not supported in a regex |
-| `findx` | Directory entries are visited in name order, and paths are joined with `/` on every platform. A command named after a gnux tool runs in-process (under `-execdir` it is given the full path); a command that cannot be run makes the status 1. Regular expressions are RE2, so back references are refused. `-newerXt` takes a fixed set of date spellings. Off Unix there are no owners, inodes or devices. `findx -L` detects loops; `findx` itself always follows GNU's `-P`/`-H`/`-L` last-one-wins, because it parses its own command line |
-| `grepx` | Patterns are translated to RE2: back references are refused, `\<` and `\>` behave as `\b`, a repetition count above 1000 is too big. Input is treated as UTF-8 and only a NUL byte makes a file binary. Directory entries are searched in name order. A missing pattern is a usage error in gnux's form. `GREP_COLOR` is not read |
-| `sedx` | The `e` command is refused: sedx does not run commands. Regular expressions are RE2: back references inside a pattern are refused when the script is parsed (`\1` in a replacement works), `\<` and `\>` behave as `\b`. `--posix` changes only `n` and `N` at end of input. `-i` keeps the permission bits but not the owner, group or extended attributes |
+| `exprx` | Strings are measured and compared in bytes; `[= =]`/`[. .]` are not supported in a regex |
+| `findx` | Directory entries are visited in name order, and paths are joined with `/` on every platform. A command named after a gnux tool runs in-process (under `-execdir` it is given the full path); a command that cannot be run makes the status 1. Regular expressions are RE2, with a backtracking matcher for one with a back reference. `-newerXt` takes a fixed set of date spellings. Off Unix there are no owners, inodes or devices. `findx -L` detects loops; `findx` itself always follows GNU's `-P`/`-H`/`-L` last-one-wins, because it parses its own command line |
+| `grepx` | Patterns are translated to RE2, with a backtracking matcher for one with a back reference; `-P` refuses possessive quantifiers, atomic groups, recursion and `\K`. `\<` and `\>` behave as `\b`, a repetition count above 1000 is too big. Input is treated as UTF-8 and only a NUL byte makes a file binary. Directory entries are searched in name order. A missing pattern is a usage error in gnux's form. `GREP_COLOR` is not read |
+| `sedx` | The `e` command is refused: sedx does not run commands. Regular expressions are RE2, with a backtracking matcher for one with a back reference; `\<` and `\>` behave as `\b`. `--posix` changes only `n` and `N` at end of input. `-i` keeps the permission bits but not the owner, group or extended attributes |
 | `hostnamex` | Never sets the host name: `NAME` fails with "Operation not supported" |
 | `idx` | `-Z` (SELinux) fails as on a kernel without SELinux. On Windows the IDs are SIDs |
 | `killx` | Options are read wherever they appear before `--`, so `killx 1234 -9` sends KILL to 1234 rather than signaling process group 9. On Windows only KILL and TERM (both terminate) and 0 can be sent |
@@ -202,7 +202,7 @@ The rule is in the project's [rules](../../docs/rules/README.md) as "conflicts r
 | `nprocx` | Both counts come from Go's `runtime.NumCPU`, so `--all` cannot count offline processors |
 | `odx` | Characters are read in the C locale; long double is read as double; `-S` and `-w` need a value; the traditional offset operand and `--traditional` are not implemented |
 | `findx` | `-fstype`, `-context`, `-used`, `-files0-from`, `-D`, `%F` and `%Z` in `-printf` (each refused by name) |
-| `grepx` | `-P` (refused with a message), `-u` |
+| `grepx` | `-u`; under `-P`, possessive quantifiers, atomic groups, recursion and `\K` (refused with a message) |
 | `sedx` | `--debug`; the `e` command and the `e` flag of `s` (refused when the script is parsed) |
 | `xargsx` | `-o`, `--open-tty`, `--process-slot-var` (each refused by name) |
 | `shufx` | The order drawn from a given `--random-source` differs from GNU's, though it is just as reproducible |
@@ -225,7 +225,7 @@ The rule is in the project's [rules](../../docs/rules/README.md) as "conflicts r
 | `pathchkx` | `-p` and `-P` also answer to `--basic` and `--extra`. On Windows the limits are NTFS's: 255 characters per component, 259 in all |
 | `pinkyx` | The long names of its letter options (`--long`, `--omit-heading`, ...) are gnux's own. The shell in `-l` is read from `/etc/passwd`, so it is blank for users kept elsewhere (macOS directory services, LDAP) and on Windows |
 | `prx` | The header's date is in the C locale's words |
-| `ptxx` | Regular expressions are in GNU ptx's Emacs syntax, run by Go's RE2: back references are refused, and `\<` and `\>` behave as `\b` |
+| `ptxx` | Regular expressions are in GNU ptx's Emacs syntax, run by Go's RE2 (with a backtracking matcher for a back reference), and `\<` and `\>` behave as `\b` |
 | `shredx` | The order of the fixed patterns differs from GNU's run for run, as GNU's own does. A bad block is reported and ends the file's shredding, where GNU skips the block. On Windows, a run's directory renames are not flushed one by one |
 | `stdbufx` | A command named after a gnux tool runs in-process, unchanged: gnux tools already write each line as soon as their input runs dry. Any other command needs GNU's `libstdbuf.so`, found beside gnux or where coreutils packages install it, or stdbufx refuses (status 125), as GNU does when it is missing; Windows has none |
 | `sttyx` | On macOS and the BSDs the `PENDIN` flag, which the kernel raises by itself, is left out of the check that every setting was taken. When the Linux kernel quietly ignores a setting (`evenp` on a pseudo-terminal), sttyx says it was unable to perform all requested operations where glibc's `tcsetattr` makes GNU say "Invalid argument". Windows has no termios: every setting is checked, then fails with "Operation not supported" |

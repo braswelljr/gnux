@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"regexp"
 	"strings"
 
 	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/bre"
+	"github.com/braswelljr/gnux/core/internal/regex"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -77,7 +77,7 @@ const (
 // style decides whether a line is numbered.
 type style struct {
 	kind byte // 'a', 't', 'n' or 'p'
-	re   *regexp.Regexp
+	re   *regex.Regexp
 }
 
 // Nl is the engine. Construct it with New.

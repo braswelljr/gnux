@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/braswelljr/gnux/core/fsys"
+	"github.com/braswelljr/gnux/core/internal/visual"
 
 	"github.com/braswelljr/gnux/core"
 )
@@ -27,6 +28,10 @@ const (
 	SyntaxExtended
 	// SyntaxFixed takes the patterns as fixed strings (-F).
 	SyntaxFixed
+	// SyntaxPerl is Perl-compatible regular expressions (-P): Go's syntax,
+	// which is Perl's, with back references and lookaround added. The
+	// first match is taken, as in Perl, not the longest.
+	SyntaxPerl
 )
 
 // Color says when output is colored (--color=WHEN).
@@ -208,6 +213,14 @@ type Options struct {
 	NullData bool
 	// LineBuffered (--line-buffered) flushes the output after every line.
 	LineBuffered bool
+
+	// Pretty is gnux's terminal view, not a GNU option: when lines carry a
+	// file name, the name heads each file's lines once instead (as ripgrep
+	// prints them), with a blank line between files, in the color of the
+	// Theme's file heading when color is on (Theme is a built-in theme; ""
+	// takes GNUX_THEME's). It changes nothing with -c, -l, -L, -q, -Z or -z.
+	Pretty bool
+	Theme  string
 }
 
 // Grep is the engine. Construct it with New.
@@ -241,6 +254,9 @@ type Grep struct {
 	flushLines bool
 
 	withName bool // the current operand's lines carry the file name
+	heading  bool // Pretty applies: names head their lines
+	headed   bool // the current file's heading has been written
+	theme    *visual.Theme
 	used     bool // a group has been printed, so the next needs a separator
 	matched  bool // a line was selected somewhere
 	failed   bool // an error occurred
@@ -321,6 +337,12 @@ func (g *Grep) Run(args []string) error {
 	g.flush()
 	if g.werr != nil && !core.IsClosedPipe(g.werr) {
 		g.diag.Errorf("write error: %s", core.ErrText(g.werr))
+		g.failed = true
+	}
+	// A back-reference search abandoned on some line counted it as not
+	// matching; that is a failure to report, never a quiet "no".
+	if err := matchError(g.m); err != nil {
+		g.diag.Errorf("%s", err)
 		g.failed = true
 	}
 	switch {
@@ -423,6 +445,8 @@ func (g *Grep) setup() error {
 	if g.pal.on {
 		g.pal.parse(g.Getenv("GREP_COLORS"))
 	}
+	g.heading = g.Pretty && !g.quiet && !g.Null && !g.NullData
+	g.theme = visual.Use(g.heading && g.pal.on, g.Theme, g.Getenv, g.diag.Warnf)
 	if g.separator != nil {
 		line := g.pal.paint(nil, g.pal.se, string(g.separator))
 		line = append(line, '\n')

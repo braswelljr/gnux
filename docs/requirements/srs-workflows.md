@@ -2,8 +2,8 @@
 
 The user-facing workflows of gnux as step-by-step flows: installing and linking, running a tool
 both ways, writing and running a portable script, embedding an engine, running a tool by name
-from Go, trying it in the playground, adding a tool, regenerating the documentation, and
-releasing. Each flow names its actors, preconditions, steps, outcomes and failure paths, and the
+from Go, trying it in the playground, adding a tool, regenerating the documentation,
+releasing, and reading a project in the terminal view. Each flow names its actors, preconditions, steps, outcomes and failure paths, and the
 requirement identifiers it exercises.
 
 **This document stands on its own** as the answer to "how is this actually used". The
@@ -22,6 +22,7 @@ inside the code is in [workflows](../workflows/README.md).
 | WF-7 | Add a new tool, end to end                | Contributor           |
 | WF-8 | Regenerate the documentation              | Contributor           |
 | WF-9 | Release                                   | Maintainer            |
+| WF-10 | Read a project in the terminal view      | Command-line user     |
 
 ## WF-1: install gnux and link the tools
 
@@ -413,3 +414,35 @@ platform, and binaries that report the tag as their version.
 | No package-manager formula                                   | Out of scope (see [business-requirements](business-requirements.md))        |
 
 The technical detail is in [ci-and-release](../workflows/ci-and-release.md).
+
+## WF-10: read a project in the terminal view
+
+- **Actors.** A command-line user at a terminal.
+- **Preconditions.** gnux installed and linked (WF-1); for icons, a Nerd Font in the terminal.
+- **Exercises.** BR-13, FR-60, FR-107, FR-108, NFR-53, NFR-54.
+
+**Steps.**
+
+1. Run `lsx -l` in a project. On a terminal every column is colored, with a header, readable
+   sizes and directories first.
+2. Run `lsx --tree --level=2` for the layout, and `lsx -l --git --git-ignore src/` before a
+   commit to see what changed, with ignored files left out.
+3. Run `dfx -h` to see which disk is filling up, and `dux -h -d 1 ~` to see which folder.
+4. Pick a theme for one command (`lsx -l --theme=nord`), then make the choice the default in
+   the shell's profile: `GNUX_THEME=nord`, and `GNUX_ICONS=auto` with a Nerd Font.
+5. Pipe a listing into another tool (`lsx -l | grepx '\.go$'`): it reads GNU's output.
+
+**Outcome.** The user reads listings, trees, git status and disk usage at a glance with no
+other tool installed, and every script and pipeline still gets GNU's output.
+
+**Failure paths.**
+
+| What happens                                          | Why                                                                     |
+|-------------------------------------------------------|-------------------------------------------------------------------------|
+| Icons show as empty boxes                             | The terminal's font is not a Nerd Font; install one or set `GNUX_ICONS=never` |
+| `lsx: ignoring the theme in GNUX_THEME: unknown theme` | `GNUX_THEME` names no built-in theme; the default is used              |
+| `invalid argument 'x' for '--theme'` (status 1)        | `--theme` names no built-in theme                                       |
+| `lsx: --level needs -R or --tree` (status 2)           | `--level` was given without a recursive listing                         |
+| `lsx: cannot read git repository '...'`                | The repository's index is in a format gnux does not read; the column is left blank |
+| No colors through a pipe into `less`                   | A pipe turns the view off; use `--pretty=always` and `less -R`          |
+| No colors at all                                       | `NO_COLOR` is set, `TERM` is `dumb`, or `GNUX_PRETTY=never`             |

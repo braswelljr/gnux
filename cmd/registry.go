@@ -237,7 +237,7 @@ func Tools() []tool.Spec {
 // Commands is everything the root command carries: the tools, then the gnux
 // commands that have no GNU counterpart.
 func Commands() []tool.Spec {
-	return append(Tools(), ShellSpec(), MCPSpec())
+	return append(Tools(), ShellSpec(), MCPSpec(), ThemesSpec())
 }
 
 // Lookup finds a tool by its command name ("rmx") or the name of its GNU counterpart

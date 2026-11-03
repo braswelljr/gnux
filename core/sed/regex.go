@@ -2,9 +2,10 @@ package sed
 
 import (
 	"errors"
-	"regexp"
 	"regexp/syntax"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/internal/regex"
 )
 
 // This file turns the regular expressions of a sed script into Go's RE2
@@ -33,7 +34,7 @@ const (
 	errBadCollation      = regexError("Invalid collation character")
 	errTooBig            = regexError("Regular expression too big")
 	errBadPattern        = regexError("Invalid regular expression")
-	errBackReference     = regexError("back references in a regular expression are not supported")
+	errBackReference     = regexError("Invalid back reference")
 )
 
 // maxRepeat is the largest repetition count RE2 accepts.
@@ -42,7 +43,7 @@ const maxRepeat = 1000
 // compileRegex compiles a sed regular expression: a basic one, or an
 // extended one when extended is set. icase is the I modifier and multiline
 // the M modifier. The result matches leftmost-longest, as POSIX requires.
-func compileRegex(pattern string, extended, icase, multiline bool) (*regexp.Regexp, error) {
+func compileRegex(pattern string, extended, icase, multiline bool) (*regex.Regexp, error) {
 	t := translator{pat: pattern, ext: extended, ml: multiline, atom: -1}
 	if err := t.run(); err != nil {
 		return nil, err
@@ -56,7 +57,10 @@ func compileRegex(pattern string, extended, icase, multiline bool) (*regexp.Rege
 	if icase {
 		flags += "i"
 	}
-	re, err := regexp.Compile(flags + ")" + string(t.out))
+	re, err := regex.Compile(flags + ")" + string(t.out))
+	if errors.Is(err, regex.ErrBackReference) {
+		return nil, errBackReference
+	}
 	if err != nil {
 		return nil, regcompError(err)
 	}
@@ -109,6 +113,7 @@ type translator struct {
 	// parenthesis and after an alternation: where a basic ^ is an anchor.
 	branch bool
 	groups []int // where in out each open group starts
+	opened int   // groups opened so far, which a back reference may name
 }
 
 func (t *translator) run() error {
@@ -234,7 +239,12 @@ func (t *translator) escape(i int) (int, error) {
 	}
 	switch d {
 	case '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		return 0, errBackReference
+		n := int(d - '0')
+		if n > t.opened {
+			return 0, errBackReference
+		}
+		t.begin()
+		t.out = append(t.out, regex.BackRef(n)...)
 	case 'w', 'W', 's', 'S', 'B':
 		t.begin()
 		t.out = append(t.out, '\\', d)
@@ -275,6 +285,7 @@ func (t *translator) literal(b byte) {
 }
 
 func (t *translator) open() {
+	t.opened++
 	t.groups = append(t.groups, len(t.out))
 	t.out = append(t.out, '(')
 	t.atom = -1

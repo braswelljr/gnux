@@ -882,7 +882,12 @@ func (f *Find) idPred(user bool, cmp numCmp) pred {
 
 // printPred prints the path followed by end (a newline, or NUL for -print0).
 func (f *Find) printPred(o *output, end byte) pred {
+	view := f.viewing && o == f.stdout && end == '\n'
 	return func(e *entry) bool {
+		if view {
+			f.viewPrint(e)
+			return true
+		}
 		f.buf = append(append(f.buf[:0], e.path...), end)
 		f.write(o, f.buf)
 		return true

@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"regexp/syntax"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/internal/regex"
 )
 
 // Unescape turns GNU ptx's backslash escapes in an option value into the
@@ -84,9 +86,11 @@ func hexValue(c byte) int {
 // compiles with into Go's syntax: \( \) \| group and alternate, ( ) | { }
 // are literal, * + ? repeat, ^ and $ are anchors only at the start and end
 // of a pattern or an alternative, and \w \W \b \B \< \> \` \' keep their
-// Emacs meanings as closely as Go allows. A back reference cannot be run.
+// Emacs meanings as closely as Go allows. A back reference is written for
+// core/internal/regex.
 func translateEmacs(pat string) (string, error) {
 	var b strings.Builder
+	opened := 0 // groups opened so far, which a back reference may name
 	// atStart reports that a repetition operator here would have nothing to
 	// repeat, which in Emacs makes it literal.
 	atStart := true
@@ -101,6 +105,7 @@ func translateEmacs(pat string) (string, error) {
 			switch d := pat[i]; d {
 			case '(':
 				b.WriteString("(")
+				opened++
 				atStart = true
 				continue
 			case ')':
@@ -122,7 +127,10 @@ func translateEmacs(pat string) (string, error) {
 			case '\'':
 				b.WriteString(`\z`)
 			case '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				return "", errBackReference
+				if int(d-'0') > opened {
+					return "", errBackReference
+				}
+				b.WriteString(regex.BackRef(int(d - '0')))
 			default:
 				b.WriteString(regexp.QuoteMeta(string(d)))
 			}

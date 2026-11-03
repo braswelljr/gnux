@@ -184,6 +184,9 @@ func TestErrExit(t *testing.T) {
 func TestSyntaxErrors(t *testing.T) {
 	for _, script := range []string{
 		"echo 'unterminated", `echo "unterminated`, "| echo", "echo |", "echo a &&", "echo >", "> out", "echo a | | b",
+		// No background jobs, and no file descriptors beyond 1 and 2: refused,
+		// never read as an argument "&" or a file named "&3".
+		"echo a & echo b", "echo a&", "echo a >&3", "echo a 2>&3",
 	} {
 		t.Run(script, func(t *testing.T) {
 			status, out, errb := run(t, shell.Options{}, script+"\necho after")
@@ -261,6 +264,37 @@ func TestRedirection(t *testing.T) {
 	status, stdout, errb = run(t, shell.Options{}, "warn gone 2> /dev/null > /dev/null\ncat < /dev/null")
 	if status != 0 || stdout != "" || errb != "" {
 		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout, errb)
+	}
+
+	// 1> and 1>> are > and >>: the 1 is not an argument.
+	status, stdout, errb = run(t, shell.Options{}, "echo a 1> $D/one.txt\necho b 1>> $D/one.txt\ncat < $D/one.txt", setDir)
+	if status != 0 || stdout != "a\nb\n" {
+		t.Fatalf("1> and 1>>: status=%d stdout=%q stderr=%q", status, stdout, errb)
+	}
+
+	// 2>&1 and >&2 point a stream at wherever the other goes at that point,
+	// so the order of the redirections matters, as in sh.
+	for _, tt := range []struct{ script, out, err, file string }{
+		{"warn x > $D/both.txt 2>&1", "", "", "x\nout\n"},
+		{"warn x 2>&1 > $D/both.txt", "x\n", "", "out\n"},
+		{"warn x 2>&1 | upper", "X\nOUT\n", "", ""},
+		{"echo y >&2", "", "y\n", ""},
+		{"echo y 1>&2 2> /dev/null", "", "y\n", ""},
+	} {
+		_ = os.Remove(filepath.Join(dir, "both.txt"))
+		status, stdout, errb = run(t, shell.Options{}, tt.script, setDir)
+		b, _ := os.ReadFile(filepath.Join(dir, "both.txt"))
+		if status != 0 || stdout != tt.out || errb != tt.err || string(b) != tt.file {
+			t.Errorf("%s: status=%d stdout=%q stderr=%q file=%q; want stdout=%q stderr=%q file=%q",
+				tt.script, status, stdout, errb, b, tt.out, tt.err, tt.file)
+		}
+	}
+	if entries, _ := os.ReadDir(dir); len(entries) != 0 {
+		for _, e := range entries {
+			if strings.HasPrefix(e.Name(), "&") {
+				t.Errorf("a duplication created the file %q", e.Name())
+			}
+		}
 	}
 
 	status, _, errb = run(t, shell.Options{}, "cat < $D/missing", setDir)
@@ -408,4 +442,68 @@ func TestPipelineStagePanicReachesTheCaller(t *testing.T) {
 	if got == nil || got.Value != "stage failed badly" {
 		t.Fatalf("recovered %+v, want the stage's panic", got)
 	}
+}
+
+func TestRead(t *testing.T) {
+	tests := []struct {
+		name, script, stdin, want string
+		status                    int
+	}{
+		{"one line", "read x; args $x", "hello world\n", "[hello world]\n", 0},
+		{"fields", "read a b; args $a $b", "  one two  three  \n", "[one]\n[two  three]\n", 0},
+		{"more names than fields", "read a b c; args $a $b $c", "one\n", "[one]\n[]\n[]\n", 0},
+		{"REPLY", "read; args $REPLY", "  kept as is?  \n", "[kept as is?]\n", 0},
+		{"each line in turn", "read a; read b; args $b $a", "1\n2\n", "[2]\n[1]\n", 0},
+		{"while read", "while read l; do args $l; done", "a b\nc\n", "[a b]\n[c]\n", 0},
+		{"last line without a newline", "while read l; do args $l; done; args $l", "a\nb", "[a]\n[b]\n", 0},
+		{"partial line at the end", "read l; args $? $l", "tail", "[1]\n[tail]\n", 0},
+		{"end of input", "read l; args $?", "", "[1]\n", 0},
+		{"backslash escapes", `read a b; args $a $b`, "x\\ y z\n", "[x y]\n[z]\n", 0},
+		{"backslash newline joins", "read a; args $a", "one \\\ntwo\n", "[one two]\n", 0},
+		{"-r keeps backslashes", "read -r a; args $a", "C:\\tools\\bin\n", "[C:\\tools\\bin]\n", 0},
+		{"IFS", "IFS=:; read a b c; args $a $b $c", "x::z\n", "[x]\n[]\n[z]\n", 0},
+		{"IFS without blanks keeps them", "IFS=,; read a b; args $a $b", " a , b \n", "[ a ]\n[ b ]\n", 0},
+		{"empty IFS", "IFS=; read a; args $a", "  as is  \n", "[  as is  ]\n", 0},
+		{"UTF-8", "read a b; args $b", "é ü\n", "[ü]\n", 0},
+		{"from a redirected loop", "while read l; do args $l; done < $F", "", "[one]\n[two]\n", 0},
+		{"in a pipeline stage nothing is set", "x=old; echo new | read x; args $x", "", "[old]\n", 0},
+		{"a piped loop", "echo a | while read l; do args got-$l; done", "", "[got-a]\n", 0},
+		{"bad name", "read 1x", "", "", 2},
+		{"bad option", "read -z x", "", "", 2},
+	}
+	dir := t.TempDir()
+	file := filepath.Join(dir, "in.txt")
+	if err := os.WriteFile(file, []byte("one\ntwo\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var out, errb bytes.Buffer
+			sh := shell.New(shell.Options{}, fakeExec, core.Streams{In: strings.NewReader(tt.stdin), Out: &out, Err: &errb})
+			sh.Getenv = func(string) string { return "" }
+			sh.Set("F", file)
+			status := 0
+			if err := sh.RunString(tt.script); err != nil {
+				var exit *core.ExitError
+				if !errors.As(err, &exit) {
+					t.Fatal(err)
+				}
+				status = exit.Code
+			}
+			if status != tt.status || out.String() != tt.want {
+				t.Fatalf("status=%d out=%q stderr=%q; want %d %q", status, out.String(), errb.String(), tt.status, tt.want)
+			}
+		})
+	}
+
+	t.Run("reads no further than its line", func(t *testing.T) {
+		var out bytes.Buffer
+		sh := shell.New(shell.Options{}, fakeExec, core.Streams{In: strings.NewReader("first\nrest 1\nrest 2\n"), Out: &out, Err: io.Discard})
+		if err := sh.RunString("read x; cat; args $x"); err != nil {
+			t.Fatal(err)
+		}
+		if out.String() != "rest 1\nrest 2\n[first]\n" {
+			t.Fatalf("out = %q", out.String())
+		}
+	})
 }

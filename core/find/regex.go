@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/braswelljr/gnux/core/internal/bre"
+	"github.com/braswelljr/gnux/core/internal/regex"
 )
 
 // The regular expression dialects -regextype names, grouped by the
@@ -57,7 +58,7 @@ func regexTypeList() string {
 
 // compileRegex compiles a -regex pattern of the given type into an RE2
 // expression that must match the whole path, as GNU find requires.
-func compileRegex(kind, pattern string, fold bool) (*regexp.Regexp, error) {
+func compileRegex(kind, pattern string, fold bool) (*regex.Regexp, error) {
 	dialect := dialectEmacs
 	for _, t := range regexTypes {
 		if t.name == kind {
@@ -81,7 +82,10 @@ func compileRegex(kind, pattern string, fold bool) (*regexp.Regexp, error) {
 	if fold {
 		flags = "(?si)"
 	}
-	re, err := regexp.Compile(flags + `\A(?:` + expr + `)\z`)
+	re, err := regex.Compile(flags + `\A(?:` + expr + `)\z`)
+	if errors.Is(err, regex.ErrBackReference) {
+		return nil, err
+	}
 	if err != nil {
 		return nil, errors.New("Invalid regular expression") //nolint:staticcheck,revive // GNU's wording
 	}
@@ -90,10 +94,11 @@ func compileRegex(kind, pattern string, fold bool) (*regexp.Regexp, error) {
 
 // translateRegex rewrites an Emacs-syntax expression (the default: groups and
 // alternation are \( \) \|, while + and ? are operators) or a POSIX extended
-// one into RE2 syntax. Back references cannot be expressed and are refused.
+// one into RE2 syntax, with back references written as regex.BackRef.
 func translateRegex(pattern string, emacs bool) (string, error) {
 	var b strings.Builder
 	depth := 0
+	opened := 0 // groups opened so far, which a back reference may name
 	// atStart is true where a repetition operator has nothing to repeat and
 	// so stands for itself, and where Emacs reads ^ as an anchor.
 	atStart := true
@@ -101,6 +106,7 @@ func translateRegex(pattern string, emacs bool) (string, error) {
 	open := func() {
 		b.WriteByte('(')
 		depth++
+		opened++
 		atStart = true
 	}
 	closeGroup := func() error {
@@ -144,7 +150,10 @@ func translateRegex(pattern string, emacs bool) (string, error) {
 				alternate()
 				continue
 			case d >= '1' && d <= '9':
-				return "", errors.New("back references are not supported in a regular expression")
+				if int(d-'0') > opened {
+					return "", errors.New("Invalid back reference") //nolint:staticcheck,revive // GNU's wording
+				}
+				b.WriteString(regex.BackRef(int(d - '0')))
 			case d == '<' || d == '>':
 				b.WriteString(`\b`)
 			case d == '`':

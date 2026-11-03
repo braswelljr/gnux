@@ -2,9 +2,10 @@ package sed
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/internal/regex"
 )
 
 // addrKind is the form of one address.
@@ -23,9 +24,9 @@ const (
 // address selects lines for a command.
 type address struct {
 	kind addrKind
-	n    int64          // the line, the first line of a step, or N of +N and ~N
-	step int64          // addrStep
-	re   *regexp.Regexp // addrRegex; nil is the empty regex: the last one used
+	n    int64         // the line, the first line of a step, or N of +N and ~N
+	step int64         // addrStep
+	re   *regex.Regexp // addrRegex; nil is the empty regex: the last one used
 }
 
 // command is one compiled command. A script is a flat list of them: a block
@@ -48,7 +49,7 @@ type command struct {
 	out   *output
 	num   int // q Q: the exit status; l: the line length, or -1
 
-	re     *regexp.Regexp // s; nil is the empty regex
+	re     *regex.Regexp // s; nil is the empty regex
 	repl   replacement
 	global bool // s///g
 	print  bool // s///p
@@ -369,7 +370,7 @@ func (p *parser) address(c int, a *address) bool {
 
 // regex compiles a pattern read from the script; the empty pattern stands
 // for the last regular expression used when the script runs.
-func (p *parser) regex(pattern string, icase, multiline bool) *regexp.Regexp {
+func (p *parser) regex(pattern string, icase, multiline bool) *regex.Regexp {
 	if pattern == "" {
 		if icase || multiline {
 			p.fail(msgEmptyModifiers)

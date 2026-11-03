@@ -1,11 +1,13 @@
 // Package bre translates POSIX basic regular expressions (BRE), the syntax
-// GNU expr, nl and csplit take, into Go's RE2 syntax. Back references, which
-// RE2 cannot express, are refused.
+// GNU expr, nl and csplit take, into Go's RE2 syntax, with back references
+// written for core/internal/regex.
 package bre
 
 import (
 	"regexp"
 	"strings"
+
+	"github.com/braswelljr/gnux/core/internal/regex"
 )
 
 // Error is a pattern GNU would reject, with GNU's message.
@@ -21,6 +23,7 @@ func Translate(pattern string) (string, error) {
 	var b strings.Builder
 	atStart := true // where a * is literal
 	depth := 0
+	opened := 0 // groups opened so far, which a back reference may name
 	for i := 0; i < len(pattern); i++ {
 		c := pattern[i]
 		switch {
@@ -34,6 +37,7 @@ func Translate(pattern string) (string, error) {
 			case '(':
 				b.WriteByte('(')
 				depth++
+				opened++
 				atStart = true
 				continue
 			case ')':
@@ -53,7 +57,10 @@ func Translate(pattern string) (string, error) {
 			case '+', '?':
 				b.WriteByte(d)
 			case '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				return "", &Error{"back references are not supported"}
+				if int(d-'0') > opened {
+					return "", &Error{"Invalid back reference"}
+				}
+				b.WriteString(regex.BackRef(int(d - '0')))
 			case 'n':
 				b.WriteString(`\n`)
 			case 'w', 'W', 's', 'S', 'b', 'B':
@@ -125,22 +132,22 @@ func Translate(pattern string) (string, error) {
 
 // Compile translates pattern and compiles it to match leftmost-longest, as
 // POSIX requires. A dot matches a newline too, as in POSIX.
-func Compile(pattern string) (*regexp.Regexp, error) {
+func Compile(pattern string) (*regex.Regexp, error) {
 	return compile("(?s:", pattern)
 }
 
 // CompileAnchored is Compile, with the match anchored at the start of the
 // text, as expr's ':' operator wants.
-func CompileAnchored(pattern string) (*regexp.Regexp, error) {
+func CompileAnchored(pattern string) (*regex.Regexp, error) {
 	return compile("^(?s:", pattern)
 }
 
-func compile(prefix, pattern string) (*regexp.Regexp, error) {
+func compile(prefix, pattern string) (*regex.Regexp, error) {
 	expr, err := Translate(pattern)
 	if err != nil {
 		return nil, err
 	}
-	re, err := regexp.Compile(prefix + expr + ")")
+	re, err := regex.Compile(prefix + expr + ")")
 	if err != nil {
 		return nil, &Error{"Invalid regular expression"}
 	}

@@ -79,8 +79,21 @@ func Discard() Streams {
 	return Streams{In: strings.NewReader(""), Out: io.Discard, Err: io.Discard}
 }
 
-// IsTerminal reports whether v (a stream) is an *os.File attached to a terminal.
+// Terminal is a stream that says whether it is shown to a person as a
+// terminal would show it. A host that is not an operating system's terminal
+// but stands in for one (the web playground's scrollback) implements it, so
+// the tools draw their terminal view there and still write GNU's bytes into
+// a pipe or a file.
+type Terminal interface {
+	IsTerminal() bool
+}
+
+// IsTerminal reports whether v (a stream) is a terminal: an *os.File
+// attached to one, or a Terminal that says it is.
 func IsTerminal(v any) bool {
+	if t, ok := v.(Terminal); ok {
+		return t.IsTerminal()
+	}
 	f, ok := v.(*os.File)
 	if !ok {
 		return false

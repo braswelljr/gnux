@@ -32,13 +32,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
+          # No cache: a release is built from nothing another run could have written.
+          cache: false
           go-version-file: go.mod
-          cache: true
 
       - name: Vet
         run: go vet ./...
@@ -72,7 +75,7 @@ jobs:
           esac
 
       - name: Keep the release notes
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-notes
           path: release-notes.md
@@ -89,19 +92,22 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1  # zizmor: ignore[artipacked] this job pushes the major version tag
         with:
+          # Kept: "Move the major version tag" pushes with these credentials.
+          persist-credentials: true
           # GoReleaser reads the previous tag for the fallback changelog.
           fetch-depth: 0
 
       - name: Set up Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
+          # No cache: a release is built from nothing another run could have written.
+          cache: false
           go-version-file: go.mod
-          cache: true
 
       - name: Download release notes
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: release-notes
           # Outside the checkout: GoReleaser refuses to release from a tree
@@ -135,10 +141,10 @@ jobs:
       # GoReleaser writes an SBOM per archive with syft and signs
       # checksums.txt with cosign, keyless, through this job's id-token.
       - name: Install syft
-        uses: anchore/sbom-action/download-syft@v0
+        uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       # GoReleaser packs and uploads the snap with the snapcraft command.
       - name: Install snapcraft
@@ -146,7 +152,7 @@ jobs:
         run: sudo snap install snapcraft --classic
 
       - name: Build and publish
-        uses: goreleaser/goreleaser-action@v7
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           distribution: goreleaser
           version: "~> v2"
@@ -158,7 +164,7 @@ jobs:
           AUR_KEY: ${{ secrets.AUR_KEY }}
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-checksums: dist/checksums.txt
 
@@ -190,19 +196,23 @@ jobs:
 
       - name: Check out code
         if: steps.plan.outputs.publish == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Go
         if: steps.plan.outputs.publish == 'true'
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
+          # No cache: a release is built from nothing another run could have written.
+          cache: false
           go-version-file: go.mod
-          cache: true
 
       - name: Set up Node
         if: steps.plan.outputs.publish == 'true'
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
+          package-manager-cache: false
           node-version: 22
           registry-url: https://registry.npmjs.org
 
@@ -251,16 +261,18 @@ jobs:
       packages: write
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
 
       - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Log in to GHCR
-        uses: docker/login-action@v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -268,7 +280,7 @@ jobs:
 
       - name: Tags for the Alpine image
         id: alpine
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/${{ github.repository_owner }}/gnux
           tags: |
@@ -277,7 +289,7 @@ jobs:
 
       - name: Tags for the scratch image
         id: scratch
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/${{ github.repository_owner }}/gnux
           flavor: |
@@ -289,7 +301,7 @@ jobs:
             type=raw,value=scratch,suffix=,enable=${{ !contains(github.ref_name, '-') }}
 
       - name: Build and push the Alpine image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -299,7 +311,7 @@ jobs:
           labels: ${{ steps.alpine.outputs.labels }}
 
       - name: Build and push the scratch image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           target: scratch

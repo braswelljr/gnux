@@ -73,3 +73,19 @@ func TestReal(t *testing.T) {
 		t.Fatal("no groups printed")
 	}
 }
+
+func TestPrimaryGroupColored(t *testing.T) {
+	var out bytes.Buffer
+	g := groups.New(groups.Options{Pretty: true, Color: true}, core.Streams{In: strings.NewReader(""), Out: &out, Err: &bytes.Buffer{}})
+	g.Getenv = func(string) string { return "" }
+	g.Self = func() (id.Identity, error) {
+		return id.Identity{UID: "1", GID: "10", EUID: "1", EGID: "10", Groups: []string{"30"}}, nil
+	}
+	g.GroupName = func(gid string) (string, bool) { n, ok := names[gid]; return n, ok }
+	if err := g.Run(nil); err != nil {
+		t.Fatal(err)
+	}
+	if want := "\x1b[1;33mstaff\x1b[0m docker\n"; out.String() != want {
+		t.Fatalf("out = %q; want %q", out.String(), want)
+	}
+}

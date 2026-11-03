@@ -187,12 +187,21 @@ func (r *runner) launch(argv []string) bool {
 		return false
 	}
 	r.wg.Add(1)
+	// The next command is launched only once this one has started. Go runs
+	// the newest goroutine first, so on one CPU, with commands that finish
+	// at once (gnux's own, in-process), later commands could keep running
+	// ahead of an earlier one for a whole time slice: one that exits 255
+	// would stop the run only after thousands more had run. Commands still
+	// run side by side; they only start in order, as processes do.
+	started := make(chan struct{})
 	go func() {
 		defer r.wg.Done()
 		defer func() { <-r.sem }()
 		defer r.trap.Catch()
+		close(started)
 		r.record(argv[0], r.command(argv))
 	}()
+	<-started
 	return true
 }
 

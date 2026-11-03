@@ -17,6 +17,7 @@ func FuzzPattern(f *testing.F) {
 		"", "a", "a*", `\(a\)*b`, `a\{2,3\}`, "a{2,3}", "(a|b)+", "[[:alpha:]]", "[^]a-z]", `\<w\>`, `\bw\B`,
 		"^a$", "a\nb", "[", "(", `\`, "a**", "{1", `\w\W\s\S`, "[a-", "[[:bogus:]]", `a\|b`, "*a", "+a", "?", "a{,3}",
 		`\(`, `\)`, ")", "[[.a.]]", "[[=a=]]", "\x00", "é+", `\(a\)\1`, "a{99999}", "^*", "x\\{1",
+		`(?<=a)b`, `(?!x)\w+`, `(\w)\1`, `(?<n>.)\k<n>`, `\g{-1}`, `a++`, `\Qa.b\E`, `(?#c)`, `\h\v\R\N`,
 	} {
 		for mode := byte(0); mode < 12; mode++ {
 			f.Add(p, "alpha beta\nAlpha\n\nword w\nlast", mode)
@@ -28,7 +29,7 @@ func FuzzPattern(f *testing.F) {
 		}
 		opts := grep.Options{
 			Patterns:     []string{pattern},
-			Syntax:       []grep.Syntax{grep.SyntaxBasic, grep.SyntaxExtended, grep.SyntaxFixed}[int(mode)%3],
+			Syntax:       []grep.Syntax{grep.SyntaxBasic, grep.SyntaxExtended, grep.SyntaxFixed, grep.SyntaxPerl}[int(mode)%4],
 			IgnoreCase:   mode&4 != 0,
 			WordRegexp:   mode&8 != 0,
 			LineRegexp:   mode&16 != 0,

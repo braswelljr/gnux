@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import type { MemFS } from '../lib/playground/memfs.ts';
-import { bootGnux } from '../lib/playground/runtime.ts';
+import { bootGnux, type ThemeSurface } from '../lib/playground/runtime.ts';
 import { createSeededFS, ENV } from '../lib/playground/seed.ts';
 
 const publicDir = fileURLToPath(new URL('../public/', import.meta.url));
@@ -25,15 +25,23 @@ export interface Harness {
   version: string;
   cwd(): string;
   has(tool: string): boolean;
+  themes: string[];
+  setenv(name: string, value: string): void;
+  surface(theme: string): ThemeSurface | undefined;
   run(line: string): Promise<Result>;
   dispose(): void;
 }
 
-export async function boot(): Promise<Harness> {
+/**
+ * Boots a session. The scrollback is a terminal to the tools, so they draw
+ * their terminal view there; `env` is laid over the playground's own, and the
+ * tests that check GNU's output pass `GNUX_PRETTY: 'never'`.
+ */
+export async function boot(env: Record<string, string> = {}): Promise<Harness> {
   const fs = createSeededFS();
   const session = await bootGnux({
     fs,
-    env: ENV,
+    env: { ...ENV, ...env },
     loadGoRuntime: async () => {
       // wasm_exec.js is a classic script that defines globalThis.Go.
       vm.runInThisContext(readFileSync(`${publicDir}wasm_exec.js`, 'utf8'), {
@@ -58,6 +66,9 @@ export async function boot(): Promise<Harness> {
     version: session.version,
     cwd: () => session.cwd(),
     has: (tool) => session.tools.includes(tool),
+    themes: [...session.themes],
+    setenv: (name, value) => session.setenv(name, value),
+    surface: (theme) => session.surface(theme),
     async run(line) {
       out = ['', ''];
       const status = await session.run(line);

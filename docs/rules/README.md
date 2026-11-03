@@ -52,3 +52,4 @@ The cross-cutting rules the gnux code follows, one file each. A rule is a conven
 | Rule | Statement | Checked by |
 |------|-----------|------------|
 | [agents-hand-over-git-commands](agents-hand-over-git-commands.md) | An agent never commits, tags, pushes or releases; it prepares the change and hands the maintainer the commands and the message | Review |
+| [work-in-the-repository-with-gnux](work-in-the-repository-with-gnux.md) | Everyday command-line work in the repository uses gnux (rmx, cpx, grepx, sedx, findx, ...), and a difference from GNU found that way is fixed, not routed around | Review |

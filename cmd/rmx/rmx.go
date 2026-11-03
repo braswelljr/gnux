@@ -5,6 +5,8 @@
 package rmx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/cmd/rmx/directory"
@@ -53,7 +55,8 @@ func Meta() docmeta.Meta {
 			"recursive removal) and --interactive; -f disables all prompts and ignores missing " +
 			"files. rmx refuses to remove '.' and '..' and, by default, refuses to recurse on " +
 			"the filesystem root. Independent arguments are removed concurrently whenever no " +
-			"prompt or ordered output is involved.",
+			"prompt or ordered output is involved." +
+			" On a terminal, gnux's terminal view colors the -v report: the verb (removed, created, renamed), each quoted name and the arrows, in the theme --theme or GNUX_THEME names; the words are GNU's, and piped or redirected output is never colored (--pretty=never or GNUX_PRETTY=never turns it off).",
 		Permissions: "Removing an entry needs write and search permission on the directory " +
 			"that contains it, not on the entry itself. On a terminal, a write-protected file " +
 			"triggers a confirmation prompt unless -f is given.",
@@ -160,11 +163,19 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "prompt-each", "prompt-once")
+	tool.RegisterView(fs)
 }
 
 // run builds the removal options from the parsed flags and runs the engine
 // against args.
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	// gnux's terminal view colors the -v report.
+	s, viewDone, viewErr := tool.ReportView(fs, s, "rmx", os.Getenv)
+	if viewErr != nil {
+		return viewErr
+	}
+	defer viewDone()
+
 	opts, err := buildOptions(fs)
 	if err != nil {
 		return err

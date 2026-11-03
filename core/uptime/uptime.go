@@ -14,8 +14,17 @@ import (
 // Name is the command name, used as the prefix of every diagnostic.
 const Name = "uptimex"
 
-// Options is empty: GNU uptime has no options besides --help and --version.
-type Options struct{}
+// Options holds gnux's terminal view only: GNU uptime has no options
+// besides --help and --version, and the zero value is its output.
+type Options struct {
+	// Pretty, Color and Theme are gnux's terminal view: with Pretty, the
+	// line becomes a panel with each load average drawn as a bar against
+	// the number of CPUs, colored with Color in Theme (a built-in theme;
+	// "" takes GNUX_THEME's).
+	Pretty bool
+	Color  bool
+	Theme  string
+}
 
 // Uptime is the engine. Construct it with New.
 type Uptime struct {
@@ -25,6 +34,11 @@ type Uptime struct {
 	Now func() time.Time
 	// Location is the zone the clock is shown in; nil means the local zone.
 	Location *time.Location
+	// CPUs counts the processors the view's load bars are measured
+	// against; nil means runtime.NumCPU. Getenv reads GNUX_THEME and the
+	// locale for the view; nil means os.Getenv.
+	CPUs   func() int
+	Getenv func(string) string
 
 	streams core.Streams
 	diag    *core.Diag
@@ -90,6 +104,13 @@ func (u *Uptime) Run(args []string) (err error) {
 	if boot.IsZero() {
 		_ = out.Flush()
 		u.diag.Errorf("couldn't get boot time")
+	}
+	if u.Pretty {
+		if !boot.IsZero() && now.Before(boot) {
+			u.diag.Errorf("couldn't get boot time")
+		}
+		u.panel(out, now.In(loc), boot, users)
+		return u.diag.Result()
 	}
 	fmt.Fprintf(out, " %s  ", now.In(loc).Format("15:04:05"))
 

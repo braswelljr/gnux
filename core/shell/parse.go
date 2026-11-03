@@ -31,7 +31,8 @@ type part struct {
 // parts.
 type word []part
 
-// redirect is one `<`, `>`, `>>`, `2>` or `2>>` with its target.
+// redirect is one `<`, `>`, `>>`, `2>` or `2>>` with its target, or a
+// `2>&1` or `>&2`, which has none.
 type redirect struct {
 	op     string
 	target word
@@ -249,15 +250,17 @@ func (p *parser) lex() token {
 		p.pos = i + 1
 		return token{op: "\n"}
 	}
-	// A 2 that starts a word and is followed by > redirects standard error;
-	// anywhere else ("a2>b") it is an ordinary character.
-	if strings.HasPrefix(src[i:], "2>") {
-		op := "2>"
-		if strings.HasPrefix(src[i:], "2>>") {
-			op = "2>>"
-		}
-		p.pos = i + len(op)
+	// A 1 or 2 that starts a word and is followed by > names the stream it
+	// redirects; anywhere else ("a2>b") it is an ordinary character.
+	if op, width := redirectOperator(src[i:]); width > 0 {
+		p.pos = i + width
 		return token{op: op}
+	}
+	if strings.HasPrefix(src[i:], ">&") || strings.HasPrefix(src[i:], "1>&") || strings.HasPrefix(src[i:], "2>&") {
+		p.fail("only 2>&1 and >&2 can duplicate a stream")
+	}
+	if src[i] == '&' && !strings.HasPrefix(src[i:], "&&") {
+		p.fail("background jobs (&) are not supported")
 	}
 	if op := matchOperator(src[i:]); op != "" {
 		p.pos = i + len(op)
@@ -276,7 +279,7 @@ func (p *parser) lex() token {
 word:
 	for i < len(src) {
 		c := src[i]
-		if c == ' ' || c == '\t' || c == '\n' || matchOperator(src[i:]) != "" {
+		if c == ' ' || c == '\t' || c == '\n' || c == '&' || matchOperator(src[i:]) != "" {
 			break
 		}
 
@@ -304,6 +307,12 @@ word:
 					flush(double)
 					cur = append(cur, part{text: string(src[j+1]), mode: literal})
 					j++
+					continue
+				}
+				if strings.HasPrefix(src[j:], "${") {
+					end := p.braceEnd(j + 2)
+					buf.WriteString(src[j : end+1])
+					j = end
 					continue
 				}
 				if strings.HasPrefix(src[j:], "$(") {
@@ -342,6 +351,13 @@ word:
 			body, i = p.substitution(i + 2)
 			cur = append(cur, part{subst: true, body: body, mode: raw})
 
+		case strings.HasPrefix(src[i:], "${"):
+			// A parameter expansion is one piece, quotes and blanks in its
+			// word included: ${x:-"a b"}. The expander reads it.
+			end := p.braceEnd(i + 2)
+			buf.WriteString(src[i : end+1])
+			i = end + 1
+
 		default:
 			buf.WriteByte(c)
 			i++
@@ -350,6 +366,60 @@ word:
 	flush(raw)
 	p.pos = i
 	return token{word: cur}
+}
+
+// braceEnd returns the index of the } that closes the ${ whose body starts
+// at start, skipping quoted text and nested ${...}. A ${ that never closes on
+// its line is a syntax error.
+func (p *parser) braceEnd(start int) int {
+	if end := braceEnd(p.src, start); end >= 0 {
+		return end
+	}
+	p.fail("missing '}' after '${'")
+	return 0
+}
+
+// braceEnd is the index in s of the } that closes a ${ whose body starts at
+// start, or -1 when there is none before the end of the line.
+func braceEnd(s string, start int) int {
+	depth := 0
+	for i := start; i < len(s); i++ {
+		switch s[i] {
+		case '\n':
+			return -1
+		case '\\':
+			i++
+		case '\'':
+			j := strings.IndexAny(s[i+1:], "'\n")
+			if j < 0 || s[i+1+j] == '\n' {
+				return -1
+			}
+			i += j + 1
+		case '"':
+			for i++; i < len(s) && s[i] != '"'; i++ {
+				if s[i] == '\n' {
+					return -1
+				}
+				if s[i] == '\\' {
+					i++
+				}
+			}
+			if i >= len(s) {
+				return -1
+			}
+		case '$':
+			if i+1 < len(s) && s[i+1] == '{' {
+				depth++
+				i++
+			}
+		case '}':
+			if depth == 0 {
+				return i
+			}
+			depth--
+		}
+	}
+	return -1
 }
 
 // substitution parses the commands of a `$(` whose body starts at start, and
@@ -361,6 +431,28 @@ func (p *parser) substitution(start int) ([]step, int) {
 		sub.failAt(t, "')' to close '$('")
 	}
 	return body, sub.pos
+}
+
+// redirectOperator matches a redirection that names a stream at the start of
+// s, returning the operator it means and how much of s it takes: 2> and 2>>
+// redirect standard error, 1> and 1>> are > and >>, 2>&1 sends standard error
+// where standard output goes, and >&2 (or 1>&2) the reverse.
+func redirectOperator(s string) (op string, width int) {
+	for _, r := range []struct{ text, op string }{
+		{"2>&1", "2>&1"}, {"1>&2", ">&2"}, {">&2", ">&2"},
+		{"2>>", "2>>"}, {"2>", "2>"}, {"1>>", ">>"}, {"1>", ">"},
+	} {
+		if strings.HasPrefix(s, r.text) {
+			return r.op, len(r.text)
+		}
+	}
+	return "", 0
+}
+
+// isDup reports whether op duplicates one stream onto the other, and so takes
+// no file name.
+func isDup(op string) bool {
+	return op == "2>&1" || op == ">&2"
 }
 
 func matchOperator(s string) string {
@@ -456,7 +548,7 @@ func (p *parser) pipeline() pipeline {
 
 func isRedirect(op string) bool {
 	switch op {
-	case "<", ">", ">>", "2>", "2>>":
+	case "<", ">", ">>", "2>", "2>>", "2>&1", ">&2":
 		return true
 	}
 	return false
@@ -464,6 +556,9 @@ func isRedirect(op string) bool {
 
 func (p *parser) redirect() redirect {
 	op := p.next().op
+	if isDup(op) {
+		return redirect{op: op}
+	}
 	t := p.next()
 	if t.eof || t.op != "" {
 		p.fail("expected a file name after '%s'", op)

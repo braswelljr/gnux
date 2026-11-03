@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/spf13/pflag"
+
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/shell"
 )
@@ -166,7 +168,7 @@ func TestShellHelpAndGnux(t *testing.T) {
 		{"help rm -f", "rmx force - "},
 		{"gnux help catx", "catx (GNU cat)"},
 		{"gnux --list | headx -1", "archx\n"},
-		{"help", "Builtins: cd [DIR], exit [STATUS], help [TOOL [OPTION]]."},
+		{"help", "Builtins: cd [DIR], exit [STATUS], help [TOOL [OPTION]], read [-r] [NAME...],"},
 		{"help", "for NAME in word...; do a; done"},
 	}
 	for _, tt := range tests {
@@ -193,5 +195,23 @@ func TestShebangScript(t *testing.T) {
 	status, out, errb := run(t, "gnux", "shell", "-eu", script, "world")
 	if status != 1 || out != "hello, world\n" || errb != "" {
 		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, out, errb)
+	}
+}
+
+// TestShellSharesView: the shell's own --pretty and --theme reach the tools
+// it runs in-process, through the variables they read.
+func TestShellSharesView(t *testing.T) {
+	t.Setenv("GNUX_PRETTY", "")
+	t.Setenv("GNUX_THEME", "")
+	fs := pflag.NewFlagSet("shell", pflag.ContinueOnError)
+	ShellSpec().Flags(fs)
+	if err := fs.Parse([]string{"--pretty", "--theme=nord"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := shareView(fs); err != nil {
+		t.Fatal(err)
+	}
+	if os.Getenv("GNUX_PRETTY") != "always" || os.Getenv("GNUX_THEME") != "nord" {
+		t.Fatalf("GNUX_PRETTY=%q GNUX_THEME=%q", os.Getenv("GNUX_PRETTY"), os.Getenv("GNUX_THEME"))
 	}
 }

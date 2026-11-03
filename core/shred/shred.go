@@ -68,6 +68,15 @@ type Options struct {
 	Exact bool
 	// Zero (-z) adds a final pass of zeros, to hide the shredding.
 	Zero bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty, -v draws each pass as one line rewritten in place, with
+	// a bar, the percentage and the amount written, five times a second,
+	// colored with Color in Theme (a built-in theme; "" takes GNUX_THEME's).
+	// The words are GNU's.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Shred is the engine. Construct it with New.
@@ -79,10 +88,14 @@ type Shred struct {
 	// are the injection points tests use.
 	Now    func() time.Time
 	Random io.Reader
+	// Getenv reads GNUX_THEME, COLUMNS and the locale for the view; nil
+	// means os.Getenv.
+	Getenv func(string) string
 
 	streams core.Streams
 	diag    *core.Diag
 	random  io.Reader
+	view    *passView // -v under the view (view.go)
 }
 
 // New builds a shred engine whose diagnostics go to s.Err.
@@ -99,6 +112,7 @@ func (s *Shred) Run(args []string) error {
 	if len(args) == 0 {
 		return core.Usagef("missing file operand")
 	}
+	s.prepareView()
 	s.random = s.Random
 	if s.RandomSource != "" {
 		f, err := fsys.Open(s.RandomSource)
@@ -356,10 +370,16 @@ func (s *Shred) pass(f *os.File, info os.FileInfo, q string, sizep *int64, typ, 
 			name = fmt.Sprintf("%02x%02x%02x", full[0], full[1], full[2])
 		}
 	}
-	var thresh time.Time
+	var thresh, next time.Time
 	previous := ""
 	if verbose {
-		s.diag.Warnf("%s: pass %d/%d (%s)...", q, k, n, name)
+		if s.view != nil {
+			defer s.view.line.Done()
+			s.view.show(q, k, n, name, 0, size)
+			next = s.Now().Add(viewInterval)
+		} else {
+			s.diag.Warnf("%s: pass %d/%d (%s)...", q, k, n, name)
+		}
 		thresh = s.Now().Add(5 * time.Second)
 	}
 
@@ -399,13 +419,21 @@ func (s *Shred) pass(f *os.File, info os.FileInfo, q string, sizep *int64, typ, 
 
 		if verbose {
 			now := s.Now()
+			if s.view != nil && (done || !now.Before(next)) {
+				s.view.show(q, k, n, name, offset, size)
+				next = now.Add(viewInterval)
+			}
 			if (done && previous != "") || !now.Before(thresh) {
 				opts := human.Autoscale | human.SI | human.Base1024 | human.B
 				off := human.Readable(uint64(offset), human.Floor|opts, 1, 1)
 				if done || off != previous {
-					if size < 0 {
+					switch {
+					case s.view != nil:
+						// The view has drawn it; the file is still synced
+						// on GNU's beat.
+					case size < 0:
 						s.diag.Warnf("%s: pass %d/%d (%s)...%s", q, k, n, name, off)
-					} else {
+					default:
 						percent := int64(100)
 						if size != 0 {
 							percent = offset * 100 / size

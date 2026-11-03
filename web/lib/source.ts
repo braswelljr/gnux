@@ -11,10 +11,11 @@ export const docs = loader({
 export type DocsPage = InferPageType<typeof docs>;
 
 /**
- * A release's snapshot folder (`v1.1`): the docs of that version as it
- * shipped, written by tools/docsnap beside the latest ones.
+ * An older major version's folder (`v0`): the docs of its last release as it
+ * shipped, written by tools/docsnap beside the latest ones, which stand for
+ * the newest major version.
  */
-const versionFolder = /^v(\d+)\.(\d+)$/;
+const versionFolder = /^v(\d+)$/;
 
 /** The release a page belongs to, or null for the latest docs. */
 export function pageVersion(slugs: string[]): string | null {
@@ -29,15 +30,8 @@ export function docsVersions(): string[] {
     const version = pageVersion(page.slugs);
     if (version) versions.add(version);
   }
-  const key = (v: string) => {
-    const match = versionFolder.exec(v);
-    return match ? match.slice(1).map(Number) : [];
-  };
-  return [...versions].sort((a, b) => {
-    const [aMajor = 0, aMinor = 0] = key(a);
-    const [bMajor = 0, bMinor = 0] = key(b);
-    return bMajor - aMajor || bMinor - aMinor;
-  });
+  const major = (v: string) => Number(versionFolder.exec(v)?.[1] ?? 0);
+  return [...versions].sort((a, b) => major(b) - major(a));
 }
 
 /**

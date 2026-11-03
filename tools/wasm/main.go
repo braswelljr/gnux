@@ -9,6 +9,15 @@
 //	gnux.run(line)             Promise<number> - run one shell line, resolve its exit status
 //	gnux.cwd()                 string - the shell's working directory
 //	gnux.onOutput = (fd, chunk) => …   called with 1 (stdout) or 2 (stderr) and a Uint8Array
+//	gnux.themes                string[] - the built-in themes of the terminal view
+//	gnux.setenv(name, value)   set an environment variable the tools read ("" removes it)
+//	gnux.surface(theme)        {background, foreground} | null - the theme's editor colors
+//
+// The scrollback stands in for a terminal: the streams the shell writes to
+// say so (core.Terminal), so the tools draw gnux's terminal view there and,
+// as on a real machine, write GNU's bytes into a pipe or a file. The page
+// picks the theme and the background through setenv (GNUX_THEME,
+// GNUX_BACKGROUND, GNUX_PRETTY, COLUMNS).
 //
 // Lines run in one persistent gnux shell, so variables and cd carry over from
 // call to call. The tools reach the filesystem through the Node-style `fs` and
@@ -55,6 +64,9 @@ type writer struct {
 	fd  int
 }
 
+// IsTerminal says the scrollback is a terminal (core.Terminal).
+func (writer) IsTerminal() bool { return true }
+
 func (w writer) Write(p []byte) (int, error) {
 	if w.out.remaining <= 0 {
 		w.out.truncated = true
@@ -100,6 +112,34 @@ func main() {
 	}
 	api.Set("version", common.Version)
 	api.Set("tools", js.ValueOf(tools))
+
+	var themes []any
+	for _, name := range core.ThemeNames() {
+		themes = append(themes, name)
+	}
+	api.Set("themes", js.ValueOf(themes))
+
+	api.Set("setenv", js.FuncOf(func(_ js.Value, args []js.Value) any {
+		if len(args) < 2 || args[0].Type() != js.TypeString || args[1].Type() != js.TypeString {
+			return false
+		}
+		name, value := args[0].String(), args[1].String()
+		if value == "" {
+			return os.Unsetenv(name) == nil
+		}
+		return os.Setenv(name, value) == nil
+	}))
+
+	api.Set("surface", js.FuncOf(func(_ js.Value, args []js.Value) any {
+		if len(args) < 1 || args[0].Type() != js.TypeString {
+			return nil
+		}
+		bg, fg, ok := core.ThemeSurface(args[0].String(), os.Getenv)
+		if !ok {
+			return nil
+		}
+		return js.ValueOf(map[string]any{"background": bg, "foreground": fg})
+	}))
 
 	api.Set("cwd", js.FuncOf(func(js.Value, []js.Value) any {
 		wd, err := os.Getwd()

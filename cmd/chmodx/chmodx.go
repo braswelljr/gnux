@@ -2,6 +2,7 @@
 package chmodx
 
 import (
+	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -56,7 +57,8 @@ func Meta() docmeta.Meta {
 			"--preserve-root is given, chmodx refuses to work recursively on '/' unless " +
 			"--no-preserve-root is given; when both are given, --preserve-root wins. On Windows only the " +
 			"owner's write bit maps onto the file system (the read-only attribute), so the " +
-			"other bits are accepted but have no effect.",
+			"other bits are accepted but have no effect." +
+			" On a terminal, gnux's terminal view colors the -v report: the verb (removed, created, renamed), each quoted name and the arrows, in the theme --theme or GNUX_THEME names; the words are GNU's, and piped or redirected output is never colored (--pretty=never or GNUX_PRETTY=never turns it off).",
 		Permissions: "Changing a file's mode requires owning it, or running as root (or with " +
 			"CAP_FOWNER). Search permission is needed on the directories leading to each " +
 			"FILE, and with -R read and search permission on every directory in the tree.",
@@ -150,6 +152,7 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "dereference-all", "dereference-args", "physical")
+	tool.RegisterView(fs)
 }
 
 // parsed is a command line split into its parts.
@@ -232,6 +235,12 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	if err != nil {
 		return err
 	}
+	// gnux's terminal view colors the -v report.
+	s, viewDone, err := tool.ReportView(fs, s, chmod.Name, os.Getenv)
+	if err != nil {
+		return err
+	}
+	defer viewDone()
 	switch {
 	case p.help:
 		Spec().WriteHelp(s.Out, fs, tool.StyleFor(s.Out))

@@ -20,6 +20,7 @@ import (
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/sysstat"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -34,6 +35,22 @@ type Options struct {
 	// GNU turns them on by itself when standard input is a terminal; so does
 	// findx, and -nowarn in the expression turns them off again.
 	Warn bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Color, what -print writes to standard output has each name in
+	// its type's color, as lsx shows it (LS_COLORS), and the directories
+	// before it in the theme's punctuation color (Theme is a built-in
+	// theme; "" takes GNUX_THEME's). The text is GNU's. Pretty adds the
+	// count under a Tree.
+	Pretty bool
+	Color  bool
+	Theme  string
+	// Tree draws what -print writes to standard output as a tree under
+	// each starting point, the directories leading to a match drawn as
+	// context, once the walk has ended. A file printed twice is drawn once.
+	Tree bool
+	// Icons puts a Nerd Font icon before each name -print writes.
+	Icons bool
 }
 
 // symlink modes: which symbolic links are followed.
@@ -65,6 +82,9 @@ type Find struct {
 	// IsTerminal reports whether a stream is a terminal; warnings are on by
 	// default when the input stream is one. It defaults to core.IsTerminal.
 	IsTerminal func(v any) bool
+	// Getenv reads LS_COLORS, GNUX_THEME and the locale for the view; nil
+	// means os.Getenv.
+	Getenv func(string) string
 
 	streams core.Streams
 	diag    *core.Diag
@@ -90,6 +110,13 @@ type Find struct {
 	buf        []byte
 	names      idNames
 	ls         lsWidths
+
+	// The view (view.go).
+	viewing    bool
+	theme      *visual.Theme
+	nameColors *visual.Names
+	branches   visual.Branches
+	trees      []*treeNode
 }
 
 // New builds a find engine reading and writing s.
@@ -178,6 +205,7 @@ func (f *Find) Run(args []string) (err error) {
 	for _, x := range f.execs {
 		f.flushBatch(x)
 	}
+	f.drawTrees()
 	f.finishOutputs()
 	if f.failed {
 		return core.ErrFailed
@@ -212,6 +240,7 @@ func (f *Find) reset() {
 		f.Location = time.Local
 	}
 	f.now = now()
+	f.prepareView()
 	f.dayStart = f.now.Add(-24 * time.Hour)
 }
 

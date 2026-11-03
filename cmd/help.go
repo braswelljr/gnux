@@ -101,6 +101,9 @@ func lookupCommand(name string) (tool.Spec, bool) {
 // writeOverview is gnux's own help: what it is, how to run a tool, every
 // command with its summary, and where the manuals are.
 func writeOverview(w io.Writer, st tool.Style) {
+	if st.Terminal {
+		writeLogo(w, st, len(Tools()))
+	}
 	fmt.Fprintf(w, "%s %s [OPTION]... [TOOL [ARGUMENT]...]\n", "Usage:", common.AppName)
 	fmt.Fprintln(w, "The GNU core utilities' interface on every platform, in one Go binary.")
 	fmt.Fprintln(w)

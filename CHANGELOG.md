@@ -4,6 +4,183 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-03
+
+gnux 1.4.0 gives the tools people read a terminal view, and closes the largest gaps with GNU
+grep and sed. On a terminal the output is colored, framed and fitted to the screen, in a
+built-in theme after an editor theme that follows the system's light or dark appearance; this
+is the default for every tool that has a view. Through a pipe or into a file the output is
+GNU's exactly as before, so scripts, `$(...)` and the conformance harness see no change. Back
+references (`\1` to `\9`) now work in every tool that takes a regular expression, and
+`grepx -P` takes Perl syntax with lookahead and lookbehind. `gnux shell` gains `read` and the
+POSIX `${...}` expansions, `gnux help` draws the gnux mark on a terminal, and the website builds
+in half the memory. There is no 1.3.0 release: a `v1.3.0` tag was pushed on 2026-11-02 before
+this work was merged, and its release never ran; Go's module proxy serves that tag, with the
+code of 1.2.0, so this release takes the next minor version to be the newest everywhere.
+
+### Added
+
+- A terminal view for the tools people read, on by default on a terminal and never through a
+  pipe, so scripts still get GNU's output (BR-13, NFR-53, NFR-54). `--pretty[=WHEN]` and
+  `GNUX_PRETTY` choose it, `--theme=NAME` and `GNUX_THEME` pick a built-in theme with single
+  colors overridden by two-letter keys, and `NO_COLOR` keeps it uncolored.
+- Built-in themes after editor themes, most in a dark and a light variant (`vscode`, `github`,
+  `one`, `solarized`, `gruvbox`, `catppuccin`, `tokyo-night`, `ayu`, `rose-pine`, `everforest`,
+  `night-owl`, `high-contrast`); the family's name follows the background, read from
+  `GNUX_BACKGROUND`, `COLORFGBG` or the system's dark mode (macOS, Windows, GTK). Also
+  `dracula`, `nord`, `monokai`, `kanagawa`, `palenight`, `ayu-mirage`, `default` and `mono`.
+- `gnux themes`: every built-in theme drawn on a sample row, with the theme in use and the
+  background gnux read (FR-184).
+- `lsx`: the long format colored column by column, with a header, readable
+  sizes and directories first in the view; `--tree` and `--level` (also for `-R`), `--icons`
+  (Nerd Font, `GNUX_ICONS`), `--git` and `--git-ignore` (read from the repository without
+  running git), `--color-scale`, `--only-dirs`, `--only-files`, `--total-size` and
+  `--octal-permissions`.
+- `dfx`: a framed table that fits the terminal, with a usage bar after each percentage,
+  turning yellow from 75% and red from 90%.
+- `findx`: on a terminal, each name `-print` writes in its type's color, as `lsx` shows it, and
+  the directories before it dimmed; `--tree` draws the matches as a tree under each starting
+  point with a count, and `--icons` puts an icon before each name. Both go before the starting
+  points; `-print0`, `-printf` and `-ls` are unchanged.
+- `ddx status=progress` rewrites GNU's transfer line once a second while copying (it printed
+  only the final statistics); on a terminal it draws a bar with the percentage, the rate and the
+  time left.
+- `gnux shell`: on a terminal, the prompt shows the working directory and the status of a
+  command that failed, and `help` is colored. `--pretty` and `--theme` on the shell apply to
+  every tool it runs.
+- `datex` shows one date as a panel: local time, UTC, ISO 8601, Unix seconds, the week and day
+  of the year, the zone, and how far it is from now. `unamex` shows the system as a panel. On
+  a terminal by default like every other view; `$(datex)` and `$(unamex -r)` are captured
+  through a pipe, so scripts still get GNU's one line.
+- `commx`: on a terminal, a header row naming the files, and each column's lines in a color of
+  their own. `joinx`: each field colored by the file it came from, the join field apart. New
+  theme keys `f1`, `f2`, `fb`.
+- `killx -l` and `-L`: on a terminal, every signal in a framed table, the names colored by what
+  the signal does. `sttyx -a`: a panel with the control characters in a grid and each group of
+  flags on its own lines, the flags that are off dimmed.
+- `envx` and `printenvx`: on a terminal, a listing of the environment has the names colored
+  apart from the values, and the directories of `PATH` (and every `*PATH` variable) set apart.
+  New theme key `ev`.
+- `whox` and `pinkyx`: on a terminal, framed tables with a header and your own logins
+  emphasized, and `pinkyx -l` as a panel per user; `idx` as a panel of your IDs and groups;
+  `usersx` and `groupsx` with your name and primary group emphasized.
+- `uptimex`: on a terminal, a panel with each load average drawn as a bar against the CPU
+  count, turning yellow and then red as the machine fills up.
+- `odx`: on a terminal, each value colored by the class of its bytes (zero, printable,
+  whitespace, other control characters, above 0x7f), and the offsets dimmed, so the structure
+  of a binary file shows at a glance. New theme keys `yz`, `yp`, `yw`, `yc` and `yh`.
+- `uniqx -c`: on a terminal, a histogram, with each count colored by its share of the largest
+  and a bar before the line, so `sortx | uniqx -c` shows how values are spread.
+- `shredx -v`: on a terminal, each pass is one line with a bar, rewritten in place.
+- `wcx`: the counts as a framed table with a header and the total set apart.
+- `statx`: each file as a labeled panel, the mode painted; with `-f`, a bar of the space in use.
+- `dux`: aligned sizes colored by magnitude, with a bar and percentage of each line's share.
+- `grepx`: each file's matches under a colored heading of its name, numbered, with a blank line
+  between files.
+- `md5sumx`, `sha1sumx` to `sha512sumx`, `b2sumx`, `cksumx`: with `-c`, `OK` and `FAILED`
+  colored and a count after each list.
+- `headx`, `tailx`: the `==> FILE <==` headers colored.
+- `rmx`, `cpx`, `mvx`, `lnx`, `installx`, `mkdirx`, `rmdirx`, `chmodx`, `chownx`, `chgrpx`: the
+  `-v` report colored (the verb, each name, the arrows).
+- The playground shows the terminal view: the scrollback is a terminal to the tools, so they
+  draw their view there while a pipe or a redirection still gets GNU's output. A theme picker
+  in the side panel (kept in the link as `?theme=`) draws the scrollback in the editor theme's
+  own background and colors, a family following the page's light or dark theme, and `COLUMNS`
+  follows the terminal's width. The WebAssembly API gains `themes`, `setenv` and `surface`
+  (FR-186).
+- The guide [Terminal view](documentation/guides/terminal-view.md), and how each tool adopts
+  the view in `docs/workflows/terminal-visuals.md`.
+- Back references in regular expressions: `grepx '\(.\)\1'`, `grepx -E '(ab)\1'`,
+  `sedx 's/\(\w*\) \1/\1/g'`, `exprx abab : '\(.*\)\1'`, and in `nlx`, `csplitx`, `findx
+  -regex` and `ptxx`. A pattern with one runs on a new backtracking matcher
+  (`core/internal/regex`) behind the same interface as Go's engine, which keeps every other
+  pattern in linear time. POSIX's leftmost-longest match is kept, `-i` folds the referenced
+  text, and a search that would take exponential time is given up after a step budget and
+  reported (status 2 for grepx, 4 for sedx), never taken as "no match". A reference to a group
+  that does not exist is GNU's `Invalid back reference`.
+- `grepx -P` (`--perl-regexp`): Perl syntax as Go's engine has it (`\d`, `\w`, lazy
+  quantifiers, `(?i)`, named groups, `\Q...\E`), plus back references (`\1`, `\g{N}`,
+  `\g{-N}`, `\k<name>`), lookahead and lookbehind (`(?=...)`, `(?!...)`, `(?<=...)`,
+  `(?<!...)`, of any length), `\h`, `\v`, `\R`, `\N`, `\Z`, `\e`, `\cX` and `(?#comments)`,
+  matching the first match as Perl does. What it cannot run is refused by name: possessive
+  quantifiers, atomic groups, recursion, conditionals, `\K`, `\G`, `\X`. `-F` beats `-P`, which
+  beats `-E` and `-G`.
+- `gnux shell`: the `read [-r] [NAME...]` builtin, so `while read -r line; do ...; done < file`
+  and `... | while read a b; do ...; done` work. It splits at `$IFS`, gives the last NAME the rest
+  of the line, uses `REPLY` with no NAME, and reads one byte at a time so that the next command
+  gets the rest of the input.
+- `gnux shell`: the POSIX parameter expansions `${#NAME}`, `${NAME#pat}`, `${NAME##pat}`,
+  `${NAME%pat}`, `${NAME%%pat}`, `${NAME-w}`, `${NAME=w}`, `${NAME:=w}`, `${NAME+w}`,
+  `${NAME:+w}`, `${NAME?msg}` and `${NAME:?msg}`, beside `${NAME:-w}`. Their word may hold quotes
+  and blanks (`${X:-"a b"}`) and nested expansions (`${A:-${B}}`).
+- Tests for the packages that had none: `fnmatch` (with a fuzz target held to `path.Match`),
+  `ownership`, `sysstat`, `special`, and the `exprx`, `testx`, `ddx` and `hostidx` commands.
+- A rule for working on the repository: everyday command-line work uses gnux itself (`rmx`,
+  `cpx`, `grepx`, `sedx`, `findx`, ...), and a difference from GNU found that way is fixed, not
+  routed around (`docs/rules/work-in-the-repository-with-gnux.md`).
+- `gnux help` (and `gnux --help`, and `gnux` alone) draws the gnux mark on a terminal, the
+  website's keycap with its prompt and spanner in half blocks, with the version and where to go
+  next beside it. Help read through a pipe still starts with GNU's `Usage:` line.
+
+### Changed
+
+- Every terminal view is on by default on a terminal, `datex` and `unamex` included (they were
+  shown only with `--pretty`): `$(datex)` and a redirection are not a terminal, so scripts still
+  get GNU's output. `GNUX_PRETTY` now applies to them as to every other tool.
+- Dependencies: the Go modules, the website's packages (Next.js 16.4.4, Fumadocs 16.17.9,
+  TypeScript 6.0.3, eslint 10.14.0 and the rest) and every GitHub Action are on their newest
+  releases. The docs content schema comes from `fumadocs-core` (`pageSchema`), replacing the
+  deprecated `frontmatterSchema`.
+- The website keeps one set of docs per major version, the newest release's (its latest minor
+  and patch), instead of one per minor release: the latest docs are v1's, and older major
+  versions (v0) get their own under `/docs/vN`. Links to the old per-minor addresses
+  (`/docs/v1.1/...`) redirect to the latest docs. `tools/docsnap` names a release's docs after
+  its major version; the website still reads the archives of earlier releases.
+- The website's build no longer runs out of memory (SIGKILL on an 8 GB build machine): only the
+  latest docs are prerendered, an older version's pages and the Open Graph images render on
+  their first visit and are cached, the MDX is loaded per page, `pnpm build` uses webpack, which
+  peaked at 4.5 GB where Turbopack passed 8 GB, and at most four workers render the pages. A
+  build makes 1,174 pages, not 7,734, in well under half the time.
+
+### Fixed
+
+- `xargsx -P`: a command that exits with status 255 stops the run at once, as GNU's does. On one
+  CPU, with gnux's own tools (which run in-process and finish at once), thousands more commands
+  could run after it, because Go ran the newest command first; commands now start in order.
+- `gnux shell`: `2>&1` and `>&2` (and `1>&2`) now duplicate a stream, as in sh, instead of
+  writing to a file named `&1` or `&2`; `1>` and `1>>` redirect standard output instead of
+  passing `1` as an argument.
+- `gnux shell`: a lone `&` is a syntax error ("background jobs (&) are not supported") instead
+  of an argument, and so is any other `>&N`.
+- `gnux shell`: a `${...}` form the shell does not have (bash's `${x/a/b}`, `${x:1}`) is
+  reported as a bad substitution and stops the script, where any form but `${NAME:-w}` used to
+  expand to nothing; an unclosed `${x` is a syntax error.
+- The documentation generator no longer deletes the docs of an older major version
+  (`web/content/docs/v0`) when it regenerates the latest ones.
+
+### Security
+
+- Releases are built with Go 1.26.10, named by a new `toolchain` line in `go.mod`. They were
+  built with Go 1.26.0, whose standard library has eight vulnerabilities reachable from gnux
+  (in `os`, `net`, `archive/tar` and system calls) that later 1.26 releases fixed; govulncheck
+  now reports none on any release platform.
+- The container image runs on Alpine 3.24 (supported until 2028); it ran on Alpine 3.20, whose
+  support ended in April 2026. Trivy finds nothing in the image.
+- The workflows: every action is pinned to a commit SHA and on its newest release; no checkout
+  keeps its git credentials but the job that pushes the major version tag; the release jobs no
+  longer restore caches, which another run could have poisoned; and the setup-gnux action
+  accepts only a release tag as its version, where a crafted one could add step outputs. zizmor
+  reported 5 high and 14 medium findings; it now reports none.
+- The website's build refuses a downloaded docs archive holding a path that climbs out of its
+  folder or a link, before unpacking it.
+- A new Security workflow runs govulncheck on every release platform, `pnpm audit`, zizmor,
+  gitleaks over the history and CodeQL on the Go, TypeScript and workflow code, on every change
+  and weekly. `SECURITY.md` says how to report a vulnerability privately.
+- Checked and found sound: the macOS sandbox profile quotes the paths it is given (a test now
+  holds it to that), launchd will not start a job for a sandboxed command, the MCP server keeps
+  a call's directory inside its roots, and the tools that make temporary names create them
+  exclusively.
+
 ## [1.2.0] - 2026-10-21
 
 gnux 1.2.0 completes GNU coreutils: the last fourteen tools arrive, so every coreutils tool is
@@ -368,7 +545,8 @@ reach Homebrew, Scoop, winget, the Snap Store, the AUR and `.deb` / `.rpm` / `.a
 
 - The project is now gnux, a portable implementation of the GNU core utilities. `rmx`, which it started as, was rewritten as one of its tools, with GNU's full `rm` flag surface.
 
-[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/braswelljr/gnux/compare/v1.2.0...v1.4.0
 [1.2.0]: https://github.com/braswelljr/gnux/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/braswelljr/gnux/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/braswelljr/gnux/compare/v0.0.2...v1.0.0

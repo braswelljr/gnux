@@ -37,6 +37,10 @@ type entry struct {
 	shown  string // name after quoting
 	quoted bool   // quoting changed the name
 	width  int    // display width of shown
+
+	branch   string // --tree: the branches drawn before the name
+	total    int64  // --total-size: what a directory holds
+	hasTotal bool
 }
 
 // isDir reports whether the entry is a directory.
@@ -59,6 +63,7 @@ func (l *Ls) Run(args []string) error {
 	}
 	l.out = core.NewWriter(l.streams.Out)
 	defer func() { _ = l.out.Flush() }()
+	defer l.closeRepos()
 
 	if len(args) == 0 {
 		args = []string{"."}
@@ -71,6 +76,11 @@ func (l *Ls) Run(args []string) error {
 		}
 	}
 	l.sortEntries(operands)
+
+	if l.Tree {
+		l.runTree(operands)
+		return l.result()
+	}
 
 	var files, dirs []*entry
 	for _, e := range operands {
@@ -91,13 +101,17 @@ func (l *Ls) Run(args []string) error {
 	// A lone directory operand is listed without its "dir:" header.
 	header := l.Recursive || len(args) > 1 || len(files) > 0
 	for _, d := range dirs {
-		l.listDir(d.path, d.info, header, serious, nil)
+		l.listDir(d.path, d.info, header, serious, nil, 1)
 	}
 
 	if l.dired {
 		l.diredSummary()
 	}
+	return l.result()
+}
 
+// result is Run's error for the worst problem met.
+func (l *Ls) result() error {
 	switch l.status {
 	case 0:
 		return nil
@@ -169,7 +183,7 @@ func (l *Ls) prepare() error {
 	if l.Color == WhenAlways || (l.Color == WhenAuto && l.IsTerminal && l.Getenv("TERM") != "dumb") {
 		l.palette = newPalette(l.Getenv("LS_COLORS"))
 	}
-	return nil
+	return l.prepareView()
 }
 
 // prepareQuoting settles the quoting style, as GNU ls does: the option, else
@@ -387,6 +401,9 @@ func (l *Ls) fill(e *entry, info os.FileInfo) {
 	e.info = info
 	e.mode = info.Mode()
 	e.sys = statSys(info)
+	if l.TotalSize && info.IsDir() {
+		e.total, e.hasTotal = l.totalSize(e.path), true
+	}
 
 	if e.mode&os.ModeSymlink == 0 {
 		return
@@ -394,7 +411,7 @@ func (l *Ls) fill(e *entry, info os.FileInfo) {
 	if l.format == FormatLong {
 		e.link, _ = fsys.Readlink(e.path)
 	}
-	if l.format == FormatLong || l.palette != nil || l.GroupDirectories {
+	if l.format == FormatLong || l.palette != nil || l.GroupDirectories || l.icons || l.Only != OnlyAll {
 		if target, err := fsys.Stat(e.path); err == nil {
 			e.target = target
 		}
@@ -403,8 +420,8 @@ func (l *Ls) fill(e *entry, info os.FileInfo) {
 
 // listDir prints the contents of dir, then recurses with -R. severity is how
 // bad a failure to open it is: serious for an operand, minor for a directory
-// reached by recursion.
-func (l *Ls) listDir(dir string, info os.FileInfo, header bool, severity int, ancestors []os.FileInfo) {
+// reached by recursion. depth is the level of dir's entries, for --level.
+func (l *Ls) listDir(dir string, info os.FileInfo, header bool, severity int, ancestors []os.FileInfo, depth int) {
 	// Only following links can lead back into a directory already being listed.
 	if l.Dereference {
 		for _, a := range ancestors {
@@ -415,10 +432,52 @@ func (l *Ls) listDir(dir string, info os.FileInfo, header bool, severity int, an
 		}
 	}
 
+	entries, ok := l.readDir(dir, severity)
+	if !ok {
+		return
+	}
+	shown := l.shown(entries)
+
+	if header {
+		if l.printed {
+			l.put("\n")
+		}
+		l.diredIndent()
+		l.putHeader(dir)
+		l.put(":\n")
+	}
+	if l.format == FormatLong || l.ShowBlocks {
+		var blocks int64
+		for _, e := range shown {
+			blocks += e.sys.blocks
+		}
+		l.diredIndent()
+		l.put("total " + l.blockString(blocks) + l.eol)
+	}
+	l.printEntries(shown)
+	l.printed = true
+
+	if !l.Recursive || (l.Level > 0 && depth >= l.Level) {
+		return
+	}
+	ancestors = append(ancestors, info)
+	// --only-files hides the subdirectories, but -R still goes into them.
+	for _, e := range entries {
+		if e.name == "." || e.name == ".." || !e.isDir() {
+			continue
+		}
+		l.listDir(e.path, e.info, true, minor, ancestors, depth+1)
+	}
+}
+
+// readDir reads and sorts the entries of dir, leaving out those hidden by
+// the dot-file rule, -B, -I, --hide and --git-ignore. It reports a failure
+// to open dir at severity, and returns false when there is nothing to list.
+func (l *Ls) readDir(dir string, severity int) ([]*entry, bool) {
 	f, err := fsys.Open(dir)
 	if err != nil {
 		l.fail(severity, "cannot open directory %s: %s", quoteArg(dir), core.ErrText(err))
-		return
+		return nil, false
 	}
 	names, err := f.ReadDir(-1)
 	_ = f.Close()
@@ -435,39 +494,13 @@ func (l *Ls) listDir(dir string, info os.FileInfo, header bool, severity int, an
 		if l.ignored(de.Name()) {
 			continue
 		}
+		if l.GitIgnore && l.gitIgnored(dir, de.Name(), de.IsDir()) {
+			continue
+		}
 		entries = append(entries, l.newEntry(dir, de.Name(), de))
 	}
 	l.sortEntries(entries)
-
-	if header {
-		if l.printed {
-			l.put("\n")
-		}
-		l.diredIndent()
-		l.putHeader(dir)
-		l.put(":\n")
-	}
-	if l.format == FormatLong || l.ShowBlocks {
-		var blocks int64
-		for _, e := range entries {
-			blocks += e.sys.blocks
-		}
-		l.diredIndent()
-		l.put("total " + l.blockString(blocks) + l.eol)
-	}
-	l.printEntries(entries)
-	l.printed = true
-
-	if !l.Recursive {
-		return
-	}
-	ancestors = append(ancestors, info)
-	for _, e := range entries {
-		if e.name == "." || e.name == ".." || !e.isDir() {
-			continue
-		}
-		l.listDir(e.path, e.info, true, minor, ancestors)
-	}
+	return entries, true
 }
 
 // ignored reports whether a directory entry is hidden by the dot-file rule,

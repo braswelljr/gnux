@@ -82,3 +82,21 @@ func TestReal(t *testing.T) {
 		t.Fatalf("stdout = %q", s)
 	}
 }
+
+func TestSelfColored(t *testing.T) {
+	var out bytes.Buffer
+	u := users.New(users.Options{Pretty: true, Color: true}, core.Streams{In: strings.NewReader(""), Out: &out, Err: &bytes.Buffer{}})
+	u.Current = func() ([]users.Record, error) {
+		return []users.Record{{User: "zed", Login: true}, {User: "amy", Login: true}}, nil
+	}
+	u.Self = func() string { return "zed" }
+	u.Getenv = func(string) string { return "" }
+	if err := u.Run(nil); err != nil {
+		t.Fatal(err)
+	}
+	// The text is GNU's: sorted, one space apart; only the caller's name
+	// is colored (the default theme gives others none).
+	if want := "amy \x1b[1;33mzed\x1b[0m\n"; out.String() != want {
+		t.Fatalf("out = %q; want %q", out.String(), want)
+	}
+}

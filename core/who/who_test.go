@@ -55,9 +55,15 @@ func run(t *testing.T, opts Options, args ...string) (string, error) {
 		}
 		return nil, fs.ErrNotExist
 	}
+	if viewing != nil {
+		viewing(w)
+	}
 	err := w.Run(args)
 	return out.String(), err
 }
+
+// viewing, when set, adjusts the engine run builds, for the view's tests.
+var viewing func(*Who)
 
 func TestDefault(t *testing.T) {
 	out, err := run(t, Options{})

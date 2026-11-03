@@ -26,7 +26,9 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up gnux
         id: gnux
@@ -37,8 +39,11 @@ jobs:
 
       - name: Use the tools from bash
         shell: bash
+        env:
+          VERSION: ${{ steps.gnux.outputs.version }}
+          GNUX_PATH: ${{ steps.gnux.outputs.path }}
         run: |
-          echo "installed ${{ steps.gnux.outputs.version }} in ${{ steps.gnux.outputs.path }}"
+          echo "installed $VERSION in $GNUX_PATH"
           gnux --version
           rmx --version
           mkdirx -p out/a/b && touchx out/a/b/f && lsx -R out | wcx -l

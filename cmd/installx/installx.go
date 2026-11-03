@@ -49,7 +49,8 @@ func Meta() docmeta.Meta {
 			"stripping symbol tables needs a strip program, so it only warns that files are " +
 			"installed unstripped. -c is accepted and ignored, as in GNU. -D also answers to " +
 			"the gnux long name --create-leading. A symbolic -m starts from no permissions " +
-			"(u=rwx,go=rx is 755), as GNU install does.",
+			"(u=rwx,go=rx is 755), as GNU install does." +
+			" On a terminal, gnux's terminal view colors the -v report: the verb (removed, created, renamed), each quoted name and the arrows, in the theme --theme or GNUX_THEME names; the words are GNU's, and piped or redirected output is never colored (--pretty=never or GNUX_PRETTY=never turns it off).",
 		Permissions: "Needs read permission on each SOURCE and write and search permission " +
 			"on the destination directory. Setting the owner with -o needs root, and setting " +
 			"the group with -g needs ownership of the file and membership of the group. Off " +
@@ -103,6 +104,7 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "copy", "create-leading")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into install.Options.
@@ -136,6 +138,13 @@ func buildOptions(fs *pflag.FlagSet) (install.Options, error) {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	// gnux's terminal view colors the -v report.
+	s, viewDone, viewErr := tool.ReportView(fs, s, "installx", os.Getenv)
+	if viewErr != nil {
+		return viewErr
+	}
+	defer viewDone()
+
 	opts, err := buildOptions(fs)
 	if err != nil {
 		return err

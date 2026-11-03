@@ -2,6 +2,8 @@
 package groupsx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -13,9 +15,10 @@ import (
 // Spec describes the groupsx tool.
 func Spec() tool.Spec {
 	return tool.Spec{
-		Meta: Meta(),
-		GNU:  "groups",
-		Run:  run,
+		Meta:  Meta(),
+		GNU:   "groups",
+		Flags: tool.RegisterView,
+		Run:   run,
 	}
 }
 
@@ -33,7 +36,8 @@ func Meta() docmeta.Meta {
 			"groups until the user logs in again. An unknown user is reported as 'no such user' " +
 			"and the remaining names are still printed; a group with no name is reported and " +
 			"printed as its number. On Windows the groups are the account's local groups, which " +
-			"is what Go's account lookup reports.",
+			"is what Go's account lookup reports.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, each user's primary group is in the theme's color for what is yours, and a USER operand in the heading color. The text is GNU's. --pretty[=WHEN] and --theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); piped or redirected output is always GNU's.",
 		Permissions: "Needs no permissions. Reads the process's credentials and the account " +
 			"database.",
 		UseCases: []string{
@@ -58,6 +62,11 @@ func Meta() docmeta.Meta {
 	}
 }
 
-func run(_ *pflag.FlagSet, args []string, s core.Streams) error {
-	return groups.New(groups.Options{}, s).Run(args)
+func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), groups.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts := groups.Options{Pretty: view.Pretty, Color: view.Color, Theme: view.Theme}
+	return groups.New(opts, s).Run(args)
 }

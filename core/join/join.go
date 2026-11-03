@@ -8,11 +8,13 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -74,11 +76,24 @@ type Options struct {
 	Header bool
 	// ZeroTerminated (-z) makes NUL, not newline, the line delimiter.
 	ZeroTerminated bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty and Color, the join field is in the theme's color for
+	// both files, each file's fields in that file's color (an unpaired
+	// line's join field too) and a --header line in the header color, from
+	// Theme (a built-in theme; "" takes GNUX_THEME's). The text is GNU's;
+	// -z is never colored.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Join is the engine. Construct it with New.
 type Join struct {
 	Options
+
+	// Getenv reads GNUX_THEME for the view; nil means os.Getenv.
+	Getenv func(string) string
 
 	streams core.Streams
 	diag    *core.Diag
@@ -87,6 +102,8 @@ type Join struct {
 	jf      [2]int // 0-based join fields
 	auto    [2]int
 	files   [2]*input
+	theme   *visual.Theme // the view's colors, nil when uncolored
+	heading bool          // the --header line is being written
 
 	seenUnpairable bool
 	fatal          bool
@@ -161,6 +178,14 @@ func (j *Join) Run(args []string) error {
 	defer j.close()
 
 	j.out = core.NewWriter(j.streams.Out)
+	j.theme = nil
+	if j.Pretty && j.Color && !j.ZeroTerminated {
+		getenv := j.Getenv
+		if getenv == nil {
+			getenv = os.Getenv
+		}
+		j.theme = visual.Use(true, j.Theme, getenv, j.diag.Warnf)
+	}
 	j.join()
 	if err := j.out.Flush(); err != nil && !core.IsClosedPipe(err) {
 		j.diag.Errorf("write error: %s", core.ErrText(err))
@@ -342,7 +367,9 @@ func (j *Join) join() {
 				h[i] = seq[i][0]
 			}
 		}
+		j.heading = true
 		j.prjoin(h[0], h[1])
+		j.heading = false
 		j.files[0].prev, j.files[1].prev = nil, nil
 		for i := range seq {
 			if len(seq[i]) > 0 {
@@ -463,8 +490,15 @@ func (j *Join) outSep() byte {
 
 // prfield writes field n (0-based) of l, or the -e filler when it is missing
 // or empty.
-func (j *Join) prfield(n int, l *line) {
+func (j *Join) prfield(n int, l *line, key string) {
 	if n < len(l.fields) && len(l.fields[n]) > 0 {
+		if j.theme != nil {
+			if j.heading {
+				key = visual.Header
+			}
+			_, _ = j.out.WriteString(j.theme.Paint(key, string(l.fields[n])))
+			return
+		}
 		_, _ = j.out.Write(l.fields[n])
 		return
 	}
@@ -474,7 +508,7 @@ func (j *Join) prfield(n int, l *line) {
 }
 
 // prfields writes the fields of l other than the join field.
-func (j *Join) prfields(l *line, joinField, autocount int) {
+func (j *Join) prfields(l *line, joinField, autocount int, key string) {
 	n := len(l.fields)
 	if j.AutoFormat {
 		n = autocount
@@ -482,11 +516,11 @@ func (j *Join) prfields(l *line, joinField, autocount int) {
 	sep := j.outSep()
 	for i := 0; i < joinField && i < n; i++ {
 		_ = j.out.WriteByte(sep)
-		j.prfield(i, l)
+		j.prfield(i, l, key)
 	}
 	for i := joinField + 1; i < n; i++ {
 		_ = j.out.WriteByte(sep)
-		j.prfield(i, l)
+		j.prfield(i, l, key)
 	}
 }
 
@@ -500,29 +534,43 @@ func (j *Join) prjoin(a, b *line) {
 			}
 			var l *line
 			var field int
+			key := visual.FromSecond
 			switch o.File {
 			case 0:
+				key = joinKey(a, b)
 				if a == blank {
 					l, field = b, j.jf[1]
 				} else {
 					l, field = a, j.jf[0]
 				}
 			case 1:
-				l, field = a, o.Field-1
+				l, field, key = a, o.Field-1, visual.FromFirst
 			default:
 				l, field = b, o.Field-1
 			}
-			j.prfield(field, l)
+			j.prfield(field, l, key)
 		}
 		_ = j.out.WriteByte(j.eol)
 		return
 	}
 	if a == blank {
-		j.prfield(j.jf[1], b)
+		j.prfield(j.jf[1], b, joinKey(a, b))
 	} else {
-		j.prfield(j.jf[0], a)
+		j.prfield(j.jf[0], a, joinKey(a, b))
 	}
-	j.prfields(a, j.jf[0], j.auto[0])
-	j.prfields(b, j.jf[1], j.auto[1])
+	j.prfields(a, j.jf[0], j.auto[0], visual.FromFirst)
+	j.prfields(b, j.jf[1], j.auto[1], visual.FromSecond)
 	_ = j.out.WriteByte(j.eol)
+}
+
+// joinKey is the color of the join field: both files' when the line pairs
+// them, else the color of the one file it came from.
+func joinKey(a, b *line) string {
+	switch {
+	case a == blank:
+		return visual.FromSecond
+	case b == blank:
+		return visual.FromFirst
+	}
+	return visual.FromBoth
 }

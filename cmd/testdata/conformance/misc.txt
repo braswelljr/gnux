@@ -23,6 +23,8 @@ env echo hello world
 env test -f a.txt; echo $?
 env test -d a.txt; echo $?
 env test 1 -lt 2 -a -n x; echo $?
+expr gamma : '.*\(.\)\1'
+expr abab : '\(.*\)\1'
 env test 1 -eq x; echo $?
 env test -l abc -eq 3; echo $?
 env [ a = a ]; echo $?

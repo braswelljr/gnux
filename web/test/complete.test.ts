@@ -79,6 +79,20 @@ describe('ANSI escapes', () => {
       { text: 'c', fg: 9 },
       { text: 'd' }
     ]);
-    assert.deepEqual(parseAnsi('\x1b[38;5;196mx\x1b[m'), [{ text: 'x' }]);
+  });
+
+  test('extended foregrounds become exact colors, backgrounds are skipped', () => {
+    // 256 colors: the first 16 are the palette, then the cube and the greys.
+    assert.deepEqual(parseAnsi('\x1b[38;5;196mx\x1b[m'), [{ text: 'x', color: '#ff0000' }]);
+    assert.deepEqual(parseAnsi('\x1b[38;5;9mx'), [{ text: 'x', fg: 9 }]);
+    assert.deepEqual(parseAnsi('\x1b[38;5;244mx'), [{ text: 'x', color: '#808080' }]);
+    // 24-bit, and a basic color after it replaces it.
+    assert.deepEqual(parseAnsi('\x1b[38;2;136;192;208ma\x1b[32mb\x1b[39mc'), [
+      { text: 'a', color: '#88c0d0' },
+      { text: 'b', fg: 2 },
+      { text: 'c' }
+    ]);
+    // A background's arguments are not read as codes (2 would be dim).
+    assert.deepEqual(parseAnsi('\x1b[48;2;2;2;2mx'), [{ text: 'x' }]);
   });
 });

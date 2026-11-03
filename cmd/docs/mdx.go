@@ -26,6 +26,7 @@ import (
 //	dir/library.mdx        using the engines from Go
 //	dir/shell.mdx          the gnux shell
 //	dir/mcp.mdx            gnux mcp, the MCP server
+//	dir/themes.mdx         gnux themes, the terminal view's themes
 //	dir/tools/<tool>/index.mdx    one page per tool that has options
 //	dir/tools/<tool>/<flag>.mdx   one page per option, with its usage and examples
 //	dir/tools/<tool>.mdx          the page of a tool without options
@@ -40,7 +41,7 @@ import (
 // after the generated ones, each in the folder its Dir names.
 //
 // The directory is rebuilt from scratch, but for the release snapshots in it
-// (v1.1/, see VersionDir), which tools/docsnap writes. Pages carry title/description
+// (v0/, see VersionDir), which tools/docsnap writes. Pages carry title/description
 // frontmatter and use only standard markdown, so they need no custom
 // components.
 func GenerateMDX(dir string, extra ...Page) error {
@@ -62,6 +63,8 @@ func GenerateMDX(dir string, extra ...Page) error {
 	docs = append(docs, doc{"", "shell", "gnux shell", sh.Meta.Short, mdxTool(sh, sh.Command(discard).Flags(), nil)})
 	mcp := cmd.MCPSpec()
 	docs = append(docs, doc{"", "mcp", "gnux mcp", mcp.Meta.Short, mdxTool(mcp, mcp.Command(discard).Flags(), nil)})
+	themes := cmd.ThemesSpec()
+	docs = append(docs, doc{"", "themes", "gnux themes", themes.Meta.Short, mdxTool(themes, themes.Command(discard).Flags(), nil)})
 
 	var names []string
 	toolFolders := map[string][]string{} // tool -> its option pages, in order
@@ -87,7 +90,7 @@ func GenerateMDX(dir string, extra ...Page) error {
 	// folder. The hand-written folders (the guides) come first, each page named
 	// by its path so the folder's landing page is not repeated under a heading
 	// of its own name; then the tools, laid out with "...tools".
-	order := []string{"index", "guide", "shell", "mcp", "library"}
+	order := []string{"index", "guide", "shell", "mcp", "themes", "library"}
 	var sections []string            // extra folders, in order of first appearance
 	folders := map[string][]string{} // extra folder -> its pages, in order
 	for _, e := range extra {
@@ -147,9 +150,10 @@ func GenerateMDX(dir string, extra ...Page) error {
 	return writeMeta(filepath.Join(dir, "tools"), "Tools", names)
 }
 
-// VersionDir matches the folder of a release's snapshot (v1.1): the docs of
+// VersionDir matches the folder of an older major version's docs (v0), or of a
+// per-minor snapshot (v1.1) as builds before 1.4.0 left them: the docs of
 // that version as it shipped, which tools/docsnap writes and GenerateMDX keeps.
-var VersionDir = regexp.MustCompile(`^v[0-9]+\.[0-9]+$`)
+var VersionDir = regexp.MustCompile(`^v[0-9]+(\.[0-9]+)?$`)
 
 // clearKeepingVersions empties dir for a fresh generation, but for the
 // release snapshots in it.

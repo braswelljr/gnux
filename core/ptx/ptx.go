@@ -9,13 +9,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"regexp"
 	"slices"
 	"strconv"
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/fsys"
 	"github.com/braswelljr/gnux/core/internal/quotearg"
+	"github.com/braswelljr/gnux/core/internal/regex"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -84,8 +84,8 @@ type Ptx struct {
 	diag    *core.Diag
 	out     *bufio.Writer
 
-	contextRe, wordRe *regexp.Regexp
-	wordAnchored      *regexp.Regexp
+	contextRe, wordRe *regex.Regexp
+	wordAnchored      *regex.Regexp
 	contextSource     string
 	wordChars         [256]bool
 	ignoreTable       [][]byte
@@ -284,15 +284,15 @@ func (p *Ptx) inTable(w []byte, table [][]byte) bool {
 	return found
 }
 
-func (p *Ptx) compile(source string) *regexp.Regexp {
+func (p *Ptx) compile(source string) *regex.Regexp {
 	translated, err := translateEmacs(source)
 	if err == nil {
 		prefix := "(?m)"
 		if p.IgnoreCase {
 			prefix = "(?mi)"
 		}
-		var re *regexp.Regexp
-		if re, err = regexp.Compile(prefix + translated); err == nil {
+		var re *regex.Regexp
+		if re, err = regex.Compile(prefix + translated); err == nil {
 			re.Longest()
 			return re
 		}
@@ -322,7 +322,7 @@ func (p *Ptx) initRegex() {
 		if p.IgnoreCase {
 			prefix = "(?i)\\A(?:"
 		}
-		p.wordAnchored = regexp.MustCompile(prefix + translated + ")")
+		p.wordAnchored = regex.MustCompile(prefix + translated + ")")
 		p.wordAnchored.Longest()
 	} else if p.BreakFile == "" {
 		for c := range p.wordChars {
@@ -772,5 +772,5 @@ func (p *Ptx) outputLine(o *occurrence) {
 	}
 }
 
-// errBackReference reports a pattern Go's regexp cannot run.
-var errBackReference = errors.New("Back references are not supported") //nolint:revive,staticcheck // shown as a regex message
+// errBackReference reports a reference to a group the pattern does not have.
+var errBackReference = errors.New("Invalid back reference") //nolint:revive,staticcheck // shown as a regex message

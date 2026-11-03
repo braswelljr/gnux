@@ -2,6 +2,8 @@
 package wcx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -36,7 +38,8 @@ func Meta() docmeta.Meta {
 			"non-whitespace characters; input is decoded as UTF-8, and bytes that are not valid " +
 			"UTF-8 count toward words and bytes but not characters. --total=WHEN controls the " +
 			"summary line and --files0-from=F reads the file names, NUL-terminated, from F. " +
-			"Columns are right-aligned to a width derived from the files' sizes, as in GNU wc.",
+			"Columns are right-aligned to a width derived from the files' sizes, as in GNU wc." +
+			" On a terminal, gnux's terminal view (--pretty=auto, the default) draws the counts as a framed table with a header naming each count (Lines, Words, Chars, Bytes, Longest) and the total below a rule of its own, written once every file is counted; --total=only still prints the bare number. Piped or redirected output is exactly GNU's, and --pretty=never or GNUX_PRETTY=never turns the view off.",
 		Permissions: "Needs read permission on each FILE and search permission on the " +
 			"directories leading to it. With -c alone on a regular file only its metadata is " +
 			"consulted, so search permission on the directory is enough. Nothing is ever " +
@@ -142,6 +145,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("words", "w", false, "print the word counts")
 	fs.String("total", "auto",
 		"when to print a line with total counts; `WHEN` can be: auto, always, only, never")
+	tool.RegisterView(fs)
 }
 
 // totalModes maps the --total argument to its mode.
@@ -181,5 +185,10 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	if err != nil {
 		return err
 	}
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), wc.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
 	return wc.New(opts, s).Run(args)
 }

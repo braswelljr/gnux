@@ -4,7 +4,7 @@ import { useId, useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 import { cn } from 'lib/utils';
-import { Button, Heading } from '@/components/ui';
+import { Button, Heading, Select } from '@/components/ui';
 import { type PlaygroundExample } from '@/config/playground';
 
 type SidePanelProps = {
@@ -15,21 +15,25 @@ type SidePanelProps = {
   /** True while a command is running, when another cannot start. */
   busy: boolean;
   onRun: (command: string) => void;
+  /** The terminal view's built-in themes, and the one in use ("" for the default). */
+  themes: string[];
+  theme: string;
+  onTheme: (theme: string) => void;
   className?: string;
 };
 
 /**
- * Examples and the tool list. On small screens it folds away under a button
+ * Examples, the theme and the tool list. On small screens it folds away under a button
  * so the terminal keeps the room. Starting over is the `/refresh` command.
  */
 export function SidePanel(props: SidePanelProps) {
-  const { tools, version, examples, busy, onRun } = props;
+  const { tools, version, examples, busy, onRun, themes, theme, onTheme } = props;
   const [open, setOpen] = useState(false);
   const panelId = useId();
 
   return (
     <aside
-      aria-label="Examples and tools"
+      aria-label="Examples, theme and tools"
       className={cn('flex min-h-0 flex-col gap-3', props.className)}
     >
       <div className="flex items-center gap-2 lg:hidden">
@@ -39,7 +43,7 @@ export function SidePanel(props: SidePanelProps) {
           aria-controls={panelId}
           className="flex-1 justify-between"
         >
-          Examples and tools
+          Examples, theme and tools
           <ChevronDown
             aria-hidden="true"
             className={cn(
@@ -100,6 +104,41 @@ export function SidePanel(props: SidePanelProps) {
             </>
           )}
         </section>
+
+        {themes.length > 0 && (
+          <section aria-labelledby={`${panelId}-theme`}>
+            <Heading
+              level={2}
+              size="sm"
+              id={`${panelId}-theme`}
+              className="mb-2"
+            >
+              <label htmlFor={`${panelId}-theme-select`}>Theme</label>
+            </Heading>
+            <Select
+              id={`${panelId}-theme-select`}
+              value={theme}
+              onChange={(event) => onTheme(event.target.value)}
+            >
+              <option value="">default</option>
+              {themes
+                .filter((name) => name !== 'default')
+                .map((name) => (
+                  <option
+                    key={name}
+                    value={name}
+                  >
+                    {name}
+                  </option>
+                ))}
+            </Select>
+            <p className="mt-2 text-xs text-fd-muted-foreground">
+              The colors of gnux&apos;s terminal view, as <code className="font-mono">--theme</code>{' '}
+              picks them. A theme with a light and a dark variant follows the page. A pipe or a file
+              still gets GNU&apos;s output.
+            </p>
+          </section>
+        )}
 
         <section aria-labelledby={`${panelId}-tools`}>
           <Heading

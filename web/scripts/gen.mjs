@@ -3,8 +3,8 @@
 // reference for AI tools and scripts (public/reference/yaml) and the
 // WebAssembly build of gnux.
 //
-// Neither is committed (only the docs snapshots of past releases,
-// content/docs/vX.Y, are), so both are built every time. When Go is missing
+// None of it is committed, nor are the docs of older major versions
+// (content/docs/vX, fetched below), so all of it is built every time. When Go is missing
 // (a fresh Vercel build, say), the Go release named in ../go.mod is downloaded
 // from go.dev, checked against the SHA-256 go.dev publishes, and kept under
 // node_modules/.cache for the next build. A machine with Go uses its own.

@@ -99,6 +99,15 @@ type Options struct {
 	Signal string
 	// Mode selects sending, listing (-l) or the table (-L).
 	Mode Mode
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty, -l and -L without operands draw every signal as a
+	// framed table of number, name and description, the names colored by
+	// what the signal does by default, with Color in Theme (a built-in
+	// theme; "" takes GNUX_THEME's). Converting an operand is GNU's.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Kill is the engine. Construct it with New.
@@ -108,6 +117,9 @@ type Kill struct {
 	// SendFn delivers signal sig to pid. It defaults to Send, and is the
 	// injection point tests use so that no real process is signaled.
 	SendFn func(pid, sig int) error
+	// Getenv reads GNUX_THEME, COLUMNS and the locale for the view; nil
+	// means os.Getenv.
+	Getenv func(string) string
 
 	streams core.Streams
 	diag    *core.Diag
@@ -164,6 +176,9 @@ func (k *Kill) Run(args []string) error {
 // status above 128) to its name, a name to its number. With table, each line
 // is "NUMBER NAME DESCRIPTION".
 func (k *Kill) list(args []string, table bool) error {
+	if k.Pretty && len(args) == 0 {
+		return k.viewTable()
+	}
 	numWidth, nameWidth := len(strconv.Itoa(signals[len(signals)-1].Number)), 0
 	for _, s := range signals {
 		nameWidth = max(nameWidth, len(s.Name))

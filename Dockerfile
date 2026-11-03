@@ -45,7 +45,7 @@ ENTRYPOINT ["gnux"]
 CMD ["--help"]
 
 # ---- runtime stage (the default) -------------------------------------------------
-FROM alpine:3.20
+FROM alpine:3.24
 
 # Run as an unprivileged user; mount the directory to operate on at /work.
 RUN adduser -D -u 10001 gnux

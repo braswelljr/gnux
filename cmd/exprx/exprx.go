@@ -49,8 +49,8 @@ func Meta() docmeta.Meta {
 			"nor 0, 1 when it is, 2 for an invalid expression (syntax error, non-integer " +
 			"argument, division by zero, a bad regular expression) and 3 for other errors. " +
 			"Differences from GNU expr: strings are measured and sliced in bytes and " +
-			"compared byte by byte (the C locale), and back references (\\1) and the " +
-			"[= =] and [. .] bracket forms are not supported in a REGEX.",
+			"compared byte by byte (the C locale), and the [= =] and [. .] bracket forms " +
+			"are not supported in a REGEX. Back references (\\1 to \\9) work.",
 		Permissions: "Needs no filesystem permissions; it only writes to standard output.",
 		UseCases: []string{
 			"Doing integer arithmetic in a script, with no size limit.",

@@ -2,6 +2,7 @@
 package headx
 
 import (
+	"os"
 	"strconv"
 	"strings"
 
@@ -38,7 +39,8 @@ func Meta() docmeta.Meta {
 			"KB, MB, ... are powers of 1000. With more than one FILE each is preceded by a " +
 			"'==> name <==' header; -q suppresses the headers and -v forces them. -z makes NUL " +
 			"the line delimiter. The historical 'headx -NUM' spelling of '-n NUM' is accepted. " +
-			"Reading stops as soon as enough has been seen, so headx is cheap on huge files.",
+			"Reading stops as soon as enough has been seen, so headx is cheap on huge files." +
+			" On a terminal, gnux's terminal view colors the '==> FILE <==' headers in the theme's heading color; the text is GNU's, and piped or redirected output is never colored.",
 		Permissions: "Needs read permission on each FILE and search permission on the " +
 			"directories leading to it. Nothing is ever modified.",
 		UseCases: []string{
@@ -149,6 +151,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("verbose", "v", false, "always print headers giving file names")
 	fs.BoolP("zero-terminated", "z", false, "line delimiter is NUL, not newline")
 	registerObsolete(fs, ord)
+	tool.RegisterView(fs)
 }
 
 // order stamps each count-setting flag as it is parsed. GNU head lets the last
@@ -277,5 +280,11 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	if err != nil {
 		return err
 	}
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), head.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	// The view colors the file-name headers; -z output is for a program.
+	opts.Color, opts.Theme = view.Pretty && view.Color && !opts.ZeroTerminated, view.Theme
 	return head.New(opts, s).Run(args)
 }

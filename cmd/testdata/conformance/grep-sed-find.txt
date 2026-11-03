@@ -25,6 +25,18 @@ grep -e alpha -e gamma a.txt
 grep -x beta a.txt
 grep text bin
 grep -a text bin
+grep '\(.\)\1' a.txt words
+grep -o '\(.\)\1' a.txt
+grep -E '(m)\1' a.txt
+grep -x 'g\(a\)\(m\)\2\1' a.txt
+printf 'Aa\nab\n' | grep -i '\(a\)\1'
+grep -c '^\(.\)\1*$' dup
+grep '\(a\)\2' a.txt; echo $?
+grep -P '\d+' nums
+grep -oP '(?<=a)l\w+' a.txt
+grep -oP 'a(?=$)' a.txt
+grep -P '^(?!.*a).*e' words; echo $?
+grep -P '(\w)\1' a.txt
 sed s/a/A/ a.txt
 sed 's/a/A/g' a.txt
 sed -n 2p a.txt
@@ -33,6 +45,9 @@ sed '$!N;s/\n/ /' a.txt
 sed -n '/beta/,$p' a.txt b.txt
 sed 'y/abc/xyz/' a.txt
 sed -E 's/(a)(l)/\2\1/' a.txt
+sed -E 's/(.)\1/<&>/g' a.txt
+sed -n '$!N;/^\(.*\)\n\1$/p;D' dup
+sed 's/\(a\)\2/x/' a.txt; echo $?
 sed '1i\
 first' a.txt
 sed '2a appended' a.txt

@@ -416,3 +416,41 @@ func TestWriteErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestPretty(t *testing.T) {
+	dir := t.TempDir()
+	a := write(t, dir, "a", "one two\nthree\n")
+	b := write(t, dir, "b", "x\n")
+	t.Setenv("COLUMNS", "")
+	t.Setenv("LANG", "en_US.UTF-8")
+
+	out, _, err := run(wc.Options{Pretty: true, Lines: true}, "", a, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := len(a)
+	pad := func(s string) string { return s + strings.Repeat(" ", w-len(s)) }
+	want := "" +
+		"╭───────┬─" + strings.Repeat("─", w) + "─╮\n" +
+		"│ Lines │ " + pad("File") + " │\n" +
+		"├───────┼─" + strings.Repeat("─", w) + "─┤\n" +
+		"│     2 │ " + pad(a) + " │\n" +
+		"│     1 │ " + pad(b) + " │\n" +
+		"├───────┼─" + strings.Repeat("─", w) + "─┤\n" +
+		"│     3 │ " + pad("total") + " │\n" +
+		"╰───────┴─" + strings.Repeat("─", w) + "─╯\n"
+	if out != want {
+		t.Fatalf("got\n%s\nwant\n%s", out, want)
+	}
+
+	// Standard input has no name, so no File column; --total=only stays a
+	// bare number for a script.
+	out, _, _ = run(wc.Options{Pretty: true, Words: true}, "a b c\n")
+	if !strings.Contains(out, "│ Words │\n") || !strings.Contains(out, "│     3 │\n") {
+		t.Fatalf("stdin:\n%s", out)
+	}
+	out, _, _ = run(wc.Options{Pretty: true, Lines: true, Total: wc.TotalOnly}, "", a, b)
+	if out != "3\n" {
+		t.Fatalf("--total=only: %q", out)
+	}
+}

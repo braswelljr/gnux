@@ -11,10 +11,16 @@
 //	! a                       invert a's exit status
 //	cmd < in > out >> log     redirect standard input and output
 //	cmd 2> errs 2>> errlog    redirect standard error
+//	cmd > log 2>&1   cmd >&2  send standard error to standard output, or back
 //	cmd > /dev/null           discard: /dev/null works on every platform
 //	NAME=value                set a shell variable
 //	$NAME  ${NAME}  $?        expand a variable / the last exit status
-//	${NAME:-default}          a default for an unset or empty variable
+//	${NAME:-default}          a default for an unset or empty variable; also
+//	                          ${NAME-w} ${NAME:=w} ${NAME:+w} ${NAME:?msg} and
+//	                          the forms without the colon
+//	${#NAME}                  the length of a value
+//	${NAME%suf} ${NAME%%suf}  the value without a suffix (shortest / longest)
+//	${NAME#pre} ${NAME##pre}  the value without a prefix (shortest / longest)
 //	$1 ... $9  ${10}  $#      the script's arguments and their count
 //	"$@"  $*                  all of them: one word each / joined by spaces
 //	$PWD                      the working directory
@@ -29,8 +35,8 @@
 //	while a; do b; done
 //	case word in pattern | pattern) a ;; *) b ;; esac
 //
-// The builtins are cd, exit, help, set (-e, -u, -- ARG...), shift, break,
-// continue and [ (the test tool). There are no functions, no arithmetic and
+// The builtins are cd, exit, help, read ([-r] NAME...), set (-e, -u,
+// -- ARG...), shift, break, continue and [ (the test tool). There are no functions, no arithmetic and
 // no external programs: to run one, go through the env tool
 // (envx program arg...).
 //
@@ -55,6 +61,7 @@ import (
 	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the program name diagnostics are prefixed with.
@@ -90,6 +97,15 @@ type Options struct {
 	// Interactive writes a prompt before each line and keeps going after a
 	// syntax error. The command line turns it on when reading from a terminal.
 	Interactive bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not sh options:
+	// with Pretty, an interactive prompt names the working directory and a
+	// failed command's status, colored with Color in Theme (a built-in
+	// theme; "" takes GNUX_THEME's), as is help's syntax when it is written
+	// to the shell's own output. Scripts are unchanged.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Shell is the interpreter. Construct it with New.
@@ -116,6 +132,7 @@ type Shell struct {
 	LoopLimit int
 
 	streams core.Streams
+	colors  *visual.Theme // the view's, once loaded
 	vars    map[string]string
 	name    string   // $0
 	args    []string // $1, $2, ...
@@ -184,11 +201,7 @@ func (sh *Shell) Run(r io.Reader) error {
 	pending := ""
 	for !sh.exited {
 		if sh.Interactive {
-			prompt := Prompt
-			if pending != "" {
-				prompt = ContinuePrompt
-			}
-			fmt.Fprint(sh.streams.Err, prompt)
+			fmt.Fprint(sh.streams.Err, sh.prompt(pending != ""))
 		}
 		line, err := reader.ReadString('\n')
 		if line != "" {
@@ -501,6 +514,10 @@ func (sh *Shell) prepare(cmd command, s core.Streams) prepared {
 		}
 	}
 	for _, r := range cmd.redirects {
+		if isDup(r.op) {
+			p.redirects = append(p.redirects, target{op: r.op})
+			continue
+		}
 		paths := ex.fields(r.target)
 		if len(paths) != 1 {
 			p.ambiguous = true
@@ -565,6 +582,8 @@ func (sh *Shell) runCommand(cmd command, p prepared, s core.Streams, redirected,
 		return sh.cd(args, s, piped || sh.subshell > 0)
 	case "exit":
 		return sh.exit(args, s, p.last, piped)
+	case "read":
+		return sh.read(args, s, piped)
 	case "set", "shift", "break", "continue":
 		if piped {
 			return 0
@@ -578,7 +597,12 @@ func (sh *Shell) runCommand(cmd command, p prepared, s core.Streams, redirected,
 				return status
 			}
 		}
-		fmt.Fprint(s.Out, helpText)
+		text := helpText
+		if s.Out == sh.streams.Out {
+			// Redirected, help is data.
+			text = paintHelp(sh.theme(), text)
+		}
+		fmt.Fprint(s.Out, text)
 		return 0
 	case "[":
 		// [ EXPRESSION ] is the test tool, written the way scripts write it.
@@ -808,6 +832,17 @@ func (sh *Shell) redirect(redirs []target, s core.Streams) (core.Streams, func()
 	}
 
 	for _, r := range redirs {
+		// A duplication points one stream at wherever the other goes now, so
+		// `> log 2>&1` sends both to log and `2>&1 > log` only standard output.
+		switch r.op {
+		case "2>&1":
+			s.Err = s.Out
+			continue
+		case ">&2":
+			s.Out = s.Err
+			continue
+		}
+
 		// /dev/null is handled here rather than opened, so that scripts can
 		// use it on Windows and in the browser, where no such file exists.
 		if r.path == devNull {
@@ -908,8 +943,12 @@ const helpText = `gnux shell - commands are the gnux tools, run in-process.
   ! a                       invert a's exit status
   cmd < in > out >> log     redirect standard input and output
   cmd 2> errs               redirect standard error; /dev/null discards
+  cmd > log 2>&1   cmd >&2  standard error where output goes, or the reverse
   NAME=value                set a variable;  $NAME  ${NAME}  $?  $PWD  expand one
-  ${NAME:-default}          a default for an unset or empty variable
+  ${NAME:-default}          a default for an unset or empty variable (also
+                            ${NAME:=w} assigns it, ${NAME:+w}, ${NAME:?msg})
+  ${#NAME}  ${NAME%/*}      its length; it without a suffix (%% the longest)
+  ${NAME#*/}  ${NAME##*/}   it without a prefix (## the longest)
   $1 $2 ...  $#  "$@"       the script's arguments, their count, all of them
   $(command)                the output of a command; unquoted, one word per line
   'literal'  "with $vars"   quoting; \ escapes a special character
@@ -921,7 +960,7 @@ const helpText = `gnux shell - commands are the gnux tools, run in-process.
   while a; do b; done
   case word in pattern | pattern) a ;; *) b ;; esac
 
-Builtins: cd [DIR], exit [STATUS], help [TOOL [OPTION]].
+Builtins: cd [DIR], exit [STATUS], help [TOOL [OPTION]], read [-r] [NAME...],
           set -e | -u | -- ARG..., shift [N], break [N], continue [N], [ TEST ].
 Run 'TOOL --help' for a tool's options, 'help TOOL' for its full manual and
 'help TOOL OPTION' for one option. To run an external program: envx PROGRAM ARG...

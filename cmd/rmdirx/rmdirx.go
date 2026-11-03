@@ -2,6 +2,8 @@
 package rmdirx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -33,7 +35,8 @@ func Meta() docmeta.Meta {
 			"never destroy file contents. -p also removes each parent named in the operand, " +
 			"so 'rmdirx -p a/b/c' behaves like 'rmdirx a/b/c a/b a', stopping at the first " +
 			"one that cannot be removed. --ignore-fail-on-non-empty silences the " +
-			"not-empty failure (and only that one), and -v reports every directory processed.",
+			"not-empty failure (and only that one), and -v reports every directory processed." +
+			" On a terminal, gnux's terminal view colors the -v report: the verb (removed, created, renamed), each quoted name and the arrows, in the theme --theme or GNUX_THEME names; the words are GNU's, and piped or redirected output is never colored (--pretty=never or GNUX_PRETTY=never turns it off).",
 		Permissions: "Removing a directory needs write and search permission on its parent, " +
 			"not on the directory itself. A symbolic link to a directory is not a directory: " +
 			"it is refused rather than followed.",
@@ -113,6 +116,7 @@ func Register(fs *pflag.FlagSet) {
 	fs.BoolP("parents", "p", false,
 		"remove DIRECTORY and its ancestors; e.g., 'rmdirx -p a/b/c' is similar to 'rmdirx a/b/c a/b a'")
 	fs.BoolP("verbose", "v", false, "output a diagnostic for every directory processed")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into rmdir.Options.
@@ -125,5 +129,12 @@ func buildOptions(fs *pflag.FlagSet) rmdir.Options {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
+	// gnux's terminal view colors the -v report.
+	s, viewDone, viewErr := tool.ReportView(fs, s, "rmdirx", os.Getenv)
+	if viewErr != nil {
+		return viewErr
+	}
+	defer viewDone()
+
 	return rmdir.New(buildOptions(fs), s).Run(args)
 }

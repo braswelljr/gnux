@@ -51,6 +51,12 @@ func TestBuildOptions(t *testing.T) {
 		{"basic then extended", []string{"-G", "-E"}, grep.Options{Syntax: grep.SyntaxExtended}},
 		{"fixed then basic", []string{"-F", "-G"}, grep.Options{Syntax: grep.SyntaxFixed}},
 		{"basic then fixed", []string{"-G", "-F"}, grep.Options{Syntax: grep.SyntaxFixed}},
+		{"perl", []string{"-P"}, grep.Options{Syntax: grep.SyntaxPerl}},
+		{"perl long", []string{"--perl-regexp"}, grep.Options{Syntax: grep.SyntaxPerl}},
+		{"perl then extended", []string{"-P", "-E"}, grep.Options{Syntax: grep.SyntaxPerl}},
+		{"extended then perl", []string{"-E", "-P"}, grep.Options{Syntax: grep.SyntaxPerl}},
+		{"fixed then perl", []string{"-F", "-P"}, grep.Options{Syntax: grep.SyntaxFixed}},
+		{"perl then fixed", []string{"-P", "-F"}, grep.Options{Syntax: grep.SyntaxFixed}},
 
 		// Patterns.
 		{"pattern", []string{"-e", "a"}, grep.Options{Patterns: []string{"a"}}},
@@ -243,9 +249,6 @@ func TestBuildOptionsErrors(t *testing.T) {
 		trouble bool
 		msg     string
 	}{
-		{"perl", []string{"-P"}, true, "Perl-compatible regular expressions (-P) are not supported"},
-		{"perl long", []string{"--perl-regexp"}, true, "Perl-compatible regular expressions (-P) are not supported"},
-		{"perl with another syntax", []string{"-E", "-P", "-F"}, true, "Perl-compatible regular expressions (-P) are not supported"},
 		{"max count", []string{"-m", "x"}, true, "invalid max count"},
 		{"empty max count", []string{"--max-count="}, true, "invalid max count"},
 		{"after", []string{"-A", "x"}, true, "x: invalid context length argument"},
@@ -316,7 +319,10 @@ func TestCommand(t *testing.T) {
 		{"-h is not help", []string{"-h", "one"}, "one\n", "", 0},
 		{"extended", []string{"-E", "^(one|four)$"}, "one\nfour\n", "", 0},
 		{"color with no argument does not take the pattern", []string{"--color", "one"}, "one\n", "", 0},
-		{"perl is refused", []string{"-P", "one"}, "", "grepx: Perl-compatible regular expressions (-P) are not supported\n", 2},
+		{"perl", []string{"-P", `^\w{3}$`}, "one\ntwo\n", "", 0},
+		{"perl lookahead", []string{"-Po", `t(?=hree)`}, "t\n", "", 0},
+		{"perl construct refused", []string{"-P", "a++"}, "", "grepx: the Perl construct 'possessive quantifier ++' is not supported\n", 2},
+		{"back reference", []string{`\(e\)\1`}, "three\n", "", 0},
 		{"bad context", []string{"-A", "x", "one"}, "", "grepx: x: invalid context length argument\n", 2},
 		{"bad pattern", []string{"["}, "", "grepx: Invalid regular expression\n", 2},
 		{"unmatched bracket", []string{"[a"}, "", "grepx: Unmatched [, [^, [:, [., or [=\n", 2},

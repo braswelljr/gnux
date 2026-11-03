@@ -186,3 +186,38 @@ func TestRealSystem(t *testing.T) {
 		t.Fatalf("%v %q %q", err, out.String(), errb.String())
 	}
 }
+
+func TestPretty(t *testing.T) {
+	out, errb, err := run(t, Options{Pretty: true})
+	if err != nil {
+		t.Fatalf("%v %q", err, errb)
+	}
+	// Without color: a framed table, a bar (in eighths of a cell) in a
+	// column after each percentage, the cells as GNU has them.
+	want := "" +
+		"╭─────────────┬───────────┬─────────┬───────────┬──────┬──────────────┬────────────╮\n" +
+		"│ Filesystem  │ 1K-blocks │    Used │ Available │ Use% │              │ Mounted on │\n" +
+		"├─────────────┼───────────┼─────────┼───────────┼──────┼──────────────┼────────────┤\n" +
+		"│ /dev/sda1   │   4000000 │ 2400000 │   1400000 │  64% │ ███████▋░░░░ │ /          │\n" +
+		"│ /dev/sdb1   │   8000000 │ 2000000 │   6000000 │  25% │ ███░░░░░░░░░ │ /home      │\n" +
+		"│ nas:/export │         3 │       1 │         2 │  34% │ ████▏░░░░░░░ │ /mnt/nas   │\n" +
+		"╰─────────────┴───────────┴─────────┴───────────┴──────┴──────────────┴────────────╯\n"
+	if out != want {
+		t.Fatalf("got\n%s\nwant\n%s", out, want)
+	}
+
+	// --total is the footer, below a rule of its own.
+	out, _, _ = run(t, Options{Pretty: true, Total: true})
+	if lines := strings.Split(out, "\n"); !strings.HasPrefix(lines[len(lines)-4], "├") || !strings.HasPrefix(lines[len(lines)-3], "│ total") {
+		t.Fatalf("total:\n%s", out)
+	}
+
+	out, _, _ = run(t, Options{Pretty: true, Color: true})
+	if !strings.Contains(out, "\x1b[4mFilesystem\x1b[0m") || !strings.Contains(out, "\x1b[32m64%\x1b[0m") {
+		t.Fatalf("colored:\n%q", out)
+	}
+	// Color alone, without the view, is not a GNU option and does nothing.
+	if out, _, _ := run(t, Options{Color: true}); strings.Contains(out, "\x1b") {
+		t.Fatalf("Color without Pretty:\n%q", out)
+	}
+}

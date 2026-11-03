@@ -69,8 +69,9 @@ func Meta() docmeta.Meta {
 			"the end of the last line is missing from the output too.\n\n" +
 			"Differences from GNU sed: the e command and the e flag of s are refused, as " +
 			"sedx never runs another program. A back reference inside a regular expression " +
-			"(\\(a\\)\\1) is refused, because the linear-time matcher cannot express one; " +
-			"\\1 in a replacement works. \\< and \\> both match at any word boundary, like " +
+			"(\\(a\\)\\1) works, through a backtracking matcher that only such patterns use; " +
+			"one whose search would take exponential time is given up after a fixed number " +
+			"of steps and reported, with status 4. \\< and \\> both match at any word boundary, like " +
 			"\\b, and word characters are ASCII letters, digits and the underscore. A " +
 			"repetition count may be at most 1000. Text is taken as UTF-8 whatever the " +
 			"locale, a regular expression must itself be valid UTF-8, and l shows every " +

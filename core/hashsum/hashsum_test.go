@@ -260,3 +260,28 @@ func TestParseTag(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckPretty(t *testing.T) {
+	dir := t.TempDir()
+	good := write(t, dir, "good", "hello\n")
+	bad := write(t, dir, "bad", "changed\n")
+	md5 := hello[hashsum.MD5]
+	list := write(t, dir, "list", md5+"  "+good+"\n"+md5+"  "+bad+"\nnot a line\n")
+
+	out, _, _ := run(hashsum.MD5, hashsum.Options{Check: true, Pretty: true}, "", list)
+	want := good + ": OK\n" + bad + ": FAILED\n1 OK, 1 FAILED, 1 improperly formatted\n"
+	if out != want {
+		t.Fatalf("stdout = %q, want %q", out, want)
+	}
+
+	t.Setenv("GNUX_THEME", "")
+	out, _, _ = run(hashsum.MD5, hashsum.Options{Check: true, Pretty: true, Color: true}, "", list)
+	if !strings.Contains(out, ": \x1b[1;32mOK\x1b[0m\n") || !strings.Contains(out, ": \x1b[1;31mFAILED\x1b[0m\n") {
+		t.Fatalf("colored: %q", out)
+	}
+
+	// --status still prints nothing.
+	if out, _, _ := run(hashsum.MD5, hashsum.Options{Check: true, Pretty: true, Status: true}, "", list); out != "" {
+		t.Fatalf("--status: %q", out)
+	}
+}

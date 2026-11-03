@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"os"
-	"regexp"
 	"strconv"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/regex"
 )
 
 // action is how a run of the script over one pattern space ended.
@@ -68,8 +68,8 @@ type machine struct {
 	spare       []byte // working space, swapped with ps by s and y
 	chomped     bool   // the pattern space's line ended with a newline
 	holdChomped bool
-	replaced    bool           // an s has succeeded since the last line was read (t, T)
-	last        *regexp.Regexp // the last regular expression used
+	replaced    bool          // an s has succeeded since the last line was read (t, T)
+	last        *regex.Regexp // the last regular expression used
 	queue       []appended
 	scratch     []byte
 	status      int // the exit status of q or Q
@@ -145,6 +145,15 @@ cycles:
 	return nil
 }
 
+// checked passes ok through, unless re gave up a back-reference search, which
+// would otherwise read as "no match": that ends the run.
+func (m *machine) checked(re *regex.Regexp, ok bool) bool {
+	if err := re.Err(); err != nil {
+		m.fatalf("%s", err)
+	}
+	return ok
+}
+
 // fatalf reports an error that ends the run with status ExitIO.
 func (m *machine) fatalf(format string, a ...any) {
 	m.diag.Errorf(format, a...)
@@ -153,7 +162,7 @@ func (m *machine) fatalf(format string, a ...any) {
 
 // regex returns the regular expression a command uses: its own, or the last
 // one used when the script gave an empty one.
-func (m *machine) regex(re *regexp.Regexp) *regexp.Regexp {
+func (m *machine) regex(re *regex.Regexp) *regex.Regexp {
 	if re == nil {
 		if m.last == nil {
 			m.diag.Errorf("no previous regular expression")
@@ -175,7 +184,8 @@ func (m *machine) matches(a *address) bool {
 	case addrLast:
 		return m.lastLine()
 	case addrRegex:
-		return m.regex(a.re).Match(m.ps)
+		re := m.regex(a.re)
+		return m.checked(re, re.Match(m.ps))
 	}
 	return true
 }
@@ -390,12 +400,14 @@ func (m *machine) substitute(c *command) bool {
 			n = c.nth
 		}
 		matches = re.FindAllSubmatchIndex(ps, n)
+		m.checked(re, true)
 		if len(matches) < c.nth {
 			return false
 		}
 		matches = matches[c.nth-1:]
 	} else {
 		loc := re.FindSubmatchIndex(ps)
+		m.checked(re, true)
 		if loc == nil {
 			return false
 		}

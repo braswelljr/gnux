@@ -77,16 +77,32 @@ type Options struct {
 	Unique bool
 	// ZeroTerminated (-z) makes NUL, not newline, the line delimiter.
 	ZeroTerminated bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty and Count, each count written to standard output is
+	// colored by its share of the largest count, with a bar of that share
+	// before the line, colored with Color in Theme (a built-in theme; ""
+	// takes GNUX_THEME's). The groups are drawn once the largest count is
+	// known: at the end, or after the first 4096 groups, against the
+	// largest among them.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Uniq is the engine. Construct it with New.
 type Uniq struct {
 	Options
 
+	// Getenv reads GNUX_THEME and the locale for the view; nil means
+	// os.Getenv.
+	Getenv func(string) string
+
 	streams core.Streams
 	diag    *core.Diag
 	out     *bufio.Writer
 	delim   byte
+	view    *countView // -c under the view (view.go)
 }
 
 // New builds a uniq engine reading from and writing to s.
@@ -156,12 +172,14 @@ func (u *Uniq) Run(args []string) error {
 		w = f
 	}
 	u.out = core.NewWriter(w)
+	u.prepareView(out == "-")
 
 	display := in
 	if in == "-" {
 		display = "standard input"
 	}
 	err := u.filter(core.NewReader(r))
+	u.drawView()
 	if werr := u.out.Flush(); werr != nil {
 		if !core.IsClosedPipe(werr) {
 			u.diag.Errorf("write error: %s", core.ErrText(werr))
@@ -223,6 +241,10 @@ func (u *Uniq) filter(r *bufio.Reader) error {
 			want = outLater
 		}
 		if !want {
+			return
+		}
+		if u.view != nil {
+			u.add(n+1, line)
 			return
 		}
 		if u.Count {

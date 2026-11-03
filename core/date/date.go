@@ -71,6 +71,16 @@ type Options struct {
 	// instead of a date: the time it shows is that many seconds after the
 	// epoch, by default in the format "%s.%N".
 	Resolution bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty, one date is a panel titled with it in the format asked
+	// for, holding the same moment as local time, UTC, ISO 8601 and Unix
+	// seconds, its day of the year and week, its zone, and how long ago or
+	// ahead of now it is; colored with Color in Theme (a built-in theme;
+	// "" takes GNUX_THEME's). -f's lines are GNU's.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Date is the engine. Construct it with New.
@@ -131,7 +141,7 @@ func (d *Date) Run(args []string) (err error) {
 			d.diag.Errorf("%s: %s", d.Reference, core.ErrText(err))
 			break
 		}
-		fmt.Fprintln(out, Format(format, info.ModTime().In(loc)))
+		d.print(out, format, info.ModTime().In(loc), now)
 	case d.Resolution:
 		fmt.Fprintln(out, Format(format, time.Unix(0, d.ClockResolution()).In(loc)))
 	case d.HasDate:
@@ -140,9 +150,9 @@ func (d *Date) Run(args []string) (err error) {
 			d.diag.Errorf("invalid date '%s'", d.Date)
 			break
 		}
-		fmt.Fprintln(out, Format(format, t))
+		d.print(out, format, t, now)
 	default:
-		fmt.Fprintln(out, Format(format, now))
+		d.print(out, format, now, now)
 	}
 	return d.diag.Result()
 }

@@ -5,19 +5,29 @@ package users
 
 import (
 	"bufio"
+	"os"
 	"slices"
 	"strings"
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/utmp"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
 const Name = "usersx"
 
-// Options mirrors the GNU users flag surface, which has no options of its
-// own. It is here so that users has the same shape as every other engine.
-type Options struct{}
+// Options holds gnux's terminal view only: GNU users has no options of
+// its own, and the zero value is its output.
+type Options struct {
+	// Pretty, Color and Theme are gnux's terminal view: with Pretty and
+	// Color, the caller's own name is in the theme's "yours" color and the
+	// others in its "others" color (Theme is a built-in theme; "" takes
+	// GNUX_THEME's). The text is GNU's.
+	Pretty bool
+	Color  bool
+	Theme  string
+}
 
 // Record is one entry of the login records: a user name and whether the
 // entry is a user's login session (rather than a boot, a run level or a
@@ -36,6 +46,10 @@ type Users struct {
 	// They default to the platform's own records.
 	Current  func() ([]Record, error)
 	ReadFile func(path string) ([]Record, error)
+	// Self is the caller's login name, which the view emphasizes; nil asks
+	// the system. Getenv reads GNUX_THEME for the view; nil is os.Getenv.
+	Self   func() string
+	Getenv func(string) string
 
 	streams core.Streams
 	diag    *core.Diag
@@ -96,11 +110,39 @@ func (u *Users) Run(args []string) (err error) {
 
 	out := core.NewWriter(u.streams.Out)
 	defer core.FlushOutput(out, u.diag, &err)
-	write(out, names)
+	write(out, u.paint(names))
 	return nil
 }
 
 func write(out *bufio.Writer, names []string) {
 	_, _ = out.WriteString(strings.Join(names, " "))
 	_ = out.WriteByte('\n')
+}
+
+// paint is gnux's terminal view (BR-13): each name in the color of whose
+// it is, the caller's or someone else's.
+func (u *Users) paint(names []string) []string {
+	if !u.Pretty || !u.Color {
+		return names
+	}
+	getenv := u.Getenv
+	if getenv == nil {
+		getenv = os.Getenv
+	}
+	self := ""
+	if u.Self != nil {
+		self = u.Self()
+	} else {
+		self = utmp.Self(getenv)
+	}
+	theme := visual.Use(true, u.Theme, getenv, u.diag.Warnf)
+	painted := make([]string, len(names))
+	for i, n := range names {
+		key := visual.Others
+		if n == self {
+			key = visual.You
+		}
+		painted[i] = theme.Paint(key, n)
+	}
+	return painted
 }

@@ -7,11 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"regexp"
 	"strings"
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/bre"
+	"github.com/braswelljr/gnux/core/internal/regex"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -507,7 +507,7 @@ func regexMatch(s, pattern string) (value, error) {
 
 // compileBRE compiles a POSIX basic regular expression anchored at the
 // start, matching leftmost-longest as POSIX requires.
-func compileBRE(pattern string) (*regexp.Regexp, error) {
+func compileBRE(pattern string) (*regex.Regexp, error) {
 	re, err := bre.CompileAnchored(pattern)
 	var e *bre.Error
 	if errors.As(err, &e) {

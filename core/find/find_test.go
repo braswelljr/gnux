@@ -157,6 +157,10 @@ func TestRegex(t *testing.T) {
 	check(t, lines("./a.txt", "./b.log"), "-regextype", "egrep", "-regex", `\./(a|b)\..+`)
 	check(t, lines("./a.txt", "./b.log"), "-regextype", "posix-basic", "-regex", `\./\(a\|b\)\.[a-z]\{3\}`)
 	check(t, lines("./a.txt", "./b.log"), "-regextype", "sed", "-regex", `\./[ab]\..\+`)
+	// A back reference: the file is named after the first letter of its
+	// directory.
+	check(t, lines("./dir/sub/d.TXT"), "-regex", `\./\(.\)[^/]*/.*/\1\..*`)
+	check(t, lines("./dir/sub/d.TXT"), "-regextype", "posix-extended", "-regex", `\./(.)[^/]*/.*/\1\..*`)
 	// In Emacs syntax braces and bare parentheses are literal.
 	check(t, "", "-regex", `\./(a|b)\..*`)
 }
@@ -702,8 +706,8 @@ func TestUsageErrors(t *testing.T) {
 		{[]string{".", "-regex", `a\)`}, `Unmatched ) or \)`},
 		{[]string{".", "-regex", `[a`}, "Unmatched [, [^, [:, [., or [="},
 		{[]string{".", "-regex", `a\`}, "Trailing backslash"},
-		{[]string{".", "-regex", `\(a\)\1`}, "back references are not supported in a regular expression"},
-		{[]string{".", "-regextype", "posix-basic", "-regex", `\(a\)\1`}, "back references are not supported"},
+		{[]string{".", "-regex", `\(a\)\2`}, "Invalid back reference"},
+		{[]string{".", "-regextype", "posix-basic", "-regex", `\1\(a\)`}, "Invalid back reference"},
 		{[]string{".", "-exec", "echo", "{}"}, "missing argument to `-exec'"},
 		{[]string{".", "-exec"}, "missing argument to `-exec'"},
 		{[]string{".", "-exec", ";"}, "invalid argument `;' to `-exec'"},

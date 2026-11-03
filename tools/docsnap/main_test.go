@@ -11,7 +11,7 @@ import (
 )
 
 func TestVersion(t *testing.T) {
-	for tag, want := range map[string]string{"v1.2.3": "v1.2", "v10.0.12": "v10.0"} {
+	for tag, want := range map[string]string{"v1.2.3": "v1", "v10.0.12": "v10", "v0.0.2": "v0"} {
 		if got, err := Version(tag); err != nil || got != want {
 			t.Errorf("Version(%q) = %q, %v; want %q", tag, got, err, want)
 		}
@@ -157,7 +157,7 @@ func TestPackIsReproducible(t *testing.T) {
 }
 
 func TestPrereleaseVersion(t *testing.T) {
-	if v, err := prereleaseVersion("v1.3.0-rc.1"); err != nil || v != "v1.3" {
+	if v, err := prereleaseVersion("v1.3.0-rc.1"); err != nil || v != "v1" {
 		t.Fatalf("v1.3.0-rc.1: %q %v", v, err)
 	}
 	if _, err := prereleaseVersion("v1.3.0"); err == nil {

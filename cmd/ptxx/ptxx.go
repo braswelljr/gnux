@@ -199,7 +199,7 @@ func Meta() docmeta.Meta {
 			"TeX macro calls instead (-M names the macro), and -G behaves like System V ptx, with " +
 			"words between blanks, contexts that are lines, roff output, and an optional OUTPUT " +
 			"file. Regular expressions use the Emacs syntax GNU ptx uses, \\( \\) \\| for groups " +
-			"and alternatives, run by Go's engine, which has no back references.",
+			"and alternatives, and \\1 to \\9 for back references.",
 		Permissions: "Needs read permission on each INPUT and on the -b, -i and -o files; with -G, " +
 			"write permission to create OUTPUT.",
 		UseCases: []string{

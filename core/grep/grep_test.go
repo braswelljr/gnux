@@ -241,8 +241,14 @@ func TestPatternErrors(t *testing.T) {
 		{"unknown class", grep.SyntaxBasic, "[[:nope:]]", "Invalid character class name"},
 		{"long collating symbol", grep.SyntaxBasic, "[[.ab.]]", "Invalid collation character"},
 		{"class without its set", grep.SyntaxBasic, "[:space:]", "character class syntax is [[:space:]], not [:space:]"},
-		{"back reference", grep.SyntaxBasic, `\(a\)\1`, "back references are not supported"},
-		{"back reference, extended", grep.SyntaxExtended, `(a)\1`, "back references are not supported"},
+		{"reference to a missing group", grep.SyntaxBasic, `\(a\)\2`, "Invalid back reference"},
+		{"reference before its group", grep.SyntaxExtended, `\1(a)`, "Invalid back reference"},
+		{"reference with no group", grep.SyntaxBasic, `a\1`, "Invalid back reference"},
+		{"perl reference to a missing group", grep.SyntaxPerl, `(a)\2`, "Invalid back reference"},
+		{"perl possessive", grep.SyntaxPerl, `a*+`, "the Perl construct 'possessive quantifier *+' is not supported"},
+		{"perl atomic group", grep.SyntaxPerl, `(?>a)`, "the Perl construct '(?>' is not supported"},
+		{"perl recursion", grep.SyntaxPerl, `(a(?R))`, "the Perl construct 'recursion' is not supported"},
+		{"perl \\K", grep.SyntaxPerl, `a\Kb`, "the Perl construct '\\K' is not supported"},
 		{"invalid UTF-8", grep.SyntaxBasic, "a\xffb", "Invalid regular expression"},
 	}
 	for _, tt := range tests {
@@ -952,4 +958,83 @@ func TestClosedPipe(t *testing.T) {
 	if errb.Len() != 0 {
 		t.Errorf("stderr = %q, want a quiet stop", errb.String())
 	}
+}
+
+func TestBackReferences(t *testing.T) {
+	const input = "abba\nabcd\nhello\nxyzzy\nfoo bar foo\nFoo foo\naa\n"
+	tests := []struct {
+		name     string
+		opts     grep.Options
+		patterns []string
+		out      string
+	}{
+		{"basic", grep.Options{}, []string{`\(.\)\1`}, "abba\nhello\nxyzzy\nfoo bar foo\nFoo foo\naa\n"},
+		{"extended", grep.Options{Syntax: grep.SyntaxExtended}, []string{`(b)\1`}, "abba\n"},
+		{"two groups", grep.Options{}, []string{`\(a\)\(b\)\2\1`}, "abba\n"},
+		{"repeated reference", grep.Options{Syntax: grep.SyntaxExtended}, []string{`^(a)\1$`}, "aa\n"},
+		{"whole line", grep.Options{LineRegexp: true}, []string{`a\(b\)\1a`}, "abba\n"},
+		{"whole word", grep.Options{WordRegexp: true}, []string{`\(foo\) bar \1`}, "foo bar foo\n"},
+		{"ignoring case", grep.Options{IgnoreCase: true}, []string{`^\(foo\) \1$`}, "Foo foo\n"},
+		{"case kept", grep.Options{}, []string{`^\(foo\) \1$`}, ""},
+		// Each pattern numbers its own groups, as GNU grep's -e does.
+		{"several patterns", grep.Options{}, []string{`\(l\)\1`, `\(z\)\1`}, "hello\nxyzzy\n"},
+		{"inverted", grep.Options{Invert: true}, []string{`\(.\)\1`}, "abcd\n"},
+		{"only matching", grep.Options{OnlyMatching: true}, []string{`\(.\)\1`}, "bb\nll\nzz\noo\noo\noo\noo\naa\n"},
+		{"count", grep.Options{Count: true}, []string{`\([a-z]\)\1`}, "6\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			opts := tt.opts
+			opts.Patterns = tt.patterns
+			got := run(t, opts, input)
+			status := 0
+			if tt.out == "" {
+				status = 1
+			}
+			check(t, got, tt.out, "", status)
+		})
+	}
+}
+
+func TestPerl(t *testing.T) {
+	const input = "foo.go\nfoo.txt\nfoobar\nbar foo\nTab\there\n12 apples\n"
+	tests := []struct {
+		name, pattern string
+		opts          grep.Options
+		out           string
+	}{
+		{"digits", `\d+`, grep.Options{}, "12 apples\n"},
+		{"lookahead", `foo(?=\.go)`, grep.Options{OnlyMatching: true}, "foo\n"},
+		{"negative lookahead", `^foo(?!\.)`, grep.Options{}, "foobar\n"},
+		{"lookbehind", `(?<=foo\.)\w+`, grep.Options{OnlyMatching: true}, "go\ntxt\n"},
+		{"negative lookbehind", `(?<!\.)txt|(?<!bar )foo$`, grep.Options{}, ""},
+		{"back reference", `(o)\1`, grep.Options{OnlyMatching: true}, "oo\noo\noo\noo\n"},
+		{"named reference", `(?<c>o)\k<c>\.`, grep.Options{}, "foo.go\nfoo.txt\n"},
+		{"relative reference", `(p)\g{-1}`, grep.Options{}, "12 apples\n"},
+		{"first match, not longest", `fo|foo`, grep.Options{OnlyMatching: true}, "fo\nfo\nfo\nfo\n"},
+		{"lazy", `f.+?o`, grep.Options{OnlyMatching: true}, "foo\nfoo\nfoo\nfoo\n"},
+		{"horizontal space", `b\h+h`, grep.Options{}, "Tab\there\n"},
+		{"ignore case", `^tab`, grep.Options{IgnoreCase: true}, "Tab\there\n"},
+		{"whole line", `\w+\.\w+`, grep.Options{LineRegexp: true}, "foo.go\nfoo.txt\n"},
+		{"quoted", `\Qfoo.\Ego`, grep.Options{}, "foo.go\n"},
+		{"comment", `foo(?#a comment)bar`, grep.Options{}, "foobar\n"},
+		{"control character", `b\cIh`, grep.Options{}, "Tab\there\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			opts := tt.opts
+			opts.Syntax = grep.SyntaxPerl
+			got := run(t, opts, input, tt.pattern)
+			status := 0
+			if tt.out == "" {
+				status = 1
+			}
+			check(t, got, tt.out, "", status)
+		})
+	}
+}
+
+func TestAbandonedBackReferenceSearch(t *testing.T) {
+	got := run(t, grep.Options{}, strings.Repeat("a", 60)+"\n", `^\(\(a*\)*\)*\1b$`)
+	check(t, got, "", "grepx: regular expression too complex to match with back references\n", 2)
 }

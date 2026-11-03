@@ -16,6 +16,7 @@ import (
 	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -47,6 +48,15 @@ type Options struct {
 	Argv0 string
 	// Debug (-v) traces each processing step on the error stream.
 	Debug bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty and Color, a listing of the whole environment has each
+	// name in the theme's variable color and the '=' dimmed, and the list
+	// separators of a *PATH variable dimmed (Theme is a built-in theme; ""
+	// takes GNUX_THEME's). The text is GNU's; -0 is never colored.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Env is the engine. Construct it with New.
@@ -57,6 +67,8 @@ type Env struct {
 	// the injection point tests use to stay independent of the real
 	// environment; it defaults to os.Environ.
 	Environ func() []string
+	// Getenv reads GNUX_THEME for the view; nil means os.Getenv.
+	Getenv func(string) string
 
 	streams core.Streams
 	diag    *core.Diag
@@ -125,9 +137,17 @@ func (e *Env) print(vars []string) error {
 	if e.Null {
 		end = 0
 	}
+	var theme *visual.Theme
+	if e.Pretty && e.Color && !e.Null {
+		getenv := e.Getenv
+		if getenv == nil {
+			getenv = os.Getenv
+		}
+		theme = visual.Use(true, e.Theme, getenv, e.diag.Warnf)
+	}
 	var buf bytes.Buffer
 	for _, v := range vars {
-		buf.WriteString(v)
+		buf.WriteString(theme.EnvEntry(v, os.PathListSeparator))
 		buf.WriteByte(end)
 	}
 	if _, err := e.streams.Out.Write(buf.Bytes()); err != nil {

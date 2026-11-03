@@ -26,15 +26,24 @@ const briefExamples = 6
 // Style decides how help text is decorated.
 type Style struct {
 	Color bool // bold, colored headings and flags (a terminal that allows it)
+	// Terminal is set when the help goes to a terminal that can draw (not
+	// TERM=dumb), color or not: decoration only a person sees, such as the
+	// logo on gnux's own help, goes there and nowhere else.
+	Terminal bool
 }
 
 // StyleFor returns the style for help written to w: color only on a terminal,
 // and never when NO_COLOR is set or TERM is "dumb" (https://no-color.org).
 func StyleFor(w io.Writer) Style {
+	terminal := core.IsTerminal(w) && os.Getenv("TERM") != "dumb"
 	return Style{
-		Color: core.IsTerminal(w) && os.Getenv("NO_COLOR") == "" && os.Getenv("TERM") != "dumb",
+		Color:    terminal && os.Getenv("NO_COLOR") == "",
+		Terminal: terminal,
 	}
 }
+
+// Paint wraps s in the SGR code (such as "1;36") when the style has color.
+func (st Style) Paint(code, s string) string { return st.wrap(code, s) }
 
 func (st Style) wrap(code, s string) string {
 	if !st.Color || s == "" {

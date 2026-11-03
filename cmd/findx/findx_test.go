@@ -46,7 +46,8 @@ func TestSpec(t *testing.T) {
 		t.Fatalf("name = %q, GNU = %q", spec.Name(), spec.GNU)
 	}
 	// The expression is not GNU-style options: cobra must not parse it.
-	if !spec.RawArgs || spec.Flags != nil || spec.Run == nil {
+	// The flags are the view's, which run reads before the starting points.
+	if !spec.RawArgs || spec.Flags == nil || spec.Run == nil {
 		t.Fatalf("RawArgs = %v, Flags set = %v, Run set = %v", spec.RawArgs, spec.Flags != nil, spec.Run != nil)
 	}
 	// Usage errors exit 1, GNU find's only failure status.
@@ -80,11 +81,76 @@ func TestMeta(t *testing.T) {
 }
 
 func TestBuildOptions(t *testing.T) {
-	// Nothing on find's command line is a flag, so the options are always
-	// the zero value: plain find.
-	fs := pflag.NewFlagSet(find.Name, pflag.ContinueOnError)
-	if got := buildOptions(fs); got != (find.Options{}) {
-		t.Fatalf("buildOptions = %+v, want the zero value", got)
+	env := func(m map[string]string) func(string) string { return func(k string) string { return m[k] } }
+	parse := func(args ...string) *pflag.FlagSet {
+		fs := pflag.NewFlagSet(find.Name, pflag.ContinueOnError)
+		Register(fs)
+		if err := tool.ParseFlagSet(fs, args, false); err != nil {
+			t.Fatal(err)
+		}
+		return fs
+	}
+	cases := []struct {
+		args     []string
+		terminal bool
+		env      map[string]string
+		want     find.Options
+	}{
+		// Off a terminal, with no option, plain find.
+		{nil, false, nil, find.Options{}},
+		{nil, true, nil, find.Options{Pretty: true, Color: true}},
+		{nil, true, map[string]string{"NO_COLOR": "1"}, find.Options{Pretty: true}},
+		{[]string{"--pretty=never"}, true, nil, find.Options{}},
+		{[]string{"--tree"}, false, nil, find.Options{Tree: true}},
+		{[]string{"--icons"}, false, nil, find.Options{Icons: true}},
+		{[]string{"--icons=auto"}, false, nil, find.Options{}},
+		{nil, true, map[string]string{"GNUX_ICONS": "auto"}, find.Options{Pretty: true, Color: true, Icons: true}},
+		{[]string{"--theme=nord", "--pretty"}, false, nil, find.Options{Pretty: true, Color: true, Theme: "nord"}},
+	}
+	for _, c := range cases {
+		var warn bytes.Buffer
+		got, err := buildOptions(parse(c.args...), c.terminal, env(c.env), &warn)
+		if err != nil || got != c.want {
+			t.Errorf("%q terminal=%v env=%v: got %+v (%v), want %+v", c.args, c.terminal, c.env, got, err, c.want)
+		}
+	}
+
+	// A bad GNUX_ICONS is warned about and ignored; a bad --icons is an error.
+	var warn bytes.Buffer
+	if _, err := buildOptions(parse(), true, env(map[string]string{"GNUX_ICONS": "maybe"}), &warn); err != nil || !strings.Contains(warn.String(), "GNUX_ICONS") {
+		t.Errorf("GNUX_ICONS=maybe: err %v, warning %q", err, warn.String())
+	}
+	if _, err := buildOptions(parse("--icons=maybe"), true, env(nil), &warn); err == nil {
+		t.Error("--icons=maybe: no error")
+	}
+}
+
+func TestViewArgs(t *testing.T) {
+	cases := []struct{ args, view, rest []string }{
+		{[]string{"--tree", "-L", "--theme", "nord", ".", "-name", "x"}, []string{"--tree", "--theme", "nord"}, []string{"-L", ".", "-name", "x"}},
+		{[]string{"--icons=always", "--pretty"}, []string{"--icons=always", "--pretty"}, nil},
+		// After a starting point, or abbreviated, it is an expression word.
+		{[]string{".", "--tree"}, nil, []string{".", "--tree"}},
+		{[]string{"--tr", "."}, nil, []string{"--tr", "."}},
+		{[]string{"--help"}, nil, []string{"--help"}},
+	}
+	for _, c := range cases {
+		view, rest := viewArgs(c.args)
+		if strings.Join(view, " ") != strings.Join(c.view, " ") || strings.Join(rest, " ") != strings.Join(c.rest, " ") {
+			t.Errorf("viewArgs(%q) = %q, %q; want %q, %q", c.args, view, rest, c.view, c.rest)
+		}
+	}
+}
+
+func TestTreeCommand(t *testing.T) {
+	root := tree(t)
+	out, _, err := execute(t, root, "--tree", ".", "-name", "*.txt")
+	if want := ".\n├── a.txt\n└── sub\n    └── c.txt\n"; err != nil || out != want {
+		t.Fatalf("got %q (%v), want %q", out, err, want)
+	}
+	_, stderr, err := execute(t, root, ".", "--tree")
+	if err == nil || !strings.Contains(stderr+err.Error(), "unknown predicate `--tree'") {
+		t.Fatalf("--tree after a starting point: %v, %q", err, stderr)
 	}
 }
 

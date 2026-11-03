@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { ImageResponse } from 'next/og';
-import { docs, getPageImage } from 'lib/source';
+import { docs } from 'lib/source';
 import { OgCard } from '@/components/shared/og-card';
 import { siteConfig } from '@/config/site';
 
@@ -27,8 +27,14 @@ export async function GET(_req: Request, { params }: Props) {
   );
 }
 
-export function generateStaticParams() {
-  return docs.getPages().map((page) => ({
-    slug: getPageImage(page).segments
-  }));
+/**
+ * No image is drawn at build time: drawing one per docs page (thousands, with
+ * the releases' docs) was the costliest part of the build, in time and in
+ * memory. Each is drawn when it is first asked for, then kept, since
+ * revalidate is false and dynamicParams is on.
+ */
+export function generateStaticParams(): { slug: string[] }[] {
+  return [];
 }
+
+export const dynamicParams = true;

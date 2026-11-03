@@ -20,7 +20,7 @@ The `gnux` package is a few kilobytes of JavaScript. The binary comes in a packa
 | Windows on x64 and arm64 | `gnux-win32-x64`, `gnux-win32-arm64` |
 | FreeBSD on x64 and arm64 | `gnux-freebsd-x64`, `gnux-freebsd-arm64` |
 
-Every package of a release has the same version, the release's own, so `gnux@1.2.0` always runs gnux 1.2.0.
+Every package of a release has the same version, the release's own, so `gnux@1.3.0` always runs gnux 1.3.0.
 
 ## In package scripts
 

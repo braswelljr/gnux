@@ -54,6 +54,52 @@
   --color-lit-face: var(--cap-accent-face);
 }
 
+/* The terminal's 16 ANSI colors (components/playground/ansi-text.tsx). Each
+   step mirrors across the scale (700 with 300, 600 with 400), so a color keeps
+   its distance from the background in both page themes. A terminal drawn on a
+   theme's own background takes the palette for that background instead
+   (`term-palette` with `data-surface`), whatever the page's theme. */
+:root,
+.dark .term-palette[data-surface='light'],
+.term-palette[data-surface='light'] {
+  --ansi-0: var(--color-neutral-950);
+  --ansi-1: var(--color-red-700);
+  --ansi-2: var(--color-green-700);
+  --ansi-3: var(--color-yellow-700);
+  --ansi-4: var(--color-blue-700);
+  --ansi-5: var(--color-fuchsia-700);
+  --ansi-6: var(--color-cyan-700);
+  --ansi-7: var(--color-neutral-700);
+  --ansi-8: var(--color-neutral-500);
+  --ansi-9: var(--color-red-600);
+  --ansi-10: var(--color-green-600);
+  --ansi-11: var(--color-yellow-600);
+  --ansi-12: var(--color-blue-600);
+  --ansi-13: var(--color-fuchsia-600);
+  --ansi-14: var(--color-cyan-600);
+  --ansi-15: var(--color-neutral-900);
+}
+
+.dark,
+.term-palette[data-surface='dark'] {
+  --ansi-0: var(--color-neutral-50);
+  --ansi-1: var(--color-red-300);
+  --ansi-2: var(--color-green-300);
+  --ansi-3: var(--color-yellow-300);
+  --ansi-4: var(--color-blue-300);
+  --ansi-5: var(--color-fuchsia-300);
+  --ansi-6: var(--color-cyan-300);
+  --ansi-7: var(--color-neutral-300);
+  --ansi-8: var(--color-neutral-500);
+  --ansi-9: var(--color-red-400);
+  --ansi-10: var(--color-green-400);
+  --ansi-11: var(--color-yellow-400);
+  --ansi-12: var(--color-blue-400);
+  --ansi-13: var(--color-fuchsia-400);
+  --ansi-14: var(--color-cyan-400);
+  --ansi-15: var(--color-neutral-100);
+}
+
 /* `border-line` and `bg-line`: the drafting grid the landing page is laid out
    on (components/ui/section.tsx). Hairlines frame each section and its cells;
    `line-strong` draws the ticks where they cross; `faint` sets the numbers. */

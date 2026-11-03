@@ -18,7 +18,7 @@ export default async function Page(props: Props) {
   // version select checks first, and goes to the version's first page.
   if (!page) notFound();
 
-  const MDX = page.data.body;
+  const { body: MDX, toc } = await page.data.load();
   const version = pageVersion(page.slugs);
   const latestPage = version ? docs.getPage(page.slugs.slice(1)) : undefined;
   const url = absoluteUrl(siteConfig, page.url);
@@ -38,7 +38,7 @@ export default async function Page(props: Props) {
 
   return (
     <DocsPage
-      toc={page.data.toc}
+      toc={toc}
       full={page.data.full}
       // The "On this page" outline as one thread that bends with the heading
       // levels, in the sidebar and in the popover on small screens alike.
@@ -108,9 +108,20 @@ export default async function Page(props: Props) {
   );
 }
 
+/**
+ * Only the latest docs are built ahead of time. An older major version's pages
+ * (/docs/v0/...) are rendered on their first visit and cached from then on,
+ * which keeps the build's time and memory those of one set of docs.
+ */
 export function generateStaticParams() {
-  return docs.generateParams();
+  return docs
+    .generateParams()
+    .filter((params) => pageVersion(Array.isArray(params.slug) ? params.slug : []) === null);
 }
+
+// Pages left out above are rendered on request and then kept, never re-rendered.
+export const dynamicParams = true;
+export const revalidate = false;
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;

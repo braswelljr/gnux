@@ -117,6 +117,11 @@ for !sh.exited {
   the rest of the script.
 - **`\r\n` is trimmed,** so a script saved with Windows line endings runs unchanged (FR-29).
 - **The prompt goes to standard error,** so `gnux shell > out.txt` captures only command output.
+  With the terminal view on (standard error a terminal, FR-185) it is `prompt()` in
+  `core/shell/prompt.go`: the working directory and a failed status, colored; otherwise the
+  constants `Prompt` and `ContinuePrompt`. The shell's `--pretty` and `--theme` are set as
+  `GNUX_PRETTY` and `GNUX_THEME` (`shareView` in `cmd/shell.go`) before the script runs, so the
+  tools it runs in-process see them.
 - **The working directory is restored** when `Run` returns (NFR-16): `cd` changes the whole
   process's directory (step 9), and a Go program that runs a script must not find itself
   somewhere else afterwards.
@@ -141,7 +146,9 @@ recovered in `parse`.
 `lex` produces one token: a **word**, an **operator**, a line break, or the end of the input.
 
 - Operators are matched longest first: `&&`, `||`, `>>`, `;;`, `|`, `;`, `<`, `>`, `(`, `)`.
-  `2>` and `2>>` are operators only at the *start* of a word, so `a2>b` keeps the `2` in the
+  `2>`, `2>>`, `1>`, `1>>`, `2>&1` and `1>&2` are operators only at the *start* of a word, so
+  `a2>b` keeps the `2` in the word (`redirectOperator`). `1>` and `1>>` lex as `>` and `>>`,
+  `1>&2` as `>&2`. Any other `>&`, and a lone `&`, is a syntax error rather than part of a
   word.
 - A word is a list of **parts**, each tagged with how it was quoted, because quoting decides
   expansion:
@@ -257,6 +264,15 @@ sees the old `X`, while `A=1 B=$A` sees the new `A`.
 and globs; `single` (assignments, the word a `case` tests) and `pattern` (a `case` pattern)
 produce exactly one string and never glob.
 
+A `${...}` reaches the expander whole: the lexer reads it to its matching `}`, past quotes,
+blanks and nested `${...}` (`braceEnd`), and a `${` that never closes on its line is a syntax
+error. `param` (`params.go`) then reads the parameter and the operator. `-` `=` `+` `?` and
+their colon forms test whether the parameter is set (and, with the colon, not empty), and `-u`
+spares them; `#` `##` `%` `%%` trim a prefix or suffix with `match`, the `case` matcher. The
+operator's word is expanded by `word`, which honors its own quotes: for a pattern, quoted text
+and variable values are glob-escaped, so only what was written unquoted is a pattern. Any other
+form is `bad substitution`, which fails the expansion as `-u` does.
+
 1. A leading `~` or `~/` in the first raw part becomes `HomeDir()`.
 2. `vars` replaces `$NAME`, `${NAME}`, `${NAME:-default}`, `$1` to `$9`, `${10}`, `$?`, `$#`,
    `$0`, `$@` and `$*`, returning **segments tagged with whether they came from a variable**.
@@ -370,7 +386,9 @@ $ gnux shell -c 'lsx | wcx -l > count; catx count'
 ```
 
 `redirect` opens `<` read-only, `>` and `2>` with `O_TRUNC`, `>>` and `2>>` with `O_APPEND`,
-all with mode `0644`. `/dev/null` is never opened: it is mapped to an empty reader or
+all with mode `0644`. `2>&1` and `>&2` open nothing: they point one stream at whatever the
+other is at that point, so `> log 2>&1` sends both to `log` and `2>&1 > log` only standard
+output. `/dev/null` is never opened: it is mapped to an empty reader or
 `io.Discard`, so scripts that use it work on Windows and in the browser, where no such file
 exists (FR-29). A redirection that fails is reported (`gnux: PATH: Permission denied`) and the
 command is not run; its status is 1.
@@ -413,6 +431,7 @@ if cmd.compound != nil { return sh.runCompound(cmd.compound, s) }
 switch name {
 case "cd":   return sh.cd(args, s, piped || sh.subshell > 0)
 case "exit": return sh.exit(args, s, p.last, piped)
+case "read": return sh.read(args, s, piped)          // read.go
 case "set", "shift", "break", "continue":
 	if piped { return 0 }
 	return sh.builtin(name, args, s)
@@ -459,7 +478,7 @@ return 127
 | Test                                                         | What it proves                                         |
 |--------------------------------------------------------------|--------------------------------------------------------|
 | `TestScripts` (`core/shell/shell_test.go`)                   | quoting, expansion, connectors, pipelines (FR-24, FR-78, FR-79) |
-| `TestRedirection`                                            | `<`, `>`, `>>`, `2>`, `/dev/null`, setup order         |
+| `TestRedirection`                                            | `<`, `>`, `>>`, `2>`, `2>&1`, `>&2`, `/dev/null`, order |
 | `TestGlob`                                                   | globbing and the no-re-glob rule                       |
 | `TestErrExit`                                                | `-e` and the tested-status exemption (FR-28)           |
 | `TestSyntaxErrors`, `TestDiagnostics`                        | status 2 and 127, no external programs (FR-27, NFR-18) |

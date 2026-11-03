@@ -8,6 +8,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/braswelljr/gnux/core/internal/regex"
 )
 
 // The pieces of Go syntax the translation is built from. A word is made of
@@ -40,8 +42,11 @@ var (
 	errClassName         = &patternError{"Invalid character class name"}
 	errCollation         = &patternError{"Invalid collation character"}
 	errInvalid           = &patternError{"Invalid regular expression"}
-	errBackReference     = &patternError{"back references are not supported"}
-	errClassSyntax       = &patternError{"character class syntax is [[:space:]], not [:space:]"}
+	errBackReference     = &patternError{"Invalid back reference"}
+	// errNeedsGroups asks for the pattern to be translated again with
+	// capturing groups: it has a back reference.
+	errNeedsGroups = &patternError{"back reference"}
+	errClassSyntax = &patternError{"character class syntax is [[:space:]], not [:space:]"}
 )
 
 // translator rewrites one POSIX regular expression, basic or extended, with
@@ -68,12 +73,43 @@ type translator struct {
 	// the start of the pattern, after \( and after \|.
 	branchStart bool
 	groups      []int
+
+	// capture makes groups capturing, which a back reference needs; offset
+	// is the number of groups in the patterns before this one, which share
+	// one numbering once joined. opened counts this pattern's groups.
+	capture bool
+	offset  int
+	opened  int
+	// backRefs records that the pattern has a back reference.
+	backRefs bool
 }
 
 // translate returns the Go syntax for pattern. warn receives the text of each
 // warning GNU grep would print for it.
-func translate(pattern string, ere bool, warn func(string)) (string, error) {
-	t := &translator{ere: ere, warn: warn, atom: -1, branchStart: true}
+//
+// A pattern with a back reference is translated with capturing groups and
+// regex.BackRef; groups is then the number of groups it has, which offset the
+// numbering of the patterns that follow it. A pattern without one gets
+// non-capturing groups, and groups is 0.
+func translate(pattern string, ere bool, warn func(string), offset int) (expr string, groups int, err error) {
+	expr, groups, err = translateOnce(pattern, ere, warn, offset, false)
+	if errors.Is(err, errNeedsGroups) {
+		// The warnings were given on the first pass.
+		expr, groups, err = translateOnce(pattern, ere, func(string) {}, offset, true)
+	}
+	return expr, groups, err
+}
+
+func translateOnce(pattern string, ere bool, warn func(string), offset int, capture bool) (string, int, error) {
+	t := &translator{ere: ere, warn: warn, atom: -1, branchStart: true, capture: capture, offset: offset}
+	expr, err := t.run(pattern)
+	if err != nil || !t.backRefs {
+		return expr, 0, err
+	}
+	return expr, t.opened, nil
+}
+
+func (t *translator) run(pattern string) (string, error) {
 	p := pattern
 	for i := 0; i < len(p); {
 		c := p[i]
@@ -203,7 +239,12 @@ func (t *translator) repeat(op string) {
 
 func (t *translator) open() {
 	t.groups = append(t.groups, len(t.out))
-	t.out = append(t.out, "(?:"...)
+	t.opened++
+	if t.capture {
+		t.out = append(t.out, '(')
+	} else {
+		t.out = append(t.out, "(?:"...)
+	}
 	t.atom = -1
 	t.repeated = false
 	t.branchStart = true
@@ -265,7 +306,15 @@ func (t *translator) escape(p string, j int) (int, error) {
 
 	switch d {
 	case '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		return 0, errBackReference
+		if !t.capture {
+			return 0, errNeedsGroups
+		}
+		n := int(d - '0')
+		if n > t.opened {
+			return 0, errBackReference
+		}
+		t.backRefs = true
+		t.emit(regex.BackRef(t.offset + n))
 	case 'w':
 		t.emit(wordClass)
 	case 'W':

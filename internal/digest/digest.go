@@ -7,6 +7,7 @@ package digest
 
 import (
 	"errors"
+	"os"
 	"strconv"
 	"strings"
 
@@ -57,6 +58,7 @@ func (t Tool) Register(fs *pflag.FlagSet) {
 	fs.Bool("status", false, "don't output anything, status code shows success")
 	fs.Bool("strict", false, "exit non-zero for improperly formatted checksum lines")
 	fs.BoolP("warn", "w", false, "warn about improperly formatted checksum lines")
+	tool.RegisterView(fs)
 }
 
 // fatalError is a mistake GNU reports without the --help hint.
@@ -108,6 +110,15 @@ func (t Tool) run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 		}
 		return d.Result()
 	}
+	if err != nil {
+		return err
+	}
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), t.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	// -z promises lines a program reads.
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty && !opts.Zero, view.Color, view.Theme
 	return t.New(opts, s).Run(args)
 }
 
@@ -228,7 +239,8 @@ func (t Tool) Meta() docmeta.Meta {
 		Long:    long,
 		Permissions: "Needs read permission on each FILE (and, with -c, on the checksum lists and " +
 			"every file they name) and search permission on the directories leading to them. " +
-			"Nothing is ever modified.",
+			"Nothing is ever modified." +
+			" On a terminal, gnux's terminal view colors OK and FAILED in -c output and ends each list with a count ('3 OK, 1 FAILED'); piped or redirected output is exactly GNU's, and --pretty=never or GNUX_PRETTY=never turns it off.",
 		UseCases: []string{
 			"Verifying a download against the checksum its publisher lists.",
 			"Recording digests of release artifacts so users can check them.",

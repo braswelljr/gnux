@@ -48,12 +48,27 @@ func TestErrors(t *testing.T) {
 		`\(a`:     "Unmatched ( or \\(",
 		`a\)`:     "Unmatched ) or \\)",
 		`[a`:      "Unmatched [, [^, [:, [., or [=",
-		`\(a\)\1`: "back references are not supported",
+		`\(a\)\2`: "Invalid back reference",
+		`a\1`:     "Invalid back reference",
 	} {
 		_, err := Compile(pattern)
 		e, ok := err.(*Error)
 		if !ok || e.Msg != msg {
 			t.Errorf("Compile(%q) = %v, want %q", pattern, err, msg)
 		}
+	}
+}
+
+func TestBackReferences(t *testing.T) {
+	re, err := Compile(`\(ab*\)c\1`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !re.MatchString("xabbcabb") || re.MatchString("abcb") {
+		t.Fatal("back reference not matched as written")
+	}
+	anchored, err := CompileAnchored(`\(.\)\1`)
+	if err != nil || !anchored.MatchString("aab") || anchored.MatchString("baa") {
+		t.Fatalf("CompileAnchored: %v", err)
 	}
 }

@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -17,6 +16,7 @@ import (
 
 	"github.com/braswelljr/gnux/core"
 	"github.com/braswelljr/gnux/core/internal/bre"
+	"github.com/braswelljr/gnux/core/internal/regex"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -56,7 +56,7 @@ type Options struct {
 // control is one pattern from the command line.
 type control struct {
 	arg           string // as written, for diagnostics
-	re            *regexp.Regexp
+	re            *regex.Regexp
 	ignore        bool // %REGEXP%: skip the section rather than write it
 	offset        int64
 	lines         int64 // a line number pattern

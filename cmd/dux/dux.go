@@ -3,6 +3,7 @@ package dux
 
 import (
 	"errors"
+	"os"
 	"strconv"
 	"strings"
 
@@ -51,10 +52,17 @@ func Meta() docmeta.Meta {
 			"trees and network drives, and then adds everything up in name order, so the " +
 			"output, and which path a hard-linked file is counted under, is the same every " +
 			"run. The block size defaults to DU_BLOCK_SIZE, BLOCK_SIZE or BLOCKSIZE when " +
-			"set. Names are quoted only when output goes to a terminal.",
+			"set. Names are quoted only when output goes to a terminal." +
+			" On a terminal, dux shows gnux's view (--pretty=auto, the default; " +
+			"GNUX_PRETTY changes it): sizes aligned and colored by magnitude, a bar and a " +
+			"percentage giving each line's share of its operand, and the last part of each name " +
+			"highlighted, in the theme --theme or GNUX_THEME names (NO_COLOR keeps it uncolored). " +
+			"Piped or redirected output, and -0, stay exactly GNU's tab-separated lines; " +
+			"--pretty=always asks for the view anyway and --pretty=never turns it off.",
 		Permissions: "Needs read and search permission on every directory measured; an " +
 			"unreadable directory is reported and its own size still counted.",
 		UseCases: []string{
+			"Seeing which subdirectory takes most of a folder's space, from the bars and percentages.",
 			"Finding which directories fill a disk.",
 			"Checking how big a project, cache or build output has grown.",
 			"Comparing disk usage with apparent size to spot sparse files.",
@@ -62,6 +70,11 @@ func Meta() docmeta.Meta {
 			"Monitoring a directory's size in a script or cron job.",
 		},
 		Examples: []docmeta.Example{
+			{
+				Description: "Your home folder grew by 20 GB: see each folder's share of it as a bar, one level deep:",
+				Bash:        "dux -h -d 1 ~",
+				PowerShell:  "dux -h -d 1 $HOME",
+			},
 			{
 				Description: "Your disk is nearly full: list the 10 biggest directories in your home, largest first:",
 				Bash:        "dux -h -d 1 ~ | sortx -h -r | headx -n 11",
@@ -207,6 +220,7 @@ func Register(fs *pflag.FlagSet) {
 
 	// Long names GNU does not have: accepted, never an abbreviation.
 	tool.OwnNames(fs, "kilobytes", "megabytes")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into du.Options.
@@ -364,5 +378,10 @@ func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	if err != nil {
 		return err
 	}
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), du.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
 	return du.New(opts, s).Run(args)
 }

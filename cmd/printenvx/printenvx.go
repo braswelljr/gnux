@@ -2,6 +2,8 @@
 package printenvx
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
@@ -34,7 +36,8 @@ func Meta() docmeta.Meta {
 			"set prints nothing, not even an empty line, and makes the exit status 1, with no " +
 			"message; one that is set to the empty string prints an empty line. Names are " +
 			"matched exactly, including their case, on every platform. -0 ends each item with " +
-			"NUL instead of a newline, so values containing newlines survive.",
+			"NUL instead of a newline, so values containing newlines survive.\n\n" +
+			"gnux's terminal view (BR-13): on a terminal, a listing of the environment has each name colored apart from its value and the '=' dimmed, and the ':' between the directories of PATH and every other *PATH variable dimmed too; the text is GNU's. The value of a variable named as an operand is data and is never colored. --pretty[=WHEN] and --theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); -0 and piped or redirected output are always GNU's.",
 		Permissions: "Needs no permissions. Reads only the process's own environment.",
 		UseCases: []string{
 			"Checking what value a variable has in the current environment.",
@@ -107,6 +110,7 @@ func Meta() docmeta.Meta {
 // Register installs the printenvx flags on fs.
 func Register(fs *pflag.FlagSet) {
 	fs.BoolP("null", "0", false, "end each output line with NUL, not newline")
+	tool.RegisterView(fs)
 }
 
 // buildOptions folds the parsed flags into printenv.Options.
@@ -116,5 +120,11 @@ func buildOptions(fs *pflag.FlagSet) printenv.Options {
 }
 
 func run(fs *pflag.FlagSet, args []string, s core.Streams) error {
-	return printenv.New(buildOptions(fs), s).Run(args)
+	opts := buildOptions(fs)
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Out), printenv.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
+	return printenv.New(opts, s).Run(args)
 }

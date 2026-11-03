@@ -141,7 +141,9 @@ func TestCompileRegex(t *testing.T) {
 		{"emacs", `a*+`, "Invalid preceding regular expression"},
 		{"posix-extended", `(a`, `Unmatched ( or \(`},
 		{"posix-extended", `a)`, `Unmatched ) or \)`},
-		{"posix-extended", `(a)\1`, "back references are not supported in a regular expression"},
+		{"posix-extended", `(a)\1`, ""},
+		{"posix-extended", `(a)\2`, "Invalid back reference"},
+		{"emacs", `\(a\)\1`, ""},
 		{"posix-extended", `[[:nope:]]`, "Invalid regular expression"},
 	} {
 		_, err := compileRegex(tt.kind, tt.pattern, false)

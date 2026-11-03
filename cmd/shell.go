@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -58,15 +60,20 @@ func ShellSpec() tool.Spec {
 				"the rest are the arguments. Options are read only before SCRIPT, so everything " +
 				"after it reaches the script.\n\n" +
 				"The language is a deliberately small subset of POSIX sh: pipelines (a | b), the " +
-				"&&, || and ; connectors, ! to invert a status, redirection (<, >, >>, and 2> for " +
-				"standard error; /dev/null discards on every platform), NAME=value variables with " +
-				"$NAME, ${NAME}, ${NAME:-default}, $? and $PWD expansion, the arguments $1 to $9, " +
+				"&&, || and ; connectors, ! to invert a status, redirection (<, >, >>, 2> for " +
+				"standard error, and 2>&1 and >&2 to send one stream where the other goes; " +
+				"/dev/null discards on every platform), NAME=value variables with " +
+				"$NAME, ${NAME}, $? and $PWD expansion and the POSIX ${...} forms (${#NAME}, " +
+				"${NAME:-w}, ${NAME:=w}, ${NAME:+w}, ${NAME:?msg} and the forms without the colon, " +
+				"${NAME%suffix}, ${NAME%%suffix}, ${NAME#prefix}, ${NAME##prefix}; any other is a " +
+				"bad substitution), the arguments $1 to $9, " +
 				"${10}, $#, $0, $@ and $*, command substitution $(command), single and double " +
 				"quotes, globbing (*, ?, [...]), ~ for the home directory and # comments. Control " +
 				"flow is if/then/elif/else/fi, for NAME in WORD...; do ...; done (over the " +
 				"arguments when 'in' is left out), while ...; do ...; done and case WORD in " +
 				"PATTERN | PATTERN) ... ;; esac, each over as many lines as it needs. The builtins " +
-				"are cd, exit, help, set (-e, -u, +e, +u, -- ARG...), shift, break, continue and " +
+				"are cd, exit, help, read ([-r] [NAME...]: one line, split at $IFS), set (-e, -u, " +
+				"+e, +u, -- ARG...), shift, break, continue and " +
 				"[ (the test tool, written [ EXPRESSION ]). Tools answer to both names, so rm and " +
 				"rmx are the same command. External programs are not looked up; run one through " +
 				"the env tool (envx PROGRAM ARG...).\n\n" +
@@ -97,7 +104,8 @@ func ShellSpec() tool.Spec {
 				"Windows and Capsicum on FreeBSD, where a command can run gnux's own tools only " +
 				"(capability mode starts no other program); where none can be used the shell " +
 				"refuses with status 125 and runs nothing. A SCRIPT must lie in an allowed directory, as it is read after the " +
-				"sandbox is entered.",
+				"sandbox is entered.\n\n" +
+				"gnux's terminal view (BR-13): on a terminal, the prompt shows the working directory and the status of a command that failed, and help is colored. --pretty[=WHEN] and --theme=NAME choose the view (GNUX_PRETTY, GNUX_THEME), and the shell passes them on to every tool it runs; --pretty=never brings back the plain gnux> prompt.",
 			Permissions: "The shell itself needs only read access to SCRIPT. Each command it " +
 				"runs needs whatever its tool needs; redirection creates files with mode 0644 " +
 				"(before the umask).",
@@ -161,6 +169,7 @@ func ShellSpec() tool.Spec {
 			fs.BoolP("nounset", "u", false, "treat expanding an unset variable as an error")
 			fs.StringArray("sandbox", nil, "confine the shell, its commands and the programs they start to `DIR`, which they may read and write, and the system's own directories, which they may only read; may be repeated")
 			fs.StringArray("sandbox-read", nil, "with --sandbox, also let them read `DIR`; may be repeated")
+			tool.RegisterView(fs)
 		},
 		Run: runShell,
 		// Options stop at SCRIPT: what follows it belongs to the script.
@@ -176,6 +185,15 @@ func runShell(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	opts := shell.Options{}
 	opts.ErrExit, _ = fs.GetBool("errexit")
 	opts.NoUnset, _ = fs.GetBool("nounset")
+	if err := shareView(fs); err != nil {
+		return err
+	}
+	// The prompt is written to standard error.
+	view, err := tool.ViewOf(fs, core.IsTerminal(s.Err), shell.Name, os.Getenv, s.Err)
+	if err != nil {
+		return err
+	}
+	opts.Pretty, opts.Color, opts.Theme = view.Pretty, view.Color, view.Theme
 
 	// name is $0 and params are $1, $2, ...
 	name, params := shell.Name, []string(nil)
@@ -208,6 +226,23 @@ func runShell(fs *pflag.FlagSet, args []string, s core.Streams) error {
 	sh := NewShell(opts, s)
 	sh.SetArgs(name, params)
 	return sh.Run(script)
+}
+
+// shareView hands the shell's own --pretty and --theme to the tools it runs,
+// in-process, through the variables every tool reads them from.
+func shareView(fs *pflag.FlagSet) error {
+	if f := fs.Lookup("pretty"); f.Changed {
+		if err := os.Setenv("GNUX_PRETTY", f.Value.String()); err != nil {
+			return fmt.Errorf("GNUX_PRETTY: %w", err)
+		}
+	}
+	if fs.Changed("theme") {
+		theme, _ := fs.GetString("theme")
+		if err := os.Setenv("GNUX_THEME", theme); err != nil {
+			return fmt.Errorf("GNUX_THEME: %w", err)
+		}
+	}
+	return nil
 }
 
 // enterSandbox confines the process as --sandbox and --sandbox-read ask,

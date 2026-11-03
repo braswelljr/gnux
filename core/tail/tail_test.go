@@ -608,3 +608,17 @@ func TestFollowEndsWhenPIDDies(t *testing.T) {
 		}
 	})
 }
+
+func TestColoredHeaders(t *testing.T) {
+	t.Setenv("GNUX_THEME", "")
+	dir := t.TempDir()
+	a, b := write(t, dir, "a", "1\n"), write(t, dir, "b", "2\n")
+	out, _, err := run(tail.Options{Count: 1, Color: true}, "", a, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "\x1b[1;35m==> " + a + " <==\x1b[0m\n1\n\n\x1b[1;35m==> " + b + " <==\x1b[0m\n2\n"
+	if out != want {
+		t.Fatalf("got %q, want %q", out, want)
+	}
+}

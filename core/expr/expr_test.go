@@ -31,6 +31,9 @@ func TestValues(t *testing.T) {
 		status int
 	}{
 		{"integer", []string{"5"}, "5", 0},
+		{"match with a back reference", []string{"abab", ":", `\(.*\)\1`}, "ab", 0},
+		{"no match with a back reference", []string{"abc", ":", `\(.*\)\1c`}, "", 1},
+		{"length with a back reference", []string{"aab", ":", `\(a\)\1b`}, "a", 0},
 		{"string keeps its form", []string{"007"}, "007", 0},
 		{"zero is false", []string{"0"}, "0", 1},
 		{"empty is false", []string{""}, "", 1},
@@ -113,7 +116,7 @@ func TestErrors(t *testing.T) {
 		{[]string{"a", ":", `\(`}, "exprx: Unmatched ( or \\(\n"},
 		{[]string{"a", ":", `\)`}, "exprx: Unmatched ) or \\)\n"},
 		{[]string{"a", ":", `[a`}, "exprx: Unmatched [, [^, [:, [., or [=\n"},
-		{[]string{"a", ":", `\(a\)\1`}, "exprx: back references are not supported\n"},
+		{[]string{"a", ":", `\(a\)\2`}, "exprx: Invalid back reference\n"},
 	}
 	for _, tt := range tests {
 		out, errs, status, _ := run(tt.args...)

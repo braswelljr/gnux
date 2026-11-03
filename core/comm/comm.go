@@ -14,6 +14,7 @@ import (
 	"github.com/braswelljr/gnux/core/fsys"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/core/internal/visual"
 )
 
 // Name is the command name, used as the prefix of every diagnostic.
@@ -50,17 +51,30 @@ type Options struct {
 	Total bool
 	// ZeroTerminated (-z) makes NUL, not newline, the line delimiter.
 	ZeroTerminated bool
+
+	// Pretty, Color and Theme are gnux's terminal view, not GNU options:
+	// with Pretty, a header row names each column's file, and with Color
+	// every line is in its column's color, from Theme (a built-in theme;
+	// "" takes GNUX_THEME's). The lines are GNU's; -z is never viewed.
+	Pretty bool
+	Color  bool
+	Theme  string
 }
 
 // Comm is the engine. Construct it with New.
 type Comm struct {
 	Options
 
+	// Getenv reads GNUX_THEME for the view; nil means os.Getenv.
+	Getenv func(string) string
+
 	streams core.Streams
 	diag    *core.Diag
 	out     *bufio.Writer
 	eol     byte
 	sep     string
+	theme   *visual.Theme
+	pretty  bool // the view is drawing
 }
 
 // New builds a comm engine reading from and writing to s.
@@ -137,6 +151,8 @@ func (c *Comm) Run(args []string) error {
 	}()
 
 	c.out = core.NewWriter(c.streams.Out)
+	c.pretty = false
+	c.prepareView(args)
 	err := c.compare(in)
 	if ferr := c.out.Flush(); ferr != nil && !core.IsClosedPipe(ferr) {
 		c.diag.Errorf("write error: %s", core.ErrText(ferr))
@@ -207,13 +223,13 @@ func (c *Comm) compare(in [2]*input) error {
 				if !c.Suppress2 {
 					_, _ = c.out.WriteString(c.sep)
 				}
-				c.writeLine(in[1].line)
+				c.emit(2, in[1].line)
 			}
 		case order < 0:
 			seenUnpairable = true
 			total[0]++
 			if !c.Suppress1 {
-				c.writeLine(in[0].line)
+				c.emit(0, in[0].line)
 			}
 		default:
 			seenUnpairable = true
@@ -222,7 +238,7 @@ func (c *Comm) compare(in [2]*input) error {
 				if !c.Suppress1 {
 					_, _ = c.out.WriteString(c.sep)
 				}
-				c.writeLine(in[1].line)
+				c.emit(1, in[1].line)
 			}
 		}
 
@@ -247,7 +263,11 @@ func (c *Comm) compare(in [2]*input) error {
 
 	if c.Total {
 		for i, n := range total {
-			_, _ = c.out.WriteString(strconv.FormatUint(n, 10))
+			if c.pretty {
+				_, _ = c.out.WriteString(c.theme.Paint(columnKeys[i], strconv.FormatUint(n, 10)))
+			} else {
+				_, _ = c.out.WriteString(strconv.FormatUint(n, 10))
+			}
 			if i < 2 {
 				_, _ = c.out.WriteString(c.sep)
 			}
@@ -257,6 +277,15 @@ func (c *Comm) compare(in [2]*input) error {
 		_ = c.out.WriteByte(c.eol)
 	}
 	return nil
+}
+
+// emit writes a line of column col (0, 1 or 2).
+func (c *Comm) emit(col int, line []byte) {
+	if c.pretty {
+		c.paintLine(col, line)
+		return
+	}
+	c.writeLine(line)
 }
 
 func (c *Comm) writeLine(line []byte) {

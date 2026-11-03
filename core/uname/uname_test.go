@@ -73,3 +73,25 @@ func TestRealSystem(t *testing.T) {
 		t.Fatal("no output")
 	}
 }
+
+func TestPanel(t *testing.T) {
+	t.Setenv("LC_ALL", "C")
+	sys := uname.Info{KernelName: "Linux", Nodename: "build01", KernelRelease: "6.8.0", KernelVersion: "#1 SMP",
+		Machine: "x86_64", Processor: "unknown", HardwarePlatform: "unknown", OperatingSystem: "GNU/Linux"}
+	// With no field selected, every field the system reports.
+	out, err := run(uname.Options{Pretty: true}, sys)
+	want := "+- build01 -----------+\n" +
+		"| Kernel    Linux     |\n" +
+		"| Host      build01   |\n" +
+		"| Release   6.8.0     |\n" +
+		"| Version   #1 SMP    |\n" +
+		"| Machine   x86_64    |\n" +
+		"| System    GNU/Linux |\n" +
+		"+---------------------+\n"
+	if err != nil || out != want {
+		t.Fatalf("got (%v)\n%s\nwant\n%s", err, out, want)
+	}
+	if out, _ = run(uname.Options{Pretty: true, KernelRelease: true}, sys); !strings.Contains(out, "| Release   6.8.0 |") || strings.Contains(out, "Kernel") {
+		t.Fatalf("-r:\n%s", out)
+	}
+}

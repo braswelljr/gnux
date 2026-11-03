@@ -1,24 +1,26 @@
 // Command docsnap makes the website's documentation of a release: the docs as
-// that version shipped, laid out to sit beside the latest ones under
-// /docs/vX.Y (the tag's major and minor version: a patch release replaces its
-// minor version's docs).
+// that version shipped, laid out to sit beside the latest ones under /docs/vX
+// (the tag's major version: the website keeps one set of docs per major
+// version, the newest release's, and the latest docs stand for the newest
+// major version itself).
 //
 // Usage:
 //
 //	go run ./tools/docsnap -tag vX.Y.Z -here -archive FILE    the release's docs, packed
 //	go run ./tools/docsnap -tag vX.Y.Z [-from DIR] [-out DIR] the release's docs, unpacked
-//	go run ./tools/docsnap -pack DIR -archive FILE            pack a vX.Y folder already made
-//	go run ./tools/docsnap -tidy [-out DIR]                   flatten the vX.Y folders in OUT
+//	go run ./tools/docsnap -pack DIR -archive FILE            pack a vX folder already made
+//	go run ./tools/docsnap -tidy [-out DIR]                   flatten the vX folders in OUT
 //
 // A release's docs travel with the release: GoReleaser runs the first form at
 // the tag (-here: this checkout's own generator) and attaches the archive,
 // gnux-docs-vX.Y.Z.tar.gz, to the GitHub release, listed in the signed
 // checksums.txt. The website's build (web/scripts/gen.mjs) downloads the
-// archive of the latest patch of every minor release and unpacks it into
-// web/content/docs, where nothing is committed. Without -here the docs are
+// archive of the newest release of every older major version and unpacks it
+// into web/content/docs, where nothing is committed. Archives made before 1.4.0
+// hold a vX.Y folder; the website files them under vX all the same. Without -here the docs are
 // generated from the tag in a temporary git worktree, or taken from -from.
 //
-// Every link into /docs is rewritten to point into /docs/vX.Y, the root
+// Every link into /docs is rewritten to point into /docs/vX, the root
 // meta.json makes the folder a sidebar root of its own for the version
 // picker, and a tool with no option pages is written as a page of its own, not
 // a folder holding only its index, so that the sidebar shows it as a link
@@ -44,8 +46,8 @@ func main() {
 	from := flag.String("from", "", "pages already generated for the tag (default: generate them from the tag)")
 	here := flag.Bool("here", false, "generate the pages from this checkout, which is the tag")
 	archive := flag.String("archive", "", "pack the docs into this .tar.gz (and FILE.sha256) instead of writing them to -out")
-	pack := flag.String("pack", "", "a vX.Y folder already made, to pack with -archive")
-	tidy := flag.Bool("tidy", false, "flatten the tool folders of the vX.Y folders in -out, and nothing else")
+	pack := flag.String("pack", "", "a vX folder already made, to pack with -archive")
+	tidy := flag.Bool("tidy", false, "flatten the tool folders of the vX folders in -out, and nothing else")
 	flag.Parse()
 	if flag.NArg() > 0 {
 		usage()
@@ -74,7 +76,7 @@ func usage() {
 	os.Exit(2)
 }
 
-// release makes the docs of tag, into out/vX.Y or packed into archive.
+// release makes the docs of tag, into out/vX or packed into archive.
 func release(tag, from string, here bool, out, archive string) error {
 	version, err := Version(tag)
 	if err != nil && archive != "" {
@@ -114,11 +116,11 @@ func release(tag, from string, here bool, out, archive string) error {
 	return packDir(dst, archive)
 }
 
-// packDir packs a vX.Y folder into archive, with the folder at its top, and
+// packDir packs a vX folder into archive, with the folder at its top, and
 // writes archive.sha256 beside it.
 func packDir(dir, archive string) error {
 	if !versionDir.MatchString(filepath.Base(filepath.Clean(dir))) {
-		return fmt.Errorf("%s is not a vX.Y folder", dir)
+		return fmt.Errorf("%s is not a vX folder", dir)
 	}
 	if err := Flatten(dir); err != nil {
 		return err
@@ -135,27 +137,27 @@ func fail(err error) {
 	os.Exit(1)
 }
 
-var tagPattern = regexp.MustCompile(`^v([0-9]+)\.([0-9]+)\.[0-9]+$`)
+var tagPattern = regexp.MustCompile(`^v([0-9]+)\.[0-9]+\.[0-9]+$`)
 
-// Version is the snapshot folder of a stable release tag: v1.2.3 is v1.2. A
-// prerelease (v1.2.3-rc.1) has none.
+// Version is the snapshot folder of a stable release tag, its major version:
+// v1.2.3 is v1. A prerelease (v1.2.3-rc.1) has none.
 func Version(tag string) (string, error) {
 	m := tagPattern.FindStringSubmatch(tag)
 	if m == nil {
 		return "", fmt.Errorf("%q is not a stable release tag (vX.Y.Z)", tag)
 	}
-	return "v" + m[1] + "." + m[2], nil
+	return "v" + m[1], nil
 }
 
-var prereleasePattern = regexp.MustCompile(`^v([0-9]+)\.([0-9]+)\.[0-9]+-[0-9A-Za-z.-]+$`)
+var prereleasePattern = regexp.MustCompile(`^v([0-9]+)\.[0-9]+\.[0-9]+-[0-9A-Za-z.-]+$`)
 
-// prereleaseVersion is the vX.Y folder of a prerelease tag (v1.3.0-rc.1).
+// prereleaseVersion is the vX folder of a prerelease tag (v1.3.0-rc.1).
 func prereleaseVersion(tag string) (string, error) {
 	m := prereleasePattern.FindStringSubmatch(tag)
 	if m == nil {
 		return "", fmt.Errorf("%q is not a release tag (vX.Y.Z or vX.Y.Z-PRE)", tag)
 	}
-	return "v" + m[1] + "." + m[2], nil
+	return "v" + m[1], nil
 }
 
 // generate generates the docs of tag with its own generator: this checkout's
@@ -225,8 +227,9 @@ func Snapshot(src, dst, version string) error {
 	return Flatten(dst)
 }
 
-// versionDir matches a snapshot's folder name.
-var versionDir = regexp.MustCompile(`^v[0-9]+\.[0-9]+$`)
+// versionDir matches a snapshot's folder name: vX, or vX.Y as archives made
+// before 1.4.0 have it.
+var versionDir = regexp.MustCompile(`^v[0-9]+(\.[0-9]+)?$`)
 
 // tidyAll flattens every snapshot in out.
 func tidyAll(out string) error {

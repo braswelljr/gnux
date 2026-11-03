@@ -2,3 +2,17 @@
 allowBuilds:
   esbuild: true
   unrs-resolver: true
+
+# Security: minimatch before 11.0.1 has a denial of service through crafted
+# glob patterns (GHSA-g3hv-75wg-m249). eslint's own copy (10.x, the same API
+# as 11) takes the patched release. The eslint plugins (react, jsx-a11y,
+# import) call minimatch 3's function, which 11 no longer is, so they keep
+# 3.x: their patterns come only from this repository's eslint config, never
+# from outside input, so there is no attacker to craft one, and none of it
+# ships in the site.
+overrides:
+  minimatch@>=10 <11.0.1: ^11.0.1
+
+auditConfig:
+  ignoreGhsas:
+    - GHSA-g3hv-75wg-m249

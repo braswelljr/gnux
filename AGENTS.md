@@ -52,6 +52,7 @@ gnux/
     root.go                # NewRoot(streams) - gnux root command, one subcommand per tool
     registry.go            # Tools() / Commands() / Lookup(name) - THE list of tools
     shell.go               # `gnux shell` command (ShellSpec) + NewShell for library use
+    themes.go              # `gnux themes` command (ThemesSpec): every built-in theme, drawn
     docs/                  # Reference generator (cobra/doc: md/man/yaml/rest); tool-only dep
     <gnu>x/                # One adapter package per tool: Spec, Meta, Register, buildOptions, run
     rmx/<flag>/            # rmx alone keeps one sub-package per flag (force, interactive, …)
@@ -60,7 +61,10 @@ gnux/
     fs_unix.go             # Writable()/DeviceID() via syscall (build tag unix)
     fs_other.go            # Writable()/DeviceID() fallback (build tag !unix: Windows, wasm)
     <gnu>/                 # One engine package per tool: Name, Options, New, Run (+ tests)
-    shell/                 # The gnux shell interpreter: parse.go, expand.go, shell.go
+    shell/                 # The gnux shell interpreter: parse.go, expand.go, params.go, read.go, shell.go
+    internal/regex/        # Regexp: Go's regexp, or a backtracking matcher for back references / lookaround
+    internal/visual/       # The terminal view: themes, gradients, bars, tree branches, icons
+    internal/gitstat/      # Git status and .gitignore, read from the repository without git
   internal/
     common/                # AppName ("gnux") + link-time Version
     docmeta/               # zero-dep doc metadata (Meta, Example) for tools and flags
@@ -75,7 +79,7 @@ gnux/
   tools/docsnap/           # `go run ./tools/docsnap -tag vX.Y.Z -here -archive F` - a release's website docs, packed
   CHANGELOG.md             # Release history (Keep a Changelog); published as /docs/changelog
   web/                     # Next.js + Fumadocs site and playground (own go.mod: not part of ./...)
-    content/docs/          # Generated MDX, and vX.Y docs downloaded from the releases (not committed)
+    content/docs/          # Generated MDX, and vX docs of older major versions downloaded from the releases (not committed)
     public/                # gnux.wasm + wasm_exec.js land here (`make web/wasm`; not committed)
   documentation/           # The published documentation:
     guides/                # Hand-written usage docs: getting started, cookbook, scripting, library, ...
@@ -108,7 +112,13 @@ gnux/
 design (the README's roadmap).
 
 `grepx`, `sedx`, `findx` and `xargsx` mirror GNU grep, GNU sed and GNU findutils, not coreutils:
-they are the tools a build script reaches for next. `xargsx` and `findx -exec` run a command
+they are the tools a build script reaches for next. Every tool that takes a regular expression
+(grep, sed, expr, nl, csplit, find, ptx) compiles it through `core/internal/regex`: Go's
+linear-time `regexp` for every pattern it can express, and a backtracking matcher, behind the
+same methods, for a pattern with a back reference (`\1`), or a lookaround under `grepx -P`.
+Translators write those with `regex.BackRef` and `regex.Look` (empty named groups Go's parser
+accepts); a search that would take exponential time is given up after a step budget and
+reported (`Regexp.Err`), never read as "no match". `xargsx` and `findx -exec` run a command
 named after a gnux tool in-process (`tool.RunTool`, wired to `cmd.RunTool`) and anything else
 as a program on `PATH`, through `core/internal/run`.
 
@@ -198,14 +208,20 @@ is not reachable through `argv[0]` and is not in `--list`. Options stop at `SCRI
 (`NoInterspersed`); what follows is the script's arguments.
 
 - **Language** (keep it small - it is a portable subset, not a bash clone): pipelines, `&&`,
-  `||`, `;`, `!`, redirection `<` `>` `>>` `2>`, `NAME=value`, `$NAME` `${NAME}`
+  `||`, `;`, `!`, redirection `<` `>` `>>` `2>` `2>&1` `>&2`, `NAME=value`, `$NAME` `${NAME}`
   `${NAME:-default}` `$?`, the arguments `$1`... `$#` `$0` `$@` `$*`, command substitution
   `$(...)`, `if`/`elif`/`else`, `for`, `while`, `case`, single/double quotes, backslash before a
-  special character only (so `C:\tools` survives unquoted), globbing, `~`, `#` comments.
-  Builtins: `cd`, `exit`, `help`, `set` (`-e`, `-u`, `-- ARG...`), `shift`, `break`,
-  `continue`, `[` (the test tool). **Not in the language, on purpose:** functions, arithmetic,
+  special character only (so `C:\tools` survives unquoted), globbing, `~`, `#` comments, and
+  POSIX parameter expansion (`params.go`): `${#NAME}`, `${NAME-w}` `${NAME:-w}`, `${NAME=w}`
+  `${NAME:=w}`, `${NAME+w}` `${NAME:+w}`, `${NAME?msg}` `${NAME:?msg}`, `${NAME#pat}`
+  `${NAME##pat}` `${NAME%pat}` `${NAME%%pat}`; the lexer reads a whole `${...}` as one piece, so
+  its word may hold quotes and blanks. Builtins: `cd`, `exit`, `help`, `read` (`[-r] [NAME...]`,
+  `read.go`: one byte at a time, so the next command gets the rest of the input; splits at
+  `$IFS`), `set` (`-e`, `-u`, `-- ARG...`), `shift`, `break`, `continue`, `[` (the test tool). **Not in the language, on purpose:** functions, arithmetic,
   `until`, here-documents, backquotes, `( )` / `{ }` grouping, background jobs, and external
-  programs (those go through `envx`). Adding any of them is a decision, not a patch.
+  programs (those go through `envx`). Each is refused, never misread: a lone `&` and a `>&N`
+  other than `2>&1` / `>&2` are syntax errors, and a `${...}` form other than `${NAME}` /
+  `${NAME:-default}` is `bad substitution`. Adding any of them is a decision, not a patch.
 - **Deliberate differences from sh:** a variable's value is never re-split or re-globbed, and an
   unquoted `$(...)` is split into lines, never words; `NAME=value cmd` sets the variable for the
   rest of the script, not just for `cmd`; nothing spans lines except an `if`, a loop, a `case`
@@ -233,6 +249,9 @@ is not reachable through `argv[0]` and is not in `--list`. Options stop at `SCRI
   process-wide because tools resolve relative paths against it). `Eval` runs one command and
   keeps all state, for REPL-style hosts such as the playground, which also sets `LoopLimit`
   because nothing can interrupt a script in a browser tab.
+- On a terminal the prompt is the terminal view's (`core/shell/prompt.go`, FR-185): the working
+  directory and a failed status; the shell's `--pretty`/`--theme` reach its tools as
+  `GNUX_PRETTY`/`GNUX_THEME` (`shareView`).
 - Exit status: last command's; 2 on a syntax error (which aborts a non-interactive script);
   127 for an unknown command; 1 for an unset variable under `-u`.
 
@@ -259,6 +278,42 @@ is not reachable through `argv[0]` and is not in `--list`. Options stop at `SCRI
   an output cap (`cappedBuffer`: keep `bytes.Buffer` a field, not embedded, or `io.Copy` uses
   its `ReadFrom` and the cap never applies) and its process tree killed on cancel.
 - Like the shell, `mcp` is in `Commands()`, not `Tools()`, and `cmd.Main` dispatches it directly.
+
+## The terminal view (`core/internal/visual`, `core/internal/gitstat`, `internal/tool/view.go`)
+
+On a terminal, the tools people read (`lsx`/`dirx`/`vdirx`, `findx`, `dfx`, `dux`, `grepx`,
+`ddx status=progress`, `shredx -v`, `uniqx -c`, `odx`, `uptimex`, `whox`, `pinkyx`, `idx`,
+`usersx`, `groupsx`, `envx`, `printenvx`, `killx -l`, `sttyx -a`, `commx`, `joinx`, `datex`,
+`unamex`, the checksum tools' `-c`, `headx`/`tailx` headers, the file tools' `-v`) show gnux's
+terminal view by default; anything piped or redirected, `$(...)` included, is GNU's (BR-13,
+NFR-53, NFR-54).
+
+- **Opt-out on a terminal, never in a pipe.** `--pretty[=WHEN]`, else `GNUX_PRETTY`, else
+  `auto` (`tool.ResolvePretty` / `tool.ViewOf`). `NO_COLOR` and `TERM=dumb` keep it uncolored.
+  A machine format (`lsx --zero`, `dux -0`, `dfx -P`) always wins. The engine side is fields of
+  its own (`Pretty`, `Color`, `Theme`) whose zero value is GNU's output: only adapters set them.
+- **One palette.** Colors come from two-letter theme keys (`visual.Size`, `visual.GitMod`,
+  `visual.Heading`, ...) through `visual.Use` / `visual.LoadTheme` (default < `--theme`/`GNUX_THEME`
+  name < `GNUX_THEME` overrides); a nil `*visual.Theme` paints nothing. Never hardcode an escape
+  in a tool, and never name another program's theme variables.
+- **Themes come in pairs.** Most are a `scheme` after an editor theme, as `FAMILY-dark` and
+  `FAMILY-light`; the family's name picks one by `visual.Dark` (`GNUX_BACKGROUND`, `COLORFGBG`,
+  the system's appearance in build-tagged `background_*.go`, else dark). `gnux themes`
+  (`cmd/themes.go`, in `Commands()` like `shell` and `mcp`) shows them all.
+- **Panels and tables:** `Theme.Box` and `Theme.Render(visual.Table{..., MaxWidth:
+  core.TerminalWidth(out, getenv)})` draw the framed layouts (`statx`, `dfx`, `wcx`); a table
+  never wraps, it cuts its widest text column with `…`.
+- **A file name in its type's color** comes from `visual.NewNames(LS_COLORS)`, the palette
+  `lsx` and `findx` share, so a name looks the same in every tool.
+- **A `-v` report needs no engine change:** the adapter wraps its streams with
+  `tool.ReportView` (after its own argument parsing, for a `RawArgs` tool like `chmodx`).
+- **Options are gnux's own** (`tool.RegisterView` and `tool.OwnNames`), so GNU abbreviations
+  keep their meaning. Icons need a Nerd Font: off unless `--icons` or `GNUX_ICONS`.
+- **`gitstat`** reads the index, HEAD (loose objects and packs, SHA-1 and SHA-256) and the
+  ignore files through `core/fsys`; it runs no git. `lsx` opens one repository per working tree
+  (`repoFor`) and closes them at the end of `Run`.
+- Adopting the view in another tool, and the plan for every tool:
+  `docs/workflows/terminal-visuals.md`.
 
 ## The npm packages (`tools/npm`)
 
@@ -432,17 +487,26 @@ the same change; cite the IDs in commits and PRs where it helps. When it changes
 runs (dispatch, the shell, the generator, CI), update the matching `docs/workflows/` page; when
 it changes a usage example the guides show, update the guide.
 
-**Versions.** The website also serves the docs of each stable release, as it shipped, and none
-of them is committed. Each release carries its own: GoReleaser's `before` hook runs
+**Versions.** The website keeps one set of docs per major version: the latest docs stand for
+the newest major version, and each older one (v0, ...) gets the docs of its last release (its
+latest minor and patch), as they shipped. None of them is committed. Each release carries its
+own: GoReleaser's `before` hook runs
 `tools/docsnap -tag vX.Y.Z -here -archive docs-archive/gnux-docs-vX.Y.Z.tar.gz` (the tag's own
-generator), which rewrites the `/docs` links into `/docs/vX.Y`, makes `meta.json` a root folder
-and packs `vX.Y/`; the archive is attached to the release and listed in the signed
+generator), which rewrites the `/docs` links into `/docs/vX`, makes `meta.json` a root folder
+and packs `vX/`; the archive is attached to the release and listed in the signed
 `checksums.txt`. The website's build (`web/scripts/docs-versions.mjs`, run by `gen.mjs`) lists the
-releases with one API call (`GITHUB_TOKEN` avoids the shared rate limit), takes the latest patch
-of each minor version, checks its archive against `checksums.txt` (or a `.sha256` asset, for an
-archive uploaded to an older release by hand: `docsnap -pack DIR -archive F`) and unpacks it into
-`web/content/docs/vX.Y/`. On CI and Vercel a failed download or check fails the build; a release
-with no archive is reported and skipped. `GenerateMDX` never deletes those folders
+releases with one API call (`GITHUB_TOKEN` avoids the shared rate limit), takes the newest
+release of each major version but the newest, checks its archive against `checksums.txt` (or a
+`.sha256` asset, for an archive uploaded to an older release by hand: `docsnap -tag vX.Y.Z
+-archive F`, then `gh release upload`) and unpacks it into `web/content/docs/vX/`; an archive
+made before 1.4.0 holds a `vX.Y/` folder, which it files under `vX` with the links rewritten. On
+CI and Vercel a failed download or check fails the build; a release with no archive is reported
+and skipped. An older version's pages are not prerendered: they render on their first visit and
+are cached (`generateStaticParams` keeps the latest docs only), and so are the Open Graph images,
+which keeps the build's time and memory those of one set of docs. `next.config.ts` redirects the
+old per-minor addresses (`/docs/v1.1/...`) to the latest docs. `pnpm build` runs
+`next build --webpack` with at most four page workers: with Turbopack the build ran past the 8 GB
+of a standard Vercel build machine (SIGKILL); with webpack it peaks near 4.5 GB. `GenerateMDX` never deletes those folders
 (`VersionDir`). A tool with no option pages is a plain page (`tools/<tool>.mdx`), a link in the
 sidebar, never a folder with nothing to open; docsnap's `Flatten` lays out every release's docs
 the same way. On the site, `lib/source.ts`
@@ -515,6 +579,7 @@ nothing depends on following a link.
 ### Working on the repository
 
 - **Agents hand over the git commands, and the maintainer runs them** - never `git commit`, `git push`, `git tag`, a force-push, or `gh release create` / `delete`, even when asked to release; prepare and check the change, then end with the exact commands and the commit or tag message to paste. ([file](docs/rules/agents-hand-over-git-commands.md))
+- **Work in the repository with gnux** - use `rmx`, `cpx`, `mvx`, `mkdirx`, `lsx`, `catx`, `grepx`, `sedx`, `findx` and the rest from `./bin` (after `make build`) for everyday command-line work, not the system tools, and fix a difference from GNU found that way in the same change, with a test. ([file](docs/rules/work-in-the-repository-with-gnux.md))
 
 ## Code Style
 
@@ -580,6 +645,7 @@ cleanup, and best-effort `fmt.Fprint*` diagnostic writes. `_test.go` files are e
 | `web.yml`   | builds the wasm, then lints, type-checks, tests and builds the website                  |
 | `bench.yml` | on a pull request: benchmarks the base commit and the change in one job and fails on a regression (`tools/benchcheck`) |
 | `action.yml` | runs the setup-gnux action (`action.yml` at the root) on linux/macos/windows runners and uses the tools |
+| `security.yml` | govulncheck on every release platform, `pnpm audit`, zizmor on the workflows, gitleaks over the history, and CodeQL (`security-extended`) on Go, TypeScript and the workflows; on every change and weekly (NFR-55). `SECURITY.md` is the policy |
 | `release.yml` | on a `vX.Y.Z` tag: re-runs vet/test/docs checks, requires the tag's `CHANGELOG.md` section, then GoReleaser (`.goreleaser.yaml`) builds per-platform archives with completions and `.deb`/`.rpm`/`.apk` packages, publishes a GitHub release with an SBOM per archive, a cosign-signed `checksums.txt`, a provenance attestation and that section as its notes, publishes to each of Homebrew, Scoop, winget, the Snap Store and the AUR whose secret is set, moves the `vX` major tag, and (job `image`) pushes the Alpine and `scratch` Docker images to GHCR |
 
 An agent prepares a release (changelog section, `make docs`, `make ci`, `make release/check`) and hands the maintainer the commit, push and tag commands; it never runs them ([rule](docs/rules/agents-hand-over-git-commands.md)).
@@ -596,7 +662,11 @@ signature), and its `image` job `packages: write`. Without link flags, `common.V
 version, so `go install ...@vX.Y.Z` reports the tag.
 
 All read the Go toolchain from `go.mod` via `go-version-file: go.mod` - keep it there rather
-than hardcoding a version. Each workflow states the requirement it enforces in a comment at the
+than hardcoding a version. `go.mod`'s `toolchain` line is the Go release the binaries are built
+with; keep it at the newest patch release, since a release otherwise ships the standard library's
+known vulnerabilities (the `go` line stays the oldest Go a library user may build with). Every
+action is pinned to a commit SHA with its version in a comment, no checkout keeps its credentials
+but the release job's, and no release job restores a cache; `security.yml`'s zizmor job checks it. Each workflow states the requirement it enforces in a comment at the
 top; when a requirement changes, update the workflow, the README and the guide together.
 
 ## Important Files

@@ -9,10 +9,6 @@ import (
 	"time"
 )
 
-// permissionBits is true: the mode's permission bits are the file's own, so
-// they can mark a directory other-writable or sticky.
-const permissionBits = true
-
 // timespec converts a stat timestamp to a time.Time.
 func timespec(ts syscall.Timespec) time.Time {
 	return time.Unix(int64(ts.Sec), int64(ts.Nsec)) //nolint:unconvert // int32 on 32-bit platforms

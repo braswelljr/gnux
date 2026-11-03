@@ -2,10 +2,13 @@ package grep
 
 import (
 	"bytes"
+	"errors"
 	"regexp"
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/braswelljr/gnux/core/internal/regex"
 )
 
 // span is one match inside a line: line[s:e].
@@ -30,8 +33,15 @@ func (g *Grep) compile(patterns []string) (matcher, error) {
 		return newLiteral(patterns, g.WordRegexp, g.LineRegexp), nil
 	}
 
+	perl := g.Syntax == SyntaxPerl
 	flags := "(?s)"
-	if g.IgnoreCase {
+	switch {
+	case perl && g.IgnoreCase:
+		flags = "(?i)"
+	case perl:
+		// In Perl a dot does not match a newline, which -z lines hold.
+		flags = ""
+	case g.IgnoreCase:
 		flags = "(?si)"
 	}
 	var (
@@ -39,6 +49,7 @@ func (g *Grep) compile(patterns []string) (matcher, error) {
 		literals = make([]string, 0, len(patterns))
 		seen     = map[string]bool{}
 		prefix   string
+		offset   int // groups in the patterns so far, for back references
 	)
 	warn := func(msg string) {
 		// One warning per distinct message, however many patterns earn it.
@@ -49,14 +60,20 @@ func (g *Grep) compile(patterns []string) (matcher, error) {
 	}
 	for _, p := range patterns {
 		var expr string
-		if g.Syntax == SyntaxFixed {
+		var groups int
+		var err error
+		switch g.Syntax {
+		case SyntaxFixed:
 			expr = regexp.QuoteMeta(p)
-		} else {
-			var err error
-			if expr, err = translate(p, g.Syntax == SyntaxExtended, warn); err != nil {
-				return nil, err
-			}
+		case SyntaxPerl:
+			expr, groups, err = translatePerl(p, offset)
+		default:
+			expr, groups, err = translate(p, g.Syntax == SyntaxExtended, warn, offset)
 		}
+		if err != nil {
+			return nil, err
+		}
+		offset += groups
 		// Compiled alone first, so that a mistake is reported for the pattern
 		// that holds it, and to learn what the pattern is made of.
 		re, err := regexp.Compile(flags + expr)
@@ -67,6 +84,9 @@ func (g *Grep) compile(patterns []string) (matcher, error) {
 			literals = append(literals, lit)
 		}
 		prefix, _ = re.LiteralPrefix()
+		if regex.HasMarkers(expr) {
+			prefix = ""
+		}
 		exprs = append(exprs, expr)
 	}
 	if len(literals) == len(patterns) {
@@ -83,24 +103,44 @@ func (g *Grep) compile(patterns []string) (matcher, error) {
 	var err error
 	switch {
 	case g.LineRegexp:
-		m.re, err = regexp.Compile(flags + "^(?:" + inner + ")$")
+		m.re, err = regex.Compile(flags + "^(?:" + inner + ")$")
 	case g.WordRegexp:
-		tail := "(" + inner + ")(?:" + nonWordClass + "|$)"
-		if m.re, err = regexp.Compile(flags + "(?:^|" + nonWordClass + ")" + tail); err == nil {
-			m.next, err = regexp.Compile(flags + nonWordClass + tail)
+		// The word is a named group, which a back reference does not
+		// count, so the pattern's own groups keep their numbers.
+		tail := "(?P<w>" + inner + ")(?:" + nonWordClass + "|$)"
+		if m.re, err = regex.Compile(flags + "(?:^|" + nonWordClass + ")" + tail); err == nil {
+			m.next, err = regex.Compile(flags + nonWordClass + tail)
 		}
 	default:
-		m.re, err = regexp.Compile(flags + inner)
+		m.re, err = regex.Compile(flags + inner)
+	}
+	if errors.Is(err, regex.ErrBackReference) {
+		return nil, errBackReference
 	}
 	if err != nil {
 		return nil, compileError(err)
 	}
-	// POSIX takes the longest of the leftmost matches.
-	m.re.Longest()
-	if m.next != nil {
-		m.next.Longest()
+	// POSIX takes the longest of the leftmost matches; Perl the first.
+	if !perl {
+		m.re.Longest()
+		if m.next != nil {
+			m.next.Longest()
+		}
 	}
 	return m, nil
+}
+
+// matchError reports a search the matcher gave up on, or nil.
+func matchError(m matcher) error {
+	if rm, ok := m.(*regexpMatcher); ok {
+		if err := rm.re.Err(); err != nil {
+			return err
+		}
+		if rm.next != nil {
+			return rm.next.Err()
+		}
+	}
+	return nil
 }
 
 // noMatcher matches no line: the pattern list was empty.
@@ -227,12 +267,12 @@ func isWord(r rune) bool {
 type regexpMatcher struct {
 	// re selects lines. For -x it is anchored at both ends; for -w the
 	// pattern is its first group, between what must surround a word.
-	re *regexp.Regexp
+	re *regex.Regexp
 	// next is the -w expression for a search that resumes inside a line. Go
 	// cannot be told what precedes the text it searches, so the search
 	// resumes one character early and next requires that character to be a
 	// non-word one, where re would also accept the start of the text.
-	next *regexp.Regexp
+	next *regex.Regexp
 	// prefix is a literal every match contains. Looking for it first costs
 	// far less than starting the regexp engine on a line that cannot match.
 	prefix []byte

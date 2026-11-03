@@ -414,8 +414,8 @@ func TestSyntaxErrors(t *testing.T) {
 		{"modifier on empty regex", sed.Options{}, "//Ip", "-e expression #1, char 3: cannot specify modifiers on empty regexp"},
 		{"modifier on empty s regex", sed.Options{}, "s//x/I", "-e expression #1, char 6: cannot specify modifiers on empty regexp"},
 		{"bad reference", sed.Options{}, `s/a/\1/`, "-e expression #1, char 7: invalid reference \\1 on `s' command's RHS"},
-		{"back reference", sed.Options{}, `s/\(a\)\1/x/`, "-e expression #1, char 12: back references in a regular expression are not supported"},
-		{"back reference extended", sed.Options{Extended: true}, `/(a)\1/p`, "-e expression #1, char 7: back references in a regular expression are not supported"},
+		{"reference to a missing group", sed.Options{}, `s/\(a\)\2/x/`, "-e expression #1, char 12: Invalid back reference"},
+		{"reference before its group", sed.Options{Extended: true}, `/\1(a)/p`, "-e expression #1, char 7: Invalid back reference"},
 		{"unmatched paren", sed.Options{}, `s/\(a/x/`, `-e expression #1, char 8: Unmatched ( or \(`},
 		{"unmatched close paren", sed.Options{}, `s/a\)/x/`, `-e expression #1, char 8: Unmatched ) or \)`},
 		{"unmatched paren extended", sed.Options{Extended: true}, "s/(a/x/", `-e expression #1, char 7: Unmatched ( or \(`},
@@ -965,4 +965,38 @@ func BenchmarkSubstitute(b *testing.B) {
 			b.Fatal(err)
 		}
 	}
+}
+
+func TestBackReferences(t *testing.T) {
+	tests := []struct {
+		name   string
+		opts   sed.Options
+		script string
+		input  string
+		want   string
+	}{
+		{"collapse a doubled letter", sed.Options{}, `s/\(.\)\1/\1/g`, "aabbcd\n", "abcd\n"},
+		{"doubled word", sed.Options{Extended: true}, `s/\b(\w+) \1\b/\1/g`, "the the cat sat sat\n", "the cat sat\n"},
+		{"address", sed.Options{Quiet: true}, `/\(.\)\1/p`, "abc\nhello\n", "hello\n"},
+		{"palindrome of four", sed.Options{Quiet: true, Extended: true}, `/^(.)(.)\2\1$/p`, "abba\nabab\n", "abba\n"},
+		{"swap around a repeat", sed.Options{Extended: true}, `s/(a+)-\1/<\1>/`, "aa-aa aa-a\n", "<aa> aa-a\n"},
+		{"ignoring case", sed.Options{}, `s/\(x\)\1/!/I`, "xX\n", "!\n"},
+		{"nth match", sed.Options{}, `s/\(.\)\1/_/2`, "aabbcc\n", "aa_cc\n"},
+		{"leftmost longest", sed.Options{Extended: true}, `s/(a|ab)(c|bcd)\2/[&]/`, "abcdbcd\n", "[abcdbcd]\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			out, errOut, err := run(t, tt.opts, tt.input, tt.script)
+			if err != nil || out != tt.want {
+				t.Fatalf("out=%q err=%v stderr=%q; want %q", out, err, errOut, tt.want)
+			}
+		})
+	}
+
+	t.Run("abandoned search", func(t *testing.T) {
+		out, errOut, err := run(t, sed.Options{}, strings.Repeat("a", 60)+"\n", `s/^\(\(a*\)*\)*\1b$/x/`)
+		if status(err) != sed.ExitIO || !strings.Contains(errOut, "too complex") {
+			t.Fatalf("out=%q stderr=%q status=%d", out, errOut, status(err))
+		}
+	})
 }

@@ -288,8 +288,11 @@ memory.
 Dependencies must be kept to a minimum and kept current.
 
 - **Measure.** Three direct Go dependencies: cobra, pflag and go-isatty.
-- **Verified by.** Dependabot (`.github/dependabot.yml`) proposes updates for Go modules weekly
-  and for GitHub Actions daily. It is not configured for the website's packages.
+- **Verified by.** Dependabot (`.github/dependabot.yml`) proposes updates for Go modules, the
+  website's packages and the Docker base images weekly, and for GitHub Actions daily. `go.mod`
+  names the patched Go release the binaries are built with (`toolchain`), apart from the oldest
+  Go a library user may build with (`go`), so that a release never ships a standard library with
+  a published vulnerability.
 
 ### NFR-21: unprivileged container
 
@@ -302,10 +305,14 @@ The container image must run as an unprivileged user.
 
 Every CI workflow must run with read-only repository permissions unless it needs more.
 
-- **Measure.** Each of the six workflows declares `permissions: contents: read` at the top level.
-  The one exception is the Release workflow's publishing job, which alone is granted
-  `contents: write` to create the release.
-- **Verified by.** Review of `.github/workflows/`.
+- **Measure.** Each workflow declares `permissions: contents: read` at the top level. The
+  exceptions are named jobs: the Release workflow's publishing job (`contents: write` to create
+  the release) and the Security workflow's CodeQL job (`security-events: write` for its
+  results). Every action is pinned to a commit SHA, with its version in a comment. No checkout
+  keeps its git credentials but the release job's, which pushes the major version tag. No
+  release job restores a cache another run could have written.
+- **Verified by.** The Security workflow's zizmor audit (NFR-55), and review of
+  `.github/workflows/`.
 
 ### NFR-38: baseline response headers
 
@@ -316,6 +323,19 @@ The website should send baseline security headers on every route.
   Content-Security-Policy, deliberately: the theme script is inline and the playground compiles
   WebAssembly, so a useful policy needs a per-request nonce.
 - **Verified by.** Review. Nothing asserts on the headers.
+
+### NFR-55: scanned for vulnerabilities
+
+No known vulnerability may reach gnux's code or the website, and the repository must hold no
+secret.
+
+- **Measure.** govulncheck reports nothing reachable on any release platform; `pnpm audit`
+  reports nothing but the exceptions recorded with their reasons in `web/pnpm-workspace.yaml`;
+  zizmor reports nothing of medium severity or above in the workflows; gitleaks finds no secret
+  in any commit; CodeQL's `security-extended` queries find nothing in the Go, TypeScript and
+  workflow code. A downloaded docs archive is unpacked only if no entry could write outside its
+  folder (`unsafeEntry`).
+- **Verified by.** `.github/workflows/security.yml`, on every change and weekly.
 
 ## 5. Usability
 
@@ -333,6 +353,29 @@ Messages must say what failed and on which file.
 - **Measure.** Every operand-level diagnostic names the operand in single quotes and gives the
   system's reason.
 - **Verified by.** The engine suites compare diagnostics exactly.
+
+### NFR-53: the terminal view never reaches a program
+
+gnux's terminal view (BR-13) must never change output that a program reads.
+
+- **Measure.** With no option or variable asking for it, the view applies only when standard
+  output is a terminal; `--zero` (lsx), `-0` (dux) and `-P` (dfx) always print GNU's format; an
+  engine's zero `Options` prints GNU's output, so a library caller never gets the view by
+  accident; and under the colors the view's text is GNU's wherever it does not add a column.
+- **Verified by.** `TestApplyView` (`cmd/lsx`), `TestViewOf` (`internal/tool`), `TestPrettyLong`
+  (`core/ls`), `TestPretty` (`core/df`, `core/du`); the conformance harness, whose output is
+  piped.
+
+### NFR-54: the view is legible for everyone
+
+The terminal view must stay readable without color and on any terminal.
+
+- **Measure.** Nothing is told by color alone (git status, percentages and permissions are also
+  letters or numbers); `NO_COLOR` and `TERM=dumb` keep it uncolored; the `mono` theme uses only
+  bold, underline and dim; a locale that is not UTF-8 gets ASCII tree branches and bars; and
+  icons, which need a Nerd Font, are off unless asked for (`--icons`, `GNUX_ICONS`).
+- **Verified by.** `core/internal/visual` tests (themes, branches, bars, icons), `TestTreeASCII`,
+  `TestViewOf`.
 
 ## 6. Accessibility
 
