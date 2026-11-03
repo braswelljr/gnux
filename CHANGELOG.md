@@ -4,8 +4,20 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-11-03
+
+gnux 1.5.1 is a patch release. On the website, the trees, frames, tables and bars of the
+terminal view are drawn with straight, unbroken lines; on Windows, `prx` names a directory
+operand as GNU does, and the test suite passes in full again.
+
 ### Fixed
 
+- The website draws the terminal view's lines straight and unbroken, in the playground and in
+  the docs. It loaded JetBrains Mono from Google in subsets that leave out the box-drawing and
+  block characters, so each browser drew trees, frames and bars in another font, of another
+  width and height, and the lines came out bent and broken; the site now serves the whole font
+  itself (SIL OFL 1.1, in `web/src/fonts`). The playground's line height is 1.375, under the
+  1.52 at which those lines stop joining, so a tree or a frame has no gaps between rows.
 - `prx` on Windows names a directory operand as GNU does (`Is a directory`), not with the
   system's `Incorrect function`.
 - The Windows test suite passes in full: the `pathchkx` and `printenvx` tests no longer expect
@@ -610,7 +622,8 @@ reach Homebrew, Scoop, winget, the Snap Store, the AUR and `.deb` / `.rpm` / `.a
 
 - The project is now gnux, a portable implementation of the GNU core utilities. `rmx`, which it started as, was rewritten as one of its tools, with GNU's full `rm` flag surface.
 
-[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/braswelljr/gnux/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/braswelljr/gnux/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/braswelljr/gnux/compare/v1.2.0...v1.4.0
 [1.2.0]: https://github.com/braswelljr/gnux/compare/v1.1.0...v1.2.0

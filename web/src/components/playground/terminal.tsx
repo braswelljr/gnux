@@ -300,7 +300,9 @@ export function Terminal(props: TerminalProps) {
         </Button>
       }
       glow
-      className={cn('min-h-0 font-mono text-sm leading-relaxed', props.className)}
+      // snug (1.375): the font's box-drawing lines are 1.52em tall, so at any line
+      // height up to that a tree or a frame is drawn without gaps between rows.
+      className={cn('min-h-0 font-mono text-sm leading-snug', props.className)}
     >
       {/* A click anywhere in the scrollback focuses the prompt, as in a terminal.
           It is a convenience for pointer users on top of the labeled input, which
