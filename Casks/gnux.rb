@@ -6,42 +6,42 @@ cask "gnux" do
     end
   end
 
-  version "1.2.0"
+  version "1.4.0"
 
   on_macos do
     on_arm do
-      sha256 "425a9e8de42d575e5668cc641b371ebd2a34853ef956fdc9014ba9799e54cf3f"
+      sha256 "c603fb9a0ed21ae55ce184f63a0074a400fcca4860d1d34de3bab04ac010c657"
       url "https://github.com/braswelljr/gnux/releases/download/v#{version}/gnux-v#{version}-darwin-arm64.tar.gz"
-      rename "gnux-v1.2.0-darwin-arm64/gnux", "gnux"
-      rename "gnux-v1.2.0-darwin-arm64/completions/gnux.bash", "completions/gnux.bash"
-      rename "gnux-v1.2.0-darwin-arm64/completions/gnux.fish", "completions/gnux.fish"
-      rename "gnux-v1.2.0-darwin-arm64/completions/gnux.zsh", "completions/gnux.zsh"
+      rename "gnux-v1.4.0-darwin-arm64/gnux", "gnux"
+      rename "gnux-v1.4.0-darwin-arm64/completions/gnux.bash", "completions/gnux.bash"
+      rename "gnux-v1.4.0-darwin-arm64/completions/gnux.fish", "completions/gnux.fish"
+      rename "gnux-v1.4.0-darwin-arm64/completions/gnux.zsh", "completions/gnux.zsh"
     end
     on_intel do
-      sha256 "55b60d0d8697b07134f701576cae23204537e74e1ef7404e17a354ffa244c46e"
+      sha256 "623988e8737bedcf40f21b00ba319196ca6930244582efb461fdb80ad3d5493c"
       url "https://github.com/braswelljr/gnux/releases/download/v#{version}/gnux-v#{version}-darwin-amd64.tar.gz"
-      rename "gnux-v1.2.0-darwin-amd64/gnux", "gnux"
-      rename "gnux-v1.2.0-darwin-amd64/completions/gnux.bash", "completions/gnux.bash"
-      rename "gnux-v1.2.0-darwin-amd64/completions/gnux.fish", "completions/gnux.fish"
-      rename "gnux-v1.2.0-darwin-amd64/completions/gnux.zsh", "completions/gnux.zsh"
+      rename "gnux-v1.4.0-darwin-amd64/gnux", "gnux"
+      rename "gnux-v1.4.0-darwin-amd64/completions/gnux.bash", "completions/gnux.bash"
+      rename "gnux-v1.4.0-darwin-amd64/completions/gnux.fish", "completions/gnux.fish"
+      rename "gnux-v1.4.0-darwin-amd64/completions/gnux.zsh", "completions/gnux.zsh"
     end
   end
   on_linux do
     on_arm do
-      sha256 "eaa47c275cd48b981d12a331482ee3be1999b6ee9248d6a6895f1aea326d967d"
+      sha256 "76b95aa74336d4a8403464fbc2f7d6b72c23d53ba554b16ac9089dce2d8e4fe0"
       url "https://github.com/braswelljr/gnux/releases/download/v#{version}/gnux-v#{version}-linux-arm64.tar.gz"
-      rename "gnux-v1.2.0-linux-arm64/gnux", "gnux"
-      rename "gnux-v1.2.0-linux-arm64/completions/gnux.bash", "completions/gnux.bash"
-      rename "gnux-v1.2.0-linux-arm64/completions/gnux.fish", "completions/gnux.fish"
-      rename "gnux-v1.2.0-linux-arm64/completions/gnux.zsh", "completions/gnux.zsh"
+      rename "gnux-v1.4.0-linux-arm64/gnux", "gnux"
+      rename "gnux-v1.4.0-linux-arm64/completions/gnux.bash", "completions/gnux.bash"
+      rename "gnux-v1.4.0-linux-arm64/completions/gnux.fish", "completions/gnux.fish"
+      rename "gnux-v1.4.0-linux-arm64/completions/gnux.zsh", "completions/gnux.zsh"
     end
     on_intel do
-      sha256 "0c02890e99ff41a369792c59578497985d7b705939f305d5f4b1ff174e0da4d0"
+      sha256 "f6b84dd21c5165a7d18e6b4c043b60270be23906e7fa14df4776db6c3fcb492a"
       url "https://github.com/braswelljr/gnux/releases/download/v#{version}/gnux-v#{version}-linux-amd64.tar.gz"
-      rename "gnux-v1.2.0-linux-amd64/gnux", "gnux"
-      rename "gnux-v1.2.0-linux-amd64/completions/gnux.bash", "completions/gnux.bash"
-      rename "gnux-v1.2.0-linux-amd64/completions/gnux.fish", "completions/gnux.fish"
-      rename "gnux-v1.2.0-linux-amd64/completions/gnux.zsh", "completions/gnux.zsh"
+      rename "gnux-v1.4.0-linux-amd64/gnux", "gnux"
+      rename "gnux-v1.4.0-linux-amd64/completions/gnux.bash", "completions/gnux.bash"
+      rename "gnux-v1.4.0-linux-amd64/completions/gnux.fish", "completions/gnux.fish"
+      rename "gnux-v1.4.0-linux-amd64/completions/gnux.zsh", "completions/gnux.zsh"
     end
   end
 
@@ -55,8 +55,8 @@ cask "gnux" do
 
   binary "gnux"
   bash_completion "completions/gnux.bash"
-  fish_completion "completions/gnux.fish"
   zsh_completion "completions/gnux.zsh"
+  fish_completion "completions/gnux.fish"
 
   # No zap stanza required
 
