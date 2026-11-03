@@ -52,7 +52,11 @@ func TestPortable(t *testing.T) {
 }
 
 func TestAgainstTheSystem(t *testing.T) {
+	// Relative names: an absolute one on Windows starts with a drive ("C:"),
+	// and GNU quotes a name holding ':' in its diagnostics.
 	dir := t.TempDir()
+	t.Chdir(dir)
+	dir = "."
 	file := filepath.Join(dir, "f")
 	if err := os.WriteFile(file, nil, 0o600); err != nil {
 		t.Fatal(err)

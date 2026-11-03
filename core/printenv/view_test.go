@@ -33,10 +33,10 @@ func TestColoredListing(t *testing.T) {
 		t.Fatalf("got  %q\nwant %q", got, want)
 	}
 	// A value asked for by name is data, and -0 is never colored.
-	if got := list(t, printenv.Options{Pretty: true, Color: true}, "PATH"); got != "/usr/bin:/bin\n" {
+	if got := list(t, printenv.Options{Pretty: true, Color: true}, "PATH"); got != "/usr/bin"+string(os.PathListSeparator)+"/bin\n" {
 		t.Fatalf("one value: %q", got)
 	}
-	if got := list(t, printenv.Options{Pretty: true, Color: true, Null: true}); got != "HOME=/home/ada\x00PATH=/usr/bin:/bin\x00EMPTY=\x00" {
+	if got := list(t, printenv.Options{Pretty: true, Color: true, Null: true}); got != "HOME=/home/ada\x00PATH=/usr/bin"+string(os.PathListSeparator)+"/bin\x00EMPTY=\x00" {
 		t.Fatalf("-0: %q", got)
 	}
 }

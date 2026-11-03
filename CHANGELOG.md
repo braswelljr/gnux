@@ -4,6 +4,13 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+### Fixed
+
+- `prx` on Windows names a directory operand as GNU does (`Is a directory`), not with the
+  system's `Incorrect function`.
+- The Windows test suite passes in full: the `pathchkx` and `printenvx` tests no longer expect
+  an unquoted drive path or a `:` list separator.
+
 ## [1.5.0] - 2026-11-03
 
 gnux 1.5.0 makes the terminal view's theme something you choose once. `gnux theme` opens a

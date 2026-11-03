@@ -879,7 +879,7 @@ func (p *Pr) getc(c *column) int {
 	b, err := c.in.ReadByte()
 	if err != nil {
 		if !errors.Is(err, io.EOF) {
-			p.fail("%s: %s", quotef(c.name), core.ErrText(err))
+			p.fail("%s: %s", quotef(c.name), readErrText(c.file, err))
 		}
 		return -1
 	}
@@ -1199,4 +1199,16 @@ func (p *Pr) readRestOfLine(c *column) {
 			return
 		}
 	}
+}
+
+// readErrText describes a failed read. Reading a directory fails with a
+// different error on each platform (EISDIR, or "Incorrect function" on
+// Windows), so a directory is named as GNU names it everywhere.
+func readErrText(f *os.File, err error) string {
+	if f != nil {
+		if info, serr := f.Stat(); serr == nil && info.IsDir() {
+			return "Is a directory"
+		}
+	}
+	return core.ErrText(err)
 }
