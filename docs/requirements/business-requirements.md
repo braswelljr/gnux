@@ -260,7 +260,7 @@ the tools that show tables, sizes, trees or listings use a shared, themeable vis
 - **Acceptance.** On a terminal the view is on by default; piped or redirected output, and every
   option that promises a machine format (`--zero`, `-0`, `-P`), is byte-for-byte GNU's. One
   variable (`GNUX_PRETTY`) or option (`--pretty=never`) restores GNU's look everywhere, and the
-  built-in themes (`GNUX_THEME`, `--theme`, shown by `gnux themes`) come in dark and light
+  built-in themes (`GNUX_THEME`, `--theme`, shown and chosen with `gnux theme`, which saves the choice for every tool) come in dark and light
   variants that follow the system's appearance, and include a monochrome one. Which tools have the
   view, and which are planned, is listed in
   [terminal-visuals](../workflows/terminal-visuals.md).

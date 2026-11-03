@@ -145,7 +145,7 @@ func TestControlCharacters(t *testing.T) {
 }
 
 func TestFailures(t *testing.T) {
-	dir := t.TempDir()
+	dir := inTempDir(t)
 	missing := filepath.Join(dir, "missing")
 	f := filepath.Join(dir, "f")
 	if err := os.WriteFile(f, []byte("ok\n"), 0o600); err != nil {
@@ -177,4 +177,13 @@ func TestLongInputBalancesTheLastPage(t *testing.T) {
 	if got := strings.Count(out, "Page "); got != 2 {
 		t.Fatalf("%d pages, want 2:\n%s", got, out)
 	}
+}
+
+// inTempDir moves the test into a new temporary directory and returns ".", so
+// that the names it builds are relative. An absolute name on Windows starts
+// with a drive ("C:"), and GNU quotes a name holding ':' in its diagnostics.
+func inTempDir(t *testing.T) string {
+	t.Helper()
+	t.Chdir(t.TempDir())
+	return "."
 }

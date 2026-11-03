@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/braswelljr/gnux/core"
+	"github.com/braswelljr/gnux/internal/config"
 )
 
 // When is the tri-state of --pretty: never, auto (on a terminal) or always.
@@ -46,7 +47,7 @@ func RegisterView(fs *pflag.FlagSet) {
 	fs.String("pretty", "", "the gnux terminal view `WHEN`: 'always' (the default when WHEN is omitted), "+
 		"'auto' (the default: on a terminal only), or 'never'; GNUX_PRETTY sets the default")
 	fs.Lookup("pretty").NoOptDefVal = "always"
-	fs.String("theme", "", "color the view with the built-in theme `NAME` (gnux themes shows them all); GNUX_THEME sets the default")
+	fs.String("theme", "", "color the view with the built-in theme `NAME` (gnux theme picks and saves one); GNUX_THEME sets the default")
 	OwnNames(fs, "pretty", "theme")
 }
 
@@ -96,7 +97,33 @@ func ViewOf(fs *pflag.FlagSet, terminal bool, name string, getenv func(string) s
 	}
 	v := View{Pretty: when.On(terminal), Theme: theme}
 	v.Color = v.Pretty && getenv("NO_COLOR") == "" && (terminal || when == Always) && getenv("TERM") != "dumb"
+	if v.Color && theme == "" && ThemeOfEnv(getenv("GNUX_THEME")) == "" {
+		v.Theme = SavedTheme(name, getenv, warn)
+	}
 	return v, nil
+}
+
+// SavedTheme is the theme saved with gnux theme, which the view takes when
+// neither --theme nor GNUX_THEME names one; "" when none is saved. Call it
+// only for colored output, so that a pipe never touches the file. A file
+// gnux would not have written is reported on warn and left alone.
+func SavedTheme(name string, getenv func(string) string, warn io.Writer) string {
+	theme, path, err := config.Theme(getenv)
+	if err != nil {
+		_, _ = fmt.Fprintf(warn, "%s: ignoring the saved theme in '%s': %v (gnux theme reset removes it)\n", name, path, err)
+		return ""
+	}
+	return theme
+}
+
+// ThemeOfEnv is the theme name in a GNUX_THEME value ("NAME" or
+// "NAME:KEY=CODE..."), "" when it holds only overrides.
+func ThemeOfEnv(spec string) string {
+	first, _, _ := strings.Cut(spec, ":")
+	if strings.Contains(first, "=") {
+		return ""
+	}
+	return strings.TrimSpace(first)
 }
 
 func validTheme(name string) bool {

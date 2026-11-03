@@ -123,7 +123,7 @@ func TestErrors(t *testing.T) {
 	if !errors.Is(err, core.ErrFailed) || errb != "ptxx: Unmatched ( or \\( (for regexp '\\\\(')\n" {
 		t.Fatalf("bad regexp: %v %q", err, errb)
 	}
-	missing := filepath.Join(t.TempDir(), "missing")
+	missing := filepath.Join(inTempDir(t), "missing")
 	_, errb, _ = run(Options{}, "", missing)
 	if errb != "ptxx: "+missing+": No such file or directory\n" {
 		t.Fatalf("missing file: %q", errb)
@@ -132,4 +132,13 @@ func TestErrors(t *testing.T) {
 	if _, _, err := run(Options{Traditional: true}, "", "a", "b", "c"); !errors.As(err, &usage) || usage.Msg != "extra operand 'c'" {
 		t.Fatalf("-G operands: %v", err)
 	}
+}
+
+// inTempDir moves the test into a new temporary directory and returns ".", so
+// that the names it builds are relative. An absolute name on Windows starts
+// with a drive ("C:"), and GNU quotes a name holding ':' in its diagnostics.
+func inTempDir(t *testing.T) string {
+	t.Helper()
+	t.Chdir(t.TempDir())
+	return "."
 }

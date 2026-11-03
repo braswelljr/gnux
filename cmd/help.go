@@ -161,16 +161,9 @@ func writeOverview(w io.Writer, st tool.Style) {
 }
 
 // The overview's decorations, matching the per-tool help.
-func heading(st tool.Style, s string) string { return paint(st, "1;36", s) }
-func command(st tool.Style, s string) string { return paint(st, "32", s) }
-func dim(st tool.Style, s string) string     { return paint(st, "2", s) }
-
-func paint(st tool.Style, code, s string) string {
-	if !st.Color {
-		return s
-	}
-	return "\x1b[" + code + "m" + s + "\x1b[0m"
-}
+func heading(st tool.Style, s string) string { return st.Heading(s) }
+func command(st tool.Style, s string) string { return st.Command(s) }
+func dim(st tool.Style, s string) string     { return st.Dim(s) }
 
 func pad(s string, n int) string {
 	return s + strings.Repeat(" ", max(0, n-len(s)))

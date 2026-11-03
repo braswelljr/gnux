@@ -477,6 +477,13 @@ func applyView(fs *pflag.FlagSet, o *ls.Options, terminal bool, getenv func(stri
 			o.Color = ls.WhenAuto
 		}
 	}
+	// The theme saved with gnux theme, when nothing names one and the
+	// listing may be colored.
+	if o.Color != ls.WhenNever && !given(fs, "theme") && tool.ThemeOfEnv(getenv("GNUX_THEME")) == "" {
+		if saved := tool.SavedTheme(ls.Name, getenv, s.Err); saved != "" {
+			o.Theme = saved
+		}
+	}
 	if latest(fs, sizeFlags) == "" && getenv("LS_BLOCK_SIZE") == "" && getenv("BLOCK_SIZE") == "" {
 		o.HumanReadable = true
 	}

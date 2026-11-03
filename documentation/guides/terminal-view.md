@@ -378,13 +378,56 @@ are GNU's; only the color is added.
 
 ## Themes
 
-`--theme=NAME` picks a built-in theme, and `gnux themes` shows every one of them, each on a
-sample row in its own colors, with a panel naming the theme in use and the background gnux
-has read:
+`gnux theme` opens a picker on your terminal, framed to fit it: tabs along the top group the
+themes (All, Adaptive, Dark, Light), a search line filters them as you type, the list shows each
+theme with its kind, and the theme under the cursor is drawn beside it on a long listing, Git's
+marks, a check's verdicts, usage bars and an environment line. A footer names the keys.
+
+| Key                                 | Does                                         |
+|-------------------------------------|----------------------------------------------|
+| Up, Down (Ctrl-P, Ctrl-N)           | move through the list                        |
+| Page Up, Page Down, Home, End       | move a page, or to either end                |
+| Tab, Shift-Tab (Right, Left)        | switch group                                 |
+| any text, Backspace, Ctrl-U         | filter by name, edit or clear the filter     |
+| Enter                               | keep the theme for every tool                |
+| Esc, Ctrl-C                         | clear the filter, then leave unchanged       |
+
+Adaptive holds each family's own name (it takes the dark or the light variant to suit your
+background) with `default` and `mono`, which use your terminal's colors. Choosing `default`
+removes the saved theme, so you are back where you started. The picker draws on the terminal's
+alternate screen, so your scrollback is as you left it, and a terminal too small for the frame
+gets a line asking for more room.
 
 ```bash
-gnux themes
+gnux theme                 # pick one with a live preview
+gnux theme set solarized   # keep one without the picker, from a script or your dotfiles
+gnux theme show            # the theme in use, and where it comes from
+gnux theme list            # every theme on a sample row (gnux themes is the same)
+gnux theme reset           # back to the default colors (as is gnux theme set default)
 ```
+
+The theme you keep is saved as its name in one small file: `$XDG_CONFIG_HOME/gnux/theme`, else
+`~/.config/gnux/theme` (`%AppData%\gnux\theme` on Windows), or `theme` in `GNUX_CONFIG_DIR`
+when you set that. Only the name of a built-in theme is accepted, only you may read or write
+the file, and it is replaced whole when it changes. A tool reads it only when its output is
+colored, so pipes and scripts never touch it. Each way of naming a theme wins over the next:
+`--theme=NAME` for one run, then `GNUX_THEME`, then the saved theme, then `default`. The help
+screens follow it too: `--help`, `gnux help` and the gnux mark take their heading, command and
+dimmed colors from the theme in use.
+
+What keeps it safe:
+
+- The file can only name a built-in theme. It never holds color codes, so nothing written into
+  it can reach your terminal as a command; a file holding anything else, larger than 64 bytes or
+  not a regular file is reported once and ignored, and the tools carry on in the default colors.
+- It is opened without blocking and checked as the file that was opened, so a named pipe put in
+  its place cannot make a tool wait, and nothing can be swapped in between the check and the read.
+- It is written to a temporary file in the same directory and renamed into place, so a tool
+  never reads half of it, and a link left at its path is replaced, not followed. The file is
+  readable and writable by you only, in a directory only you may enter.
+- The picker echoes only printable text, keeps the filter to 32 characters, reads the keyboard
+  through a fixed buffer, and restores the terminal whatever ends it: Enter, Esc, Ctrl-C, an
+  error, or a SIGTERM or SIGHUP.
 
 Most themes follow an editor theme and come in a dark and a light variant, named
 `FAMILY-dark` and `FAMILY-light`. Give the family's own name and gnux picks the variant that
@@ -404,11 +447,19 @@ suits your background:
 | `everforest`    | Everforest Dark and Everforest Light     |
 | `night-owl`     | Night Owl and Light Owl                  |
 | `high-contrast` | High-contrast colors on dark and on light |
+| `material`      | Material Darker and Material Lighter     |
+| `tomorrow`      | Tomorrow Night and Tomorrow              |
+| `selenized`     | Selenized Dark and Selenized Light       |
+| `flexoki`       | Flexoki Dark and Flexoki Light           |
+| `xcode`         | Xcode's Default Dark and Default Light   |
+| `ios`           | Apple's system colors in dark and light mode |
+| `colorful`      | gnux's own: every hue at full strength   |
+| `monochrome`    | gnux's own: shades of gray, no hues      |
 
-`dracula`, `nord`, `monokai`, `kanagawa`, `palenight` and `ayu-mirage` come in one, dark,
-variant. `default` uses the 16 basic terminal colors, so it follows your terminal's own
-scheme, and `mono` uses bold, underline and dim only: no hues, for monochrome terminals and
-color blindness. The named themes use 24-bit color, which current terminals show, Windows
+`dracula`, `nord`, `monokai`, `kanagawa`, `palenight`, `ayu-mirage`, `zenburn`, `synthwave`
+(after SynthWave '84), `horizon` and `moonlight` come in one, dark, variant. `default` uses
+the 16 basic terminal colors, so it follows your terminal's own scheme, and `mono` uses bold,
+underline and dim only: no color at all, for monochrome terminals and color blindness. The named themes use 24-bit color, which current terminals show, Windows
 Terminal included.
 
 ### Dark or light

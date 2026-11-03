@@ -34,7 +34,7 @@ func write(t *testing.T, path, content string) {
 }
 
 func TestOverwritesAndRoundsUp(t *testing.T) {
-	f := filepath.Join(t.TempDir(), "f")
+	f := filepath.Join(inTempDir(t), "f")
 	write(t, f, "hello")
 	s, errb := newEngine(shred.Options{Verbose: true})
 	if err := s.Run([]string{f}); err != nil {
@@ -97,7 +97,7 @@ func TestPatterns(t *testing.T) {
 }
 
 func TestRemoveRenamesFirst(t *testing.T) {
-	dir := t.TempDir()
+	dir := inTempDir(t)
 	f := filepath.Join(dir, "abc")
 	write(t, f, "x")
 	write(t, filepath.Join(dir, "0"), "")
@@ -121,7 +121,7 @@ func TestRemoveRenamesFirst(t *testing.T) {
 }
 
 func TestUnlink(t *testing.T) {
-	f := filepath.Join(t.TempDir(), "f")
+	f := filepath.Join(inTempDir(t), "f")
 	write(t, f, "x")
 	s, errb := newEngine(shred.Options{Remove: shred.Unlink, Verbose: true, Iterations: -1})
 	if err := s.Run([]string{f}); err != nil {
@@ -133,7 +133,7 @@ func TestUnlink(t *testing.T) {
 }
 
 func TestFailuresDoNotStopTheRest(t *testing.T) {
-	dir := t.TempDir()
+	dir := inTempDir(t)
 	f := filepath.Join(dir, "f")
 	write(t, f, "hello")
 	missing := filepath.Join(dir, "nope")
@@ -185,4 +185,13 @@ func TestMissingOperand(t *testing.T) {
 	if err := s.Run(nil); !errors.As(err, &usage) || usage.Msg != "missing file operand" {
 		t.Fatalf("err = %v", err)
 	}
+}
+
+// inTempDir moves the test into a new temporary directory and returns ".", so
+// that the names it builds are relative. An absolute name on Windows starts
+// with a drive ("C:"), and GNU quotes a name holding ':' in its diagnostics.
+func inTempDir(t *testing.T) string {
+	t.Helper()
+	t.Chdir(t.TempDir())
+	return "."
 }

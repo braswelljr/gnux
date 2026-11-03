@@ -23,6 +23,7 @@ type fileInfo struct {
 func (f fileInfo) Mode() os.FileMode  { return f.mode }
 func (f fileInfo) ModTime() time.Time { return f.mod }
 func (f fileInfo) Sys() any           { return nil }
+func (f fileInfo) Size() int64        { return 0 }
 
 var now = time.Date(2026, 10, 20, 12, 0, 0, 0, time.UTC)
 

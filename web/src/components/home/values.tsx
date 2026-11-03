@@ -1,4 +1,4 @@
-import { Boxes, Globe, Wrench } from 'lucide-react';
+import { Boxes, Globe, Palette, Wrench } from 'lucide-react';
 import { GridCell, Heading, Reveal, Section } from '@/components/ui';
 
 const values = [
@@ -22,10 +22,17 @@ const values = [
     title: 'Fixes, not just copies',
     description:
       'GNU flags and messages, minus its rough edges: dux reads trees in parallel, recursive chmodx refuses /, nicex and nohupx really work on Windows. Every difference is documented.'
+  },
+  {
+    icon: Palette,
+    tag: 'Themes',
+    title: 'Your colors, every tool',
+    description:
+      "More than fifty built-in themes, from Solarized and Xcode to iOS colors and monochrome. Pick one once with gnux theme and every tool uses it; pipes and scripts still get GNU's exact output."
   }
 ];
 
-/** Why gnux rather than a port: three promises, each kept in the code. */
+/** Why gnux rather than a port: four promises, each kept in the code. */
 export function Values() {
   return (
     <Section
@@ -33,7 +40,7 @@ export function Values() {
       index={3}
       label="Why gnux"
       bleed={
-        <ul className="grid gap-px border-t border-line bg-line md:grid-cols-3">
+        <ul className="grid gap-px border-t border-line bg-line md:grid-cols-2 xl:grid-cols-4">
           {values.map(({ icon: Icon, tag, title, description }, i) => (
             <li
               key={title}

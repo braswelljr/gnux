@@ -6,6 +6,7 @@ package pathchk
 import (
 	"errors"
 	"io/fs"
+	"path/filepath"
 	"strings"
 	"unicode/utf8"
 
@@ -111,6 +112,9 @@ func (p *Pathchk) check(file string) bool {
 			exists = true
 		case !errors.Is(err, fs.ErrNotExist) || file == "":
 			p.diag.Errorf("%s: %s", quotef(file), core.ErrText(err))
+			return false
+		case underFile(file):
+			p.diag.Errorf("%s: Not a directory", quotef(file))
 			return false
 		}
 	}
@@ -223,4 +227,22 @@ func components(file string) []string {
 		cs = append(cs, file[s.start:s.end])
 	}
 	return cs
+}
+
+// underFile reports whether the nearest existing directory above file is in
+// fact not a directory. POSIX's lstat says so itself (ENOTDIR); Windows says
+// only that the path is not found, which alone would read as "creatable".
+func underFile(file string) bool {
+	dir := filepath.Dir(file)
+	for {
+		info, err := fsys.Stat(dir)
+		if err == nil {
+			return !info.IsDir()
+		}
+		next := filepath.Dir(dir)
+		if next == dir || !errors.Is(err, fs.ErrNotExist) {
+			return false
+		}
+		dir = next
+	}
 }

@@ -1,6 +1,7 @@
 package env_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/braswelljr/gnux/core/env"
@@ -9,8 +10,10 @@ import (
 func TestColoredListing(t *testing.T) {
 	t.Setenv("GNUX_THEME", "")
 	opts := env.Options{IgnoreEnvironment: true, Pretty: true, Color: true}
-	r := run(opts, nil, "", "GOPATH=/go:/src", "A=b=c")
-	want := "\x1b[1;34mGOPATH\x1b[0m\x1b[90m=\x1b[0m/go\x1b[90m:\x1b[0m/src\n" +
+	// The view dims the list separator, which is ";" on Windows.
+	sep := string(os.PathListSeparator)
+	r := run(opts, nil, "", "GOPATH=/go"+sep+"/src", "A=b=c")
+	want := "\x1b[1;34mGOPATH\x1b[0m\x1b[90m=\x1b[0m/go\x1b[90m" + sep + "\x1b[0m/src\n" +
 		"\x1b[1;34mA\x1b[0m\x1b[90m=\x1b[0mb=c\n"
 	if r.stdout != want {
 		t.Fatalf("got  %q\nwant %q", r.stdout, want)

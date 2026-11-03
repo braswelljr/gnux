@@ -19,7 +19,7 @@ flowchart LR
 | `core/internal/visual`   | `Use(color, name, getenv, warn)` (the theme an engine paints with, nil when uncolored), `LoadTheme(name, getenv)`, `Resolve` and `Dark` (a family's variant for the background), `Theme.Paint(key, s)`, `Theme.Bar(fraction, width, unicode)`, `Theme.Progress` (a bar that never turns to the warning colors), `Line` (one line rewritten in place with `\r`, padded and cut to the terminal), `Clock`, `Theme.Box(title, lines, unicode)`, `Theme.Render(Table)` (a framed table that fits `Table.MaxWidth`), `Truncate`, `PaintMode`, `Theme.Report(line)`, `Width(s)`, `SizeKey`, `AgeKey`, `BranchesFor(getenv).Prefix(last)`, `Icon(name, kind)`, `Theme.EnvEntry(kv, listSep)` (a NAME=value entry, painted), `ByteKey(c)` and `BytesKey(b)` (a byte's class in a dump), `NewNames(lsColors).ModeColor(mode, name)` (a file name in its type's color, as GNU ls picks it from LS_COLORS: `lsx` and `findx` share it), `UTF8(getenv)`, `ThemeNames()`, `Preview` |
 | `core/internal/gitstat`  | `FindRoot(dir)`, `Open(root, getenv)`, `Repo.Status(path, isDir)`, `Repo.IsIgnored(path, isDir)`, `Repo.Close()` |
 | `internal/tool`          | `RegisterView(fs)` (the `--pretty[=WHEN]` and `--theme=NAME` options, as names of gnux's own), `ViewOf(fs, terminal, name, getenv, warn)`, `ReportView(fs, s, name, getenv)` (streams whose `Out` colors a `-v` report), `ResolvePretty`, `ParseWhen` |
-| `core`                   | `ThemeNames()`, `ReportWriter` and `WriteThemes`, for adapters and `gnux themes` (adapters cannot import `core/internal`); `TerminalWidth(w, getenv)`, the width a table must fit (`COLUMNS`, else the terminal's) |
+| `core`                   | `ThemeNames()`, `ReportWriter` and `WriteThemes`, `ThemeShowcase`, `ResolveTheme` and `UnicodeTerminal`, for adapters and `gnux theme` (adapters cannot import `core/internal`); `TerminalWidth(w, getenv)`, the width a table must fit (`COLUMNS`, else the terminal's) |
 
 A nil `*visual.Theme` paints nothing, so an engine holds `nil` for "no color" and calls `Paint`
 and `Bar` the same way either way: the uncolored view (under `NO_COLOR`) is the same code path
@@ -52,7 +52,7 @@ picks: `GNUX_BACKGROUND`, else the background in `COLORFGBG`, else `systemDark` 
 `defaults read -g AppleInterfaceStyle` on macOS, asked once per process; the
 `AppsUseLightTheme` registry value on Windows; `GTK_THEME` elsewhere), else dark. A new theme
 is one line in `schemes`; a new family also goes in `families`, and `TestFamilies` checks that
-both variants load and differ. `gnux themes` (`cmd/themes.go`, `visual.Preview`) draws every
+both variants load and differ. `gnux theme list` (`cmd/theme.go`, `visual.Preview`) draws every
 theme on a sample row; piped, it prints the names, one a line.
 
 ```text
@@ -206,7 +206,8 @@ not change the data.
 | `md5sumx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`, `sha512sumx`, `b2sumx`, `cksumx` | With `-c`: `OK` (key `ok`) and `FAILED` (key `er`) colored, and a count for each list (`2 OK, 1 FAILED`) |
 | `headx`, `tailx`      | The `==> file <==` headers in the heading color                          |
 | `cpx`, `mvx`, `rmx`, `lnx`, `installx`, `mkdirx`, `rmdirx`, `chmodx`, `chownx`, `chgrpx` | With `-v`: the verb (a removal red, a creation green), each quoted name (key `pa`) and the arrows colored, through `tool.ReportView` |
-| `gnux themes`         | Every theme on a sample row, in a box naming the theme in use and the background |
+| `gnux theme`          | A picker: the themes beside a live preview (`visual.Showcase`, `internal/themepick`); Enter saves the theme (`internal/config`), which `tool.ViewOf` and `lsx` read for colored output |
+| `gnux theme list`     | Every theme on a sample row, in a box naming the theme in use and the background (`gnux themes` is the same) |
 
 ### Planned
 

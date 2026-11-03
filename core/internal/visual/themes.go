@@ -86,6 +86,28 @@ var schemes = map[string]scheme{
 	"night-owl-light":     {"daaa01", "de3d3b", "08916a", "994cc3", "989fb1", "288ed7", "2aa298", "994cc3", "aa0982"},
 	"high-contrast-dark":  {"ffd700", "ff6b6b", "00ff7f", "ff79ff", "c0c0c0", "6fc3ff", "00ffff", "d7a6ff", "ffa500"},
 	"high-contrast-light": {"7a5c00", "b5200d", "116329", "9a1a9a", "3a3a3a", "0f4a85", "0b6168", "5c2a9e", "8f3d00"},
+	// Apple's system colors, as iOS and macOS draw them, and Xcode's default
+	// editor theme.
+	"ios-dark":        {"ffd60a", "ff453a", "30d158", "ff375f", "98989d", "0a84ff", "40c8e0", "bf5af2", "ff9f0a"},
+	"ios-light":       {"b25000", "d70015", "248a3d", "d30f45", "8a8a8e", "0040dd", "008299", "8944ab", "c93400"},
+	"xcode-dark":      {"d9c97c", "ff8170", "67b7a4", "ff7ab2", "7f8c98", "5dd8ff", "acf2e4", "dabaff", "ffa14f"},
+	"xcode-light":     {"815f03", "c41a16", "326d74", "9b2393", "5d6c79", "0b4f79", "1c6a7d", "6c36a9", "643820"},
+	"material-dark":   {"ffcb6b", "f07178", "c3e88d", "c792ea", "616161", "82aaff", "89ddff", "c792ea", "f78c6c"},
+	"material-light":  {"a86d00", "e53935", "5b8a26", "7c4dff", "7d8f98", "6182b8", "1f8a91", "945eb8", "d9541f"},
+	"tomorrow-dark":   {"f0c674", "cc6666", "b5bd68", "b294bb", "969896", "81a2be", "8abeb7", "b294bb", "de935f"},
+	"tomorrow-light":  {"a07a00", "c82829", "718c00", "8959a8", "8e908c", "4271ae", "3e999f", "8959a8", "c8650a"},
+	"selenized-dark":  {"dbb32d", "fa5750", "75b938", "f275be", "72898f", "4695f7", "41c7b9", "af88eb", "ed8649"},
+	"selenized-light": {"9c7a00", "d2212d", "489100", "ca4898", "909995", "0072d4", "009c8f", "8762c6", "c25d1e"},
+	"flexoki-dark":    {"d0a215", "d14d41", "879a39", "ce5d97", "878580", "4385be", "3aa99f", "8b7ec8", "da702c"},
+	"flexoki-light":   {"ad8301", "af3029", "66800b", "a02f6f", "6f6e69", "205ea6", "24837b", "5e409d", "bc5215"},
+	// colorful is gnux's own: every hue at full saturation, for a listing
+	// that is meant to be bright.
+	"colorful-dark":  {"ffd700", "ff3355", "00e676", "ff4fd8", "8a8fa8", "2f9bff", "00e5ff", "b388ff", "ff9100"},
+	"colorful-light": {"b8860b", "e0002a", "00a152", "c51162", "6b7280", "0062ff", "0097a7", "7c3aed", "e65100"},
+	// monochrome is gnux's own: shades of one gray, for those who want the
+	// view's emphasis without its hues (mono drops color altogether).
+	"monochrome-dark":  {"e0e0e0", "ffffff", "c8c8c8", "b0b0b0", "6e6e6e", "f5f5f5", "9e9e9e", "bdbdbd", "d6d6d6"},
+	"monochrome-light": {"3a3a3a", "000000", "4a4a4a", "5a5a5a", "9e9e9e", "1a1a1a", "616161", "505050", "2e2e2e"},
 	// Themes that come in one, dark, variant.
 	"dracula":    {"f1fa8c", "ff5555", "50fa7b", "ff79c6", "6272a4", "bd93f9", "8be9fd", "bd93f9", "ffb86c"},
 	"nord":       {"ebcb8b", "bf616a", "a3be8c", "b48ead", "616e88", "81a1c1", "88c0d0", "5e81ac", "d08770"},
@@ -93,6 +115,10 @@ var schemes = map[string]scheme{
 	"kanagawa":   {"e6c384", "e46876", "98bb6c", "d27e99", "727169", "7e9cd8", "7fb4ca", "957fb8", "ffa066"},
 	"palenight":  {"ffcb6b", "f07178", "c3e88d", "c792ea", "676e95", "82aaff", "89ddff", "c792ea", "f78c6c"},
 	"ayu-mirage": {"ffcc66", "f28779", "d5ff80", "dfbfff", "6c7a8b", "73d0ff", "95e6cb", "dfbfff", "ffa659"},
+	"zenburn":    {"f0dfaf", "cc9393", "7f9f7f", "dc8cc3", "709080", "8cd0d3", "93e0e3", "dc8cc3", "dfaf8f"},
+	"synthwave":  {"fede5d", "fe4450", "72f1b8", "ff7edb", "848bbd", "03edf9", "36f9f6", "b893ce", "f97e72"},
+	"horizon":    {"fab795", "e95678", "29d398", "ee64ac", "6c6f93", "26bbd9", "59e1e3", "b877db", "f09483"},
+	"moonlight":  {"ffc777", "ff757f", "c3e88d", "fca7ea", "7a88cf", "82aaff", "86e1fc", "c099ff", "ff966c"},
 }
 
 // families are the themes with a dark and a light variant, named
@@ -101,6 +127,7 @@ var schemes = map[string]scheme{
 var families = []string{
 	"catppuccin", "everforest", "github", "gruvbox", "high-contrast", "night-owl",
 	"one", "rose-pine", "solarized", "tokyo-night", "vscode", "ayu",
+	"ios", "xcode", "material", "tomorrow", "selenized", "flexoki", "colorful", "monochrome",
 }
 
 // themes are the built-in themes, each an overlay on the default one. The

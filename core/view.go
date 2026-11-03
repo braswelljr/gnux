@@ -76,3 +76,32 @@ func (l *LineWriter) Flush() error {
 func WriteThemes(w io.Writer, getenv func(string) string, color bool) error {
 	return visual.Preview(w, getenv, color, visual.UTF8(getenv))
 }
+
+// ThemeShowcase is a few lines of output in the colors of the built-in
+// theme name stands for (a family's variant from getenv): what a theme
+// picker shows beside its list. unicode draws bars and arrows in Unicode.
+func ThemeShowcase(name string, getenv func(string) string, unicode bool) []string {
+	return visual.Showcase(name, getenv, unicode)
+}
+
+// ResolveTheme gives the theme a built-in name stands for: a family's dark
+// or light variant (GNUX_BACKGROUND, COLORFGBG, the system's appearance),
+// and any other name as it is, lower-cased.
+func ResolveTheme(name string, getenv func(string) string) string {
+	return visual.Resolve(name, getenv)
+}
+
+// UnicodeTerminal reports whether the locale in getenv (LC_ALL, LC_CTYPE,
+// LANG) is UTF-8, so that a view may draw box lines, bars and arrows.
+func UnicodeTerminal(getenv func(string) string) bool {
+	return visual.UTF8(getenv)
+}
+
+// ThemeCode is the SGR code ("1;36") the built-in theme name stands for
+// gives key, a two-letter theme key as GNUX_THEME's overrides write them
+// ("pa", "ok", "xx"), with GNUX_THEME's overrides applied; "" when the key
+// is off. An unknown name gives the default theme's code.
+func ThemeCode(name, key string, getenv func(string) string) string {
+	t, _ := visual.LoadTheme(name, getenv)
+	return t.Code(key)
+}

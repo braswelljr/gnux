@@ -28,11 +28,11 @@ func Preview(w io.Writer, getenv func(string) string, color, unicode bool) error
 		background = "dark"
 	}
 	var b strings.Builder
-	b.WriteString(frame.Box("gnux themes", []string{
+	b.WriteString(frame.Box("gnux theme list", []string{
 		frame.Paint(Punctuation, "In use      ") + frame.Paint(TypeDir, inUse) + described(inUse, getenv),
 		frame.Paint(Punctuation, "Background  ") + background + frame.Paint(Punctuation, "  (GNUX_BACKGROUND, else COLORFGBG, else the system's appearance)"),
 		frame.Paint(Punctuation, "Try one     ") + "lsx -l --theme=NAME",
-		frame.Paint(Punctuation, "Keep one    ") + "export GNUX_THEME=NAME",
+		frame.Paint(Punctuation, "Keep one    ") + "gnux theme set NAME, or gnux theme to pick",
 	}, unicode))
 
 	width := 0
@@ -104,4 +104,31 @@ func sample(t *Theme, unicode bool) string {
 		t.Paint(Bad, "FAILED"),
 		t.Bar(0.8, 8, unicode),
 	}, " ")
+}
+
+// Showcase is how a theme looks on the output it colors, as a few lines a
+// theme picker can show beside its list: a long listing, Git's marks, a
+// check's verdicts and a usage bar, in the built-in theme a name stands for
+// (a family's variant from getenv). An unknown name shows the default.
+func Showcase(name string, getenv func(string) string, unicode bool) []string {
+	t, _ := LoadTheme(Resolve(name, getenv), func(string) string { return "" })
+	row := func(perm, size, sizeKey, age, ageKey, label string) string {
+		return PaintMode(t, perm) + "  " + t.Paint(sizeKey, size) + "  " + t.Paint(ageKey, age) + "  " + label
+	}
+	arrow := "->"
+	if unicode {
+		arrow = "→"
+	}
+	return []string{
+		row("drwxr-xr-x", "4.0K", SizeKilo, " 2h", AgeHour, t.Paint(TypeDir, "src/")),
+		row("-rwxr-xr-x", " 12K", SizeKilo, " 3d", AgeDay, t.Paint(Good, "build.sh")),
+		row("lrwxrwxrwx", "  9B", SizeByte, " 1w", AgeWeek, t.Paint(TypeLink, "docs")+" "+t.Paint(Punctuation, arrow)+" guide/"),
+		row("-rw-r--r--", "4.2M", SizeMega, "5mo", AgeMonth, "notes.md"),
+		row("-rw-------", "1.1G", SizeGiga, " 2y", AgeYear, "backup.tar"),
+		"",
+		t.Paint(GitMod, "M") + " main.go  " + t.Paint(GitNew, "N") + " todo.txt  " + t.Paint(GitDel, "D") + " old.c  " + t.Paint(GitIgnore, "! dist/"),
+		"image.iso: " + t.Paint(Good, "OK") + "   disk.img: " + t.Paint(Bad, "FAILED"),
+		t.Paint(Heading, "Disk") + "  " + t.Bar(0.42, 10, unicode) + " 42%   " + t.Bar(0.93, 10, unicode) + " " + t.Paint(BarAlert, "93%"),
+		t.Paint(EnvName, "PATH") + t.Paint(Punctuation, "=") + "/usr/bin" + t.Paint(Punctuation, ":") + "/bin",
+	}
 }

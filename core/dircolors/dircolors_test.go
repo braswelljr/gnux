@@ -77,7 +77,7 @@ func TestPrintLsColors(t *testing.T) {
 }
 
 func TestDatabaseMistakes(t *testing.T) {
-	f := filepath.Join(t.TempDir(), "db")
+	f := filepath.Join(inTempDir(t), "db")
 	if err := os.WriteFile(f, []byte("TYPO 1\nTERM *\nDIR\nBOGUS 1\nLINK 36\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +87,7 @@ func TestDatabaseMistakes(t *testing.T) {
 	if !errors.Is(err, core.ErrFailed) || out != "" || errb != want {
 		t.Fatalf("err=%v stdout=%q stderr=%q", err, out, errb)
 	}
-	missing := filepath.Join(t.TempDir(), "missing")
+	missing := filepath.Join(inTempDir(t), "missing")
 	_, errb, _ = run(dircolors.Options{Shell: dircolors.Bourne}, nil, "", missing)
 	if errb != "dircolorsx: "+missing+": No such file or directory\n" {
 		t.Fatalf("missing: %q", errb)
@@ -118,4 +118,13 @@ func TestUsage(t *testing.T) {
 			t.Errorf("%+v %v: err = %v", tt.opts, tt.args, err)
 		}
 	}
+}
+
+// inTempDir moves the test into a new temporary directory and returns ".", so
+// that the names it builds are relative. An absolute name on Windows starts
+// with a drive ("C:"), and GNU quotes a name holding ':' in its diagnostics.
+func inTempDir(t *testing.T) string {
+	t.Helper()
+	t.Chdir(t.TempDir())
+	return "."
 }

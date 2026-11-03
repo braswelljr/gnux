@@ -56,7 +56,9 @@ const nextConfig: NextConfig = {
     // v1.x folder leads to the same page of the latest docs.
     return [
       { source: '/docs/:version(v1\\.\\d+)', destination: '/docs', permanent: true },
-      { source: '/docs/:version(v1\\.\\d+)/:path*', destination: '/docs/:path*', permanent: true }
+      { source: '/docs/:version(v1\\.\\d+)/:path*', destination: '/docs/:path*', permanent: true },
+      // gnux themes became gnux theme in 1.5.0, and its page moved with it.
+      { source: '/docs/themes', destination: '/docs/theme', permanent: true }
     ];
   }
 };

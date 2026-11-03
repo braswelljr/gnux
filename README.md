@@ -530,15 +530,22 @@ dfx -h                            # a usage bar per disk, red when nearly full
 dux -h -d 1 ~                     # each folder's share of your home folder
 grepx -r TODO src/                # each file's matches under its name, numbered
 sha256sumx -c checksums.txt       # OK in green, FAILED in red, and a count
-gnux themes                       # every built-in theme, drawn in its colors
+gnux theme                        # pick a theme with a live preview, and keep it
 ```
 
-Pick a built-in theme with `--theme`: `vscode`, `github`, `one`, `solarized`, `gruvbox`,
-`catppuccin`, `tokyo-night`, `ayu`, `rose-pine`, `everforest`, `night-owl` and `high-contrast`
-each come in a dark and a light variant that follows your system's appearance (or
-`GNUX_BACKGROUND`), beside `dracula`, `nord`, `monokai`, `kanagawa`, `palenight`, `default` and
-`mono`. Make your choice the default with `GNUX_THEME`, `GNUX_ICONS` and `GNUX_PRETTY`, or switch
-the view off with `GNUX_PRETTY=never`. The
+`gnux theme` opens a picker: the built-in themes in tabs (all, adaptive, dark, light) beside a
+live preview, filtered as you type, Enter to keep one for every tool and for their help screens
+(`gnux theme set NAME` does it from a script; `gnux theme reset`, or choosing `default`, undoes
+it). The choice is one built-in name in `~/.config/gnux/theme`, private to you, read only when
+output is colored and refused if it holds anything else, so it can never put codes of its own
+on your terminal. `vscode`, `github`, `one`, `solarized`, `gruvbox`, `catppuccin`, `tokyo-night`,
+`ayu`, `rose-pine`, `everforest`, `night-owl`, `high-contrast`, `material`, `tomorrow`,
+`selenized`, `flexoki`, `xcode`, `ios` (Apple's system colors), `colorful` and `monochrome` each
+come in a dark and a light variant that follows your system's appearance (or `GNUX_BACKGROUND`),
+beside `dracula`, `nord`, `monokai`, `kanagawa`, `palenight`, `ayu-mirage`, `zenburn`,
+`synthwave`, `horizon`, `moonlight`, `default` and `mono`. One run takes `--theme`, and
+`GNUX_THEME`, `GNUX_ICONS` and `GNUX_PRETTY` set defaults in the environment; switch the view off
+with `GNUX_PRETTY=never`. The
 [Terminal view guide](documentation/guides/terminal-view.md) has it all.
 
 ## Documentation

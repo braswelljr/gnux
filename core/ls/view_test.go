@@ -140,13 +140,15 @@ func TestIconsInColumns(t *testing.T) {
 func TestHeaderAndOctal(t *testing.T) {
 	dir := t.TempDir()
 	touch(t, dir, "f")
-	if err := os.Chmod(filepath.Join(dir, "f"), 0o640); err != nil {
+	// A mode Windows can hold: it keeps only a read-only flag.
+	t.Cleanup(func() { _ = os.Chmod(filepath.Join(dir, "f"), 0o644) })
+	if err := os.Chmod(filepath.Join(dir, "f"), 0o444); err != nil {
 		t.Fatal(err)
 	}
 	t.Chdir(dir)
 	got := list(t, ls.Options{Format: ls.FormatLong, Header: true, OctalPermissions: true, NoOwner: true, NoGroup: true, TimeStyle: "long-iso"}, "f")
 	want := "Octal Permissions Links Size Modified         Name\n" +
-		"0640  -rw-r-----      1    0 "
+		"0444  -r--r--r--      1    0 "
 	if !strings.HasPrefix(got, want) || !strings.HasSuffix(got, " f\n") {
 		t.Errorf("header:\n%s\nwant it to start:\n%s", got, want)
 	}

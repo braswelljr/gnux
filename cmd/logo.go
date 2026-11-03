@@ -37,14 +37,14 @@ const logoWidth = 24
 // that help read by a script or a pipe is unchanged.
 func writeLogo(w io.Writer, st tool.Style, tools int) {
 	side := map[int]string{
-		3: st.Paint("1", common.AppName) + " " + st.Paint("2", common.Version),
+		3: st.Paint("1", common.AppName) + " " + st.Dim(common.Version),
 		5: "The GNU core utilities' interface,",
 		6: "on every platform, in one Go binary.",
-		8: fmt.Sprintf("%d tools: %s", tools, st.Paint("32", "gnux --list")),
-		9: "A tool's manual: " + st.Paint("32", "gnux help rmx"),
+		8: fmt.Sprintf("%d tools: %s", tools, st.Command("gnux --list")),
+		9: "A tool's manual: " + st.Command("gnux help rmx"),
 	}
 	for i, line := range logo {
-		fmt.Fprint(w, st.Paint("36", line))
+		fmt.Fprint(w, st.Mark(line))
 		if text, ok := side[i]; ok {
 			pad := logoWidth - len([]rune(line)) + 4
 			fmt.Fprint(w, strings.Repeat(" ", pad), text)

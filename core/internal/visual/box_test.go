@@ -43,7 +43,7 @@ func TestPreview(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := b.String()
-	for _, want := range []string{"gnux themes", "github-light", "light", "●"} {
+	for _, want := range []string{"gnux theme list", "github-light", "light", "●"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("preview lacks %q", want)
 		}

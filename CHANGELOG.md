@@ -4,11 +4,63 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-03
+
+gnux 1.5.0 makes the terminal view's theme something you choose once. `gnux theme` opens a
+picker with a live preview of each theme on real-looking output, and Enter keeps the theme for
+every tool; `gnux theme set`, `show` and `reset` do the same from a script. Twenty built-in
+themes join the 32: Apple's system colors (`ios`) and Xcode's, Material, Tomorrow,
+Selenized, Flexoki, gnux's own `colorful` and `monochrome`, and the dark Zenburn, SynthWave '84,
+Horizon and Moonlight. The release also fixes `syncx` and `pathchkx` on Windows, where the test
+suite passes again.
+
+### Added
+
+- `gnux theme`: on a terminal, a picker of the built-in themes in a frame fitted to the
+  terminal: tabs grouping them (All, Adaptive, Dark, Light), a search line that filters as you
+  type, the list with each theme's kind, the theme under the cursor drawn beside it on a long
+  listing, Git's marks, a check's verdicts, usage bars and an environment line, and a footer of
+  key hints; Enter saves, Esc leaves, and the alternate screen keeps your scrollback. `gnux theme
+  set NAME`, `show` and `reset` do it from scripts, choosing `default` resets, and `gnux theme
+  list` is what `gnux themes` now runs (FR-184, FR-187).
+- Help follows the theme: `--help`, `gnux help` and the gnux mark take their heading, command and
+  dimmed colors from the theme in use (they keep their colors when none is chosen).
+- The saved theme: one built-in name in `~/.config/gnux/theme` (`$XDG_CONFIG_HOME/gnux`,
+  `%AppData%\gnux` on Windows, or `GNUX_CONFIG_DIR`), used by every tool when neither `--theme`
+  nor `GNUX_THEME` names a theme, and read only for colored output. Only a built-in name is
+  accepted: a file holding anything else, larger than 64 bytes or not a regular file is reported
+  and ignored. It is opened without blocking and checked through the open file, so a named pipe
+  cannot hang a tool and nothing can be swapped in between; it is written whole (renamed into
+  place, never through a link), readable by its owner only. The picker echoes only printable
+  text and restores the terminal however it ends.
+- Twenty themes: the families `ios`, `xcode`, `material`, `tomorrow`, `selenized`, `flexoki`,
+  `colorful` and `monochrome` (each `-dark` and `-light`), and the dark `zenburn`, `synthwave`,
+  `horizon` and `moonlight`. Every color reads at a contrast of at least 3:1 on its theme's
+  background.
+- `core.ThemeShowcase`, `core.ResolveTheme` and `core.UnicodeTerminal` for library users who
+  draw themes themselves.
+
 ### Changed
+
+- The website's home page has a fourth promise, the themes, and the docs say how to choose one.
+- Every tool's `--theme` help points to `gnux theme`, and the `gnux theme list` panel suggests
+  `gnux theme set NAME` to keep a theme. The website's `/docs/themes` page is now `/docs/theme`
+  (the old address redirects).
 
 - The website builds on Node.js 26 (the current LTS): `web/package.json` pins `"node": "26.x"`, so Vercel no longer
   moves it to a new major version on its own, and CI sets up Node.js 26. pnpm moves to 12.16.1,
   which records itself in `web/pnpm-lock.yaml` so every install uses that exact release.
+
+### Fixed
+
+- `syncx FILE` on Windows no longer fails with `Permission denied`: Windows flushes a file only
+  through a handle open for writing, so a refusal on GNU's read-only handle is retried on a
+  write-only one.
+- `pathchkx` on Windows reports `Not a directory` for a name under a regular file
+  (`file/x`), as on POSIX systems, instead of passing it as a name that could be created.
+- The test suite passes on Windows again: tests no longer expect unquoted absolute paths
+  (`C:` holds a `:`, which GNU quotes), a fixed `:` list separator, or a permission mode
+  Windows cannot store.
 
 ## [1.4.0] - 2026-11-03
 
@@ -551,7 +603,8 @@ reach Homebrew, Scoop, winget, the Snap Store, the AUR and `.deb` / `.rpm` / `.a
 
 - The project is now gnux, a portable implementation of the GNU core utilities. `rmx`, which it started as, was rewritten as one of its tools, with GNU's full `rm` flag surface.
 
-[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/braswelljr/gnux/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/braswelljr/gnux/compare/v1.2.0...v1.4.0
 [1.2.0]: https://github.com/braswelljr/gnux/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/braswelljr/gnux/compare/v1.0.0...v1.1.0

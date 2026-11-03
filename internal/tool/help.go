@@ -30,16 +30,43 @@ type Style struct {
 	// TERM=dumb), color or not: decoration only a person sees, such as the
 	// logo on gnux's own help, goes there and nowhere else.
 	Terminal bool
+	// The colors of headings, commands, dimmed text and gnux's mark, as
+	// SGR codes; empty ones take the fixed defaults (cyan, green, dim and
+	// cyan). StyleFor fills them from the theme in use.
+	HeadingCode, CommandCode, DimCode, MarkCode string
 }
 
 // StyleFor returns the style for help written to w: color only on a terminal,
 // and never when NO_COLOR is set or TERM is "dumb" (https://no-color.org).
 func StyleFor(w io.Writer) Style {
 	terminal := core.IsTerminal(w) && os.Getenv("TERM") != "dumb"
-	return Style{
+	st := Style{
 		Color:    terminal && os.Getenv("NO_COLOR") == "",
 		Terminal: terminal,
 	}
+	if st.Color {
+		st = st.WithTheme(os.Getenv)
+	}
+	return st
+}
+
+// WithTheme colors st as the theme in use does: the one GNUX_THEME names,
+// else the one saved with gnux theme. With neither, st keeps the fixed
+// colors, so help looks as it always has. A bad saved theme is left to the
+// tools to report; help only skips it.
+func (st Style) WithTheme(getenv func(string) string) Style {
+	name := ThemeOfEnv(getenv("GNUX_THEME"))
+	if name == "" {
+		name = SavedTheme("", getenv, io.Discard)
+	}
+	if name == "" {
+		return st
+	}
+	st.HeadingCode = core.ThemeCode(name, "pa", getenv)
+	st.CommandCode = core.ThemeCode(name, "ok", getenv)
+	st.DimCode = core.ThemeCode(name, "xx", getenv)
+	st.MarkCode = core.ThemeCode(name, "ln", getenv)
+	return st
 }
 
 // Paint wraps s in the SGR code (such as "1;36") when the style has color.
@@ -52,10 +79,24 @@ func (st Style) wrap(code, s string) string {
 	return "\x1b[" + code + "m" + s + "\x1b[0m"
 }
 
-func (st Style) heading(s string) string { return st.wrap("1;36", s) }
+func (st Style) heading(s string) string { return st.wrap(or(st.HeadingCode, "1;36"), s) }
 func (st Style) strong(s string) string  { return st.wrap("1", s) }
-func (st Style) dim(s string) string     { return st.wrap("2", s) }
-func (st Style) command(s string) string { return st.wrap("32", s) }
+func (st Style) dim(s string) string     { return st.wrap(or(st.DimCode, "2"), s) }
+func (st Style) command(s string) string { return st.wrap(or(st.CommandCode, "32"), s) }
+
+// Heading, Command, Dim and Mark paint s as help's headings, commands,
+// dimmed text and gnux's mark are painted.
+func (st Style) Heading(s string) string { return st.heading(s) }
+func (st Style) Command(s string) string { return st.command(s) }
+func (st Style) Dim(s string) string     { return st.dim(s) }
+func (st Style) Mark(s string) string    { return st.wrap(or(st.MarkCode, "36"), s) }
+
+func or(code, fallback string) string {
+	if code == "" {
+		return fallback
+	}
+	return code
+}
 
 // synopsis returns the usage line: the tool's own, or "gnux <use>" for a gnux
 // command that is not a tool.

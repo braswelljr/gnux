@@ -52,7 +52,7 @@ gnux/
     root.go                # NewRoot(streams) - gnux root command, one subcommand per tool
     registry.go            # Tools() / Commands() / Lookup(name) - THE list of tools
     shell.go               # `gnux shell` command (ShellSpec) + NewShell for library use
-    themes.go              # `gnux themes` command (ThemesSpec): every built-in theme, drawn
+    theme.go               # `gnux theme` command (ThemeSpec): the picker, list, show, set, reset; `gnux themes` = list
     docs/                  # Reference generator (cobra/doc: md/man/yaml/rest); tool-only dep
     <gnu>x/                # One adapter package per tool: Spec, Meta, Register, buildOptions, run
     rmx/<flag>/            # rmx alone keeps one sub-package per flag (force, interactive, …)
@@ -71,6 +71,8 @@ gnux/
     tool/                  # tool.Spec / tool.Topic, Spec.Command, --help/--version handling
     sandbox/               # Enter(Policy): Landlock (Linux), Seatbelt (macOS), AppContainer (Windows)
     mcp/                   # a small MCP server (JSON-RPC 2.0 over stdio) for `gnux mcp`
+    config/                # the saved theme: one built-in name in <config dir>/gnux/theme
+    themepick/             # the theme picker: a pure Model (keys, filter, frames) and Run on a terminal
   tools/gendocs/           # `go run ./tools/gendocs [dir] [format]` - reference generator
   tools/wasm/              # js/wasm entry point for the playground (build tag js && wasm)
   tools/changelog/         # `go run ./tools/changelog vX.Y.Z` - a release's CHANGELOG.md section
@@ -293,13 +295,20 @@ NFR-53, NFR-54).
   A machine format (`lsx --zero`, `dux -0`, `dfx -P`) always wins. The engine side is fields of
   its own (`Pretty`, `Color`, `Theme`) whose zero value is GNU's output: only adapters set them.
 - **One palette.** Colors come from two-letter theme keys (`visual.Size`, `visual.GitMod`,
-  `visual.Heading`, ...) through `visual.Use` / `visual.LoadTheme` (default < `--theme`/`GNUX_THEME`
-  name < `GNUX_THEME` overrides); a nil `*visual.Theme` paints nothing. Never hardcode an escape
-  in a tool, and never name another program's theme variables.
+  `visual.Heading`, ...) through `visual.Use` / `visual.LoadTheme` (default < saved theme <
+  `GNUX_THEME` name < `--theme` < `GNUX_THEME` overrides); a nil `*visual.Theme` paints nothing.
+  Never hardcode an escape in a tool, and never name another program's theme variables.
 - **Themes come in pairs.** Most are a `scheme` after an editor theme, as `FAMILY-dark` and
   `FAMILY-light`; the family's name picks one by `visual.Dark` (`GNUX_BACKGROUND`, `COLORFGBG`,
-  the system's appearance in build-tagged `background_*.go`, else dark). `gnux themes`
-  (`cmd/themes.go`, in `Commands()` like `shell` and `mcp`) shows them all.
+  the system's appearance in build-tagged `background_*.go`, else dark). A new scheme also needs
+  its `surfaces` entry (a test checks), and every color should read at 3:1 on that background.
+  `gnux theme` (`cmd/theme.go`, in `Commands()` like `shell` and `mcp`) is the picker and
+  `list`/`show`/`set`/`reset`; `gnux themes` runs `gnux theme list`.
+- **The saved theme** (`internal/config`) is one built-in name, read by `tool.ViewOf` (and
+  `lsx`'s `applyView`) through `tool.SavedTheme` only for colored output and only when neither
+  `--theme` nor a `GNUX_THEME` name is given. Engines never read it: the adapter passes the name
+  in. Help (`tool.StyleFor` → `Style.WithTheme`) takes its colors from the same theme. Tests
+  that must not see a developer's saved theme set `GNUX_CONFIG_DIR`.
 - **Panels and tables:** `Theme.Box` and `Theme.Render(visual.Table{..., MaxWidth:
   core.TerminalWidth(out, getenv)})` draw the framed layouts (`statx`, `dfx`, `wcx`); a table
   never wraps, it cuts its widest text column with `…`.

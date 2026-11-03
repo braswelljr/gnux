@@ -4176,27 +4176,62 @@ tools to an AI agent over the Model Context Protocol, sandboxed to DIR.
 - **Verified by.** `internal/mcp/mcp_test.go` (the protocol), `cmd/mcp_test.go` (the output
   limit, the directory check, the result text).
 
-### FR-184: gnux themes
+### FR-184: gnux theme list
 
-`gnux themes [--pretty[=WHEN]] [--theme=NAME]` must show the built-in themes of the terminal view
-(BR-13).
+`gnux theme list [--pretty[=WHEN]] [--theme=NAME]`, and its alias `gnux themes`, must show the
+built-in themes of the terminal view (BR-13).
 
 - **Acceptance.** The themes are `default` (the 16 basic colors), `mono` (bold, dim and
   underline only), a dark and a light variant of each family (`vscode`, `github`, `one`,
   `solarized`, `gruvbox`, `catppuccin`, `tokyo-night`, `ayu`, `rose-pine`, `everforest`,
-  `night-owl`, `high-contrast`), named `FAMILY-dark` and `FAMILY-light`, and the dark-only
-  `dracula`, `nord`, `monokai`, `kanagawa`, `palenight` and `ayu-mirage`. A family's own name,
+  `night-owl`, `high-contrast`, `material`, `tomorrow`, `selenized`, `flexoki`, `xcode`, `ios`,
+  `colorful`, `monochrome`), named `FAMILY-dark` and `FAMILY-light`, and the dark-only
+  `dracula`, `nord`, `monokai`, `kanagawa`, `palenight`, `ayu-mirage`, `zenburn`, `synthwave`,
+  `horizon` and `moonlight`. Every color of a new theme reads at a contrast of at least 3:1 on
+  its own background, its comment gray aside. A family's own name,
   wherever a theme is named (`--theme`, `GNUX_THEME`), takes the variant for the background:
   `GNUX_BACKGROUND` (`dark` or `light`) when set, else the background color in `COLORFGBG`
   (0 to 6 and 8 dark), else the system's appearance (macOS dark mode, the Windows app mode, a
-  `GTK_THEME` naming dark), else dark. On a terminal `gnux themes` draws a box naming the theme
+  `GTK_THEME` naming dark), else dark. On a terminal `gnux theme list` draws a box naming the theme
   in use (and the variant a family resolved to) and the background, then each family with its
   variant and each theme, every one on a sample row in its own colors, the one in use marked;
   otherwise, or under `NO_COLOR`, it prints every name, one a line, sorted. An operand is a
   usage error.
 - **Verified by.** `core/internal/visual/visual_test.go` (`TestFamilies`, `TestDark`),
-  `core/internal/visual/box_test.go` (`TestPreview`), and the registry checks in
-  `cmd/main_test.go`.
+  `core/internal/visual/box_test.go` (`TestPreview`), `cmd/theme_test.go`
+  (`TestThemeListAndTheThemesAlias`), and the registry checks in `cmd/main_test.go`.
+
+### FR-187: gnux theme: the picker and the saved theme
+
+`gnux theme [show | set NAME | reset]` must let a user choose a built-in theme once for every
+tool (BR-13).
+
+- **Acceptance.** With input and output on a terminal, `gnux theme` opens a picker on the
+  alternate screen, in a frame: a title, tabs (All, Adaptive, Dark, Light; Tab and Shift-Tab),
+  a search line with the cursor's place among the matches, the themes in a list with their
+  kind beside the one under the cursor drawn on sample output (`core.ThemeShowcase`), and a
+  footer of key hints (as many whole hints as fit, the most needed first). Arrow, paging, Home
+  and End keys move, typed printable text filters by name (32 characters at most; a control
+  character is never echoed), Enter saves, Esc (after clearing a filter) or Ctrl-C leaves
+  unchanged. Every frame fits the terminal (no line wider, no more lines than it has; a
+  terminal under 24 by 8 gets one line asking for room) and is written at once. Saving
+  `default`, in the picker or with `set`, removes the saved theme as `reset` does. The
+  terminal is restored however the picker ends, a SIGTERM or SIGHUP included. Otherwise
+  `gnux theme`, like `gnux theme show`, prints the theme in use (the name alone through a pipe).
+  `set NAME` takes a built-in name only (another is a usage error listing them) and `reset`
+  removes the saved theme. The saved theme is one name in `theme` under `GNUX_CONFIG_DIR`, else
+  `$XDG_CONFIG_HOME/gnux` (an absolute path only), else `~/.config/gnux` (`%AppData%\gnux` on
+  Windows): written aside and renamed into place, mode 0600 in a 0700 directory. A tool reads
+  it only for colored output and only when neither `--theme` nor a theme name in `GNUX_THEME`
+  is given; it is opened without blocking (O_NONBLOCK on Unix), then checked through the open
+  file to be a regular file of at most 64 bytes naming a built-in theme, and anything else is
+  reported on standard error and ignored. Help (`--help`, `gnux help`, the gnux mark) takes its
+  colors from the same theme when it is colored, and keeps its fixed colors when no theme is
+  named or saved.
+- **Verified by.** `internal/config/config_test.go`, `internal/config/config_unix_test.go`
+  (`TestFIFOIsRefusedWithoutBlocking`), `internal/themepick/themepick_test.go`
+  (`TestFrameFitsTheTerminal`, `TestTabsGroupTheThemes`), `internal/tool/style_theme_test.go`
+  (`TestHelpFollowsTheTheme`), `cmd/theme_test.go`.
 
 ## 6. The Go library
 

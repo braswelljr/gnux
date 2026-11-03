@@ -10,7 +10,7 @@ import (
 )
 
 func TestPrettyVerbose(t *testing.T) {
-	f := filepath.Join(t.TempDir(), "disk.img")
+	f := filepath.Join(inTempDir(t), "disk.img")
 	write(t, f, strings.Repeat("x", 200*1024))
 	s, errb := newEngine(shred.Options{Iterations: 2, Exact: true, Verbose: true, Remove: shred.Unlink, Pretty: true})
 	clock := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)

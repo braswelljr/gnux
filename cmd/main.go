@@ -40,10 +40,14 @@ func Main(argv []string, s core.Streams) int {
 		// script should not wait for every tool's command to be built.
 		// Match the name before building a spec: building one writes out
 		// its documentation, which a script run should not pay for.
-		for name, spec := range map[string]func() tool.Spec{"shell": ShellSpec, "mcp": MCPSpec, "themes": ThemesSpec} {
+		for name, spec := range map[string]func() tool.Spec{"shell": ShellSpec, "mcp": MCPSpec, "theme": ThemeSpec} {
 			if args[0] == name {
 				return runCommand(spec().Command(s), args[1:], s)
 			}
+		}
+		// gnux themes, the command before gnux theme, lists the themes.
+		if args[0] == "themes" {
+			return runCommand(ThemeSpec().Command(s), append([]string{"list"}, args[1:]...), s)
 		}
 	}
 	return execute(NewRoot(s), args, s)
