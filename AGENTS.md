@@ -511,7 +511,7 @@ release of each major version but the newest, checks its archive against `checks
 made before 1.4.0 holds a `vX.Y/` folder, which it files under `vX` with the links rewritten. On
 CI and Vercel a failed download or check fails the build; a release with no archive is reported
 and skipped. An older version's pages are not prerendered: they render on their first visit and
-are cached (`generateStaticParams` keeps the latest docs only), and so are the Open Graph images,
+are cached (`generateStaticParams` keeps the latest docs, without the per-option pages, which also render on first visit), and so are the Open Graph images,
 which keeps the build's time and memory those of one set of docs. `next.config.ts` redirects the
 old per-minor addresses (`/docs/v1.1/...`) to the latest docs. `pnpm build` runs
 `next build --webpack` with at most four page workers: with Turbopack the build ran past the 8 GB

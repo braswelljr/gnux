@@ -22,7 +22,7 @@
 // Go, and GNUX_DOCS_VERSIONS=0 to skip the releases' docs.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchDocsVersions } from './docs-versions.mjs';
@@ -167,10 +167,12 @@ const steps = [
       );
       if (!built) return false;
       const goroot = output(go, ['env', 'GOROOT'], env);
-      copyFileSync(
-        join(goroot, 'lib', 'wasm', 'wasm_exec.js'),
-        join(web, 'public', 'wasm_exec.js')
-      );
+      // Not copyFileSync: it keeps the source's mode, and a toolchain in the
+      // module cache is read-only, so the next build could not replace the copy.
+      const wasmExec = join(web, 'public', 'wasm_exec.js');
+      const contents = readFileSync(join(goroot, 'lib', 'wasm', 'wasm_exec.js'));
+      rmSync(wasmExec, { force: true });
+      writeFileSync(wasmExec, contents);
       return true;
     }
   }

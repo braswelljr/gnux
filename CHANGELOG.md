@@ -7,6 +7,10 @@ Every notable change to gnux, release by release, newest first. The format follo
 ### Changed
 
 - The website's generated docs, YAML reference and wasm are built locally by the pre-commit hook and committed. Vercel deploys them and no longer runs Go or downloads release docs.
+- Only the main docs pages are prerendered. Each option's page renders on its first visit and is then cached, which keeps the website's build output small.
+- Dependabot branches, commits and merges no longer start a Vercel build. Their updates reach the website with the next ordinary commit.
+- The website reports page views to Vercel Web Analytics, without query strings, so a command in the playground's address is never sent.
+- Updated the Go modules, the website's packages and the Go toolchain (1.26.11). `pflag` stays at 1.0.10, because 1.1.0 changes how options are listed.
 
 ## [1.5.1] - 2026-11-03
 

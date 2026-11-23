@@ -23,6 +23,15 @@ export function pageVersion(slugs: string[]): string | null {
   return first !== undefined && versionFolder.test(first) ? first : null;
 }
 
+/**
+ * Whether a page is built ahead of time: the latest docs, except each tool's
+ * per-option pages (`tools/rmx/force`). Those are nine in ten of the pages, and
+ * prerendering them made the build output too large for a free-tier deploy.
+ */
+export function isPrerendered(slugs: string[]): boolean {
+  return pageVersion(slugs) === null && !(slugs[0] === 'tools' && slugs.length > 2);
+}
+
 /** The released versions with docs of their own, newest first. */
 export function docsVersions(): string[] {
   const versions = new Set<string>();

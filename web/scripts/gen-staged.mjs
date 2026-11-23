@@ -6,6 +6,7 @@
 // The wasm is stamped with the latest tag, not the commit, so that a commit
 // which does not touch the program never produces a new 14 MB binary.
 import { execFileSync, spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -33,11 +34,15 @@ if (partial.length > 0) {
 
 const wasm = staged.some((f) => isProgram(f) && !f.endsWith('_test.go'));
 const steps = wasm ? ['docs', 'yaml', 'wasm'] : ['docs', 'yaml'];
+// The committed wasm ships as it is, so it is built with the Go that go.mod
+// pins, not whichever newer Go this machine has.
+const toolchain = readFileSync(join(root, 'go.mod'), 'utf8').match(/^toolchain\s+(\S+)/m)?.[1];
 const result = spawnSync('node', [join(root, 'web/scripts/gen.mjs'), ...steps], {
   cwd: root,
   stdio: 'inherit',
   env: {
     ...process.env,
+    ...(toolchain ? { GOTOOLCHAIN: toolchain } : {}),
     GNUX_GEN_STRICT: '1',
     GNUX_WASM_VERSION: git('describe', '--tags', '--abbrev=0')
   }

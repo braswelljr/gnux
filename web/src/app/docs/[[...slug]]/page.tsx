@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
-import { docs, getPageImage, pageVersion } from 'lib/source';
+import { docs, getPageImage, isPrerendered, pageVersion } from 'lib/source';
 import { getMDXComponents } from '@/components/mdx';
 import { JsonLd } from '@/components/shared/json-ld';
 import { siteConfig } from '@/config/site';
@@ -109,14 +109,14 @@ export default async function Page(props: Props) {
 }
 
 /**
- * Only the latest docs are built ahead of time. An older major version's pages
- * (/docs/v0/...) are rendered on their first visit and cached from then on,
- * which keeps the build's time and memory those of one set of docs.
+ * Only the main pages of the latest docs are built ahead of time. An option's
+ * page and an older major version's pages (/docs/v0/...) are rendered on their
+ * first visit and cached from then on, which keeps the build small.
  */
 export function generateStaticParams() {
   return docs
     .generateParams()
-    .filter((params) => pageVersion(Array.isArray(params.slug) ? params.slug : []) === null);
+    .filter((params) => isPrerendered(Array.isArray(params.slug) ? params.slug : []));
 }
 
 // Pages left out above are rendered on request and then kept, never re-rendered.

@@ -2,6 +2,7 @@ import { type Viewport } from 'next';
 import { Geist } from 'next/font/google';
 import localFont from 'next/font/local';
 import { cn } from 'lib/utils';
+import { Analytics } from '@/components/shared/analytics';
 import { siteConfig } from '@/config/site';
 import Base from '@/providers/base';
 import { createMetadata } from '@/utils/metadata';
@@ -50,6 +51,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     >
       <body className="flex min-h-dvh flex-col font-sans">
         <Base>{children}</Base>
+        <Analytics />
       </body>
     </html>
   );

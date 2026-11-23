@@ -63,6 +63,7 @@ change the tool's metadata in the Go source and regenerate.
 - It fails only if `content/docs/index.mdx` or `public/gnux.wasm` still does not exist, and says
   how to produce them.
 - `GNUX_SKIP_GEN=1` skips generation; `GNUX_FETCH_GO=0` never downloads Go.
+- Vercel skips the build for a Dependabot branch, commit or merge (`vercel.json`, `scripts/vercel-ignore.mjs`).
 
 ## Deploying on Vercel
 
