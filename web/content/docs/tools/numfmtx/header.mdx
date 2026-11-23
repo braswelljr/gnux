@@ -1,0 +1,36 @@
+---
+title: "--header"
+description: "Print (without converting) the first N header lines; N defaults to 1 if not specified."
+---
+
+An option of [numfmtx](/docs/tools/numfmtx).
+
+## Usage
+
+```bash
+numfmtx --header[=N] [NUMBER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--header` | `N` (optional) |  | print (without converting) the first N header lines; N defaults to 1 if not specified |
+
+## Examples
+
+### Make the size column of a listing readable, keeping the header
+
+```bash tab="bash" tab-group="shell"
+lsx -l | numfmtx --header --field=5 --to=iec
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -l | numfmtx --header --field=5 --to=iec
+```
+
+## Help in the terminal
+
+```bash
+gnux help numfmtx --header
+```

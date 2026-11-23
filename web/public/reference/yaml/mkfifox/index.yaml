@@ -1,0 +1,49 @@
+name: mkfifox
+synopsis: Make named pipes (FIFOs).
+description: |-
+    mkfifox creates a named pipe, a FIFO, at each NAME: a file one program writes to and another reads from, each waiting for the other. The pipes are readable and writable by everyone, less the umask; -m MODE sets their permissions exactly, octal or symbolic as chmod takes it, applied to a=rw (only the permission bits: a mode with the setuid, setgid or sticky bit is refused). A NAME that cannot be created is reported and the rest are still made. -Z and --context are accepted and ignored, as by GNU mkfifo on a kernel without SELinux. Windows has no named pipes in its file system, so there every NAME fails with 'Operation not supported'.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. mkfifox --help shows the options and the first examples; gnux help mkfifox prints the full manual, and gnux help mkfifox OPTION explains one option.
+
+    SEE ALSO. mknodx, mkdirx, teex.
+
+    PERMISSIONS. Needs write and search permission on the directory each pipe is created in.
+
+    USE CASES.
+      - Connecting two programs that are not started from the same shell pipeline.
+      - Feeding a command's output to a program that only reads from a file name.
+      - Simple job queues and logs between processes on one machine.
+usage: mkfifox [OPTION]... NAME...
+options:
+    - name: context
+      shorthand: Z
+      usage: |
+        set the SELinux security context to default type, or to `CTX` (ignored: gnux does not support SELinux)
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: mode
+      shorthand: m
+      usage: set file permission bits to `MODE`, not a=rw - umask
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # Pass data from one terminal to another
+      mkfifox /tmp/channel
+    catx /tmp/channel        # in one terminal: waits for a writer
+    echo hello > /tmp/channel   # in another
+
+      # Make a pipe only its owner can use
+      mkfifox -m 600 private.fifo
+
+      # Compress a log as it is written
+      mkfifox app.log && gzip < app.log > app.log.gz &
+    ./app --log app.log
+
+      # Make several pipes at once
+      mkfifox in.fifo out.fifo

@@ -1,0 +1,18 @@
+{
+  "title": "b2sumx",
+  "pages": [
+    "binary",
+    "check",
+    "ignore-missing",
+    "length",
+    "pretty",
+    "quiet",
+    "status",
+    "strict",
+    "tag",
+    "text",
+    "theme",
+    "warn",
+    "zero"
+  ]
+}

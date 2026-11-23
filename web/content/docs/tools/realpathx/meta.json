@@ -1,0 +1,15 @@
+{
+  "title": "realpathx",
+  "pages": [
+    "canonicalize-existing",
+    "canonicalize-missing",
+    "logical",
+    "no-symlinks",
+    "physical",
+    "quiet",
+    "relative-base",
+    "relative-to",
+    "strip",
+    "zero"
+  ]
+}

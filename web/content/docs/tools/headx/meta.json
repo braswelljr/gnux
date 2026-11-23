@@ -1,0 +1,13 @@
+{
+  "title": "headx",
+  "pages": [
+    "bytes",
+    "lines",
+    "pretty",
+    "quiet",
+    "silent",
+    "theme",
+    "verbose",
+    "zero-terminated"
+  ]
+}

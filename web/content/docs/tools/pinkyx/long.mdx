@@ -1,0 +1,42 @@
+---
+title: "-l, --long"
+description: "Produce long format output for the specified USERs."
+---
+
+An option of [pinkyx](/docs/tools/pinkyx).
+
+## Usage
+
+```bash
+pinkyx -l [USER]...
+pinkyx --long [USER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-l` | `--long` | none |  | produce long format output for the specified USERs |
+
+## Examples
+
+### Look up a user's details
+
+```bash tab="bash" tab-group="shell"
+pinkyx -l alice
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pinkyx -l alice
+```
+
+```text title="Output"
+Login name: alice                       In real life:  Alice Liddell
+Directory: /home/alice                   Shell:  /bin/bash
+```
+
+## Help in the terminal
+
+```bash
+gnux help pinkyx --long
+```

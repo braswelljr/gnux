@@ -1,0 +1,98 @@
+---
+title: "-f, --prefix"
+description: "Use PREFIX instead of 'xx'."
+---
+
+An option of [csplitx](/docs/tools/csplitx).
+
+## Usage
+
+```bash
+csplitx -f PREFIX FILE PATTERN...
+csplitx --prefix=PREFIX FILE PATTERN...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-f` | `--prefix` | `PREFIX` |  | use PREFIX instead of 'xx' |
+
+## Examples
+
+### Split a Markdown book into one file per chapter (each starting with '# ')
+
+```bash tab="bash" tab-group="shell"
+csplitx -f chapter- -b '%02d.md' book.md '/^# /' '{*}'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+csplitx -f chapter- -b '%02d.md' book.md '/^# /' '{*}'
+```
+
+```text title="Output"
+0
+18234
+22917
+15002
+```
+
+### Do the same without the empty file before the first chapter
+
+```bash tab="bash" tab-group="shell"
+csplitx -z -f chapter- -b '%02d.md' book.md '/^# /' '{*}'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+csplitx -z -f chapter- -b '%02d.md' book.md '/^# /' '{*}'
+```
+
+### Split a multi-document Kubernetes YAML into one manifest per file, dropping the '---' lines
+
+```bash tab="bash" tab-group="shell"
+csplitx -z --suppress-matched -f manifest- -b '%02d.yaml' all.yaml '/^---$/' '{*}'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+csplitx -z --suppress-matched -f manifest- -b '%02d.yaml' all.yaml '/^---$/' '{*}'
+```
+
+### Separate the 3-line header of a report from its body
+
+```bash tab="bash" tab-group="shell"
+csplitx -s -f report- report.txt 4
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+csplitx -s -f report- report.txt 4
+```
+
+```text title="Output"
+(creates report-00 with lines 1-3 and report-01 with the rest)
+```
+
+### Cut a log into one file per day, where each day starts with a '=== 2026-' banner
+
+```bash tab="bash" tab-group="shell"
+csplitx -z -f day- app.log '/^=== 2026-/' '{*}'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+csplitx -z -f day- app.log '/^=== 2026-/' '{*}'
+```
+
+### Split standard input from another command
+
+```bash tab="bash" tab-group="shell"
+git log --format='commit %H%n%B' | csplitx -s -z -f commit- - '/^commit /' '{*}'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+git log --format='commit %H%n%B' | csplitx -s -z -f commit- - '/^commit /' '{*}'
+```
+
+## Help in the terminal
+
+```bash
+gnux help csplitx --prefix
+```

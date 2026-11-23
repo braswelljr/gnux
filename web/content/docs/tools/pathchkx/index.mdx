@@ -1,0 +1,116 @@
+---
+title: "pathchkx"
+description: "Check whether file names are valid or portable."
+---
+
+Mirrors GNU `pathchk`. Run it as `pathchkx`, or as `gnux pathchkx`.
+
+## Synopsis
+
+```bash
+pathchkx [OPTION]... NAME...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: pathchk invocation](https://www.gnu.org/software/coreutils/manual/html_node/pathchk-invocation.html)
+- [Source: src/pathchk.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/pathchk.c)
+
+## Description
+
+`pathchkx` checks each NAME and reports the ones that could not be created. By default it checks against this system: a name whose directory cannot be searched or is not a directory fails, as does a name or component longer than the file system holding it allows. NAME itself need not exist. With `-p` it checks against the POSIX minimum instead: at most 255 bytes in all, 14 in a component, and only the portable characters A-Z, a-z, 0-9, '.', '_', '-' and '/'. With `-P` it also rejects an empty name and a component that starts with '-'; `--portability` is `-p` and `-P` together. Every NAME is checked even after one fails; nothing is printed for a valid name. On Windows, which has no pathconf, the limits are NTFS's: 255 characters per component and 259 in all.
+
+## Permissions
+
+Needs search permission on the existing directories in each NAME (not with `-p`, which never looks at the disk). Nothing is ever created or modified.
+
+## Use cases
+
+- Rejecting file names that will not survive a copy to another system before creating them.
+- Checking user-supplied names in a script before writing to them.
+- Enforcing portable names in a repository in CI.
+
+## Flags
+
+```text
+  -p, --basic         check for most POSIX systems
+  -P, --extra         check for empty names and leading "-"
+      --help          display this help and exit
+      --portability   check for all POSIX systems (equivalent to -p -P)
+      --version       output version information and exit
+```
+
+## Examples
+
+### Check that a name can be created here
+
+```bash tab="bash" tab-group="shell"
+pathchkx reports/2026/summary.txt && echox ok
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pathchkx reports/2026/summary.txt; if ($LASTEXITCODE -eq 0) { 'ok' }
+```
+
+### Catch a name that will not travel to other systems
+
+```bash tab="bash" tab-group="shell"
+pathchkx -p 'Quarterly report.pdf'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pathchkx -p 'Quarterly report.pdf'
+```
+
+```text title="Output"
+pathchkx: non-portable character ' ' in file name 'Quarterly report.pdf'
+```
+
+### Check every file in a repository for portable names in CI
+
+```bash tab="bash" tab-group="shell"
+findx . -path ./.git -prune -o -print | xargsx pathchkx --portability
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+findx . -path ./.git -prune -o -print | xargsx pathchkx --portability
+```
+
+### Reject a name that a command would read as an option
+
+```bash tab="bash" tab-group="shell"
+pathchkx -P "$name" || exit 1
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pathchkx -P $name; if ($LASTEXITCODE) { exit 1 }
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-p, --basic](/docs/tools/pathchkx/basic): Check for most POSIX systems.
+- [-P, --extra](/docs/tools/pathchkx/extra): Check for empty names and leading "-".
+- [--portability](/docs/tools/pathchkx/portability): Check for all POSIX systems (equivalent to `-p -P`).
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+pathchkx --help                # options, first examples, exit status
+gnux help pathchkx             # this page: the full manual
+gnux help pathchkx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [realpathx](/docs/tools/realpathx)
+- [mkdirx](/docs/tools/mkdirx)
+- [touchx](/docs/tools/touchx)

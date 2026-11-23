@@ -1,0 +1,37 @@
+---
+title: "-l, --length"
+description: "Set the page length to PAGE_LENGTH (66) lines."
+---
+
+An option of [prx](/docs/tools/prx).
+
+## Usage
+
+```bash
+prx -l PAGE_LENGTH [FILE]...
+prx --length=PAGE_LENGTH [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-l` | `--length` | `PAGE_LENGTH` |  | set the page length to PAGE_LENGTH (66) lines |
+
+## Examples
+
+### Use short pages and a form feed between them
+
+```bash tab="bash" tab-group="shell"
+prx -l 40 -f notes.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx -l 40 -f notes.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help prx --length
+```

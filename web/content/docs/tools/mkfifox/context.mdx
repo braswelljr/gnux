@@ -1,0 +1,25 @@
+---
+title: "-Z, --context"
+description: "Set the SELinux security context to default type, or to CTX (ignored: gnux does not support SELinux)."
+---
+
+An option of [mkfifox](/docs/tools/mkfifox).
+
+## Usage
+
+```bash
+mkfifox -Z NAME...
+mkfifox --context[=CTX] NAME...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-Z` | `--context` | `CTX` (optional) |  | set the SELinux security context to default type, or to CTX (ignored: `gnux` does not support SELinux) |
+
+## Help in the terminal
+
+```bash
+gnux help mkfifox --context
+```

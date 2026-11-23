@@ -1,0 +1,37 @@
+---
+title: "-E, --eof-string"
+description: "Set logical EOF string to END; if END occurs as an item of input,\nthe rest of the input is ignored (ignored if -0 or -d was specified)."
+---
+
+An option of [xargsx](/docs/tools/xargsx).
+
+## Usage
+
+```bash
+xargsx -E END [COMMAND [INITIAL-ARGUMENT]...]
+xargsx --eof-string=END [COMMAND [INITIAL-ARGUMENT]...]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-E` | `--eof-string` | `END` |  | set logical EOF string to END; if END occurs as an item of input, the rest of the input is ignored (ignored if -0 or `-d` was specified) |
+
+## Examples
+
+### Stop reading at a marker item
+
+```bash tab="bash" tab-group="shell"
+printfx 'a b END c\n' | xargsx -E END echox
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+printfx 'a b END c\n' | xargsx -E END echox
+```
+
+## Help in the terminal
+
+```bash
+gnux help xargsx --eof-string
+```

@@ -1,0 +1,37 @@
+---
+title: "-d, --data"
+description: "Sync only file data, no unneeded metadata."
+---
+
+An option of [syncx](/docs/tools/syncx).
+
+## Usage
+
+```bash
+syncx -d [OPTION] [FILE]...
+syncx --data [OPTION] [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-d` | `--data` | none |  | `sync` only file data, no unneeded metadata |
+
+## Examples
+
+### Flush only the file data, the cheaper call, after appending to a log
+
+```bash tab="bash" tab-group="shell"
+syncx -d app.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+syncx -d app.log
+```
+
+## Help in the terminal
+
+```bash
+gnux help syncx --data
+```

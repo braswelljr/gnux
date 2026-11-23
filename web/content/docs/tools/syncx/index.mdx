@@ -1,0 +1,110 @@
+---
+title: "syncx"
+description: "Synchronize cached writes to persistent storage."
+---
+
+Mirrors GNU `sync`. Run it as `syncx`, or as `gnux syncx`.
+
+## Synopsis
+
+```bash
+syncx [OPTION] [FILE]...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: sync invocation](https://www.gnu.org/software/coreutils/manual/html_node/sync-invocation.html)
+- [Source: src/sync.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/sync.c)
+
+## Description
+
+`syncx` asks the system to write data held in memory out to disk. With no FILE it flushes every file system; with FILEs it flushes only those files (fsync), `-d` only their data and the metadata needed to read it back (fdatasync), and `-f` the whole file system each one is on (syncfs). `-d` needs at least one FILE, and `-d` and `-f` cannot be combined. A FILE that cannot be opened or flushed is reported and the others are still flushed. Off Linux, `-d` flushes as plain fsync does and `-f` flushes every file system, since those systems have neither fdatasync nor syncfs. On Windows, a FILE is flushed with FlushFileBuffers, and a run with no FILE succeeds without flushing anything: Windows has no unprivileged call that flushes every volume.
+
+## Permissions
+
+Needs read or write permission on each FILE (it is opened read-only, or write-only when reading is refused). Flushing the whole system needs no permission. Nothing is ever modified.
+
+## Use cases
+
+- Making sure an image written with `ddx` has reached a USB stick before unplugging it.
+- Flushing a file a script has just written before cutting the power or snapshotting a VM.
+- Forcing a database dump or a backup archive to disk before reporting success.
+
+## Flags
+
+```text
+  -d, --data          sync only file data, no unneeded metadata
+  -f, --file-system   sync the file systems that contain the files
+      --help          display this help and exit
+      --version       output version information and exit
+```
+
+## Examples
+
+### Flush everything before pulling out a USB stick
+
+```bash tab="bash" tab-group="shell"
+syncx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+syncx
+```
+
+### Make sure a backup you just wrote is on disk
+
+```bash tab="bash" tab-group="shell"
+tar -czf backup.tgz data && syncx backup.tgz
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+tar -czf backup.tgz data; syncx backup.tgz
+```
+
+### Flush only the file data, the cheaper call, after appending to a log
+
+```bash tab="bash" tab-group="shell"
+syncx -d app.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+syncx -d app.log
+```
+
+### Flush the whole file system a mount point is on
+
+```bash tab="bash" tab-group="shell"
+syncx -f /mnt/usb
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+syncx -f E:\
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-d, --data](/docs/tools/syncx/data): Sync only file data, no unneeded metadata.
+- [-f, --file-system](/docs/tools/syncx/file-system): Sync the file systems that contain the files.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+syncx --help                # options, first examples, exit status
+gnux help syncx             # this page: the full manual
+gnux help syncx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [ddx](/docs/tools/ddx)
+- [shredx](/docs/tools/shredx)
+- [dfx](/docs/tools/dfx)

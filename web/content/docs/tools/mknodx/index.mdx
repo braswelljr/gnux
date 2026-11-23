@@ -1,0 +1,87 @@
+---
+title: "mknodx"
+description: "Make block or character special files, or named pipes."
+---
+
+Mirrors GNU `mknod`. Run it as `mknodx`, or as `gnux mknodx`.
+
+## Synopsis
+
+```bash
+mknodx [OPTION]... NAME TYPE [MAJOR MINOR]
+```
+
+## GNU reference
+
+- [GNU coreutils manual: mknod invocation](https://www.gnu.org/software/coreutils/manual/html_node/mknod-invocation.html)
+- [Source: src/mknod.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/mknod.c)
+
+## Description
+
+`mknodx` creates the special file NAME of TYPE: b for a block device, c (or u) for a character device, both with their MAJOR and MINOR device numbers, or p for a named pipe, which takes none. Only TYPE's first letter counts, so 'character' works. Device numbers are decimal, octal with a leading 0, or hexadecimal with 0x. The file is readable and writable by everyone, less the umask; `-m` MODE sets its permissions exactly, octal or symbolic as `chmod` takes it, applied to a=rw (only the permission bits). Creating a device file normally needs root. `-Z` and `--context` are accepted and ignored, as by GNU `mknod` on a kernel without SELinux. Windows has no special files, so there every TYPE fails with 'Operation not supported'.
+
+## Permissions
+
+Needs write and search permission on the directory, and for a device file the privilege to create one (root, or CAP_MKNOD on Linux).
+
+## Use cases
+
+- Recreating a missing /dev entry in a chroot, container image or rescue system.
+- Creating a named pipe where only `mknod` is at hand in a script.
+
+## Flags
+
+```text
+  -Z, --context CTX[=" "]   set the SELinux security context to default type, or to CTX (ignored: gnux does not support SELinux)
+      --help                display this help and exit
+  -m, --mode MODE           set file permission bits to MODE, not a=rw - umask
+      --version             output version information and exit
+```
+
+## Examples
+
+### Recreate /dev/null in a chroot (Linux, as root)
+
+```bash tab="bash" tab-group="shell"
+mknodx -m 666 /srv/chroot/dev/null c 1 3
+```
+
+### Make a named pipe, as mkfifox does
+
+```bash tab="bash" tab-group="shell"
+mknodx jobs.fifo p
+```
+
+### Create a loop device node (Linux, as root)
+
+```bash tab="bash" tab-group="shell"
+mknodx -m 660 /dev/loop8 b 7 8
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-Z, --context](/docs/tools/mknodx/context): Set the SELinux security context to default type, or to CTX (ignored: `gnux` does not support SELinux).
+- [-m, --mode](/docs/tools/mknodx/mode): Set file permission bits to MODE, not a=rw - umask.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+mknodx --help                # options, first examples, exit status
+gnux help mknodx             # this page: the full manual
+gnux help mknodx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [mkfifox](/docs/tools/mkfifox)
+- [statx](/docs/tools/statx)
+- [lsx](/docs/tools/lsx)

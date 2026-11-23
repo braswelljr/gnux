@@ -2,8 +2,8 @@
 # `make hooks`. Skip them for one commit with LEFTHOOK=0 git commit ..., and
 # never to get a change past CI: the same checks run there.
 #
-# pre-commit formats what is being committed and lints it. The generated docs
-# are not committed, so nothing needs checking on push.
+# pre-commit formats what is being committed, lints it, and regenerates the
+# website's committed docs, YAML reference and wasm when their sources change.
 #
 # The Go jobs clear GOROOT: go finds its own installation, and a GOROOT left
 # over from another Go (a version manager's, an old shell) makes it compile
@@ -52,3 +52,8 @@ pre-commit:
             glob: "*.{js,mjs,ts,jsx,tsx}"
             run: node_modules/.bin/eslint --fix --no-warn-ignored --max-warnings=0 {staged_files}
             stage_fixed: true
+
+    # The website's generated files are committed, because Vercel deploys them
+    # as they are. This runs last, and only when their sources are staged.
+    - name: website content
+      run: unset GOROOT; node web/scripts/gen-staged.mjs

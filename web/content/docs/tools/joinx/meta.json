@@ -1,0 +1,20 @@
+{
+  "title": "joinx",
+  "pages": [
+    "check-order",
+    "empty",
+    "field1",
+    "field2",
+    "header",
+    "ignore-case",
+    "join-field",
+    "nocheck-order",
+    "only-unpaired",
+    "output-format",
+    "pretty",
+    "separator",
+    "theme",
+    "unpaired",
+    "zero-terminated"
+  ]
+}

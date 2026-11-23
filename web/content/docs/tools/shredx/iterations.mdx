@@ -1,0 +1,37 @@
+---
+title: "-n, --iterations"
+description: "Overwrite N times instead of the default (3)."
+---
+
+An option of [shredx](/docs/tools/shredx).
+
+## Usage
+
+```bash
+shredx -n N FILE...
+shredx --iterations=N FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-n` | `--iterations` | `N` |  | overwrite N times instead of the default (3) |
+
+## Examples
+
+### One random pass and then zeros, quicker for a large file
+
+```bash tab="bash" tab-group="shell"
+shredx -n 1 -z backup.img
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+shredx -n 1 -z backup.img
+```
+
+## Help in the terminal
+
+```bash
+gnux help shredx --iterations
+```

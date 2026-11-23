@@ -1,0 +1,40 @@
+---
+title: "--base2msbf"
+description: "Bit string with most significant bit (msb) first."
+---
+
+An option of [basencx](/docs/tools/basencx).
+
+## Usage
+
+```bash
+basencx --base2msbf [FILE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--base2msbf` | none |  | bit string with most significant bit (msb) first |
+
+## Examples
+
+### See the bits of a character
+
+```bash tab="bash" tab-group="shell"
+printfx A | basencx --base2msbf
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+printfx A | basencx --base2msbf
+```
+
+```text title="Output"
+01000001
+```
+
+## Help in the terminal
+
+```bash
+gnux help basencx --base2msbf
+```

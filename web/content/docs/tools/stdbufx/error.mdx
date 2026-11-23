@@ -1,0 +1,33 @@
+---
+title: "-e, --error"
+description: "Adjust standard error stream buffering to MODE."
+---
+
+An option of [stdbufx](/docs/tools/stdbufx).
+
+## Usage
+
+```bash
+stdbufx -e MODE OPTION... COMMAND [ARG]...
+stdbufx --error=MODE OPTION... COMMAND [ARG]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-e` | `--error` | `MODE` |  | adjust standard error stream buffering to MODE |
+
+## Examples
+
+### Make a program's error output unbuffered
+
+```bash tab="bash" tab-group="shell"
+stdbufx -e0 ./build.sh 2> build.err
+```
+
+## Help in the terminal
+
+```bash
+gnux help stdbufx --error
+```

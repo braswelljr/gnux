@@ -129,7 +129,7 @@ reach CI. On commit, the staged Go files are formatted with `golangci-lint fmt` 
 package they belong to is linted (a package the machine cannot build is skipped, as `./...`
 skips it in CI, and `tools/wasm` is linted as the `js/wasm` build it is); the staged website files are formatted with Prettier and
 linted with ESLint (`--max-warnings=0`). Fixes are staged with the commit. There is no push
-hook: the generated docs are not committed, so there is nothing to keep in step.
+hook: it regenerates and stages the website's committed docs, YAML reference and wasm.
 `LEFTHOOK=0` skips the hooks for one command.
 
 **Common failures:**

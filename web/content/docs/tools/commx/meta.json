@@ -1,0 +1,15 @@
+{
+  "title": "commx",
+  "pages": [
+    "check-order",
+    "nocheck-order",
+    "output-delimiter",
+    "pretty",
+    "suppress-common",
+    "suppress-file1",
+    "suppress-file2",
+    "theme",
+    "total",
+    "zero-terminated"
+  ]
+}

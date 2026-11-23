@@ -1,0 +1,13 @@
+{
+  "title": "Guides",
+  "pages": [
+    "adoption",
+    "ci-and-containers",
+    "cookbook",
+    "getting-started",
+    "go-library",
+    "portable-scripting",
+    "troubleshooting",
+    "windows-and-powershell"
+  ]
+}

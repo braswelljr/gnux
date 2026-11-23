@@ -1,0 +1,36 @@
+---
+title: "--tree"
+description: "List subdirectories recursively, drawn as a tree."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx --tree [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--tree` | none |  | list subdirectories recursively, drawn as a tree |
+
+## Examples
+
+### You open a project you have not seen before and want its layout two levels deep, directories first
+
+```bash tab="bash" tab-group="shell"
+lsx --tree --level=2 --group-directories-first ~/src/webapp
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx --tree --level=2 --group-directories-first $HOME\src\webapp
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --tree
+```

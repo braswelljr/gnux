@@ -1,0 +1,37 @@
+---
+title: "-h, --header"
+description: "Use a centered HEADER instead of filename in page header."
+---
+
+An option of [prx](/docs/tools/prx).
+
+## Usage
+
+```bash
+prx -h HEADER [FILE]...
+prx --header=HEADER [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-h` | `--header` | `HEADER` |  | use a centered HEADER instead of filename in page header |
+
+## Examples
+
+### Number the lines of a script, with a custom title
+
+```bash tab="bash" tab-group="shell"
+prx -n -h 'deploy script' deploy.sh
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx -n -h 'deploy script' deploy.ps1
+```
+
+## Help in the terminal
+
+```bash
+gnux help prx --header
+```

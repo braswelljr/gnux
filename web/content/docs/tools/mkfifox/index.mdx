@@ -1,0 +1,97 @@
+---
+title: "mkfifox"
+description: "Make named pipes (FIFOs)."
+---
+
+Mirrors GNU `mkfifo`. Run it as `mkfifox`, or as `gnux mkfifox`.
+
+## Synopsis
+
+```bash
+mkfifox [OPTION]... NAME...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: mkfifo invocation](https://www.gnu.org/software/coreutils/manual/html_node/mkfifo-invocation.html)
+- [Source: src/mkfifo.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/mkfifo.c)
+
+## Description
+
+`mkfifox` creates a named pipe, a FIFO, at each NAME: a file one program writes to and another reads from, each waiting for the other. The pipes are readable and writable by everyone, less the umask; `-m` MODE sets their permissions exactly, octal or symbolic as `chmod` takes it, applied to a=rw (only the permission bits: a mode with the setuid, setgid or sticky bit is refused). A NAME that cannot be created is reported and the rest are still made. `-Z` and `--context` are accepted and ignored, as by GNU `mkfifo` on a kernel without SELinux. Windows has no named pipes in its file system, so there every NAME fails with 'Operation not supported'.
+
+## Permissions
+
+Needs write and search permission on the directory each pipe is created in.
+
+## Use cases
+
+- Connecting two programs that are not started from the same shell pipeline.
+- Feeding a command's output to a program that only reads from a file name.
+- Simple job queues and logs between processes on one machine.
+
+## Flags
+
+```text
+  -Z, --context CTX[=" "]   set the SELinux security context to default type, or to CTX (ignored: gnux does not support SELinux)
+      --help                display this help and exit
+  -m, --mode MODE           set file permission bits to MODE, not a=rw - umask
+      --version             output version information and exit
+```
+
+## Examples
+
+### Pass data from one terminal to another
+
+```bash tab="bash" tab-group="shell"
+mkfifox /tmp/channel
+catx /tmp/channel        # in one terminal: waits for a writer
+echo hello > /tmp/channel   # in another
+```
+
+### Make a pipe only its owner can use
+
+```bash tab="bash" tab-group="shell"
+mkfifox -m 600 private.fifo
+```
+
+### Compress a log as it is written
+
+```bash tab="bash" tab-group="shell"
+mkfifox app.log && gzip < app.log > app.log.gz &
+./app --log app.log
+```
+
+### Make several pipes at once
+
+```bash tab="bash" tab-group="shell"
+mkfifox in.fifo out.fifo
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-Z, --context](/docs/tools/mkfifox/context): Set the SELinux security context to default type, or to CTX (ignored: `gnux` does not support SELinux).
+- [-m, --mode](/docs/tools/mkfifox/mode): Set file permission bits to MODE, not a=rw - umask.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+mkfifox --help                # options, first examples, exit status
+gnux help mkfifox             # this page: the full manual
+gnux help mkfifox --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [mknodx](/docs/tools/mknodx)
+- [mkdirx](/docs/tools/mkdirx)
+- [teex](/docs/tools/teex)

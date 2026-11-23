@@ -1,0 +1,36 @@
+---
+title: "--z85"
+description: "Ascii85-like encoding (ZeroMQ spec:32/Z85); when encoding, input length must be a multiple of 4; when decoding, input length must be a multiple of 5."
+---
+
+An option of [basencx](/docs/tools/basencx).
+
+## Usage
+
+```bash
+basencx --z85 [FILE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--z85` | none |  | ascii85-like encoding (ZeroMQ spec:32/Z85); when encoding, input length must be a multiple of 4; when decoding, input length must be a multiple of 5 |
+
+## Examples
+
+### Decode a ZeroMQ CURVE key written in Z85
+
+```bash tab="bash" tab-group="shell"
+printfx '%s' "$KEY" | basencx --z85 -d > key.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+printfx '%s' $env:KEY | basencx --z85 -d > key.bin
+```
+
+## Help in the terminal
+
+```bash
+gnux help basencx --z85
+```

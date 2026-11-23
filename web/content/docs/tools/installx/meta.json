@@ -1,0 +1,22 @@
+{
+  "title": "installx",
+  "pages": [
+    "backup",
+    "backup-default",
+    "compare",
+    "copy",
+    "create-leading",
+    "directory",
+    "group",
+    "mode",
+    "no-target-directory",
+    "owner",
+    "preserve-timestamps",
+    "pretty",
+    "strip",
+    "suffix",
+    "target-directory",
+    "theme",
+    "verbose"
+  ]
+}

@@ -1,0 +1,37 @@
+---
+title: "-f, --force"
+description: "Change permissions to allow writing if necessary."
+---
+
+An option of [shredx](/docs/tools/shredx).
+
+## Usage
+
+```bash
+shredx -f FILE...
+shredx --force FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-f` | `--force` | none |  | change permissions to allow writing if necessary |
+
+## Examples
+
+### Shred a read-only key file
+
+```bash tab="bash" tab-group="shell"
+shredx -f -u id_ed25519
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+shredx -f -u id_ed25519
+```
+
+## Help in the terminal
+
+```bash
+gnux help shredx --force
+```

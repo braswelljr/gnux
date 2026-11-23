@@ -1,0 +1,17 @@
+{
+  "title": "sha256sumx",
+  "pages": [
+    "binary",
+    "check",
+    "ignore-missing",
+    "pretty",
+    "quiet",
+    "status",
+    "strict",
+    "tag",
+    "text",
+    "theme",
+    "warn",
+    "zero"
+  ]
+}

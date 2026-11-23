@@ -1,0 +1,37 @@
+---
+title: "-n, --number-lines"
+description: "Number lines, use DIGITS (5) digits, then `SEP` (TAB); written -n[SEP[DIGITS]]."
+---
+
+An option of [prx](/docs/tools/prx).
+
+## Usage
+
+```bash
+prx -n DIGITS [FILE]...
+prx --number-lines=DIGITS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-n` | `--number-lines` | `DIGITS` |  | number lines, use DIGITS (5) digits, then `SEP` (TAB); written `-n`[SEP[DIGITS]] |
+
+## Examples
+
+### Number the lines of a script, with a custom title
+
+```bash tab="bash" tab-group="shell"
+prx -n -h 'deploy script' deploy.sh
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx -n -h 'deploy script' deploy.ps1
+```
+
+## Help in the terminal
+
+```bash
+gnux help prx --number-lines
+```

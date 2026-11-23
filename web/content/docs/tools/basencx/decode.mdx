@@ -1,0 +1,51 @@
+---
+title: "-d, --decode"
+description: "Decode data."
+---
+
+An option of [basencx](/docs/tools/basencx).
+
+## Usage
+
+```bash
+basencx -d [FILE]
+basencx --decode [FILE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-d` | `--decode` | none |  | decode data |
+
+## Examples
+
+### Turn a hex string back into bytes
+
+```bash tab="bash" tab-group="shell"
+echox 68656c6c6f | basencx --base16 -d
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+echox 68656c6c6f | basencx --base16 -d
+```
+
+```text title="Output"
+hello
+```
+
+### Decode a ZeroMQ CURVE key written in Z85
+
+```bash tab="bash" tab-group="shell"
+printfx '%s' "$KEY" | basencx --z85 -d > key.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+printfx '%s' $env:KEY | basencx --z85 -d > key.bin
+```
+
+## Help in the terminal
+
+```bash
+gnux help basencx --decode
+```

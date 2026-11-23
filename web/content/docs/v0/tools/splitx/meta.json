@@ -1,0 +1,17 @@
+{
+  "title": "splitx",
+  "pages": [
+    "additional-suffix",
+    "bytes",
+    "elide-empty-files",
+    "hex-suffixes",
+    "line-bytes",
+    "lines",
+    "number",
+    "numeric-suffixes",
+    "separator",
+    "suffix-length",
+    "unbuffered",
+    "verbose"
+  ]
+}

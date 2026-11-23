@@ -1,0 +1,39 @@
+---
+title: "-M, --macro-name"
+description: "Macro name to use instead of 'xx'."
+---
+
+An option of [ptxx](/docs/tools/ptxx).
+
+## Usage
+
+```bash
+ptxx -M string [INPUT]...   (without -G)
+ptxx -G [OPTION]... [INPUT [OUTPUT]]
+ptxx --macro-name=string [INPUT]...   (without -G)
+ptxx -G [OPTION]... [INPUT [OUTPUT]]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-M` | `--macro-name` | `string` |  | macro name to use instead of 'xx' |
+
+## Examples
+
+### Produce TeX macro calls for typesetting
+
+```bash tab="bash" tab-group="shell"
+ptxx -T -M index book.txt > index.tex
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+ptxx -T -M index book.txt > index.tex
+```
+
+## Help in the terminal
+
+```bash
+gnux help ptxx --macro-name
+```

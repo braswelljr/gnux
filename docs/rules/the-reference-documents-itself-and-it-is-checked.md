@@ -1,6 +1,6 @@
 # The reference documents itself, and it is checked
 
-The reference for every tool, in every format, is generated from the program's own definitions: the registry and each tool's `Meta()` and flags. Nothing generated is edited by hand or committed: it is built whenever it is needed, the output is deterministic, and CI proves it still generates.
+The reference for every tool, in every format, is generated from the program's own definitions: the registry and each tool's `Meta()` and flags. Nothing generated is edited by hand. The website's MDX, YAML reference and wasm are committed by the pre-commit hook so that Vercel builds without generating them; the other formats are built when needed. The output is deterministic, and CI proves it still generates.
 
 ## Why
 
@@ -20,11 +20,11 @@ return docmeta.Meta{
 
 `make docs` (or `go generate ./...`) runs [`tools/gendocs`](../../tools/gendocs) twice: once for `documentation/` in all four formats, once for `web/content/docs` as MDX. Each format directory is rebuilt from scratch. The website build (`web/scripts/gen.mjs`) does the MDX run itself, and GoReleaser generates the man pages it ships.
 
-Generated, never edited or committed (`.gitignore`): `documentation/markdown/`, `documentation/man/`, `documentation/rest/`, `documentation/yaml/`, `web/content/docs/`, the docs of past releases included: [`tools/docsnap`](../../tools/docsnap) packs each release's docs into an archive attached to the release, and the website's build downloads them. Hand-written and edited like code: `documentation/guides/`, which sits beside the generated formats and which the generator publishes on the website, taking each page's title from its first heading and its description from its first paragraph; and `docs/requirements/`, `docs/rules/`, `docs/workflows/`, which stay in the repository.
+Generated and never edited: `web/content/docs/` (committed, the docs of past releases included) and `documentation/markdown/`, `documentation/man/`, `documentation/rest/`, `documentation/yaml/` (not committed): [`tools/docsnap`](../../tools/docsnap) packs each release's docs into an archive attached to the release, and the website's build downloads them. Hand-written and edited like code: `documentation/guides/`, which sits beside the generated formats and which the generator publishes on the website, taking each page's title from its first heading and its description from its first paragraph; and `docs/requirements/`, `docs/rules/`, `docs/workflows/`, which stay in the repository.
 
 Do: edit `Meta()` or the flag's usage string, then run `make docs` to read the result. In a hand-written document, link to a reference page by its website URL (`https://gnux.vercel.app/docs/tools/rmx`): it works on GitHub, and the MDX generator turns it into a path on the site.
 
-Do not: edit `documentation/markdown/rmx/index.md` or anything under `web/content/docs/`; the next run discards it, and it is not in the repository to begin with. Do not link a hand-written document into `documentation/markdown/`: that folder exists only where someone ran `make docs`.
+Do not: edit `documentation/markdown/rmx/index.md` or anything under `web/content/docs/`; the next run discards it. Do not link a hand-written document into `documentation/markdown/`: that folder exists only where someone ran `make docs`.
 
 The generator is a tool dependency only: `cmd/docs` pulls in `cobra/doc` and `go-md2man`, and only `tools/gendocs` imports it, so neither links into the `gnux` binary.
 

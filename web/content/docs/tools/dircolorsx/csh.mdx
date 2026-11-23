@@ -1,0 +1,33 @@
+---
+title: "-c, --csh"
+description: "Output C shell code to set LS_COLORS (also --c-shell)."
+---
+
+An option of [dircolorsx](/docs/tools/dircolorsx).
+
+## Usage
+
+```bash
+dircolorsx -c [FILE]
+dircolorsx --csh [FILE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-c` | `--csh` | none |  | output C shell code to set LS_COLORS (also `--c-shell`) |
+
+## Examples
+
+### Print C shell commands for a tcsh profile
+
+```bash tab="bash" tab-group="shell"
+dircolorsx -c >> ~/.tcshrc
+```
+
+## Help in the terminal
+
+```bash
+gnux help dircolorsx --csh
+```

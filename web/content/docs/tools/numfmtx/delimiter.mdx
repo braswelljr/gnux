@@ -1,0 +1,37 @@
+---
+title: "-d, --delimiter"
+description: "Use X instead of whitespace for field delimiter."
+---
+
+An option of [numfmtx](/docs/tools/numfmtx).
+
+## Usage
+
+```bash
+numfmtx -d X [NUMBER]...
+numfmtx --delimiter=X [NUMBER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-d` | `--delimiter` | `X` |  | use X instead of whitespace for field delimiter |
+
+## Examples
+
+### Convert the second column of a CSV file
+
+```bash tab="bash" tab-group="shell"
+numfmtx -d, --field=2 --to=si < sizes.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+Get-Content sizes.csv | numfmtx -d, --field=2 --to=si
+```
+
+## Help in the terminal
+
+```bash
+gnux help numfmtx --delimiter
+```

@@ -1,0 +1,88 @@
+name: pinkyx
+synopsis: |
+    Show who is logged in, or what is known about users: a lightweight finger.
+description: |-
+    pinkyx prints one line per login session (only the given USERs', if any): the login name, the full name, the terminal (marked * when it does not accept messages), how long it has been idle, when the session started and where from. -f drops the heading, -w the full name, -i the full name and the remote host, and -q the idle time too. With -l it prints, for each USER, the login name, the full name, the home directory and shell (unless -b), and the contents of ~/.project (unless -h) and ~/.plan (unless -p). The full name is the user's GECOS name, with & standing for the capitalized login name. Sessions come from the system's login records, as for whox; on Windows they are the signed-in console and Remote Desktop sessions. The shell is read from /etc/passwd, so it is blank for a user kept elsewhere (macOS directory services, LDAP) and on Windows. If both -s and -l are given, the last one wins.
+
+    gnux's terminal view (BR-13): on a terminal, the short format is a framed table with a header (left out with -f), each full name whole (GNU cuts it to 19 columns), the columns empty in every row left out and your own logins in the theme's color for what is yours; -l shows each user as a panel titled with the login name. --pretty[=WHEN] and --theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); piped or redirected output is always GNU's.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. pinkyx --help shows the options and the first examples; gnux help pinkyx prints the full manual, and gnux help pinkyx OPTION explains one option.
+
+    SEE ALSO. whox, usersx, idx.
+
+    PERMISSIONS. Reads the login records, the user database and other users' ~/.project and ~/.plan files when they are readable. Changes nothing.
+
+    USE CASES.
+      - Seeing who is logged in to a shared machine, with names people recognize.
+      - Looking up a colleague's full name, home directory and shell.
+      - Checking how long a terminal has been idle before contacting its user.
+usage: pinkyx [OPTION]... [USER]...
+options:
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: long
+      shorthand: l
+      default_value: "false"
+      usage: produce long format output for the specified USERs
+    - name: lookup
+      default_value: "false"
+      usage: attempt to canonicalize hostnames via DNS
+    - name: omit-heading
+      shorthand: f
+      default_value: "false"
+      usage: omit the line of column headings in short format
+    - name: omit-home-and-shell
+      shorthand: b
+      default_value: "false"
+      usage: omit the user's home directory and shell in long format
+    - name: omit-idle
+      shorthand: q
+      default_value: "false"
+      usage: |
+        omit the user's full name, remote host and idle time in short format
+    - name: omit-name
+      shorthand: w
+      default_value: "false"
+      usage: omit the user's full name in short format
+    - name: omit-plan
+      shorthand: p
+      default_value: "false"
+      usage: omit the user's plan file in long format
+    - name: omit-project
+      shorthand: h
+      default_value: "false"
+      usage: omit the user's project file in long format
+    - name: omit-where
+      shorthand: i
+      default_value: "false"
+      usage: omit the user's full name and remote host in short format
+    - name: pretty
+      usage: |
+        the gnux terminal view `WHEN`: 'always' (the default when WHEN is omitted), 'auto' (the default: on a terminal only), or 'never'; GNUX_PRETTY sets the default
+    - name: short
+      shorthand: s
+      default_value: "true"
+      usage: do short format output, this is the default
+    - name: theme
+      usage: |
+        color the view with the built-in theme `NAME` (gnux theme picks and saves one); GNUX_THEME sets the default
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # See who is logged in
+      pinkyx
+
+      # Look up a user's details
+      pinkyx -l alice
+
+      # Only the login names, terminals and times, for a script
+      pinkyx -fq
+
+      # Check whether one user is logged in
+      pinkyx -f bob | headx -n 1

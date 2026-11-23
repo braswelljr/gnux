@@ -1,0 +1,33 @@
+---
+title: "-m, --mode"
+description: "Set file permission bits to MODE, not a=rw - umask."
+---
+
+An option of [mkfifox](/docs/tools/mkfifox).
+
+## Usage
+
+```bash
+mkfifox -m MODE NAME...
+mkfifox --mode=MODE NAME...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-m` | `--mode` | `MODE` |  | set file permission bits to MODE, not a=rw - umask |
+
+## Examples
+
+### Make a pipe only its owner can use
+
+```bash tab="bash" tab-group="shell"
+mkfifox -m 600 private.fifo
+```
+
+## Help in the terminal
+
+```bash
+gnux help mkfifox --mode
+```

@@ -1,0 +1,50 @@
+---
+title: "--base16"
+description: "Hex encoding (RFC4648 section 8)."
+---
+
+An option of [basencx](/docs/tools/basencx).
+
+## Usage
+
+```bash
+basencx --base16 [FILE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--base16` | none |  | hex encoding (RFC4648 section 8) |
+
+## Examples
+
+### Print the bytes of a file in hexadecimal on one line
+
+```bash tab="bash" tab-group="shell"
+basencx --base16 -w 0 key.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+basencx --base16 -w 0 key.bin
+```
+
+### Turn a hex string back into bytes
+
+```bash tab="bash" tab-group="shell"
+echox 68656c6c6f | basencx --base16 -d
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+echox 68656c6c6f | basencx --base16 -d
+```
+
+```text title="Output"
+hello
+```
+
+## Help in the terminal
+
+```bash
+gnux help basencx --base16
+```

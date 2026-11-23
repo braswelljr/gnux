@@ -1,0 +1,9 @@
+{
+  "title": "teex",
+  "pages": [
+    "append",
+    "ignore-interrupts",
+    "output-error",
+    "output-error-warn-nopipe"
+  ]
+}

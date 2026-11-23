@@ -1,0 +1,36 @@
+---
+title: "--exclude"
+description: "Exclude files that match PATTERN."
+---
+
+An option of [dux](/docs/tools/dux).
+
+## Usage
+
+```bash
+dux --exclude=PATTERN [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--exclude` | `PATTERN` |  | exclude files that match PATTERN |
+
+## Examples
+
+### Measure a repository without its .git history
+
+```bash tab="bash" tab-group="shell"
+dux -sh --exclude=.git ~/projects/website
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dux -sh --exclude=.git $HOME\projects\website
+```
+
+## Help in the terminal
+
+```bash
+gnux help dux --exclude
+```

@@ -1,0 +1,47 @@
+---
+title: "-F, --fixed-strings"
+description: "PATTERNS are strings."
+---
+
+An option of [grepx](/docs/tools/grepx).
+
+## Usage
+
+```bash
+grepx -F PATTERNS [FILE]...
+grepx --fixed-strings PATTERNS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-F` | `--fixed-strings` | none |  | PATTERNS are strings |
+
+## Examples
+
+### Search for text that holds regular expression characters, literally
+
+```bash tab="bash" tab-group="shell"
+grepx -F 'price[0] * 1.5' *.js
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -F 'price[0] * 1.5' (Get-ChildItem *.js).Name
+```
+
+### Take the patterns from a file, one to a line, as fixed strings
+
+```bash tab="bash" tab-group="shell"
+grepx -F -f blocklist.txt users.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -F -f blocklist.txt users.csv
+```
+
+## Help in the terminal
+
+```bash
+gnux help grepx --fixed-strings
+```

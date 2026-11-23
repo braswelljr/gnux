@@ -1,0 +1,57 @@
+---
+title: "-S, --sort-size"
+description: "Sort by file size, largest first."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx -S [FILE]...
+lsx --sort-size [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-S` | `--sort-size` | none |  | sort by file size, largest first |
+
+## Examples
+
+### Largest files first, with sizes in powers of 1000
+
+```bash tab="bash" tab-group="shell"
+lsx -lS --si downloads/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -lS --si downloads
+```
+
+### Smallest files first (reverse the size sort)
+
+```bash tab="bash" tab-group="shell"
+lsx -lShr downloads/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -lShr downloads
+```
+
+### Your downloads folder is full: find the biggest folders, each sized by everything in it, with the sizes colored by magnitude
+
+```bash tab="bash" tab-group="shell"
+lsx -lS --total-size --only-dirs --color-scale=size ~/Downloads
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -lS --total-size --only-dirs --color-scale=size $HOME\Downloads
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --sort-size
+```

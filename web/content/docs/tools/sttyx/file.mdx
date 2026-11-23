@@ -1,0 +1,37 @@
+---
+title: "-F, --file"
+description: "Open and use the specified DEVICE instead of stdin."
+---
+
+An option of [sttyx](/docs/tools/sttyx).
+
+## Usage
+
+```bash
+sttyx -F DEVICE [-F DEVICE | --file=DEVICE] [SETTING]...
+sttyx [-F DEVICE | --file=DEVICE] [-a|--all]
+sttyx [-F DEVICE | --file=DEVICE] [-g|--save]
+sttyx --file=DEVICE [-F DEVICE | --file=DEVICE] [SETTING]...
+sttyx [-F DEVICE | --file=DEVICE] [-a|--all]
+sttyx [-F DEVICE | --file=DEVICE] [-g|--save]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-F` | `--file` | `DEVICE` |  | open and use the specified DEVICE instead of stdin |
+
+## Examples
+
+### Set a serial line to 115200 baud, 8 data bits, no parity
+
+```bash tab="bash" tab-group="shell"
+sttyx -F /dev/ttyUSB0 115200 cs8 -parenb -cstopb
+```
+
+## Help in the terminal
+
+```bash
+gnux help sttyx --file
+```

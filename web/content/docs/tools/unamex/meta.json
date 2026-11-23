@@ -1,0 +1,16 @@
+{
+  "title": "unamex",
+  "pages": [
+    "all",
+    "hardware-platform",
+    "kernel-name",
+    "kernel-release",
+    "kernel-version",
+    "machine",
+    "nodename",
+    "operating-system",
+    "pretty",
+    "processor",
+    "theme"
+  ]
+}

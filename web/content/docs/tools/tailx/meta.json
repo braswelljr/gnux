@@ -1,0 +1,19 @@
+{
+  "title": "tailx",
+  "pages": [
+    "bytes",
+    "follow",
+    "follow-retry",
+    "lines",
+    "max-unchanged-stats",
+    "pid",
+    "pretty",
+    "quiet",
+    "retry",
+    "silent",
+    "sleep-interval",
+    "theme",
+    "verbose",
+    "zero-terminated"
+  ]
+}

@@ -1,0 +1,75 @@
+name: sttyx
+synopsis: Print or change terminal line settings.
+description: |-
+    sttyx works on the terminal on standard input, or the DEVICE -F names. With no SETTING it prints the speed and the settings that differ from 'sane' ones; -a prints them all, and -g prints them in a form sttyx takes back as a setting, to restore them later. A SETTING turns a mode on (echo) or, with a leading -, off (-echo); sets a control character (intr ^C, erase ^?, eof undef); sets min and time for non-canonical reads, the speed (9600, or ispeed and ospeed), the window size (rows, cols) or the line discipline (Linux); prints the size or the speed (size, speed); or applies a combination: sane resets everything to sensible values, raw and cooked switch line editing off and on, cbreak and -icanon read a key at a time, and evenp, oddp, nl, ek, pass8, litout, tabs, lcase, crt and dec are GNU's other shortcuts. Changes wait for pending output to drain unless -drain is given. The modes are those the system has, so the list differs between Linux, macOS and FreeBSD, as with GNU stty built there. After setting, sttyx reads the settings back and fails if the terminal did not take them all. Windows has no termios, so there every SETTING is checked and then fails with 'Operation not supported'.
+
+    gnux's terminal view (BR-13): on a terminal, -a is a panel titled with the device: the speed and size, the control characters in an aligned grid, and the control, input, output and local flags each on lines of their own, set flags colored and unset ones dimmed. -g, the plain listing and settings are GNU's. --pretty[=WHEN] and --theme=NAME, options of gnux's own matched only in full, choose the view (GNUX_PRETTY, GNUX_THEME); piped or redirected output is always GNU's.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. sttyx --help shows the options and the first examples; gnux help sttyx prints the full manual, and gnux help sttyx OPTION explains one option.
+
+    SEE ALSO. ttyx, dircolorsx.
+
+    PERMISSIONS. Needs read access to the terminal; changing it needs no more, but a DEVICE given with -F must be one you may open.
+
+    USE CASES.
+      - Reading a password in a script without showing it.
+      - Restoring a terminal a crashed program left in raw mode (stty sane).
+      - Saving the settings before a change and restoring them afterwards.
+      - Setting the speed and framing of a serial line.
+      - Finding the size of the terminal in a script.
+usage: |-
+    sttyx [-F DEVICE | --file=DEVICE] [SETTING]...
+    sttyx [-F DEVICE | --file=DEVICE] [-a|--all]
+    sttyx [-F DEVICE | --file=DEVICE] [-g|--save]
+options:
+    - name: all
+      shorthand: a
+      default_value: "false"
+      usage: print all current settings in human-readable form
+    - name: file
+      shorthand: F
+      usage: open and use the specified `DEVICE` instead of stdin
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: pretty
+      usage: |
+        the gnux terminal view `WHEN`: 'always' (the default when WHEN is omitted), 'auto' (the default: on a terminal only), or 'never'; GNUX_PRETTY sets the default
+    - name: save
+      shorthand: g
+      default_value: "false"
+      usage: print all current settings in a stty-readable form
+    - name: theme
+      usage: |
+        color the view with the built-in theme `NAME` (gnux theme picks and saves one); GNUX_THEME sets the default
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # Read a password without echoing it
+      sttyx -echo; read -r pass; sttyx echo; echo
+
+      # Fix a terminal that a program left in a bad state
+      sttyx sane
+
+      # Save the settings, change them, and restore them
+      saved=$(sttyx -g)
+    sttyx raw -echo
+    # ...
+    sttyx "$saved"
+
+      # Print the terminal's rows and columns
+      sttyx size
+
+      # Set a serial line to 115200 baud, 8 data bits, no parity
+      sttyx -F /dev/ttyUSB0 115200 cs8 -parenb -cstopb
+
+      # See every setting
+      sttyx -a
+
+      # Make Ctrl-H erase, for an old terminal
+      sttyx erase ^H

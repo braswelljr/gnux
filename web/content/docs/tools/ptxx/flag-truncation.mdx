@@ -1,0 +1,27 @@
+---
+title: "-F, --flag-truncation"
+description: "Use STRING for flagging line truncations. The default is '/'."
+---
+
+An option of [ptxx](/docs/tools/ptxx).
+
+## Usage
+
+```bash
+ptxx -F STRING [INPUT]...   (without -G)
+ptxx -G [OPTION]... [INPUT [OUTPUT]]
+ptxx --flag-truncation=STRING [INPUT]...   (without -G)
+ptxx -G [OPTION]... [INPUT [OUTPUT]]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-F` | `--flag-truncation` | `STRING` |  | use STRING for flagging line truncations. The default is '/' |
+
+## Help in the terminal
+
+```bash
+gnux help ptxx --flag-truncation
+```

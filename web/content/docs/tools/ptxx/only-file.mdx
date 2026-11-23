@@ -1,0 +1,39 @@
+---
+title: "-o, --only-file"
+description: "Read only word list from this FILE."
+---
+
+An option of [ptxx](/docs/tools/ptxx).
+
+## Usage
+
+```bash
+ptxx -o FILE [INPUT]...   (without -G)
+ptxx -G [OPTION]... [INPUT [OUTPUT]]
+ptxx --only-file=FILE [INPUT]...   (without -G)
+ptxx -G [OPTION]... [INPUT [OUTPUT]]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-o` | `--only-file` | `FILE` |  | read only word list from this FILE |
+
+## Examples
+
+### Index only the words that matter
+
+```bash tab="bash" tab-group="shell"
+ptxx -o terms.txt manual.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+ptxx -o terms.txt manual.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help ptxx --only-file
+```

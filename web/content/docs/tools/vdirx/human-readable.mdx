@@ -1,0 +1,37 @@
+---
+title: "-h, --human-readable"
+description: "With -l and -s, print sizes like 1K 234M 2G etc."
+---
+
+An option of [vdirx](/docs/tools/vdirx).
+
+## Usage
+
+```bash
+vdirx -h [FILE]...
+vdirx --human-readable [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-h` | `--human-readable` | none |  | with `-l` and `-s`, print sizes like 1K 234M 2G etc. |
+
+## Examples
+
+### Show sizes in human units
+
+```bash tab="bash" tab-group="shell"
+vdirx -h dist
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+vdirx -h dist
+```
+
+## Help in the terminal
+
+```bash
+gnux help vdirx --human-readable
+```

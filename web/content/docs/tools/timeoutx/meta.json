@@ -1,0 +1,10 @@
+{
+  "title": "timeoutx",
+  "pages": [
+    "foreground",
+    "kill-after",
+    "preserve-status",
+    "signal",
+    "verbose"
+  ]
+}

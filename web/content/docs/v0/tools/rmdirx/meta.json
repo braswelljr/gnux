@@ -1,0 +1,8 @@
+{
+  "title": "rmdirx",
+  "pages": [
+    "ignore-fail-on-non-empty",
+    "parents",
+    "verbose"
+  ]
+}

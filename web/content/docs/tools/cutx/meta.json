@@ -1,0 +1,13 @@
+{
+  "title": "cutx",
+  "pages": [
+    "bytes",
+    "characters",
+    "complement",
+    "delimiter",
+    "fields",
+    "only-delimited",
+    "output-delimiter",
+    "zero-terminated"
+  ]
+}

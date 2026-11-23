@@ -1,0 +1,40 @@
+---
+title: "--from-unit"
+description: "Specify the input unit size (instead of the default 1)."
+---
+
+An option of [numfmtx](/docs/tools/numfmtx).
+
+## Usage
+
+```bash
+numfmtx --from-unit=string [NUMBER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--from-unit` | `string` |  | specify the input unit size (instead of the default 1) |
+
+## Examples
+
+### Convert kilobyte counts, as dfx prints them, to bytes
+
+```bash tab="bash" tab-group="shell"
+echox 512 | numfmtx --from-unit=1024
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+echox 512 | numfmtx --from-unit=1024
+```
+
+```text title="Output"
+524288
+```
+
+## Help in the terminal
+
+```bash
+gnux help numfmtx --from-unit
+```

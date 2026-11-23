@@ -1,0 +1,29 @@
+{
+  "title": "prx",
+  "pages": [
+    "across",
+    "columns",
+    "date-format",
+    "double-space",
+    "expand-tabs",
+    "first-line-number",
+    "form-feed",
+    "header",
+    "indent",
+    "join-lines",
+    "length",
+    "merge",
+    "no-file-warnings",
+    "number-lines",
+    "omit-header",
+    "omit-pagination",
+    "output-tabs",
+    "page-width",
+    "pages",
+    "sep-string",
+    "separator",
+    "show-control-chars",
+    "show-nonprinting",
+    "width"
+  ]
+}

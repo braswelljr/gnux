@@ -1,0 +1,15 @@
+{
+  "title": "catx",
+  "pages": [
+    "number",
+    "number-nonblank",
+    "show-all",
+    "show-ends",
+    "show-nonprinting",
+    "show-nonprinting-ends",
+    "show-nonprinting-tabs",
+    "show-tabs",
+    "squeeze-blank",
+    "unbuffered"
+  ]
+}

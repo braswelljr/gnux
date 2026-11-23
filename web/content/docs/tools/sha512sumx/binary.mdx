@@ -1,0 +1,37 @@
+---
+title: "-b, --binary"
+description: "Read in binary mode."
+---
+
+An option of [sha512sumx](/docs/tools/sha512sumx).
+
+## Usage
+
+```bash
+sha512sumx -b [FILE]...
+sha512sumx --binary [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-b` | `--binary` | none |  | read in binary mode |
+
+## Examples
+
+### Match the '*' binary-mode lines produced by tools on Windows
+
+```bash tab="bash" tab-group="shell"
+sha512sumx -b setup.exe
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sha512sumx -b setup.exe
+```
+
+## Help in the terminal
+
+```bash
+gnux help sha512sumx --binary
+```

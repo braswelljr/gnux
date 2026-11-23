@@ -1,0 +1,37 @@
+---
+title: "-f, --ignore-case"
+description: "Fold lower case to upper case characters."
+---
+
+An option of [sortx](/docs/tools/sortx).
+
+## Usage
+
+```bash
+sortx -f [FILE]...
+sortx --ignore-case [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-f` | `--ignore-case` | none |  | `fold` lower case to upper case characters |
+
+## Examples
+
+### Sort case-insensitively
+
+```bash tab="bash" tab-group="shell"
+sortx -f names.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sortx -f names.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help sortx --ignore-case
+```

@@ -1,0 +1,113 @@
+---
+title: "--to"
+description: "Auto-scale output numbers to UNITs; see UNIT below."
+---
+
+An option of [numfmtx](/docs/tools/numfmtx).
+
+## Usage
+
+```bash
+numfmtx --to=UNIT [NUMBER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--to` | `UNIT` |  | auto-scale output numbers to UNITs; see UNIT below |
+
+## Examples
+
+### Show a byte count the way people read sizes
+
+```bash tab="bash" tab-group="shell"
+numfmtx --to=iec 1048576
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --to=iec 1048576
+```
+
+```text title="Output"
+1.0M
+```
+
+### Use decimal units, as disk makers do
+
+```bash tab="bash" tab-group="shell"
+numfmtx --to=si 1500000
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --to=si 1500000
+```
+
+```text title="Output"
+1.5M
+```
+
+### Make the size column of a listing readable, keeping the header
+
+```bash tab="bash" tab-group="shell"
+lsx -l | numfmtx --header --field=5 --to=iec
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -l | numfmtx --header --field=5 --to=iec
+```
+
+### Round sizes down, never overstating them
+
+```bash tab="bash" tab-group="shell"
+numfmtx --to=si --round=down 1999
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --to=si --round=down 1999
+```
+
+```text title="Output"
+1.9k
+```
+
+### Add a unit and pad the numbers to a column
+
+```bash tab="bash" tab-group="shell"
+numfmtx --to=iec --suffix=B --padding=7 1024 2048000
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --to=iec --suffix=B --padding=7 1024 2048000
+```
+
+```text title="Output"
+  1.0KB
+  2.0MB
+```
+
+### Convert the second column of a CSV file
+
+```bash tab="bash" tab-group="shell"
+numfmtx -d, --field=2 --to=si < sizes.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+Get-Content sizes.csv | numfmtx -d, --field=2 --to=si
+```
+
+### Keep going past values that are not numbers, but say which
+
+```bash tab="bash" tab-group="shell"
+numfmtx --invalid=warn --to=si 1000 n/a 2000
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --invalid=warn --to=si 1000 n/a 2000
+```
+
+## Help in the terminal
+
+```bash
+gnux help numfmtx --to
+```

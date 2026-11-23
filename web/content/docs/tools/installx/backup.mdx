@@ -1,0 +1,36 @@
+---
+title: "--backup"
+description: "Make a backup of each existing destination file; CONTROL is none (off), simple (never), existing (nil) or numbered (t)."
+---
+
+An option of [installx](/docs/tools/installx).
+
+## Usage
+
+```bash
+installx --backup[=CONTROL] SOURCE... DEST
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--backup` | `CONTROL` (optional) |  | make a backup of each existing destination file; CONTROL is none (off), simple (never), existing (nil) or numbered (t) |
+
+## Examples
+
+### Install a new binary but keep numbered copies of the ones it replaces
+
+```bash tab="bash" tab-group="shell"
+installx --backup=numbered -m 755 build/tool /usr/local/bin/tool
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+installx --backup=numbered build\tool.exe C:\tools\tool.exe
+```
+
+## Help in the terminal
+
+```bash
+gnux help installx --backup
+```

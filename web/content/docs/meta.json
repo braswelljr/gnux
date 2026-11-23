@@ -1,0 +1,26 @@
+{
+  "title": "gnux",
+  "pages": [
+    "index",
+    "guide",
+    "shell",
+    "mcp",
+    "theme",
+    "library",
+    "changelog",
+    "---Guides---",
+    "guides/adoption",
+    "guides/ci-and-containers",
+    "guides/cookbook",
+    "guides/getting-started",
+    "guides/go-library",
+    "guides/node-and-npm",
+    "guides/portable-scripting",
+    "guides/sandbox-and-ai-agents",
+    "guides/terminal-view",
+    "guides/troubleshooting",
+    "guides/windows-and-powershell",
+    "---Tools---",
+    "...tools"
+  ]
+}

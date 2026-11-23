@@ -1,0 +1,63 @@
+name: factorx
+synopsis: Print the prime factors of each specified integer NUMBER.
+description: |-
+    factorx prints each NUMBER followed by a colon and its prime factors in ascending order, a repeated factor as many times as it divides the number. With no NUMBER, it reads numbers separated by spaces, tabs and newlines from standard input, and answers each line as soon as it is read. 0 and 1 have no prime factors and print just the colon. A NUMBER may have leading spaces and one '+', and must otherwise be decimal digits; anything else is reported as 'is not a valid positive integer', the remaining numbers are still factored, and the exit status is 1. -h (--exponents) prints a repeated factor once, as p^e. As in GNU factor, a NUMBER has no size limit. Numbers below 2^64 are factored with trial division, the Miller-Rabin test and Pollard's rho, and take microseconds; larger ones use arbitrary-precision arithmetic, which is fast when the number has at most one large prime factor and can take minutes when it is the product of two primes of more than 15 digits each.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. factorx --help shows the options and the first examples; gnux help factorx prints the full manual, and gnux help factorx OPTION explains one option.
+
+    SEE ALSO. seqx, exprx, xargsx.
+
+    PERMISSIONS. Needs no permissions. Reads only its operands or standard input.
+
+    USE CASES.
+      - Checking whether a number is prime: a prime's only factor is itself.
+      - Finding the divisors of a number in a script or a puzzle.
+      - Simplifying a fraction or finding a common divisor by hand.
+      - Teaching or checking arithmetic exercises.
+      - Generating test data with known factorizations.
+usage: factorx [OPTION] [NUMBER]...
+options:
+    - name: exponents
+      shorthand: h
+      default_value: "false"
+      usage: print repeated factors in form p^e unless e is 1
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # Factor a number
+      factorx 360
+
+      # Show repeated factors as powers
+      factorx -h 360
+
+      # Factor several numbers at once
+      factorx 12 97 1001
+
+      # Check whether a number is prime
+      [ "$(factorx 1000000007 | cutx -d' ' -f2-)" = 1000000007 ] && echox prime
+
+      # Factor numbers read from standard input
+      seqx 10 15 | factorx
+
+      # List the primes up to 50
+      seqx 2 50 | factorx | grepx -E '^([0-9]+): \1$' | cutx -d: -f1
+
+      # Factor the largest 64-bit unsigned number
+      factorx 18446744073709551615
+
+      # Factor a number larger than 64 bits
+      factorx 1234567890123456789012345678901234567890
+
+      # Count the prime factors of a number
+      factorx 1024 | trx ' ' '\n' | tailx -n +2 | wcx -l
+
+      # Factor numbers in the portable gnux shell
+      gnux shell -c 'for n in 6 28 496; do factorx -h $n; done'

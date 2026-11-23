@@ -1,0 +1,39 @@
+---
+title: "-A, --auto-reference"
+description: "Output automatically generated references."
+---
+
+An option of [ptxx](/docs/tools/ptxx).
+
+## Usage
+
+```bash
+ptxx -A [INPUT]...   (without -G)
+ptxx -G [OPTION]... [INPUT [OUTPUT]]
+ptxx --auto-reference [INPUT]...   (without -G)
+ptxx -G [OPTION]... [INPUT [OUTPUT]]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-A` | `--auto-reference` | none |  | output automatically generated references |
+
+## Examples
+
+### Index a manual, skipping common words, with file and line references
+
+```bash tab="bash" tab-group="shell"
+ptxx -A -i stopwords.txt chapter*.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+ptxx -A -i stopwords.txt (Get-ChildItem chapter*.txt)
+```
+
+## Help in the terminal
+
+```bash
+gnux help ptxx --auto-reference
+```

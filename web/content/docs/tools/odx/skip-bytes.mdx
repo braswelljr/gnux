@@ -1,0 +1,37 @@
+---
+title: "-j, --skip-bytes"
+description: "Skip BYTES input bytes first."
+---
+
+An option of [odx](/docs/tools/odx).
+
+## Usage
+
+```bash
+odx -j BYTES [FILE]...
+odx --skip-bytes=BYTES [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-j` | `--skip-bytes` | `BYTES` |  | skip BYTES input bytes first |
+
+## Examples
+
+### Skip a 512-byte header and dump the next 64 bytes
+
+```bash tab="bash" tab-group="shell"
+odx -j 512 -N 64 -t x1 disk.img
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -j 512 -N 64 -t x1 disk.img
+```
+
+## Help in the terminal
+
+```bash
+gnux help odx --skip-bytes
+```

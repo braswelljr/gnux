@@ -1,0 +1,638 @@
+---
+title: "Changelog"
+description: "Every notable change to gnux, release by release, newest first. The format follows Keep a Changelog and gnux uses Semantic Versioning. Changes land under Unreleased as they are made, and that section becomes the next version when it is tagged; the release workflow publishes the version's section as its GitHub release notes."
+---
+
+## [Unreleased]
+
+### Changed
+
+- The website's generated docs, YAML reference and wasm are built locally by the pre-commit hook and committed. Vercel deploys them and no longer runs Go or downloads release docs.
+
+## [1.5.1] - 2026-11-03
+
+gnux 1.5.1 is a patch release. On the website, the trees, frames, tables and bars of the
+terminal view are drawn with straight, unbroken lines; on Windows, `prx` names a directory
+operand as GNU does, and the test suite passes in full again.
+
+### Fixed
+
+- The website draws the terminal view's lines straight and unbroken, in the playground and in
+  the docs. It loaded JetBrains Mono from Google in subsets that leave out the box-drawing and
+  block characters, so each browser drew trees, frames and bars in another font, of another
+  width and height, and the lines came out bent and broken; the site now serves the whole font
+  itself (SIL OFL 1.1, in `web/src/fonts`). The playground's line height is 1.375, under the
+  1.52 at which those lines stop joining, so a tree or a frame has no gaps between rows.
+- `prx` on Windows names a directory operand as GNU does (`Is a directory`), not with the
+  system's `Incorrect function`.
+- The Windows test suite passes in full: the `pathchkx` and `printenvx` tests no longer expect
+  an unquoted drive path or a `:` list separator.
+
+## [1.5.0] - 2026-11-03
+
+gnux 1.5.0 makes the terminal view's theme something you choose once. `gnux theme` opens a
+picker with a live preview of each theme on real-looking output, and Enter keeps the theme for
+every tool; `gnux theme set`, `show` and `reset` do the same from a script. Twenty built-in
+themes join the 32: Apple's system colors (`ios`) and Xcode's, Material, Tomorrow,
+Selenized, Flexoki, gnux's own `colorful` and `monochrome`, and the dark Zenburn, SynthWave '84,
+Horizon and Moonlight. The release also fixes `syncx` and `pathchkx` on Windows, where the test
+suite passes again.
+
+### Added
+
+- `gnux theme`: on a terminal, a picker of the built-in themes in a frame fitted to the
+  terminal: tabs grouping them (All, Adaptive, Dark, Light), a search line that filters as you
+  type, the list with each theme's kind, the theme under the cursor drawn beside it on a long
+  listing, Git's marks, a check's verdicts, usage bars and an environment line, and a footer of
+  key hints; Enter saves, Esc leaves, and the alternate screen keeps your scrollback. `gnux theme
+  set NAME`, `show` and `reset` do it from scripts, choosing `default` resets, and `gnux theme
+  list` is what `gnux themes` now runs (FR-184, FR-187).
+- Help follows the theme: `--help`, `gnux help` and the gnux mark take their heading, command and
+  dimmed colors from the theme in use (they keep their colors when none is chosen).
+- The saved theme: one built-in name in `~/.config/gnux/theme` (`$XDG_CONFIG_HOME/gnux`,
+  `%AppData%\gnux` on Windows, or `GNUX_CONFIG_DIR`), used by every tool when neither `--theme`
+  nor `GNUX_THEME` names a theme, and read only for colored output. Only a built-in name is
+  accepted: a file holding anything else, larger than 64 bytes or not a regular file is reported
+  and ignored. It is opened without blocking and checked through the open file, so a named pipe
+  cannot hang a tool and nothing can be swapped in between; it is written whole (renamed into
+  place, never through a link), readable by its owner only. The picker echoes only printable
+  text and restores the terminal however it ends.
+- Twenty themes: the families `ios`, `xcode`, `material`, `tomorrow`, `selenized`, `flexoki`,
+  `colorful` and `monochrome` (each `-dark` and `-light`), and the dark `zenburn`, `synthwave`,
+  `horizon` and `moonlight`. Every color reads at a contrast of at least 3:1 on its theme's
+  background.
+- `core.ThemeShowcase`, `core.ResolveTheme` and `core.UnicodeTerminal` for library users who
+  draw themes themselves.
+
+### Changed
+
+- The website's home page has a fourth promise, the themes, and the docs say how to choose one.
+- Every tool's `--theme` help points to `gnux theme`, and the `gnux theme list` panel suggests
+  `gnux theme set NAME` to keep a theme. The website's `/docs/themes` page is now `/docs/theme`
+  (the old address redirects).
+
+- The website builds on Node.js 26 (the current LTS): `web/package.json` pins `"node": "26.x"`, so Vercel no longer
+  moves it to a new major version on its own, and CI sets up Node.js 26. pnpm moves to 12.16.1,
+  which records itself in `web/pnpm-lock.yaml` so every install uses that exact release.
+
+### Fixed
+
+- `syncx FILE` on Windows no longer fails with `Permission denied`: Windows flushes a file only
+  through a handle open for writing, so a refusal on GNU's read-only handle is retried on a
+  write-only one.
+- `pathchkx` on Windows reports `Not a directory` for a name under a regular file
+  (`file/x`), as on POSIX systems, instead of passing it as a name that could be created.
+- The test suite passes on Windows again: tests no longer expect unquoted absolute paths
+  (`C:` holds a `:`, which GNU quotes), a fixed `:` list separator, or a permission mode
+  Windows cannot store.
+
+## [1.4.0] - 2026-11-03
+
+gnux 1.4.0 gives the tools people read a terminal view, and closes the largest gaps with GNU
+grep and sed. On a terminal the output is colored, framed and fitted to the screen, in a
+built-in theme after an editor theme that follows the system's light or dark appearance; this
+is the default for every tool that has a view. Through a pipe or into a file the output is
+GNU's exactly as before, so scripts, `$(...)` and the conformance harness see no change. Back
+references (`\1` to `\9`) now work in every tool that takes a regular expression, and
+`grepx -P` takes Perl syntax with lookahead and lookbehind. `gnux shell` gains `read` and the
+POSIX `${...}` expansions, `gnux help` draws the gnux mark on a terminal, and the website builds
+in half the memory. There is no 1.3.0 release: a `v1.3.0` tag was pushed on 2026-11-02 before
+this work was merged, and its release never ran; Go's module proxy serves that tag, with the
+code of 1.2.0, so this release takes the next minor version to be the newest everywhere.
+
+### Added
+
+- A terminal view for the tools people read, on by default on a terminal and never through a
+  pipe, so scripts still get GNU's output (BR-13, NFR-53, NFR-54). `--pretty[=WHEN]` and
+  `GNUX_PRETTY` choose it, `--theme=NAME` and `GNUX_THEME` pick a built-in theme with single
+  colors overridden by two-letter keys, and `NO_COLOR` keeps it uncolored.
+- Built-in themes after editor themes, most in a dark and a light variant (`vscode`, `github`,
+  `one`, `solarized`, `gruvbox`, `catppuccin`, `tokyo-night`, `ayu`, `rose-pine`, `everforest`,
+  `night-owl`, `high-contrast`); the family's name follows the background, read from
+  `GNUX_BACKGROUND`, `COLORFGBG` or the system's dark mode (macOS, Windows, GTK). Also
+  `dracula`, `nord`, `monokai`, `kanagawa`, `palenight`, `ayu-mirage`, `default` and `mono`.
+- `gnux themes`: every built-in theme drawn on a sample row, with the theme in use and the
+  background gnux read (FR-184).
+- `lsx`: the long format colored column by column, with a header, readable
+  sizes and directories first in the view; `--tree` and `--level` (also for `-R`), `--icons`
+  (Nerd Font, `GNUX_ICONS`), `--git` and `--git-ignore` (read from the repository without
+  running git), `--color-scale`, `--only-dirs`, `--only-files`, `--total-size` and
+  `--octal-permissions`.
+- `dfx`: a framed table that fits the terminal, with a usage bar after each percentage,
+  turning yellow from 75% and red from 90%.
+- `findx`: on a terminal, each name `-print` writes in its type's color, as `lsx` shows it, and
+  the directories before it dimmed; `--tree` draws the matches as a tree under each starting
+  point with a count, and `--icons` puts an icon before each name. Both go before the starting
+  points; `-print0`, `-printf` and `-ls` are unchanged.
+- `ddx status=progress` rewrites GNU's transfer line once a second while copying (it printed
+  only the final statistics); on a terminal it draws a bar with the percentage, the rate and the
+  time left.
+- `gnux shell`: on a terminal, the prompt shows the working directory and the status of a
+  command that failed, and `help` is colored. `--pretty` and `--theme` on the shell apply to
+  every tool it runs.
+- `datex` shows one date as a panel: local time, UTC, ISO 8601, Unix seconds, the week and day
+  of the year, the zone, and how far it is from now. `unamex` shows the system as a panel. On
+  a terminal by default like every other view; `$(datex)` and `$(unamex -r)` are captured
+  through a pipe, so scripts still get GNU's one line.
+- `commx`: on a terminal, a header row naming the files, and each column's lines in a color of
+  their own. `joinx`: each field colored by the file it came from, the join field apart. New
+  theme keys `f1`, `f2`, `fb`.
+- `killx -l` and `-L`: on a terminal, every signal in a framed table, the names colored by what
+  the signal does. `sttyx -a`: a panel with the control characters in a grid and each group of
+  flags on its own lines, the flags that are off dimmed.
+- `envx` and `printenvx`: on a terminal, a listing of the environment has the names colored
+  apart from the values, and the directories of `PATH` (and every `*PATH` variable) set apart.
+  New theme key `ev`.
+- `whox` and `pinkyx`: on a terminal, framed tables with a header and your own logins
+  emphasized, and `pinkyx -l` as a panel per user; `idx` as a panel of your IDs and groups;
+  `usersx` and `groupsx` with your name and primary group emphasized.
+- `uptimex`: on a terminal, a panel with each load average drawn as a bar against the CPU
+  count, turning yellow and then red as the machine fills up.
+- `odx`: on a terminal, each value colored by the class of its bytes (zero, printable,
+  whitespace, other control characters, above 0x7f), and the offsets dimmed, so the structure
+  of a binary file shows at a glance. New theme keys `yz`, `yp`, `yw`, `yc` and `yh`.
+- `uniqx -c`: on a terminal, a histogram, with each count colored by its share of the largest
+  and a bar before the line, so `sortx | uniqx -c` shows how values are spread.
+- `shredx -v`: on a terminal, each pass is one line with a bar, rewritten in place.
+- `wcx`: the counts as a framed table with a header and the total set apart.
+- `statx`: each file as a labeled panel, the mode painted; with `-f`, a bar of the space in use.
+- `dux`: aligned sizes colored by magnitude, with a bar and percentage of each line's share.
+- `grepx`: each file's matches under a colored heading of its name, numbered, with a blank line
+  between files.
+- `md5sumx`, `sha1sumx` to `sha512sumx`, `b2sumx`, `cksumx`: with `-c`, `OK` and `FAILED`
+  colored and a count after each list.
+- `headx`, `tailx`: the `==> FILE <==` headers colored.
+- `rmx`, `cpx`, `mvx`, `lnx`, `installx`, `mkdirx`, `rmdirx`, `chmodx`, `chownx`, `chgrpx`: the
+  `-v` report colored (the verb, each name, the arrows).
+- The playground shows the terminal view: the scrollback is a terminal to the tools, so they
+  draw their view there while a pipe or a redirection still gets GNU's output. A theme picker
+  in the side panel (kept in the link as `?theme=`) draws the scrollback in the editor theme's
+  own background and colors, a family following the page's light or dark theme, and `COLUMNS`
+  follows the terminal's width. The WebAssembly API gains `themes`, `setenv` and `surface`
+  (FR-186).
+- The guide [Terminal view](https://github.com/braswelljr/gnux/blob/main/documentation/guides/terminal-view.md), and how each tool adopts
+  the view in `docs/workflows/terminal-visuals.md`.
+- Back references in regular expressions: `grepx '\(.\)\1'`, `grepx -E '(ab)\1'`,
+  `sedx 's/\(\w*\) \1/\1/g'`, `exprx abab : '\(.*\)\1'`, and in `nlx`, `csplitx`, `findx
+  -regex` and `ptxx`. A pattern with one runs on a new backtracking matcher
+  (`core/internal/regex`) behind the same interface as Go's engine, which keeps every other
+  pattern in linear time. POSIX's leftmost-longest match is kept, `-i` folds the referenced
+  text, and a search that would take exponential time is given up after a step budget and
+  reported (status 2 for grepx, 4 for sedx), never taken as "no match". A reference to a group
+  that does not exist is GNU's `Invalid back reference`.
+- `grepx -P` (`--perl-regexp`): Perl syntax as Go's engine has it (`\d`, `\w`, lazy
+  quantifiers, `(?i)`, named groups, `\Q...\E`), plus back references (`\1`, `\g{N}`,
+  `\g{-N}`, `\k<name>`), lookahead and lookbehind (`(?=...)`, `(?!...)`, `(?<=...)`,
+  `(?<!...)`, of any length), `\h`, `\v`, `\R`, `\N`, `\Z`, `\e`, `\cX` and `(?#comments)`,
+  matching the first match as Perl does. What it cannot run is refused by name: possessive
+  quantifiers, atomic groups, recursion, conditionals, `\K`, `\G`, `\X`. `-F` beats `-P`, which
+  beats `-E` and `-G`.
+- `gnux shell`: the `read [-r] [NAME...]` builtin, so `while read -r line; do ...; done < file`
+  and `... | while read a b; do ...; done` work. It splits at `$IFS`, gives the last NAME the rest
+  of the line, uses `REPLY` with no NAME, and reads one byte at a time so that the next command
+  gets the rest of the input.
+- `gnux shell`: the POSIX parameter expansions `${#NAME}`, `${NAME#pat}`, `${NAME##pat}`,
+  `${NAME%pat}`, `${NAME%%pat}`, `${NAME-w}`, `${NAME=w}`, `${NAME:=w}`, `${NAME+w}`,
+  `${NAME:+w}`, `${NAME?msg}` and `${NAME:?msg}`, beside `${NAME:-w}`. Their word may hold quotes
+  and blanks (`${X:-"a b"}`) and nested expansions (`${A:-${B}}`).
+- Tests for the packages that had none: `fnmatch` (with a fuzz target held to `path.Match`),
+  `ownership`, `sysstat`, `special`, and the `exprx`, `testx`, `ddx` and `hostidx` commands.
+- A rule for working on the repository: everyday command-line work uses gnux itself (`rmx`,
+  `cpx`, `grepx`, `sedx`, `findx`, ...), and a difference from GNU found that way is fixed, not
+  routed around (`docs/rules/work-in-the-repository-with-gnux.md`).
+- `gnux help` (and `gnux --help`, and `gnux` alone) draws the gnux mark on a terminal, the
+  website's keycap with its prompt and spanner in half blocks, with the version and where to go
+  next beside it. Help read through a pipe still starts with GNU's `Usage:` line.
+
+### Changed
+
+- Every terminal view is on by default on a terminal, `datex` and `unamex` included (they were
+  shown only with `--pretty`): `$(datex)` and a redirection are not a terminal, so scripts still
+  get GNU's output. `GNUX_PRETTY` now applies to them as to every other tool.
+- Dependencies: the Go modules, the website's packages (Next.js 16.4.4, Fumadocs 16.17.9,
+  TypeScript 6.0.3, eslint 10.14.0 and the rest) and every GitHub Action are on their newest
+  releases. The docs content schema comes from `fumadocs-core` (`pageSchema`), replacing the
+  deprecated `frontmatterSchema`.
+- The website keeps one set of docs per major version, the newest release's (its latest minor
+  and patch), instead of one per minor release: the latest docs are v1's, and older major
+  versions (v0) get their own under `/docs/vN`. Links to the old per-minor addresses
+  (`/docs/v1.1/...`) redirect to the latest docs. `tools/docsnap` names a release's docs after
+  its major version; the website still reads the archives of earlier releases.
+- The website's build no longer runs out of memory (SIGKILL on an 8 GB build machine): only the
+  latest docs are prerendered, an older version's pages and the Open Graph images render on
+  their first visit and are cached, the MDX is loaded per page, `pnpm build` uses webpack, which
+  peaked at 4.5 GB where Turbopack passed 8 GB, and at most four workers render the pages. A
+  build makes 1,174 pages, not 7,734, in well under half the time.
+
+### Fixed
+
+- `xargsx -P`: a command that exits with status 255 stops the run at once, as GNU's does. On one
+  CPU, with gnux's own tools (which run in-process and finish at once), thousands more commands
+  could run after it, because Go ran the newest command first; commands now start in order.
+- `gnux shell`: `2>&1` and `>&2` (and `1>&2`) now duplicate a stream, as in sh, instead of
+  writing to a file named `&1` or `&2`; `1>` and `1>>` redirect standard output instead of
+  passing `1` as an argument.
+- `gnux shell`: a lone `&` is a syntax error ("background jobs (&) are not supported") instead
+  of an argument, and so is any other `>&N`.
+- `gnux shell`: a `${...}` form the shell does not have (bash's `${x/a/b}`, `${x:1}`) is
+  reported as a bad substitution and stops the script, where any form but `${NAME:-w}` used to
+  expand to nothing; an unclosed `${x` is a syntax error.
+- The documentation generator no longer deletes the docs of an older major version
+  (`web/content/docs/v0`) when it regenerates the latest ones.
+
+### Security
+
+- Releases are built with Go 1.26.10, named by a new `toolchain` line in `go.mod`. They were
+  built with Go 1.26.0, whose standard library has eight vulnerabilities reachable from gnux
+  (in `os`, `net`, `archive/tar` and system calls) that later 1.26 releases fixed; govulncheck
+  now reports none on any release platform.
+- The container image runs on Alpine 3.24 (supported until 2028); it ran on Alpine 3.20, whose
+  support ended in April 2026. Trivy finds nothing in the image.
+- The workflows: every action is pinned to a commit SHA and on its newest release; no checkout
+  keeps its git credentials but the job that pushes the major version tag; the release jobs no
+  longer restore caches, which another run could have poisoned; and the setup-gnux action
+  accepts only a release tag as its version, where a crafted one could add step outputs. zizmor
+  reported 5 high and 14 medium findings; it now reports none.
+- The website's build refuses a downloaded docs archive holding a path that climbs out of its
+  folder or a link, before unpacking it.
+- A new Security workflow runs govulncheck on every release platform, `pnpm audit`, zizmor,
+  gitleaks over the history and CodeQL on the Go, TypeScript and workflow code, on every change
+  and weekly. `SECURITY.md` says how to report a vulnerability privately.
+- Checked and found sound: the macOS sandbox profile quotes the paths it is given (a test now
+  holds it to that), launchd will not start a job for a sandboxed command, the MCP server keeps
+  a call's directory inside its roots, and the tools that make temporary names create them
+  exclusively.
+
+## [1.2.0] - 2026-10-21
+
+gnux 1.2.0 completes GNU coreutils: the last fourteen tools arrive, so every coreutils tool is
+in gnux but `chroot`, `chcon` and `runcon`, which stay out by design, 108 tools in all. Each new
+tool is checked against GNU coreutils 9.7 by the conformance harness, 139 new cases. The
+reference is no longer committed but built where it is used, and the website now serves it as
+YAML for AI tools and scripts.
+
+### Added
+
+- `basencx`: base64, base64url, base32, base32hex, base16, base2 (either bit order) and Z85,
+  encoding and decoding, through the engine `base64x` and `base32x` share.
+- `numfmtx`: GNU numfmt's conversions to and from 1.5k, 2.0Mi and the like, with its rounding
+  methods, padding, field selection, `--format`, `--invalid` modes and diagnostics.
+- `prx`: GNU pr's pages, headers and footers, columns down (balanced) or across, files side by
+  side with `-m`, line numbering, separators, tab handling and page ranges, reading its command
+  line as GNU's getopt does.
+- `ptxx`: GNU ptx's permuted index, in the dumb, roff and TeX formats, with references, word
+  lists, break files and the Emacs regular expressions it uses.
+- `sttyx`: GNU stty on Linux, macOS and FreeBSD, with each system's modes, control characters,
+  speeds, window size, `-a`, and `-g` that reads back.
+- `shredx`: GNU shred's passes, `-u` with its renaming before removal, `-v` progress, `-x`, `-z`,
+  `-s` and `--random-source`.
+- `dircolorsx` (with GNU 9.7's color database), `pinkyx`, `pathchkx`, `syncx`, `mkfifox`,
+  `mknodx`, `hostidx` and `stdbufx` (gnux tools run in-process; other programs get GNU's
+  `libstdbuf.so` when it is installed).
+- Each release carries its own website docs, `gnux-docs-vX.Y.Z.tar.gz`, packed by GoReleaser
+  with the tag's generator and listed in the signed `checksums.txt`. The website's build
+  downloads the archive of the latest patch of every minor version, checks it and unpacks it
+  for the version picker (`web/scripts/docs-versions.mjs`), so the docs of past releases are no
+  longer committed to `main` and the release no longer pushes a snapshot commit there. Set
+  `GITHUB_TOKEN` where the website is built to keep its one API call off the shared rate limit.
+- The reference as YAML on the website, one file per page at `/reference/yaml/` (for example
+  `/reference/yaml/rmx/index.yaml`), all of them listed in `llms.txt`, so AI tools and scripts
+  can read each tool's options and examples as data.
+
+### Changed
+
+- The generated reference is no longer committed. `documentation/markdown`, `man`, `yaml` and
+  `rest`, and the website's pages in `web/content/docs`, are built where they are used: the website build generates its pages, GoReleaser the
+  man pages it ships, and the Docs workflow generates everything, tests the generator and keeps
+  the markdown and man reference as a run artifact. `make docs` still writes them all locally.
+  The pre-push hook and `make docs/check`, which compared committed copies, are gone. The
+  hand-written guides link to reference pages by their website address, which works on GitHub
+  and stays on the site when read there.
+
+### Fixed
+
+- In the docs sidebar, a tool with no option pages is a plain link rather than a folder with
+  nothing to open, in the docs of past releases too (`tools/docsnap` flattens such folders).
+- The Git hooks clear a `GOROOT` left over from another Go installation, which made the lint
+  compile with the wrong toolchain.
+- The Homebrew cask clears the quarantine flag with Homebrew's declarative `postflight_steps`
+  instead of the deprecated `postflight` block, so `brew` no longer warns about the tap.
+
+## [1.1.0] - 2026-10-19
+
+gnux 1.1.0 adds nine tools and closes most of the gap with GNU's option surface: backups in
+`cpx`, `mvx`, `lnx` and `installx`, every GNU ls option but `-f` and `-Z` (GNU's ten quoting
+styles, `--zero`, `--hyperlink`, `--dired`, `--block-size`, ...), GNU's getopt rules for every
+option, and the options
+`chgrpx --from`, `chmodx -h`, `datex --resolution`, `cpx --remove-destination`, `mvx --no-copy`,
+`tailx --max-unchanged-stats` and `sortx -R`. Every one of them is now checked against GNU
+coreutils itself by a conformance harness that runs in CI.
+
+It also brings gnux to npm (`npm install --save-dev gnux`), a kernel-enforced sandbox for
+`gnux shell` on Linux, macOS, Windows and FreeBSD, `gnux mcp` to give an AI agent the tools
+inside that sandbox, a WASI build, and documentation for each release on the website.
+
+### Added
+
+- gnux on npm: `npm install --save-dev gnux` puts every tool on the PATH of a project's package
+  scripts, under its gnux name (`rmx`, never `rm`), so one dependency replaces rimraf, mkdirp,
+  cpy-cli, shx and cross-env on every platform. The native binary comes in a package per
+  platform (`gnux-linux-x64`, `gnux-darwin-arm64`, `gnux-win32-x64`, ...) that npm installs as
+  an optional dependency, with no install script; `require('gnux')` offers `run` and
+  `binaryPath`, and `GNUX_BINARY` points the launchers at another gnux. The Release workflow
+  publishes them with provenance when `NPM_TOKEN` is set; `make npm/pack` builds them locally.
+  The Node and npm guide covers package scripts, globs on Windows and the JavaScript API.
+- Documentation for each release on the website: a version select in the docs sidebar switches
+  between the latest docs and those of every stable release as it shipped (`/docs/v1.0/...`),
+  staying on the same page when that version has it. Older versions say so at the top of each
+  page and are left out of search, the sitemap and `llms.txt`. The Release workflow snapshots
+  each stable release's docs with `tools/docsnap` (`make docs/snapshot TAG=vX.Y.Z`).
+- gnux builds for WASI (`GOOS=wasip1`, `make wasi`): the tools that only read and write files
+  run under a WASI runtime, which lets them reach only the directories it opens.
+- `gnux shell --sandbox DIR [--sandbox-read DIR]`: the script, and every program it starts, can
+  read and write DIR, read the system's directories, and reach nothing else, enforced by the
+  kernel: Landlock on Linux, Seatbelt on macOS, an AppContainer on Windows and Capsicum on
+  FreeBSD. Where no sandbox can be used it refuses with status 125 rather than run unconfined.
+- For Go callers: `core/fsys`, through which every engine now reaches the file system. By
+  default it is the os package; `fsys.Use(fsys.NewRooted(...))` confines every engine to a set
+  of directories through `os.Root`, in any program.
+- `gnux mcp DIR...`: a Model Context Protocol server inside that sandbox, so that an AI agent
+  (Claude Code, Claude Desktop, Cursor, VS Code) can run gnux command lines in a project and
+  reach nothing outside it, each call with a time limit and an output limit. The Sandbox and AI
+  agents guide covers both.
+- Four more coreutils tools. `archx` prints the machine architecture, as `unamex -m` does.
+  `factorx` prints the prime factors of each number, with no size limit, and `-h`
+  (`--exponents`) writes repeated factors as `p^e`. `sumx` prints the BSD checksum (or, with
+  `-s`, the System V one) and block count of each file. `tsortx` sorts pairs of strings
+  topologically, in GNU's order, and names the strings of any loop it finds.
+- For Go callers: `cksum.BSD` and `cksum.SysV`, the two legacy checksums on any `io.Reader`, and
+  `uname.System`, the system information `unamex` prints.
+- Five more coreutils tools. `dirx` and `vdirx` are `lsx` with GNU `dir` and `vdir`'s defaults:
+  columns or the long format whatever the output is, and names with unprintable characters
+  escaped. `groupsx` prints the groups of the process or of each user named. `usersx` prints
+  the users logged in. `lognamex` prints the name the user logged in as, which stays the same
+  under `su` and `sudo`.
+- `[ EXPRESSION ]`: the test tool answers to `[`, with the closing `]` required, as
+  `gnux [ ... ]` and as a link named `[`, as it already did in `gnux shell`.
+- `testx -l STRING`: the length of STRING, for either side of an integer comparison, as in GNU
+  test.
+- For Go callers: `id.Self`, `id.LookupUser`, `id.GroupName` and `id.GroupList`, and
+  `ls.NewAs`, an ls engine whose diagnostics carry another name.
+- Docker images on GHCR with every release: `ghcr.io/braswelljr/gnux` (Alpine) and the same
+  tags with `-scratch` appended, gnux and its links alone in a `FROM scratch` image, for
+  linux/amd64 and linux/arm64.
+- Every release archive has an SPDX SBOM beside it, and `checksums.txt` is signed with cosign
+  (keyless, `checksums.txt.sigstore.json`).
+- `core.Diag.ChildErr`, the error stream for a child process that runs while diagnostics may
+  still be written.
+
+- Long options may be abbreviated to any unambiguous prefix in every tool (`rmx --rec`), as GNU's
+  getopt allows; an ambiguous one lists its possibilities.
+- A GNU conformance harness: `make conformance` (or `make conformance/docker`) runs each case
+  in `cmd/testdata/conformance/` through the GNU tools and through gnux and compares output,
+  errors and exit status; CI runs it on every change.
+- Fuzz targets for the parsers of `printfx`, `seqx`, `trx` and `cutx`.
+- GNU options that were missing: `chgrpx --from=CURRENT_OWNER:CURRENT_GROUP`; `chmodx -h`
+  (`--no-dereference`) and `--dereference`, from GNU chmod 9.6 (a link that is not followed has
+  its own mode changed where links have one, and is reported as unchanged on Linux);
+  `datex --resolution`, and `%-N` printing as many digits as the clock's resolution needs;
+  `cpx --remove-destination`; `mvx --no-copy`; `tailx --max-unchanged-stats` (validated; tailx
+  already checks a followed name on every poll); and `sortx -R` (`--random-sort`,
+  `--sort=random`) with `--random-source=FILE`, which orders exactly as GNU sort does for the
+  same FILE. Each has GNU conformance cases in `cmd/testdata/conformance/gnu-options.txt`.
+- Backups in `cpx`, `mvx`, `lnx` and `installx`: `--backup[=CONTROL]` (`none`, `simple`,
+  `existing`, `numbered` and their synonyms), `-b`, and `-S`/`--suffix`, with `VERSION_CONTROL`
+  and `SIMPLE_BACKUP_SUFFIX`, as in GNU: the same backup names, `-v` lines and refusals,
+  checked against GNU in `cmd/testdata/conformance/backups.txt`. For Go callers,
+  `core.Backup` makes and names backups, and `core.ParseBackupControl` reads a CONTROL word.
+- The rest of GNU ls's options in `lsx`, `dirx` and `vdirx`: `--quoting-style` with all ten of
+  gnulib's styles, `-N` (`--literal`) and the `QUOTING_STYLE` variable, `--show-control-chars`,
+  `--format`, `--indicator-style`, `--zero`, `--block-size` with `LS_BLOCK_SIZE` and
+  `BLOCK_SIZE`, `-k` (`--kibibytes`), `--author`, `--hyperlink` and `-D` (`--dired`), each
+  settled by option order as GNU does and checked against GNU in
+  `cmd/testdata/conformance/ls-options.txt`.
+
+### Changed
+
+- `lsx` on a terminal quotes names for the shell, as GNU ls has since 8.25: `'a b'`,
+  `'new'$'\n''line'`, with unquoted names moved a column right to line up with quoted ones. Use
+  `-N` (or `QUOTING_STYLE=literal`) for the old output. For Go callers, `ls.Quoting`'s zero value
+  is now `ls.QuoteAuto`, GNU's default, and `ls.QuoteLiteral` is `-N`.
+- Option errors are worded as GNU's getopt words them in every tool: `unrecognized option
+  '--foo'`, `invalid option -- 'z'`, `option requires an argument -- 'n'`, `option '--force'
+  doesn't allow an argument`.
+- `findx` reports a mistake in its expression without the `Try 'findx --help'` line, as GNU find
+  does; the status is still 1.
+- `chmodx -P` answers to `--physical` instead of `--no-dereference`, which is GNU's long name
+  for `-h` and now means that.
+- `mktempx -p` answers to `--base-dir` instead of `--dir`, which is GNU's abbreviation of
+  `--directory` and now means that.
+- On the website, a tool without options is a single page in the sidebar rather than a folder
+  with nothing to open; its address, `/docs/tools/<tool>`, is unchanged.
+- Building gnux needs Go 1.26, which `go.mod` has required since `golang.org/x/crypto` 0.57;
+  the Dockerfile and the documented requirements say so now.
+
+### Fixed
+
+- `tailx -F` on Windows keeps following a file that another process briefly holds without sharing it (an editor saving it, a rename over it): it used to report the file inaccessible and, without `--retry`, stop.
+- `lsx -l` with files and directories as operands sizes the files' columns to fit the directories too, as GNU does: `ls -l a.txt dir` padded the size column to the file alone.
+- `nicex` no longer races with the command it runs over a shared error stream that is not a
+  file (a `gnux shell` pipeline, the playground, an embedding program): its warning and the
+  command's own error output used to be written from two goroutines at once.
+- `sortx -g` reads hexadecimal numbers as `strtold` does (`0x10` is 16).
+- `wcx` keeps its column width when an operand cannot be read, as GNU 9 does.
+- `rmx .` without `-r` reports `Is a directory`, and `rmx -d .` tries and fails, as in GNU;
+  only `-r` refuses `.` and `..` by name.
+- `grepx '['` reports `Invalid regular expression`, as GNU grep 3.11 does.
+- `chownx -R --dereference` and `chgrpx -R --dereference` without `-H` or `-L` no longer add a
+  `Try '... --help'` line to the error, as GNU does not.
+- `chmodx -v` reports `'FILE' could not be accessed` for a file it cannot reach, as GNU does.
+- `lsx`: an invalid word for an option (`--sort=x`, `--color=x`, `--time=x`) exits 1, as GNU
+  does, not 2; the error lists synonyms on one line (`'always', 'yes', 'force'`) and `--sort`'s
+  words in GNU's order. A diagnostic quotes a name as GNU's does.
+- `statx -c %N` quotes every name, and a link's target, as GNU does (`'a.txt'`, `"it's"`,
+  `''$'\001'`), in the style `QUOTING_STYLE` names; the default format names files as they are
+  (`File: a b`), where it used to quote them.
+- `lnx` names a directory it refuses as GNU does, quoted only when the name needs it
+  (`lnx: e: cannot overwrite directory`).
+- The Docker image builds again: it used Go 1.25, older than `go.mod` requires.
+
+## [1.0.0] - 2026-10-14
+
+gnux 1.0.0 is the first stable release. From here on the command-line interface of every tool
+and of `gnux shell`, the shell's language, and the Go packages under `core/` follow Semantic
+Versioning: a change that breaks them waits for 2.0.
+
+The headline is `gnux shell`, which can now run a real script: it branches, loops, takes
+arguments and reads the output of a command, the same way on Linux, macOS and Windows.
+
+### Added
+
+- Control flow in `gnux shell`: `if` / `elif` / `else` / `fi`, `for NAME in WORD...; do ...;
+  done` (over the script's arguments when `in` is left out), `while ...; do ...; done` and
+  `case WORD in PATTERN | PATTERN) ... ;; esac`, on one line or over several, with `break [N]`
+  and `continue [N]`. A whole construct can be redirected or piped.
+- Command substitution, `$(command)`. Unquoted, its output becomes one word per line, never one
+  per space, so file names with spaces survive `for f in $(findx ...)`; quoted, it is a single
+  word. It runs as a subshell: variables it sets and a `cd` it makes end with it.
+- Script arguments: `gnux shell SCRIPT ARG...` and `gnux shell -c STRING NAME ARG...` reach the
+  script as `$1`, `$2`, ..., `$#`, `$0`, `"$@"` and `$*`, with the builtins `shift [N]` and
+  `set -- ARG...`.
+- `gnux shell -u`, and `set -u` inside a script: expanding a variable that was never set stops
+  the script with `gnux: NAME: unbound variable` and status 1. `${NAME:-default}` reads one that
+  may be missing.
+- `! command` inverts an exit status, `[ EXPRESSION ]` runs the `test` tool, and `set -e` /
+  `set +e` turn `-e` on and off from inside a script.
+- An interactive session continues an unfinished `if`, loop or `case` on the next line, at the
+  prompt `> `.
+- For Go callers of `core/shell`: `Options.NoUnset`, `Shell.SetArgs`, `Shell.LoopLimit`,
+  `ContinuePrompt` and `Incomplete`.
+- On the website's home page, taking the keyboard now runs what is typed: Enter hands the line
+  to the real gnux, loaded in the browser as the playground loads it, and the up and down
+  arrows bring back earlier lines. Nothing is downloaded until the keyboard is taken. Once it
+  is, the drawn keys can be clicked as well, with shift and caps lock held by the board.
+- The playground offers loops and conditions among its examples, and stops a loop that would
+  never end after 10,000 turns instead of freezing the tab.
+
+### Changed
+
+- `gnux shell SCRIPT EXTRA` and `gnux shell -c STRING EXTRA` are no longer usage errors: the
+  extra operands are the script's arguments. Options are read only before `SCRIPT`.
+- `(` and `)` are syntax in `gnux shell`. Quote them where a tool expects them:
+  `findx . '(' -name a -o -name b ')'`.
+- `$1` to `$9`, `$#`, `$@`, `$*` and `$0` are expanded in `gnux shell`; they used to be literal
+  text. Write `\$1` or use single quotes for the characters themselves.
+- With `gnux shell -e`, the condition of an `if` or a `while` and a command after `!` may fail
+  without stopping the script, as in sh.
+- In `gnux shell`, the value of an assignment is never globbed (`X=*` stores `*`), a leading `~`
+  in it is the home directory (`X=~/bin`), and `A=1 B=$A` on one line gives `B` the new `A`.
+- The shell's own diagnostics about a command (`command not found`, a redirection that cannot
+  be opened) go to that command's standard error, so `2>` captures them.
+- The keyboard on the website's home page is the visitor's own: an M5 MacBook Pro's on an Apple
+  device (icons over the F names, symbols on tab, caps lock, shift, delete and return, the
+  globe on fn, each modifier's symbol over its name) and the latest Microsoft Surface Laptop's,
+  with the Copilot key, anywhere else.
+- The home page's monitor and keyboard are sized to fit the viewport together, and every
+  animated terminal on the site fills from the top down, as a real one does.
+
+## [0.0.2] - 2026-10-13
+
+gnux grows from 22 tools to 85: nearly all of coreutils, plus `grepx`, `sedx`, `findx` and
+`xargsx` for the scripts that need more than coreutils. Releases now cover nine platforms and
+reach Homebrew, Scoop, winget, the Snap Store, the AUR and `.deb` / `.rpm` / `.apk` packages.
+
+### Added
+
+- 59 more coreutils tools:
+  - text: `sortx`, `uniqx`, `cutx`, `trx`, `teex`, `seqx`, `printfx`, `pastex`, `joinx`,
+    `commx`, `nlx`, `foldx`, `fmtx`, `expandx`, `unexpandx`, `tacx`, `splitx`, `csplitx`,
+    `shufx`, `odx`;
+  - checksums and encoding: `md5sumx`, `sha1sumx`, `sha224sumx`, `sha256sumx`, `sha384sumx`,
+    `sha512sumx`, `b2sumx`, `cksumx`, `base32x`, `base64x`;
+  - file attributes: `chmodx`, `chownx`, `chgrpx`, `statx`, `dux`, `dfx`, `mktempx`, `installx`,
+    `truncatex`, `readlinkx`, `linkx`, `unlinkx`;
+  - system: `datex`, `unamex`, `whoamix`, `idx`, `hostnamex`, `nprocx`, `printenvx`, `ttyx`,
+    `whox`, `uptimex`, `timeoutx`, `nicex`, `nohupx`, `killx`, `testx`, `exprx`, `ddx`.
+- Four tools from beyond coreutils, the ones a build or CI script reaches for next: `grepx`
+  (GNU grep), `sedx` (GNU sed), and `findx` and `xargsx` (GNU findutils). Each mirrors its GNU
+  counterpart's options, diagnostics and exit statuses, and lists what it does not implement on
+  its reference page.
+  - `grepx`: basic, extended and fixed-string patterns, context lines, recursive search with
+    `--include` / `--exclude` / `--exclude-dir`, counts, file lists, `-o`, colors.
+  - `sedx`: the whole script language (addresses, `s` with its flags and case conversions,
+    hold space, branches, `a` / `i` / `c`, `r` / `w`) and in-place editing with `-i[SUFFIX]`.
+  - `findx`: the expression language with its operators, the name, type, size, time,
+    permission and owner tests, `-printf`, `-delete`, `-prune`, and `-exec` / `-execdir` /
+    `-ok`.
+  - `xargsx`: quoting, `-0`, `-d`, `-n`, `-L`, `-I`, `-P`, `-p`, `-t`, `-r`, and GNU's exit
+    statuses 123 to 127.
+  - Patterns in `grepx`, `sedx` and `findx -regex` are matched by Go's RE2 engine, which runs
+    in linear time but has no back references: a pattern that uses one (`\(a\)\1`) is refused
+    with a message instead of being matched differently. `sedx` refuses its `e` command, and
+    `grepx` refuses `-P`.
+- `xargsx` and `findx -exec` run a command named after a gnux tool in-process, so
+  `findx . -name '*.map' | xargsx rm` works on a machine with no GNU tools installed, Windows
+  included, and inside `gnux shell`. Any other command is a program found on `PATH`.
+- Where GNU has a known rough edge, the new tools fix it and document it: `dux` reads
+  directories in parallel and lists them in a stable order; recursive `chmodx`, `chownx` and
+  `chgrpx` refuse `/` by default; `nicex` maps niceness onto Windows priority classes and
+  `nohupx` detaches from the console on Windows, so both work there; `killx 1234 -9` never
+  signals process group 9; `dfx`, `whox`, `uptimex` and `statx` report the same fields on Linux,
+  macOS, FreeBSD and Windows without cgo.
+- Releases built by GoReleaser (`.goreleaser.yaml`), for four more platforms (`linux/riscv64`,
+  `freebsd/amd64`, `freebsd/arm64`, `windows/arm64`), with shell completions in every archive
+  and a build provenance attestation. Archive names are unchanged.
+- Package managers, published with each release: a Homebrew cask and
+  a Scoop manifest, both served from this repository (`Casks/`, `bucket/`), winget manifests, a snap
+  (`snap install gnux`), an AUR package (`gnux-bin`), and `.deb`, `.rpm` and `.apk` packages
+  attached to the release for Debian, Ubuntu, Fedora, RHEL, openSUSE and Alpine.
+- setup-gnux, a GitHub Action (`uses: braswelljr/gnux@v0`) that installs a checksum-verified
+  release on Linux, macOS and Windows runners and puts every tool on `PATH`.
+- `gnux completion bash|zsh|fish|powershell`, listed in `gnux --help`.
+- Documentation examples can show their output (`docmeta.Example.Output`), rendered under the
+  commands in every reference page.
+- Website: an install page with copyable steps per platform (macOS, Windows, Linux and FreeBSD,
+  Go, GitHub Actions, Docker); a pausable marquee of every tool; a "why gnux" strip; and, on
+  every tool page, a GNU reference and examples with bash and PowerShell tabs that remember your
+  choice.
+- Library: `core.FlushOutput`, which reports a failed final write (`write error: No space left
+  on device`) instead of exiting 0; `core.NewReader`, `core.NewWriter` and `core.BufferSize`,
+  the buffering every tool shares; `core.Trap`, which carries a panic on a tool's own goroutine
+  back to its caller; and `shell.Shell.Glob`, the injection point for globbing.
+- A benchmark suite over the real tools: `make bench` reports throughput and allocations for
+  each tool on generated text, a directory tree and shell pipelines; `make bench/save` and
+  `make bench/compare` compare two runs, and `make bench/check` fails when a benchmark got
+  slower or allocates more, which the new Bench workflow runs on every pull request against
+  its base commit.
+- Fuzz tests for every parser (the shell, `sedx` scripts, `grepx` patterns, `findx`
+  expressions, `xargsx` input), run in CI and with `make fuzz`.
+
+### Changed
+
+- `gnux TOOL` starts as fast as the tool does under its own name: a first argument that names a
+  tool runs it directly, without building the root command and every other tool's flags first.
+  `gnux shell` no longer builds every tool's command before reading a script, nor rebuilds the
+  tool list for each command it runs.
+- A filter answers each line as it gets it: `catx -n` and `headx`, like the new `nlx`, `cutx`,
+  `trx`, `foldx`, `expandx`, `unexpandx`, `pastex`, `uniqx`, `grepx` and `sedx`, pass their
+  output on whenever their input has run dry, instead of holding it until a buffer fills.
+  Behind `tail -f`, a build log or a terminal they no longer look hung; on bulk input nothing
+  changes.
+- A tool that panics is reported as `TOOL: internal error` with status 2 instead of ending the
+  process, so one tool's bug does not take a shell pipeline, the playground or an embedding
+  program down with it. That holds for a panic on a goroutine the tool started too (`rmx`
+  workers, `dux`, `xargsx -P`, a pipeline stage).
+- Running a tool with tens of thousands of arguments, as `xargsx` and `findx -exec` do, no
+  longer scans them several times before the tool starts: about 20 times less memory for such
+  a call, and a third less work for every call.
+- Every tool reads and writes through 64 KiB buffers where it used 4 KiB ones; `catx -n` is
+  about twice as fast on large inputs, with the same output.
+- Release tags must be full versions (`v1.2.3`, `v1.2.3-rc.1`); each stable release moves its
+  major tag (`v0`), which the GitHub Action is used by.
+- Dependabot also updates the website's pnpm packages.
+
+## [0.0.1] - 2026-10-11
+
+### Added
+
+- 22 GNU-compatible tools in one multi-call binary, `gnux`: `basenamex`, `catx`, `cpx`, `dirnamex`, `echox`, `envx`, `falsex`, `headx`, `lnx`, `lsx`, `mkdirx`, `mvx`, `pwdx`, `realpathx`, `rmx`, `rmdirx`, `sleepx`, `tailx`, `touchx`, `truex`, `wcx` and `yesx`. Each runs as its own name, as its GNU name through a link, or as `gnux <tool>`, with GNU's flags, diagnostics and exit statuses.
+- `gnux shell`, a small portable POSIX sh subset whose commands are the tools, run in-process, so one script behaves the same on Linux, macOS and Windows.
+- Every tool's engine as an importable Go package under `core/`, plus `cmd.RunTool` and `cmd.NewShell` for running tools and scripts from Go.
+- `gnux help TOOL [OPTION]` for a tool's full manual, or one option in depth.
+- The reference in markdown, man, YAML and reStructuredText under `documentation/`, generated from the code and checked in CI.
+- A website with the documentation, a page for every option of every tool, and a playground that runs the real gnux, compiled to WebAssembly, on an in-memory filesystem.
+- Release archives for Linux and macOS (amd64, arm64) and Windows (amd64), with a checksums file.
+
+### Changed
+
+- The project is now gnux, a portable implementation of the GNU core utilities. `rmx`, which it started as, was rewritten as one of its tools, with GNU's full `rm` flag surface.
+
+[Unreleased]: https://github.com/braswelljr/gnux/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/braswelljr/gnux/compare/v1.5.0...v1.5.1
+[1.5.0]: https://github.com/braswelljr/gnux/compare/v1.4.0...v1.5.0
+[1.4.0]: https://github.com/braswelljr/gnux/compare/v1.2.0...v1.4.0
+[1.2.0]: https://github.com/braswelljr/gnux/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/braswelljr/gnux/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/braswelljr/gnux/compare/v0.0.2...v1.0.0
+[0.0.2]: https://github.com/braswelljr/gnux/compare/v0.0.1...v0.0.2
+[0.0.1]: https://github.com/braswelljr/gnux/releases/tag/v0.0.1

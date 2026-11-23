@@ -1,0 +1,52 @@
+name: theme
+synopsis: |
+    Pick, save and list the built-in themes of the gnux terminal view.
+description: |-
+    gnux theme chooses the colors of gnux's terminal view from its built-in themes. Run alone on a terminal, it opens a picker: the themes on the left, the one under the cursor drawn on the right on a long listing, Git's marks, a check's verdicts, usage bars and an environment line. Up and Down (or Ctrl-P and Ctrl-N), Page Up and Page Down, Home and End move; typing filters the list by name, Backspace and Ctrl-U edit the filter; Enter saves the theme and Esc or Ctrl-C leaves without saving. The picker draws on the terminal's alternate screen, so what was on screen comes back when it ends.
+
+    Tab and Shift-Tab (or Right and Left) switch between the groups: All, Adaptive (a family's own name, which follows the background, with default and mono), Dark and Light. gnux theme list draws every theme on a sample row (the names alone through a pipe); gnux themes is the same. gnux theme show prints the theme in use and where it comes from (the name alone through a pipe). gnux theme set NAME saves NAME without the picker, for scripts, and gnux theme reset removes the saved theme; choosing default, in the picker or with set, does the same.
+
+    The saved theme is a file holding the theme's name: $XDG_CONFIG_HOME/gnux/theme, else ~/.config/gnux/theme (%AppData%\gnux\theme on Windows), or theme in GNUX_CONFIG_DIR when that is set. Only a built-in name is accepted, the file is replaced whole and only its owner may read or write it. A tool reads it only when its output is colored and neither --theme nor GNUX_THEME names a theme, so --theme wins over GNUX_THEME, which wins over the saved theme, which wins over the default; piped output never reads it. A file gnux would not have written (another name, more than 64 bytes, not a regular file) is reported and ignored.
+
+    Most themes come in a dark and a light variant, named FAMILY-dark and FAMILY-light after the editor themes they follow (vscode, github, one, solarized, gruvbox, catppuccin, tokyo-night, ayu, rose-pine, everforest, night-owl, high-contrast, material, tomorrow, selenized, flexoki, xcode), Apple's system colors (ios), or gnux's own: colorful, every hue at full strength, and monochrome, shades of gray. The family's own name picks the variant that suits the background: GNUX_BACKGROUND (dark or light) when set, else the terminal's COLORFGBG, else the system's appearance (dark mode on macOS and Windows, a dark GTK theme), else dark. Some themes have one, dark, variant (dracula, nord, monokai, kanagawa, palenight, ayu-mirage, zenburn, synthwave, horizon, moonlight); default uses the 16 basic colors, so it follows the terminal's own scheme, and mono uses no color at all, only bold, dim and underline.
+
+    EXIT STATUS.
+      0  the theme was shown, saved or reset, or the picker was left without saving
+      1  the theme could not be saved or removed, or a command-line mistake
+
+    HELP. gnux theme --help shows the options and the first examples; gnux help theme prints the full manual, and gnux help theme OPTION explains one option.
+
+    SEE ALSO. lsx, dfx, dux, grepx.
+
+    USE CASES.
+      - Choosing a theme by trying each on sample output, then keeping it for every tool.
+      - Setting the theme from a dotfiles script: gnux theme set github.
+      - Checking which theme is in use and why: gnux theme show.
+      - Listing the theme names in a script or a completion: gnux theme list | catx.
+usage: theme [list | show | set NAME | reset] [OPTION]...
+options:
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: pretty
+      usage: |
+        the gnux terminal view `WHEN`: 'always' (the default when WHEN is omitted), 'auto' (the default: on a terminal only), or 'never'; GNUX_PRETTY sets the default
+    - name: theme
+      usage: |
+        color the view with the built-in theme `NAME` (gnux theme picks and saves one); GNUX_THEME sets the default
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # Browse the themes with a live preview and keep the one you like
+      gnux theme
+
+      # Your terminal is light: keep the solarized family, which then takes its light variant
+      gnux theme set solarized
+
+      # Try a theme on a real listing before keeping it, then see what is in use
+      lsx -l --theme=tokyo-night
+    gnux theme show
+
+      # Go back to the default colors
+      gnux theme reset

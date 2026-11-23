@@ -1,0 +1,47 @@
+name: stdbufx
+synopsis: |
+    Run a command with modified buffering of its standard streams.
+description: |-
+    stdbufx runs COMMAND with its standard input, output or error buffered as asked: MODE L buffers by line (not for input), 0 not at all, and a size such as 4096, 64K or 1MB uses a buffer that large. A COMMAND named after a gnux tool runs in this process, unchanged: gnux tools already write out each line as soon as their input runs dry, which is what -oL is for, so a pipeline of gnux tools needs no stdbufx. Any other COMMAND gets GNU coreutils' libstdbuf.so preloaded (LD_PRELOAD, or DYLD_INSERT_LIBRARIES on macOS), exactly as GNU stdbuf does, which affects programs that use the C library's stdio and have not set their own buffering. stdbufx looks for libstdbuf.so beside itself and where GNU coreutils packages install it, and without it refuses to run COMMAND ('failed to find libstdbuf.so', status 125), as GNU stdbuf does; on Windows only gnux tools can be run.
+
+    EXIT STATUS.
+      125  stdbufx itself failed: a command-line mistake, or libstdbuf.so was not found
+      126  COMMAND was found but could not be run
+      127  COMMAND was not found
+      N  otherwise, COMMAND's own exit status
+
+    HELP. stdbufx --help shows the options and the first examples; gnux help stdbufx prints the full manual, and gnux help stdbufx OPTION explains one option.
+
+    SEE ALSO. envx, nicex, timeoutx, teex.
+
+    PERMISSIONS. Needs execute permission on COMMAND. Changes nothing itself.
+
+    USE CASES.
+      - Seeing a program's output line by line when it writes into a pipe, which it would otherwise buffer.
+      - Watching a log through a filter that holds its output back, such as an awk or python script.
+usage: stdbufx OPTION... COMMAND [ARG]...
+options:
+    - name: error
+      shorthand: e
+      usage: adjust standard error stream buffering to `MODE`
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: input
+      shorthand: i
+      usage: adjust standard input stream buffering to `MODE`
+    - name: output
+      shorthand: o
+      usage: adjust standard output stream buffering to `MODE`
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # See each line of a program's output as soon as it is written, through a pipe
+      tail -f app.log | stdbufx -oL awk '/ERROR/' | teex errors.log
+
+      # Make a program's error output unbuffered
+      stdbufx -e0 ./build.sh 2> build.err
+
+      # gnux tools need none of this, but take it in their stride
+      tail -f app.log | stdbufx -oL grepx ERROR

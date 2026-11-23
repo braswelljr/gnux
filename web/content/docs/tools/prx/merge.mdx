@@ -1,0 +1,47 @@
+---
+title: "-m, --merge"
+description: "Print all files in parallel, one in each column, truncate lines, but join lines of full length with -J."
+---
+
+An option of [prx](/docs/tools/prx).
+
+## Usage
+
+```bash
+prx -m [FILE]...
+prx --merge [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-m` | `--merge` | none |  | print all files in parallel, one in each column, `truncate` lines, but `join` lines of full length with `-J` |
+
+## Examples
+
+### Put two files side by side to compare them
+
+```bash tab="bash" tab-group="shell"
+prx -m -t old.conf new.conf
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx -m -t old.conf new.conf
+```
+
+### Join CSV columns with a comma instead of aligning them
+
+```bash tab="bash" tab-group="shell"
+prx -m -t -s, names.txt emails.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx -m -t -s, names.txt emails.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help prx --merge
+```

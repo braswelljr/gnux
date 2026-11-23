@@ -1,0 +1,15 @@
+{
+  "title": "shredx",
+  "pages": [
+    "exact",
+    "force",
+    "iterations",
+    "pretty",
+    "random-source",
+    "remove",
+    "size",
+    "theme",
+    "verbose",
+    "zero"
+  ]
+}

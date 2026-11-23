@@ -1,0 +1,19 @@
+{
+  "title": "mvx",
+  "pages": [
+    "backup",
+    "backup-default",
+    "force",
+    "interactive",
+    "no-clobber",
+    "no-copy",
+    "no-target-directory",
+    "pretty",
+    "strip-trailing-slashes",
+    "suffix",
+    "target-directory",
+    "theme",
+    "update",
+    "verbose"
+  ]
+}

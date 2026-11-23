@@ -1,0 +1,36 @@
+---
+title: "--color-scale"
+description: "Color WHICH columns on a gradient by value: 'all' (the default when WHICH is omitted), 'size', 'age' or 'none'."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx --color-scale[=WHICH] [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--color-scale` | `WHICH` (optional) |  | color WHICH columns on a gradient by value: 'all' (the default when WHICH is omitted), 'size', 'age' or 'none' |
+
+## Examples
+
+### Your downloads folder is full: find the biggest folders, each sized by everything in it, with the sizes colored by magnitude
+
+```bash tab="bash" tab-group="shell"
+lsx -lS --total-size --only-dirs --color-scale=size ~/Downloads
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -lS --total-size --only-dirs --color-scale=size $HOME\Downloads
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --color-scale
+```

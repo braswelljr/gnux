@@ -1,0 +1,243 @@
+---
+title: "numfmtx"
+description: "Convert numbers to and from human-readable strings."
+---
+
+Mirrors GNU `numfmt`. Run it as `numfmtx`, or as `gnux numfmtx`.
+
+## Synopsis
+
+```bash
+numfmtx [OPTION]... [NUMBER]...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: numfmt invocation](https://www.gnu.org/software/coreutils/manual/html_node/numfmt-invocation.html)
+- [Source: src/numfmt.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/numfmt.c)
+
+## Description
+
+`numfmtx` reformats each NUMBER, or the numbers in each line of standard input when there are none. `--to` writes a number with a unit suffix: si in powers of 1000 (1.5k, 2.0M), iec in powers of 1024 (1.5K), iec-i with an i (1.5Ki). `--from` reads such suffixes: si and iec as those powers, iec-i requiring the i, and auto taking 1K as 1000 and 1Ki as 1024. A scaled value below 10 keeps one decimal; the rest are rounded away from zero, or as `--round` says. `--from-unit` and `--to-unit` set the size of an input and an output unit, `--suffix` adds text after each number (and accepts it on input), and `--format` takes a `printf``-style` %f directive with a width, precision, zero padding, and text around it. In a line, only the first field is converted unless `--field` lists others (cut's syntax, or - for all); fields are separated by blanks, or by `-d`'s character, and a field that started after blanks keeps its width. `--header` copies the first N lines unchanged; `-z` reads and writes NUL-terminated lines. A number that cannot be converted stops the run with status 2 (`--invalid`=abort, the default); `--invalid`=fail prints it unchanged and carries on, still ending with 2, warn does so ending with 0, and ignore without a message. `gnux` works in the C locale: the decimal point is '.', and `--grouping` (or ' in `--format`) adds no separators, as in GNU `numfmt` under LC_ALL=C. Values are computed with the 64-bit precision of GNU's long double on x86-64, so a plain number of more than 18 digits needs `--to`, as there.
+
+## Permissions
+
+Reads standard input and writes standard output only; needs no permissions.
+
+## Use cases
+
+- Turning byte counts from `wcx`, `statx` or `dux -b` into sizes people can read.
+- Reading sizes such as 10G or 512Mi from a config file back into bytes.
+- Formatting a column of a report with a fixed width and precision.
+- Converting between units, such as kilobytes to bytes, in a pipeline.
+
+## Flags
+
+```text
+      --debug              print warnings about invalid input
+  -d, --delimiter X        use X instead of whitespace for field delimiter
+      --field FIELDS       replace the numbers in these input FIELDS (default=1); see FIELDS below
+      --format FORMAT      use printf style floating-point FORMAT; see FORMAT below for details
+      --from UNIT          auto-scale input numbers to UNITs; default is 'none'; see UNIT below
+      --from-unit string   specify the input unit size (instead of the default 1)
+      --grouping           use locale-defined grouping of digits, e.g. 1,000,000 (which means it has no effect in the C/POSIX locale)
+      --header N[="1"]     print (without converting) the first N header lines; N defaults to 1 if not specified
+      --help               display this help and exit
+      --invalid MODE       failure mode for invalid numbers: MODE can be: abort (default), fail, warn, ignore
+      --padding N          pad the output to N characters; positive N will right-align; negative N will left-align; padding is ignored if the output is wider than N; the default is to automatically pad if a whitespace is found
+      --round METHOD       use METHOD for rounding when scaling; METHOD can be: up, down, from-zero (default), towards-zero, nearest
+      --suffix SUFFIX      add SUFFIX to output numbers, and accept optional SUFFIX in input numbers
+      --to UNIT            auto-scale output numbers to UNITs; see UNIT below
+      --to-unit string     the output unit size (instead of the default 1)
+      --version            output version information and exit
+  -z, --zero-terminated    line delimiter is NUL, not newline
+```
+
+## Examples
+
+### Show a byte count the way people read sizes
+
+```bash tab="bash" tab-group="shell"
+numfmtx --to=iec 1048576
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --to=iec 1048576
+```
+
+```text title="Output"
+1.0M
+```
+
+### Use decimal units, as disk makers do
+
+```bash tab="bash" tab-group="shell"
+numfmtx --to=si 1500000
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --to=si 1500000
+```
+
+```text title="Output"
+1.5M
+```
+
+### Turn a size from a config file back into bytes
+
+```bash tab="bash" tab-group="shell"
+numfmtx --from=iec 4G
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --from=iec 4G
+```
+
+```text title="Output"
+4294967296
+```
+
+### Read sizes written either way, 1K as 1000 and 1Ki as 1024
+
+```bash tab="bash" tab-group="shell"
+numfmtx --from=auto 1K 1Ki
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --from=auto 1K 1Ki
+```
+
+```text title="Output"
+1000
+1024
+```
+
+### Make the size column of a listing readable, keeping the header
+
+```bash tab="bash" tab-group="shell"
+lsx -l | numfmtx --header --field=5 --to=iec
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -l | numfmtx --header --field=5 --to=iec
+```
+
+### Round sizes down, never overstating them
+
+```bash tab="bash" tab-group="shell"
+numfmtx --to=si --round=down 1999
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --to=si --round=down 1999
+```
+
+```text title="Output"
+1.9k
+```
+
+### Add a unit and pad the numbers to a column
+
+```bash tab="bash" tab-group="shell"
+numfmtx --to=iec --suffix=B --padding=7 1024 2048000
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --to=iec --suffix=B --padding=7 1024 2048000
+```
+
+```text title="Output"
+  1.0KB
+  2.0MB
+```
+
+### Print with three decimals inside some text
+
+```bash tab="bash" tab-group="shell"
+numfmtx --format='took %.3fs' 1.23456
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --format='took %.3fs' 1.23456
+```
+
+```text title="Output"
+took 1.235s
+```
+
+### Convert kilobyte counts, as dfx prints them, to bytes
+
+```bash tab="bash" tab-group="shell"
+echox 512 | numfmtx --from-unit=1024
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+echox 512 | numfmtx --from-unit=1024
+```
+
+```text title="Output"
+524288
+```
+
+### Convert the second column of a CSV file
+
+```bash tab="bash" tab-group="shell"
+numfmtx -d, --field=2 --to=si < sizes.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+Get-Content sizes.csv | numfmtx -d, --field=2 --to=si
+```
+
+### Keep going past values that are not numbers, but say which
+
+```bash tab="bash" tab-group="shell"
+numfmtx --invalid=warn --to=si 1000 n/a 2000
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --invalid=warn --to=si 1000 n/a 2000
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [--debug](/docs/tools/numfmtx/debug): Print warnings about invalid input.
+- [-d, --delimiter](/docs/tools/numfmtx/delimiter): Use X instead of whitespace for field delimiter.
+- [--field](/docs/tools/numfmtx/field): Replace the numbers in these input FIELDS (default=1); see FIELDS below.
+- [--format](/docs/tools/numfmtx/format): Use `printf` style floating-point FORMAT; see FORMAT below for details.
+- [--from](/docs/tools/numfmtx/from): Auto-scale input numbers to UNITs; default is 'none'; see UNIT below.
+- [--from-unit](/docs/tools/numfmtx/from-unit): Specify the input unit size (instead of the default 1).
+- [--grouping](/docs/tools/numfmtx/grouping): Use locale-defined grouping of digits, e.g. 1,000,000 (which means it has no effect in the C/POSIX locale).
+- [--header](/docs/tools/numfmtx/header): Print (without converting) the first N header lines; N defaults to 1 if not specified.
+- [--invalid](/docs/tools/numfmtx/invalid): Failure mode for invalid numbers: MODE can be: abort (default), fail, warn, ignore.
+- [--padding](/docs/tools/numfmtx/padding): Pad the output to N characters; positive N will right-align; negative N will left-align; padding is ignored if the output is wider than N; the default is to automatically pad if a whitespace is found.
+- [--round](/docs/tools/numfmtx/round): Use METHOD for rounding when scaling; METHOD can be: up, down, from-zero (default), towards-zero, nearest.
+- [--suffix](/docs/tools/numfmtx/suffix): Add SUFFIX to output numbers, and accept optional SUFFIX in input numbers.
+- [--to](/docs/tools/numfmtx/to): Auto-scale output numbers to UNITs; see UNIT below.
+- [--to-unit](/docs/tools/numfmtx/to-unit): The output unit size (instead of the default 1).
+- [-z, --zero-terminated](/docs/tools/numfmtx/zero-terminated): Line delimiter is NUL, not newline.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success, or invalid input under `--invalid`=warn or ignore |
+| 1 | a command-line mistake |
+| 2 | a number could not be converted |
+
+## Help in the terminal
+
+```bash
+numfmtx --help                # options, first examples, exit status
+gnux help numfmtx             # this page: the full manual
+gnux help numfmtx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [dux](/docs/tools/dux)
+- [dfx](/docs/tools/dfx)
+- [lsx](/docs/tools/lsx)
+- [sortx](/docs/tools/sortx)

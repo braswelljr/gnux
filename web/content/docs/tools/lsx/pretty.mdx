@@ -1,0 +1,36 @@
+---
+title: "--pretty"
+description: "The gnux terminal view WHEN: 'always' (the default when WHEN is omitted), 'auto' (the default: on a terminal), or 'never'; colors every column, adds --header, -h and --group-directories-first; GNUX_PRETTY sets the default."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx --pretty[=WHEN] [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--pretty` | `WHEN` (optional) |  | the `gnux` terminal view WHEN: 'always' (the default when WHEN is omitted), 'auto' (the default: on a terminal), or 'never'; colors every column, adds `--header`, `-h` and `--group-directories-first`; GNUX_PRETTY sets the default |
+
+## Examples
+
+### Page through the colored view, which a pipe would otherwise turn off
+
+```bash tab="bash" tab-group="shell"
+lsx -l --pretty=always /etc | less -R
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -l --pretty=always C:\Windows | Out-Host -Paging
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --pretty
+```

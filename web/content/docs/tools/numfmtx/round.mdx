@@ -1,0 +1,40 @@
+---
+title: "--round"
+description: "Use METHOD for rounding when scaling; METHOD can be: up, down, from-zero (default), towards-zero, nearest."
+---
+
+An option of [numfmtx](/docs/tools/numfmtx).
+
+## Usage
+
+```bash
+numfmtx --round=METHOD [NUMBER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--round` | `METHOD` |  | use METHOD for rounding when scaling; METHOD can be: up, down, from-zero (default), towards-zero, nearest |
+
+## Examples
+
+### Round sizes down, never overstating them
+
+```bash tab="bash" tab-group="shell"
+numfmtx --to=si --round=down 1999
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --to=si --round=down 1999
+```
+
+```text title="Output"
+1.9k
+```
+
+## Help in the terminal
+
+```bash
+gnux help numfmtx --round
+```

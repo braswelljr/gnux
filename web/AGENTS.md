@@ -72,10 +72,9 @@ extension, because Node runs them without a bundler.
 ## Things that are easy to get wrong here
 
 - **`content/docs/` and `public/gnux.wasm` are build inputs from the Go project.** Change the
-  Go source and run `pnpm gen`. `scripts/gen.mjs` does this before `dev` and `build`; on a host
-  without Go (Vercel) it downloads the release `../go.mod` names, checksum-verified, into
-  `node_modules/.cache/gnux`. `gnux.wasm` is never committed, so a deploy always builds it from
-  the deployed commit.
+  Go source and commit: the pre-commit hook regenerates and stages them. On Vercel `scripts/gen.mjs`
+  skips generation and the build uses the committed files. On another host without Go it downloads
+  the release `../go.mod` names, checksum-verified, into `node_modules/.cache/gnux`.
 - **Never hardcode the tool list.** The playground reads it from the running build
   (`session.tools`), and filters its examples against it.
 - **`lib/playground/memfs.ts` implements a contract owned by Go** (`$GOROOT/src/syscall/fs_js.go`).

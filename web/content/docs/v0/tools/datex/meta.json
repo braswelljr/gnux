@@ -1,0 +1,14 @@
+{
+  "title": "datex",
+  "pages": [
+    "date",
+    "file",
+    "iso-8601",
+    "reference",
+    "rfc-3339",
+    "rfc-email",
+    "set",
+    "universal",
+    "utc"
+  ]
+}

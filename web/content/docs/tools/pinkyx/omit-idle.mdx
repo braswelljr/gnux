@@ -1,0 +1,37 @@
+---
+title: "-q, --omit-idle"
+description: "Omit the user's full name, remote host and idle time in short format."
+---
+
+An option of [pinkyx](/docs/tools/pinkyx).
+
+## Usage
+
+```bash
+pinkyx -q [USER]...
+pinkyx --omit-idle [USER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-q` | `--omit-idle` | none |  | omit the user's full name, remote host and idle time in short format |
+
+## Examples
+
+### Only the login names, terminals and times, for a script
+
+```bash tab="bash" tab-group="shell"
+pinkyx -fq
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pinkyx -fq
+```
+
+## Help in the terminal
+
+```bash
+gnux help pinkyx --omit-idle
+```

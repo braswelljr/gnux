@@ -1,0 +1,41 @@
+---
+title: "--padding"
+description: "Pad the output to N characters; positive N will right-align; negative N will left-align; padding is ignored if the output is wider than N; the default is to automatically pad if a whitespace is found."
+---
+
+An option of [numfmtx](/docs/tools/numfmtx).
+
+## Usage
+
+```bash
+numfmtx --padding=N [NUMBER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--padding` | `N` |  | pad the output to N characters; positive N will right-align; negative N will left-align; padding is ignored if the output is wider than N; the default is to automatically pad if a whitespace is found |
+
+## Examples
+
+### Add a unit and pad the numbers to a column
+
+```bash tab="bash" tab-group="shell"
+numfmtx --to=iec --suffix=B --padding=7 1024 2048000
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --to=iec --suffix=B --padding=7 1024 2048000
+```
+
+```text title="Output"
+  1.0KB
+  2.0MB
+```
+
+## Help in the terminal
+
+```bash
+gnux help numfmtx --padding
+```

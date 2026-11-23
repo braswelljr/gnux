@@ -1,0 +1,37 @@
+---
+title: "-P, --extra"
+description: "Check for empty names and leading \"-\"."
+---
+
+An option of [pathchkx](/docs/tools/pathchkx).
+
+## Usage
+
+```bash
+pathchkx -P NAME...
+pathchkx --extra NAME...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-P` | `--extra` | none |  | check for empty names and leading "-" |
+
+## Examples
+
+### Reject a name that a command would read as an option
+
+```bash tab="bash" tab-group="shell"
+pathchkx -P "$name" || exit 1
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pathchkx -P $name; if ($LASTEXITCODE) { exit 1 }
+```
+
+## Help in the terminal
+
+```bash
+gnux help pathchkx --extra
+```

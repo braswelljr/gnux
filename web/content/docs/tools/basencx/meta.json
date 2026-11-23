@@ -1,0 +1,16 @@
+{
+  "title": "basencx",
+  "pages": [
+    "base16",
+    "base2lsbf",
+    "base2msbf",
+    "base32",
+    "base32hex",
+    "base64",
+    "base64url",
+    "decode",
+    "ignore-garbage",
+    "wrap",
+    "z85"
+  ]
+}

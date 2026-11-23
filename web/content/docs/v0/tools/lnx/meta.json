@@ -1,0 +1,15 @@
+{
+  "title": "lnx",
+  "pages": [
+    "force",
+    "interactive",
+    "logical",
+    "no-dereference",
+    "no-target-directory",
+    "physical",
+    "relative",
+    "symbolic",
+    "target-directory",
+    "verbose"
+  ]
+}

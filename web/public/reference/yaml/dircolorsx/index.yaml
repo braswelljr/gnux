@@ -1,0 +1,65 @@
+name: dircolorsx
+synopsis: |
+    Print commands that set LS_COLORS, the colors of lsx --color.
+description: |-
+    dircolorsx reads a color database, FILE or GNU's built-in one, and prints shell commands that set the LS_COLORS environment variable from it, for lsx --color and GNU ls to use. -b prints Bourne shell syntax (LS_COLORS='...'; export LS_COLORS), -c C shell syntax (setenv LS_COLORS '...'); without either, the syntax follows $SHELL: C shell for csh and tcsh, Bourne shell for anything else, and an error when SHELL is not set. -p prints the built-in database, a starting point for a FILE of your own, and --print-ls-colors prints each entry in its own color. A database line is a keyword and a value: a file type (DIR, LINK, EXEC, ...), a file name extension (.tar) or pattern (*~), and TERM or COLORTERM lines whose glob patterns say which terminals the lines after them apply to. The built-in database is GNU coreutils' own. PowerShell has no syntax of its own: use -b and take the value between the quotes, as the example shows.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. dircolorsx --help shows the options and the first examples; gnux help dircolorsx prints the full manual, and gnux help dircolorsx OPTION explains one option.
+
+    SEE ALSO. lsx, dirx, vdirx.
+
+    PERMISSIONS. Needs read permission on FILE. Prints commands; changes nothing itself.
+
+    USE CASES.
+      - Setting up colors for lsx --color in a shell profile.
+      - Customizing the colors: print the database with -p, edit it, and load the result.
+      - Previewing a color scheme with --print-ls-colors.
+usage: dircolorsx [OPTION]... [FILE]
+options:
+    - name: bourne-shell
+      default_value: "false"
+      usage: output Bourne shell code to set LS_COLORS
+    - name: c-shell
+      default_value: "false"
+      usage: output C shell code to set LS_COLORS
+    - name: csh
+      shorthand: c
+      default_value: "false"
+      usage: output C shell code to set LS_COLORS (also --c-shell)
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: print-database
+      shorthand: p
+      default_value: "false"
+      usage: output defaults
+    - name: print-ls-colors
+      default_value: "false"
+      usage: output fully escaped colors for display
+    - name: sh
+      shorthand: b
+      default_value: "false"
+      usage: |
+        output Bourne shell code to set LS_COLORS (also --bourne-shell)
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # Load the default colors in a Bourne-style shell profile
+      eval "$(dircolorsx -b)"
+
+      # Use your own database, kept in your home directory
+      dircolorsx -p > ~/.dircolors
+    eval "$(dircolorsx -b ~/.dircolors)"
+
+      # Set the colors in PowerShell
+
+      # See every color the database defines, in that color
+      dircolorsx --print-ls-colors
+
+      # Print C shell commands for a tcsh profile
+      dircolorsx -c >> ~/.tcshrc

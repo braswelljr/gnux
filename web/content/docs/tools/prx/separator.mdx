@@ -1,0 +1,37 @@
+---
+title: "-s, --separator"
+description: "Separate columns by a single character, default for CHAR is TAB without -w and 'no char' with -w; written -s[CHAR]."
+---
+
+An option of [prx](/docs/tools/prx).
+
+## Usage
+
+```bash
+prx -s CHAR [FILE]...
+prx --separator=CHAR [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-s` | `--separator` | `CHAR` |  | separate columns by a single character, default for CHAR is TAB without `-w` and 'no char' with `-w`; written `-s`[CHAR] |
+
+## Examples
+
+### Join CSV columns with a comma instead of aligning them
+
+```bash tab="bash" tab-group="shell"
+prx -m -t -s, names.txt emails.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx -m -t -s, names.txt emails.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help prx --separator
+```

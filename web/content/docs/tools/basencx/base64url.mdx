@@ -1,0 +1,40 @@
+---
+title: "--base64url"
+description: "File- and url-safe base64 (RFC4648 section 5)."
+---
+
+An option of [basencx](/docs/tools/basencx).
+
+## Usage
+
+```bash
+basencx --base64url [FILE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--base64url` | none |  | file- and url-safe `base64` (RFC4648 section 5) |
+
+## Examples
+
+### Encode a value for a URL, where '+' and '/' would need escaping
+
+```bash tab="bash" tab-group="shell"
+printfx '>>?' | basencx --base64url
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+printfx '>>?' | basencx --base64url
+```
+
+```text title="Output"
+Pj4_
+```
+
+## Help in the terminal
+
+```bash
+gnux help basencx --base64url
+```

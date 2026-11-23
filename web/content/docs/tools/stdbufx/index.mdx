@@ -1,0 +1,96 @@
+---
+title: "stdbufx"
+description: "Run a command with modified buffering of its standard streams."
+---
+
+Mirrors GNU `stdbuf`. Run it as `stdbufx`, or as `gnux stdbufx`.
+
+## Synopsis
+
+```bash
+stdbufx OPTION... COMMAND [ARG]...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: stdbuf invocation](https://www.gnu.org/software/coreutils/manual/html_node/stdbuf-invocation.html)
+- [Source: src/stdbuf.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/stdbuf.c)
+
+## Description
+
+`stdbufx` runs COMMAND with its standard input, output or error buffered as asked: MODE L buffers by line (not for input), 0 not at all, and a size such as 4096, 64K or 1MB uses a buffer that large. A COMMAND named after a `gnux` tool runs in this process, unchanged: `gnux` tools already write out each line as soon as their input runs dry, which is what `-oL` is for, so a pipeline of `gnux` tools needs no `stdbufx`. Any other COMMAND gets GNU coreutils' libstdbuf.so preloaded (LD_PRELOAD, or DYLD_INSERT_LIBRARIES on macOS), exactly as GNU `stdbuf` does, which affects programs that use the C library's stdio and have not set their own buffering. `stdbufx` looks for libstdbuf.so beside itself and where GNU coreutils packages `install` it, and without it refuses to run COMMAND ('failed to find libstdbuf.so', status 125), as GNU `stdbuf` does; on Windows only `gnux` tools can be run.
+
+## Permissions
+
+Needs execute permission on COMMAND. Changes nothing itself.
+
+## Use cases
+
+- Seeing a program's output line by line when it writes into a pipe, which it would otherwise buffer.
+- Watching a log through a filter that holds its output back, such as an awk or python script.
+
+## Flags
+
+```text
+  -e, --error MODE    adjust standard error stream buffering to MODE
+      --help          display this help and exit
+  -i, --input MODE    adjust standard input stream buffering to MODE
+  -o, --output MODE   adjust standard output stream buffering to MODE
+      --version       output version information and exit
+```
+
+## Examples
+
+### See each line of a program's output as soon as it is written, through a pipe
+
+```bash tab="bash" tab-group="shell"
+tail -f app.log | stdbufx -oL awk '/ERROR/' | teex errors.log
+```
+
+### Make a program's error output unbuffered
+
+```bash tab="bash" tab-group="shell"
+stdbufx -e0 ./build.sh 2> build.err
+```
+
+### gnux tools need none of this, but take it in their stride
+
+```bash tab="bash" tab-group="shell"
+tail -f app.log | stdbufx -oL grepx ERROR
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+Get-Content -Wait app.log | stdbufx -oL grepx ERROR
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-e, --error](/docs/tools/stdbufx/error): Adjust standard error stream buffering to MODE.
+- [-i, --input](/docs/tools/stdbufx/input): Adjust standard input stream buffering to MODE.
+- [-o, --output](/docs/tools/stdbufx/output): Adjust standard output stream buffering to MODE.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 125 | `stdbufx` itself failed: a command-line mistake, or libstdbuf.so was not found |
+| 126 | COMMAND was found but could not be run |
+| 127 | COMMAND was not found |
+| N | otherwise, COMMAND's own exit status |
+
+## Help in the terminal
+
+```bash
+stdbufx --help                # options, first examples, exit status
+gnux help stdbufx             # this page: the full manual
+gnux help stdbufx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [envx](/docs/tools/envx)
+- [nicex](/docs/tools/nicex)
+- [timeoutx](/docs/tools/timeoutx)
+- [teex](/docs/tools/teex)

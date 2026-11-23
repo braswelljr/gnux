@@ -1,0 +1,40 @@
+---
+title: "--format"
+description: "Use printf style floating-point FORMAT; see FORMAT below for details."
+---
+
+An option of [numfmtx](/docs/tools/numfmtx).
+
+## Usage
+
+```bash
+numfmtx --format=FORMAT [NUMBER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--format` | `FORMAT` |  | use `printf` style floating-point FORMAT; see FORMAT below for details |
+
+## Examples
+
+### Print with three decimals inside some text
+
+```bash tab="bash" tab-group="shell"
+numfmtx --format='took %.3fs' 1.23456
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --format='took %.3fs' 1.23456
+```
+
+```text title="Output"
+took 1.235s
+```
+
+## Help in the terminal
+
+```bash
+gnux help numfmtx --format
+```

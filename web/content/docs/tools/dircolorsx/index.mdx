@@ -1,0 +1,109 @@
+---
+title: "dircolorsx"
+description: "Print commands that set LS_COLORS, the colors of lsx --color."
+---
+
+Mirrors GNU `dircolors`. Run it as `dircolorsx`, or as `gnux dircolorsx`.
+
+## Synopsis
+
+```bash
+dircolorsx [OPTION]... [FILE]
+```
+
+## GNU reference
+
+- [GNU coreutils manual: dircolors invocation](https://www.gnu.org/software/coreutils/manual/html_node/dircolors-invocation.html)
+- [Source: src/dircolors.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/dircolors.c)
+
+## Description
+
+`dircolorsx` reads a color database, FILE or GNU's built-in one, and prints shell commands that set the LS_COLORS environment variable from it, for `lsx --color` and GNU `ls` to use. `-b` prints Bourne shell syntax (LS_COLORS='...'; export LS_COLORS), `-c` C shell syntax (setenv LS_COLORS '...'); without either, the syntax follows $SHELL: C shell for csh and tcsh, Bourne shell for anything else, and an error when SHELL is not set. `-p` prints the built-in database, a starting point for a FILE of your own, and `--print-``ls``-colors` prints each entry in its own color. A database line is a keyword and a value: a file type (DIR, LINK, EXEC, ...), a file name extension (.tar) or pattern (*~), and TERM or COLORTERM lines whose glob patterns say which terminals the lines after them apply to. The built-in database is GNU coreutils' own. PowerShell has no syntax of its own: use `-b` and take the value between the quotes, as the example shows.
+
+## Permissions
+
+Needs read permission on FILE. Prints commands; changes nothing itself.
+
+## Use cases
+
+- Setting up colors for `lsx --color` in a shell profile.
+- Customizing the colors: print the database with `-p`, edit it, and load the result.
+- Previewing a color scheme with `--print-``ls``-colors`.
+
+## Flags
+
+```text
+  -c, --csh               output C shell code to set LS_COLORS (also --c-shell)
+      --help              display this help and exit
+  -p, --print-database    output defaults
+      --print-ls-colors   output fully escaped colors for display
+  -b, --sh                output Bourne shell code to set LS_COLORS (also --bourne-shell)
+      --version           output version information and exit
+```
+
+## Examples
+
+### Load the default colors in a Bourne-style shell profile
+
+```bash tab="bash" tab-group="shell"
+eval "$(dircolorsx -b)"
+```
+
+### Use your own database, kept in your home directory
+
+```bash tab="bash" tab-group="shell"
+dircolorsx -p > ~/.dircolors
+eval "$(dircolorsx -b ~/.dircolors)"
+```
+
+### Set the colors in PowerShell
+
+```powershell tab="PowerShell" tab-group="shell"
+$env:LS_COLORS = (dircolorsx -b | Select-Object -First 1) -replace "^LS_COLORS='(.*)';$", '$1'
+```
+
+### See every color the database defines, in that color
+
+```bash tab="bash" tab-group="shell"
+dircolorsx --print-ls-colors
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+dircolorsx --print-ls-colors
+```
+
+### Print C shell commands for a tcsh profile
+
+```bash tab="bash" tab-group="shell"
+dircolorsx -c >> ~/.tcshrc
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-c, --csh](/docs/tools/dircolorsx/csh): Output C shell code to set LS_COLORS (also `--c-shell`).
+- [-p, --print-database](/docs/tools/dircolorsx/print-database): Output defaults.
+- [--print-ls-colors](/docs/tools/dircolorsx/print-ls-colors): Output fully escaped colors for display.
+- [-b, --sh](/docs/tools/dircolorsx/sh): Output Bourne shell code to set LS_COLORS (also `--bourne-shell`).
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+dircolorsx --help                # options, first examples, exit status
+gnux help dircolorsx             # this page: the full manual
+gnux help dircolorsx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [lsx](/docs/tools/lsx)
+- [dirx](/docs/tools/dirx)
+- [vdirx](/docs/tools/vdirx)

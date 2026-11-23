@@ -1,0 +1,36 @@
+---
+title: "--tree"
+description: "Draw what -print writes as a tree under each starting point."
+---
+
+An option of [findx](/docs/tools/findx).
+
+## Usage
+
+```bash
+findx --tree [-H] [-L] [-P] [STARTING-POINT]... [EXPRESSION]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--tree` | none |  | draw what `-print` writes as a tree under each starting point |
+
+## Examples
+
+### You cloned a project and want to see where its tests live, drawn as a tree under the directories that hold them
+
+```bash tab="bash" tab-group="shell"
+findx --tree . -name '*_test.go' -not -path './vendor/*'
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+findx --tree . -name '*_test.go' -not -path './vendor/*'
+```
+
+## Help in the terminal
+
+```bash
+gnux help findx --tree
+```

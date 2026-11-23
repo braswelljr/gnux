@@ -1,0 +1,10 @@
+{
+  "title": "trx",
+  "pages": [
+    "complement",
+    "complement-upper",
+    "delete",
+    "squeeze-repeats",
+    "truncate-set1"
+  ]
+}

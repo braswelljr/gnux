@@ -1,0 +1,142 @@
+---
+title: "pinkyx"
+description: "Show who is logged in, or what is known about users: a lightweight finger."
+---
+
+Mirrors GNU `pinky`. Run it as `pinkyx`, or as `gnux pinkyx`.
+
+## Synopsis
+
+```bash
+pinkyx [OPTION]... [USER]...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: pinky invocation](https://www.gnu.org/software/coreutils/manual/html_node/pinky-invocation.html)
+- [Source: src/pinky.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/pinky.c)
+
+## Description
+
+`pinkyx` prints one line per login session (only the given USERs', if any): the login name, the full name, the terminal (marked * when it does not accept messages), how long it has been idle, when the session started and where from. `-f` drops the heading, `-w` the full name, `-i` the full name and the remote host, and `-q` the idle time too. With `-l` it prints, for each USER, the login name, the full name, the home directory and shell (unless `-b`), and the contents of ~/.project (unless `-h`) and ~/.plan (unless `-p`). The full name is the user's GECOS name, with & standing for the capitalized login name. Sessions come from the system's login records, as for `whox`; on Windows they are the signed-in console and Remote Desktop sessions. The shell is read from /etc/passwd, so it is blank for a user kept elsewhere (macOS directory services, LDAP) and on Windows. If both `-s` and `-l` are given, the last one wins.
+
+`gnux`'s terminal view (BR-13): on a terminal, the short format is a framed table with a header (left out with `-f`), each full name whole (GNU cuts it to 19 columns), the columns empty in every row left out and your own logins in the theme's color for what is yours; `-l` shows each user as a panel titled with the login name. `--pretty`[=WHEN] and `--theme`=NAME, options of `gnux`'s own, choose the view (GNUX_PRETTY, GNUX_THEME); piped or redirected output is always GNU's.
+
+## Permissions
+
+Reads the login records, the user database and other users' ~/.project and ~/.plan files when they are readable. Changes nothing.
+
+## Use cases
+
+- Seeing `who` is logged in to a shared machine, with names people recognize.
+- Looking up a colleague's full name, home directory and shell.
+- Checking how long a terminal has been idle before contacting its user.
+
+## Flags
+
+```text
+      --help                     display this help and exit
+  -l, --long                     produce long format output for the specified USERs
+      --lookup                   attempt to canonicalize hostnames via DNS
+  -f, --omit-heading             omit the line of column headings in short format
+  -b, --omit-home-and-shell      omit the user's home directory and shell in long format
+  -q, --omit-idle                omit the user's full name, remote host and idle time in short format
+  -w, --omit-name                omit the user's full name in short format
+  -p, --omit-plan                omit the user's plan file in long format
+  -h, --omit-project             omit the user's project file in long format
+  -i, --omit-where               omit the user's full name and remote host in short format
+      --pretty WHEN[="always"]   the gnux terminal view WHEN: 'always' (the default when WHEN is omitted), 'auto' (the default: on a terminal only), or 'never'; GNUX_PRETTY sets the default
+  -s, --short                    do short format output, this is the default (default true)
+      --theme NAME               color the view with the built-in theme NAME (gnux theme picks and saves one); GNUX_THEME sets the default
+      --version                  output version information and exit
+```
+
+## Examples
+
+### See who is logged in
+
+```bash tab="bash" tab-group="shell"
+pinkyx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pinkyx
+```
+
+```text title="Output"
+Login    Name                 TTY      Idle   When         Where
+alice    Alice Liddell       *pts/0    00:12  Oct 20 09:14 10.0.0.7
+```
+
+### Look up a user's details
+
+```bash tab="bash" tab-group="shell"
+pinkyx -l alice
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pinkyx -l alice
+```
+
+```text title="Output"
+Login name: alice                       In real life:  Alice Liddell
+Directory: /home/alice                   Shell:  /bin/bash
+```
+
+### Only the login names, terminals and times, for a script
+
+```bash tab="bash" tab-group="shell"
+pinkyx -fq
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pinkyx -fq
+```
+
+### Check whether one user is logged in
+
+```bash tab="bash" tab-group="shell"
+pinkyx -f bob | headx -n 1
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pinkyx -f bob | headx -n 1
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-l, --long](/docs/tools/pinkyx/long): Produce long format output for the specified USERs.
+- [--lookup](/docs/tools/pinkyx/lookup): Attempt to canonicalize hostnames via DNS.
+- [-f, --omit-heading](/docs/tools/pinkyx/omit-heading): Omit the line of column headings in short format.
+- [-b, --omit-home-and-shell](/docs/tools/pinkyx/omit-home-and-shell): Omit the user's home directory and shell in long format.
+- [-q, --omit-idle](/docs/tools/pinkyx/omit-idle): Omit the user's full name, remote host and idle time in short format.
+- [-w, --omit-name](/docs/tools/pinkyx/omit-name): Omit the user's full name in short format.
+- [-p, --omit-plan](/docs/tools/pinkyx/omit-plan): Omit the user's plan file in long format.
+- [-h, --omit-project](/docs/tools/pinkyx/omit-project): Omit the user's project file in long format.
+- [-i, --omit-where](/docs/tools/pinkyx/omit-where): Omit the user's full name and remote host in short format.
+- [--pretty](/docs/tools/pinkyx/pretty): The `gnux` terminal view WHEN: 'always' (the default when WHEN is omitted), 'auto' (the default: on a terminal only), or 'never'; GNUX_PRETTY sets the default.
+- [-s, --short](/docs/tools/pinkyx/short): Do short format output, this is the default.
+- [--theme](/docs/tools/pinkyx/theme): Color the view with the built-in theme NAME (`gnux` theme picks and saves one); GNUX_THEME sets the default.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+pinkyx --help                # options, first examples, exit status
+gnux help pinkyx             # this page: the full manual
+gnux help pinkyx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [whox](/docs/tools/whox)
+- [usersx](/docs/tools/usersx)
+- [idx](/docs/tools/idx)

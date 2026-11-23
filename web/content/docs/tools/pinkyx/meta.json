@@ -1,0 +1,17 @@
+{
+  "title": "pinkyx",
+  "pages": [
+    "long",
+    "lookup",
+    "omit-heading",
+    "omit-home-and-shell",
+    "omit-idle",
+    "omit-name",
+    "omit-plan",
+    "omit-project",
+    "omit-where",
+    "pretty",
+    "short",
+    "theme"
+  ]
+}

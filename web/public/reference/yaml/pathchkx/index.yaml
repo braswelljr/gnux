@@ -1,0 +1,50 @@
+name: pathchkx
+synopsis: Check whether file names are valid or portable.
+description: |-
+    pathchkx checks each NAME and reports the ones that could not be created. By default it checks against this system: a name whose directory cannot be searched or is not a directory fails, as does a name or component longer than the file system holding it allows. NAME itself need not exist. With -p it checks against the POSIX minimum instead: at most 255 bytes in all, 14 in a component, and only the portable characters A-Z, a-z, 0-9, '.', '_', '-' and '/'. With -P it also rejects an empty name and a component that starts with '-'; --portability is -p and -P together. Every NAME is checked even after one fails; nothing is printed for a valid name. On Windows, which has no pathconf, the limits are NTFS's: 255 characters per component and 259 in all.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. pathchkx --help shows the options and the first examples; gnux help pathchkx prints the full manual, and gnux help pathchkx OPTION explains one option.
+
+    SEE ALSO. realpathx, mkdirx, touchx.
+
+    PERMISSIONS. Needs search permission on the existing directories in each NAME (not with -p, which never looks at the disk). Nothing is ever created or modified.
+
+    USE CASES.
+      - Rejecting file names that will not survive a copy to another system before creating them.
+      - Checking user-supplied names in a script before writing to them.
+      - Enforcing portable names in a repository in CI.
+usage: pathchkx [OPTION]... NAME...
+options:
+    - name: basic
+      shorthand: p
+      default_value: "false"
+      usage: check for most POSIX systems
+    - name: extra
+      shorthand: P
+      default_value: "false"
+      usage: check for empty names and leading "-"
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: portability
+      default_value: "false"
+      usage: check for all POSIX systems (equivalent to -p -P)
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # Check that a name can be created here
+      pathchkx reports/2026/summary.txt && echox ok
+
+      # Catch a name that will not travel to other systems
+      pathchkx -p 'Quarterly report.pdf'
+
+      # Check every file in a repository for portable names in CI
+      findx . -path ./.git -prune -o -print | xargsx pathchkx --portability
+
+      # Reject a name that a command would read as an option
+      pathchkx -P "$name" || exit 1

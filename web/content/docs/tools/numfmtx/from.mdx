@@ -1,0 +1,55 @@
+---
+title: "--from"
+description: "Auto-scale input numbers to UNITs; default is 'none'; see UNIT below."
+---
+
+An option of [numfmtx](/docs/tools/numfmtx).
+
+## Usage
+
+```bash
+numfmtx --from=UNIT [NUMBER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--from` | `UNIT` |  | auto-scale input numbers to UNITs; default is 'none'; see UNIT below |
+
+## Examples
+
+### Turn a size from a config file back into bytes
+
+```bash tab="bash" tab-group="shell"
+numfmtx --from=iec 4G
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --from=iec 4G
+```
+
+```text title="Output"
+4294967296
+```
+
+### Read sizes written either way, 1K as 1000 and 1Ki as 1024
+
+```bash tab="bash" tab-group="shell"
+numfmtx --from=auto 1K 1Ki
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+numfmtx --from=auto 1K 1Ki
+```
+
+```text title="Output"
+1000
+1024
+```
+
+## Help in the terminal
+
+```bash
+gnux help numfmtx --from
+```

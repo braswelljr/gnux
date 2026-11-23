@@ -1,0 +1,34 @@
+---
+title: "-p, --print-database"
+description: "Output defaults."
+---
+
+An option of [dircolorsx](/docs/tools/dircolorsx).
+
+## Usage
+
+```bash
+dircolorsx -p [FILE]
+dircolorsx --print-database [FILE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-p` | `--print-database` | none |  | output defaults |
+
+## Examples
+
+### Use your own database, kept in your home directory
+
+```bash tab="bash" tab-group="shell"
+dircolorsx -p > ~/.dircolors
+eval "$(dircolorsx -b ~/.dircolors)"
+```
+
+## Help in the terminal
+
+```bash
+gnux help dircolorsx --print-database
+```

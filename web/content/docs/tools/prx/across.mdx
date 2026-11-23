@@ -1,0 +1,37 @@
+---
+title: "-a, --across"
+description: "Print columns across rather than down, used together with -COLUMN."
+---
+
+An option of [prx](/docs/tools/prx).
+
+## Usage
+
+```bash
+prx -a [FILE]...
+prx --across [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-a` | `--across` | none |  | print columns across rather than down, used together with `-COLUMN` |
+
+## Examples
+
+### Fill the columns across, row by row
+
+```bash tab="bash" tab-group="shell"
+seqx 10 | prx -5 -a -t
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+seqx 10 | prx -5 -a -t
+```
+
+## Help in the terminal
+
+```bash
+gnux help prx --across
+```

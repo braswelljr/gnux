@@ -1,0 +1,32 @@
+{
+  "title": "dux",
+  "pages": [
+    "all",
+    "apparent-size",
+    "block-size",
+    "bytes",
+    "count-links",
+    "dereference",
+    "dereference-args",
+    "exclude",
+    "exclude-from",
+    "files0-from",
+    "human-readable",
+    "inodes",
+    "kilobytes",
+    "max-depth",
+    "megabytes",
+    "no-dereference",
+    "null",
+    "one-file-system",
+    "pretty",
+    "separate-dirs",
+    "si",
+    "summarize",
+    "theme",
+    "threshold",
+    "time",
+    "time-style",
+    "total"
+  ]
+}

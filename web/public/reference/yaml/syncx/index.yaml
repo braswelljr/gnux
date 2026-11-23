@@ -1,0 +1,47 @@
+name: syncx
+synopsis: Synchronize cached writes to persistent storage.
+description: |-
+    syncx asks the system to write data held in memory out to disk. With no FILE it flushes every file system; with FILEs it flushes only those files (fsync), -d only their data and the metadata needed to read it back (fdatasync), and -f the whole file system each one is on (syncfs). -d needs at least one FILE, and -d and -f cannot be combined. A FILE that cannot be opened or flushed is reported and the others are still flushed. Off Linux, -d flushes as plain fsync does and -f flushes every file system, since those systems have neither fdatasync nor syncfs. On Windows, a FILE is flushed with FlushFileBuffers, and a run with no FILE succeeds without flushing anything: Windows has no unprivileged call that flushes every volume.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. syncx --help shows the options and the first examples; gnux help syncx prints the full manual, and gnux help syncx OPTION explains one option.
+
+    SEE ALSO. ddx, shredx, dfx.
+
+    PERMISSIONS. Needs read or write permission on each FILE (it is opened read-only, or write-only when reading is refused). Flushing the whole system needs no permission. Nothing is ever modified.
+
+    USE CASES.
+      - Making sure an image written with ddx has reached a USB stick before unplugging it.
+      - Flushing a file a script has just written before cutting the power or snapshotting a VM.
+      - Forcing a database dump or a backup archive to disk before reporting success.
+usage: syncx [OPTION] [FILE]...
+options:
+    - name: data
+      shorthand: d
+      default_value: "false"
+      usage: sync only file data, no unneeded metadata
+    - name: file-system
+      shorthand: f
+      default_value: "false"
+      usage: sync the file systems that contain the files
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # Flush everything before pulling out a USB stick
+      syncx
+
+      # Make sure a backup you just wrote is on disk
+      tar -czf backup.tgz data && syncx backup.tgz
+
+      # Flush only the file data, the cheaper call, after appending to a log
+      syncx -d app.log
+
+      # Flush the whole file system a mount point is on
+      syncx -f /mnt/usb

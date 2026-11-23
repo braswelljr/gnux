@@ -1,0 +1,21 @@
+{
+  "title": "whox",
+  "pages": [
+    "all",
+    "boot",
+    "count",
+    "dead",
+    "heading",
+    "login",
+    "lookup",
+    "mesg",
+    "message",
+    "my-line",
+    "process",
+    "runlevel",
+    "short",
+    "time",
+    "users",
+    "writable"
+  ]
+}

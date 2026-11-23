@@ -1,0 +1,13 @@
+{
+  "title": "statx",
+  "pages": [
+    "cached",
+    "dereference",
+    "file-system",
+    "format",
+    "pretty",
+    "printf",
+    "terse",
+    "theme"
+  ]
+}

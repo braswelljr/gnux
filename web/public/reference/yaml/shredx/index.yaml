@@ -1,0 +1,80 @@
+name: shredx
+synopsis: |
+    Overwrite a file to hide its contents, and optionally delete it.
+description: |-
+    shredx overwrites each FILE several times (3 unless -n says otherwise), so that its old contents are harder to recover, flushing each pass to disk. The passes mix random data with fixed bit patterns, as GNU shred chooses them; -z adds a last pass of zeros so that the shredding is less obvious. A regular file is overwritten up to the end of its last block (-x keeps to its exact size), and -s limits the overwriting to that many bytes. With -u (or --remove=wipesync) the file is then truncated, renamed to ever shorter names of zeros to hide its name too, and removed; --remove=wipe skips flushing the directory after each rename, and --remove=unlink removes the file without renaming it. -f makes a read-only file writable first. A FILE of - shreds standard output, which must be a file opened for reading and writing, not for appending. Random bytes come from the system's generator, or from --random-source; the order of the passes differs from GNU's run for run, as GNU's own does. CAUTION: on journaled, copy-on-write and log-structured file systems, on SSDs, and on anything with backups or snapshots, the old data may survive elsewhere; shredx cannot reach it.
+
+    gnux's terminal view (BR-13): when standard error is a terminal, -v draws each pass as one line rewritten in place, GNU's words followed by a bar, the percentage and the amount written of the size, five times a second, ending on 100%; the renaming and removal reports are GNU's lines. --pretty[=WHEN] and --theme=NAME, options of gnux's own, choose the view (GNUX_PRETTY, GNUX_THEME); --pretty=never, or standard error redirected, gives GNU's lines, one every five seconds.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. shredx --help shows the options and the first examples; gnux help shredx prints the full manual, and gnux help shredx OPTION explains one option.
+
+    SEE ALSO. rmx, truncatex, syncx, ddx.
+
+    PERMISSIONS. Needs write permission on each FILE (or ownership of it, with -f), and write permission on its directory to remove it. Overwrites the data in place: what it shreds cannot be recovered.
+
+    USE CASES.
+      - Destroying a private key or a password file before giving a machine away.
+      - Wiping a disk image or a USB stick device before reusing it.
+      - Removing a file with sensitive contents more thoroughly than rmx does.
+usage: shredx [OPTION]... FILE...
+options:
+    - name: exact
+      shorthand: x
+      default_value: "false"
+      usage: |
+        do not round file sizes up to the next full block; this is the default for non-regular files
+    - name: force
+      shorthand: f
+      default_value: "false"
+      usage: change permissions to allow writing if necessary
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: iterations
+      shorthand: "n"
+      usage: overwrite `N` times instead of the default (3)
+    - name: pretty
+      usage: |
+        the gnux terminal view `WHEN`: 'always' (the default when WHEN is omitted), 'auto' (the default: on a terminal only), or 'never'; GNUX_PRETTY sets the default
+    - name: random-source
+      usage: get random bytes from `FILE`
+    - name: remove
+      shorthand: u
+      usage: |
+        deallocate and remove file after overwriting; -u is --remove=wipesync, and `HOW` may be unlink, wipe or wipesync
+    - name: size
+      shorthand: s
+      usage: shred this many bytes (suffixes like K, M, G accepted)
+    - name: theme
+      usage: |
+        color the view with the built-in theme `NAME` (gnux theme picks and saves one); GNUX_THEME sets the default
+    - name: verbose
+      shorthand: v
+      default_value: "false"
+      usage: show progress
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+    - name: zero
+      shorthand: z
+      default_value: "false"
+      usage: add a final overwrite with zeros to hide shredding
+example: |4-
+      # Overwrite a secret file and delete it, showing each pass
+      shredx -v -u secrets.txt
+
+      # One random pass and then zeros, quicker for a large file
+      shredx -n 1 -z backup.img
+
+      # Wipe a whole USB stick before reusing it (Linux)
+      sudo shredx -v -n 1 /dev/sdX
+
+      # Shred a read-only key file
+      shredx -f -u id_ed25519
+
+      # Shred every log file in a directory
+      findx logs -type f -name '*.log' -exec shredx -u {} +

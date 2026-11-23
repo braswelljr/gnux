@@ -1,0 +1,25 @@
+---
+title: "-Z, --context"
+description: "Set the SELinux security context to default type, or to CTX (ignored: gnux does not support SELinux)."
+---
+
+An option of [mknodx](/docs/tools/mknodx).
+
+## Usage
+
+```bash
+mknodx -Z NAME TYPE [MAJOR MINOR]
+mknodx --context[=CTX] NAME TYPE [MAJOR MINOR]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-Z` | `--context` | `CTX` (optional) |  | set the SELinux security context to default type, or to CTX (ignored: `gnux` does not support SELinux) |
+
+## Help in the terminal
+
+```bash
+gnux help mknodx --context
+```

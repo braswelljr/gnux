@@ -1,0 +1,20 @@
+{
+  "title": "numfmtx",
+  "pages": [
+    "debug",
+    "delimiter",
+    "field",
+    "format",
+    "from",
+    "from-unit",
+    "grouping",
+    "header",
+    "invalid",
+    "padding",
+    "round",
+    "suffix",
+    "to",
+    "to-unit",
+    "zero-terminated"
+  ]
+}

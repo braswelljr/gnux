@@ -1,0 +1,16 @@
+{
+  "title": "tailx",
+  "pages": [
+    "bytes",
+    "follow",
+    "follow-retry",
+    "lines",
+    "pid",
+    "quiet",
+    "retry",
+    "silent",
+    "sleep-interval",
+    "verbose",
+    "zero-terminated"
+  ]
+}

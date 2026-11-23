@@ -1,0 +1,147 @@
+name: prx
+synopsis: Paginate or columnate files for printing.
+description: |-
+    prx breaks each FILE into pages of 66 lines (-l) with a five-line header, the date, the file name and the page number, and a five-line footer; -t drops the header and footer and -T also the page breaks that form feeds in the input make. -COLUMN (or --columns) prints the text in that many columns down the page, balancing the last page, -a across instead, and -m prints the FILEs side by side, one per column; columns are cut to fit the page width (72, -w or -W) unless -J joins whole lines. -n numbers the lines, -d double-spaces, -o indents, -h replaces the file name in the header and -D the date's format, -e and -i expand and make tabs, -c and -v show control characters, -s and -S choose the column separator, and +FIRST[:LAST] (or --pages) prints only those pages. With no FILE, or when FILE is -, it reads standard input. The layout is GNU pr's, page break for page break. gnux works in the C locale, so the header's date is in the C locale's words.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. prx --help shows the options and the first examples; gnux help prx prints the full manual, and gnux help prx OPTION explains one option.
+
+    SEE ALSO. fmtx, foldx, nlx, pastex.
+
+    PERMISSIONS. Needs read permission on each FILE. Nothing is modified.
+
+    USE CASES.
+      - Printing source code or logs with page headers and numbers.
+      - Putting a long list into several columns to fit a screen or a page.
+      - Comparing files side by side with -m.
+      - Numbering the lines of a listing for review.
+usage: prx [OPTION]... [FILE]...
+options:
+    - name: across
+      shorthand: a
+      default_value: "false"
+      usage: |
+        print columns across rather than down, used together with -COLUMN
+    - name: columns
+      usage: |
+        output `COLUMN` columns and print columns down, unless -a is used; also -COLUMN
+    - name: date-format
+      shorthand: D
+      usage: use `FORMAT` for the header date
+    - name: double-space
+      shorthand: d
+      default_value: "false"
+      usage: double space the output
+    - name: expand-tabs
+      shorthand: e
+      usage: |
+        expand input `CHAR`s (TABs) to tab `WIDTH` (8); written -e[CHAR[WIDTH]]
+    - name: first-line-number
+      shorthand: "N"
+      usage: |
+        start counting with `NUMBER` at 1st line of first page printed
+    - name: form-feed
+      shorthand: f
+      default_value: "false"
+      usage: |
+        use form feeds instead of newlines to separate pages (also -F)
+    - name: header
+      shorthand: h
+      usage: use a centered `HEADER` instead of filename in page header
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: indent
+      shorthand: o
+      usage: offset each line with `MARGIN` (zero) spaces
+    - name: join-lines
+      shorthand: J
+      default_value: "false"
+      usage: |
+        merge full lines, turns off -W line truncation, no column alignment, --sep-string[=STRING] sets separators
+    - name: length
+      shorthand: l
+      usage: set the page length to `PAGE_LENGTH` (66) lines
+    - name: merge
+      shorthand: m
+      default_value: "false"
+      usage: |
+        print all files in parallel, one in each column, truncate lines, but join lines of full length with -J
+    - name: no-file-warnings
+      shorthand: r
+      default_value: "false"
+      usage: omit warning when a file cannot be opened
+    - name: number-lines
+      shorthand: "n"
+      usage: |
+        number lines, use `DIGITS` (5) digits, then `SEP` (TAB); written -n[SEP[DIGITS]]
+    - name: omit-header
+      shorthand: t
+      default_value: "false"
+      usage: omit page headers and trailers; implied if PAGE_LENGTH <= 10
+    - name: omit-pagination
+      shorthand: T
+      default_value: "false"
+      usage: |
+        omit page headers and trailers, eliminate any pagination by form feeds set in input files
+    - name: output-tabs
+      shorthand: i
+      usage: |
+        replace spaces with `CHAR`s (TABs) to tab `WIDTH` (8); written -i[CHAR[WIDTH]]
+    - name: page-width
+      shorthand: W
+      usage: |
+        set page width to `PAGE_WIDTH` (72) characters always, truncate lines, except -J option is set, no interference with -S or -s
+    - name: pages
+      usage: |
+        begin [stop] printing with page `FIRST_PAGE[:LAST_PAGE]`; also +FIRST_PAGE[:LAST_PAGE]
+    - name: sep-string
+      shorthand: S
+      usage: |
+        separate columns by `STRING`; without -S, a blank with -J and a space otherwise; written -S[STRING]
+    - name: separator
+      shorthand: s
+      usage: |
+        separate columns by a single character, default for `CHAR` is TAB without -w and 'no char' with -w; written -s[CHAR]
+    - name: show-control-chars
+      shorthand: c
+      default_value: "false"
+      usage: use hat notation (^G) and octal backslash notation
+    - name: show-nonprinting
+      shorthand: v
+      default_value: "false"
+      usage: use octal backslash notation
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+    - name: width
+      shorthand: w
+      usage: |
+        set page width to `PAGE_WIDTH` (72) characters for multiple text-column output only, -s[char] turns off (72)
+example: |4-
+      # Add page headers and page breaks to a file before printing it
+      prx report.txt | lpr
+
+      # Show a long list of names in three columns, without headers
+      lsx -1 | prx -3 -t
+
+      # Fill the columns across, row by row
+      seqx 10 | prx -5 -a -t
+
+      # Put two files side by side to compare them
+      prx -m -t old.conf new.conf
+
+      # Number the lines of a script, with a custom title
+      prx -n -h 'deploy script' deploy.sh
+
+      # Print only pages 3 to 5
+      prx +3:5 manual.txt
+
+      # Join CSV columns with a comma instead of aligning them
+      prx -m -t -s, names.txt emails.txt
+
+      # Use short pages and a form feed between them
+      prx -l 40 -f notes.txt

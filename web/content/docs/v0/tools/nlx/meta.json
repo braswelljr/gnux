@@ -1,0 +1,16 @@
+{
+  "title": "nlx",
+  "pages": [
+    "body-numbering",
+    "footer-numbering",
+    "header-numbering",
+    "join-blank-lines",
+    "line-increment",
+    "no-renumber",
+    "number-format",
+    "number-separator",
+    "number-width",
+    "section-delimiter",
+    "starting-line-number"
+  ]
+}

@@ -1,0 +1,40 @@
+---
+title: "--base32hex"
+description: "Extended hex alphabet base32 (RFC4648 section 7)."
+---
+
+An option of [basencx](/docs/tools/basencx).
+
+## Usage
+
+```bash
+basencx --base32hex [FILE]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--base32hex` | none |  | extended hex alphabet `base32` (RFC4648 section 7) |
+
+## Examples
+
+### Encode in base32 with the hex alphabet, which sorts as the data does
+
+```bash tab="bash" tab-group="shell"
+printfx hello | basencx --base32hex
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+printfx hello | basencx --base32hex
+```
+
+```text title="Output"
+D1IMOR3F
+```
+
+## Help in the terminal
+
+```bash
+gnux help basencx --base32hex
+```

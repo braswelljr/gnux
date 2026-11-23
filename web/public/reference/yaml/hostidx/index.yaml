@@ -1,0 +1,32 @@
+name: hostidx
+synopsis: Print the numeric identifier for the current host.
+description: |-
+    hostidx prints the host's 32-bit identifier in hexadecimal, eight digits wide, as gethostid(3) returns it. On Linux that is the contents of /etc/hostid when the file exists, and otherwise a value glibc derives from the first IPv4 address the host name resolves to. On macOS and the BSDs it is the kern.hostid sysctl, which may be zero. Windows has no gethostid, so hostidx derives the value from the host's address there too, as glibc does; with no address it prints 00000000. The identifier is not guaranteed to be unique.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. hostidx --help shows the options and the first examples; gnux help hostidx prints the full manual, and gnux help hostidx OPTION explains one option.
+
+    SEE ALSO. hostnamex, unamex.
+
+    PERMISSIONS. Reads /etc/hostid on Linux when it exists. Needs no permissions.
+
+    USE CASES.
+      - Reporting the identifier that some license managers bind to.
+      - Telling machines apart in a log when the hostname is not enough.
+usage: hostidx [OPTION]
+options:
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # Print the host identifier a license server asks for
+      hostidx
+
+      # Record the host name and identifier together in a log line
+      echox "$(hostnamex) $(hostidx)" >> machines.log

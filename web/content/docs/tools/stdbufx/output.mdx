@@ -1,0 +1,43 @@
+---
+title: "-o, --output"
+description: "Adjust standard output stream buffering to MODE."
+---
+
+An option of [stdbufx](/docs/tools/stdbufx).
+
+## Usage
+
+```bash
+stdbufx -o MODE OPTION... COMMAND [ARG]...
+stdbufx --output=MODE OPTION... COMMAND [ARG]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-o` | `--output` | `MODE` |  | adjust standard output stream buffering to MODE |
+
+## Examples
+
+### See each line of a program's output as soon as it is written, through a pipe
+
+```bash tab="bash" tab-group="shell"
+tail -f app.log | stdbufx -oL awk '/ERROR/' | teex errors.log
+```
+
+### gnux tools need none of this, but take it in their stride
+
+```bash tab="bash" tab-group="shell"
+tail -f app.log | stdbufx -oL grepx ERROR
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+Get-Content -Wait app.log | stdbufx -oL grepx ERROR
+```
+
+## Help in the terminal
+
+```bash
+gnux help stdbufx --output
+```

@@ -1,0 +1,153 @@
+---
+title: "ptxx"
+description: "Produce a permuted index of the words in a text."
+---
+
+Mirrors GNU `ptx`. Run it as `ptxx`, or as `gnux ptxx`.
+
+## Synopsis
+
+```bash
+ptxx [OPTION]... [INPUT]...   (without -G)
+ptxx -G [OPTION]... [INPUT [OUTPUT]]
+```
+
+## GNU reference
+
+- [GNU coreutils manual: ptx invocation](https://www.gnu.org/software/coreutils/manual/html_node/ptx-invocation.html)
+- [Source: src/ptx.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/ptx.c)
+
+## Description
+
+`ptxx` lists every word of the INPUTs (standard input when there are none, or for -) in alphabetical order, each in the middle of a line with the text before it on the left and the text after it on the right: a keyword-in-context index. A word is a run of letters, or what `-W`'s regular expression matches, or what is between `-b`'s break characters; a context ends at the end of a sentence, or where `-S` says. `-i` leaves out the words of a file, one per line, and `-o` keeps only those. `-A` prefixes each line with FILE:LINE, and `-r` takes the first word of each input line as its reference; `-R` puts references on the right. `-w` sets the width (72), `-g` the gap between fields (3), `-F` the mark of a cut context ('/'). `-O` and `-T` write roff or TeX macro calls instead (`-M` names the macro), and `-G` behaves like System V `ptx`, with words between blanks, contexts that are lines, roff output, and an optional OUTPUT file. Regular expressions use the Emacs syntax GNU `ptx` uses, \( \) \| for groups and alternatives, and \1 to \9 for back references.
+
+## Permissions
+
+Needs read permission on each INPUT and on the `-b`, `-i` and `-o` files; with `-G`, write permission to create OUTPUT.
+
+## Use cases
+
+- Building a keyword-in-context index for a book or a manual.
+- Seeing every place a word is used in a set of notes, in context.
+- Producing an index for typesetting with roff or TeX.
+
+## Flags
+
+```text
+  -A, --auto-reference           output automatically generated references
+  -b, --break-file FILE          word break characters in this FILE
+  -F, --flag-truncation STRING   use STRING for flagging line truncations. The default is '/'
+      --format FORMAT            generate output as roff or TeX directives: FORMAT is roff or tex
+  -g, --gap-size string          gap size in columns between output fields
+      --help                     display this help and exit
+  -f, --ignore-case              fold lower case to upper case for sorting
+  -i, --ignore-file FILE         read ignore word list from FILE
+  -M, --macro-name string        macro name to use instead of 'xx'
+  -o, --only-file FILE           read only word list from this FILE
+  -r, --references               first field of each line is a reference
+  -R, --right-side-refs          put references at right, not counted in -w
+  -O, --roff                     generate output as roff directives (--format=roff)
+  -S, --sentence-regexp string   for end of lines or end of sentences
+  -T, --tex                      generate output as TeX directives (--format=tex)
+  -G, --traditional              behave more like System V 'ptx'
+  -t, --typeset-mode             - not implemented -
+      --version                  output version information and exit
+  -w, --width string             output width in columns, reference excluded
+  -W, --word-regexp REGEXP       use REGEXP to match each keyword
+```
+
+## Examples
+
+### See every word of a text in context
+
+```bash tab="bash" tab-group="shell"
+ptxx notes.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+ptxx notes.txt
+```
+
+### Index a manual, skipping common words, with file and line references
+
+```bash tab="bash" tab-group="shell"
+ptxx -A -i stopwords.txt chapter*.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+ptxx -A -i stopwords.txt (Get-ChildItem chapter*.txt)
+```
+
+### Index only the words that matter
+
+```bash tab="bash" tab-group="shell"
+ptxx -o terms.txt manual.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+ptxx -o terms.txt manual.txt
+```
+
+### Produce TeX macro calls for typesetting
+
+```bash tab="bash" tab-group="shell"
+ptxx -T -M index book.txt > index.tex
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+ptxx -T -M index book.txt > index.tex
+```
+
+### Treat each line as its own context, ignoring case when sorting
+
+```bash tab="bash" tab-group="shell"
+ptxx -f -S '\n' titles.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+ptxx -f -S '\n' titles.txt
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-A, --auto-reference](/docs/tools/ptxx/auto-reference): Output automatically generated references.
+- [-b, --break-file](/docs/tools/ptxx/break-file): Word break characters in this FILE.
+- [-F, --flag-truncation](/docs/tools/ptxx/flag-truncation): Use STRING for flagging line truncations. The default is '/'.
+- [--format](/docs/tools/ptxx/format): Generate output as roff or TeX directives: FORMAT is roff or tex.
+- [-g, --gap-size](/docs/tools/ptxx/gap-size): Gap size in columns between output fields.
+- [-f, --ignore-case](/docs/tools/ptxx/ignore-case): Fold lower case to upper case for sorting.
+- [-i, --ignore-file](/docs/tools/ptxx/ignore-file): Read ignore word list from FILE.
+- [-M, --macro-name](/docs/tools/ptxx/macro-name): Macro name to use instead of 'xx'.
+- [-o, --only-file](/docs/tools/ptxx/only-file): Read only word list from this FILE.
+- [-r, --references](/docs/tools/ptxx/references): First field of each line is a reference.
+- [-R, --right-side-refs](/docs/tools/ptxx/right-side-refs): Put references at right, not counted in `-w`.
+- [-O, --roff](/docs/tools/ptxx/roff): Generate output as roff directives (`--format`=roff).
+- [-S, --sentence-regexp](/docs/tools/ptxx/sentence-regexp): For end of lines or end of sentences.
+- [-T, --tex](/docs/tools/ptxx/tex): Generate output as TeX directives (`--format`=tex).
+- [-G, --traditional](/docs/tools/ptxx/traditional): Behave more like System V '`ptx`'.
+- [-t, --typeset-mode](/docs/tools/ptxx/typeset-mode): - not implemented -.
+- [-w, --width](/docs/tools/ptxx/width): Output width in columns, reference excluded.
+- [-W, --word-regexp](/docs/tools/ptxx/word-regexp): Use REGEXP to match each keyword.
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+ptxx --help                # options, first examples, exit status
+gnux help ptxx             # this page: the full manual
+gnux help ptxx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [sortx](/docs/tools/sortx)
+- [grepx](/docs/tools/grepx)
+- [tsortx](/docs/tools/tsortx)

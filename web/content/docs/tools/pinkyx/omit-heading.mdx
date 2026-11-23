@@ -1,0 +1,47 @@
+---
+title: "-f, --omit-heading"
+description: "Omit the line of column headings in short format."
+---
+
+An option of [pinkyx](/docs/tools/pinkyx).
+
+## Usage
+
+```bash
+pinkyx -f [USER]...
+pinkyx --omit-heading [USER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-f` | `--omit-heading` | none |  | omit the line of column headings in short format |
+
+## Examples
+
+### Only the login names, terminals and times, for a script
+
+```bash tab="bash" tab-group="shell"
+pinkyx -fq
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pinkyx -fq
+```
+
+### Check whether one user is logged in
+
+```bash tab="bash" tab-group="shell"
+pinkyx -f bob | headx -n 1
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+pinkyx -f bob | headx -n 1
+```
+
+## Help in the terminal
+
+```bash
+gnux help pinkyx --omit-heading
+```

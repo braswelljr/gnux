@@ -3,9 +3,10 @@
 // reference for AI tools and scripts (public/reference/yaml) and the
 // WebAssembly build of gnux.
 //
-// None of it is committed, nor are the docs of older major versions
-// (content/docs/vX, fetched below), so all of it is built every time. When Go is missing
-// (a fresh Vercel build, say), the Go release named in ../go.mod is downloaded
+// All of it is committed, with the docs of older major versions (content/docs/vX,
+// fetched below): the pre-commit hook (gen-staged.mjs) regenerates it, and a
+// Vercel build skips this step to stay within the free tier. When Go is missing
+// on another machine, the Go release named in ../go.mod is downloaded
 // from go.dev, checked against the SHA-256 go.dev publishes, and kept under
 // node_modules/.cache for the next build. A machine with Go uses its own.
 //
@@ -124,6 +125,7 @@ async function fetchGo() {
 /** The version stamped into the wasm build, as `make web/wasm` stamps the binary. */
 function version() {
   return (
+    process.env.GNUX_WASM_VERSION ||
     output('git', ['describe', '--tags', '--always', '--dirty']) ||
     process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ||
     'dev'
@@ -180,8 +182,11 @@ const missingOutputs = () =>
 const only = process.argv.slice(2);
 const selected = only.length > 0 ? steps.filter((step) => only.includes(step.name)) : steps;
 
-if (process.env.GNUX_SKIP_GEN === '1') {
-  console.log('gen: GNUX_SKIP_GEN=1, using the existing content/docs and public/gnux.wasm');
+// Vercel deploys what was generated locally and committed (gen-staged.mjs).
+const skipGen = process.env.GNUX_SKIP_GEN === '1' || Boolean(process.env.VERCEL);
+
+if (skipGen) {
+  console.log('gen: skipped, using the committed content/docs and public/gnux.wasm');
 } else {
   let go = has('go') ? 'go' : null;
   // A downloaded Go keeps its build and module caches beside it, so the next
@@ -211,6 +216,11 @@ if (process.env.GNUX_SKIP_GEN === '1') {
     for (const step of selected) {
       console.log(`gen: ${step.name}`);
       if (!step.build(go, env)) {
+        // A commit must not carry stale output past a failed generation.
+        if (process.env.GNUX_GEN_STRICT === '1') {
+          console.error(`gen: ${step.name} failed`);
+          process.exit(1);
+        }
         console.warn(`gen: ${step.name} failed; continuing with the existing ${step.output}`);
       }
     }
@@ -218,7 +228,7 @@ if (process.env.GNUX_SKIP_GEN === '1') {
 }
 
 if (
-  process.env.GNUX_SKIP_GEN !== '1' &&
+  !skipGen &&
   process.env.GNUX_DOCS_VERSIONS !== '0' &&
   (only.length === 0 || only.includes('versions'))
 ) {

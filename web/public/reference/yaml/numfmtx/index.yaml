@@ -1,0 +1,106 @@
+name: numfmtx
+synopsis: Convert numbers to and from human-readable strings.
+description: |-
+    numfmtx reformats each NUMBER, or the numbers in each line of standard input when there are none. --to writes a number with a unit suffix: si in powers of 1000 (1.5k, 2.0M), iec in powers of 1024 (1.5K), iec-i with an i (1.5Ki). --from reads such suffixes: si and iec as those powers, iec-i requiring the i, and auto taking 1K as 1000 and 1Ki as 1024. A scaled value below 10 keeps one decimal; the rest are rounded away from zero, or as --round says. --from-unit and --to-unit set the size of an input and an output unit, --suffix adds text after each number (and accepts it on input), and --format takes a printf-style %f directive with a width, precision, zero padding, and text around it. In a line, only the first field is converted unless --field lists others (cut's syntax, or - for all); fields are separated by blanks, or by -d's character, and a field that started after blanks keeps its width. --header copies the first N lines unchanged; -z reads and writes NUL-terminated lines. A number that cannot be converted stops the run with status 2 (--invalid=abort, the default); --invalid=fail prints it unchanged and carries on, still ending with 2, warn does so ending with 0, and ignore without a message. gnux works in the C locale: the decimal point is '.', and --grouping (or ' in --format) adds no separators, as in GNU numfmt under LC_ALL=C. Values are computed with the 64-bit precision of GNU's long double on x86-64, so a plain number of more than 18 digits needs --to, as there.
+
+    EXIT STATUS.
+      0  success, or invalid input under --invalid=warn or ignore
+      1  a command-line mistake
+      2  a number could not be converted
+
+    HELP. numfmtx --help shows the options and the first examples; gnux help numfmtx prints the full manual, and gnux help numfmtx OPTION explains one option.
+
+    SEE ALSO. dux, dfx, lsx, sortx.
+
+    PERMISSIONS. Reads standard input and writes standard output only; needs no permissions.
+
+    USE CASES.
+      - Turning byte counts from wcx, statx or dux -b into sizes people can read.
+      - Reading sizes such as 10G or 512Mi from a config file back into bytes.
+      - Formatting a column of a report with a fixed width and precision.
+      - Converting between units, such as kilobytes to bytes, in a pipeline.
+usage: numfmtx [OPTION]... [NUMBER]...
+options:
+    - name: debug
+      default_value: "false"
+      usage: print warnings about invalid input
+    - name: delimiter
+      shorthand: d
+      usage: use `X` instead of whitespace for field delimiter
+    - name: field
+      usage: |
+        replace the numbers in these input `FIELDS` (default=1); see FIELDS below
+    - name: format
+      usage: |
+        use printf style floating-point `FORMAT`; see FORMAT below for details
+    - name: from
+      usage: |
+        auto-scale input numbers to `UNIT`s; default is 'none'; see UNIT below
+    - name: from-unit
+      usage: specify the input unit size (instead of the default 1)
+    - name: grouping
+      default_value: "false"
+      usage: |
+        use locale-defined grouping of digits, e.g. 1,000,000 (which means it has no effect in the C/POSIX locale)
+    - name: header
+      usage: |
+        print (without converting) the first `N` header lines; N defaults to 1 if not specified
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: invalid
+      usage: |
+        failure mode for invalid numbers: `MODE` can be: abort (default), fail, warn, ignore
+    - name: padding
+      usage: |
+        pad the output to `N` characters; positive N will right-align; negative N will left-align; padding is ignored if the output is wider than N; the default is to automatically pad if a whitespace is found
+    - name: round
+      usage: |
+        use `METHOD` for rounding when scaling; METHOD can be: up, down, from-zero (default), towards-zero, nearest
+    - name: suffix
+      usage: |
+        add `SUFFIX` to output numbers, and accept optional SUFFIX in input numbers
+    - name: to
+      usage: auto-scale output numbers to `UNIT`s; see UNIT below
+    - name: to-unit
+      usage: the output unit size (instead of the default 1)
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+    - name: zero-terminated
+      shorthand: z
+      default_value: "false"
+      usage: line delimiter is NUL, not newline
+example: |4-
+      # Show a byte count the way people read sizes
+      numfmtx --to=iec 1048576
+
+      # Use decimal units, as disk makers do
+      numfmtx --to=si 1500000
+
+      # Turn a size from a config file back into bytes
+      numfmtx --from=iec 4G
+
+      # Read sizes written either way, 1K as 1000 and 1Ki as 1024
+      numfmtx --from=auto 1K 1Ki
+
+      # Make the size column of a listing readable, keeping the header
+      lsx -l | numfmtx --header --field=5 --to=iec
+
+      # Round sizes down, never overstating them
+      numfmtx --to=si --round=down 1999
+
+      # Add a unit and pad the numbers to a column
+      numfmtx --to=iec --suffix=B --padding=7 1024 2048000
+
+      # Print with three decimals inside some text
+      numfmtx --format='took %.3fs' 1.23456
+
+      # Convert kilobyte counts, as dfx prints them, to bytes
+      echox 512 | numfmtx --from-unit=1024
+
+      # Convert the second column of a CSV file
+      numfmtx -d, --field=2 --to=si < sizes.csv
+
+      # Keep going past values that are not numbers, but say which
+      numfmtx --invalid=warn --to=si 1000 n/a 2000

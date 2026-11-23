@@ -1,0 +1,46 @@
+---
+title: "--field"
+description: "Replace the numbers in these input FIELDS (default=1); see FIELDS below."
+---
+
+An option of [numfmtx](/docs/tools/numfmtx).
+
+## Usage
+
+```bash
+numfmtx --field=FIELDS [NUMBER]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--field` | `FIELDS` |  | replace the numbers in these input FIELDS (default=1); see FIELDS below |
+
+## Examples
+
+### Make the size column of a listing readable, keeping the header
+
+```bash tab="bash" tab-group="shell"
+lsx -l | numfmtx --header --field=5 --to=iec
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -l | numfmtx --header --field=5 --to=iec
+```
+
+### Convert the second column of a CSV file
+
+```bash tab="bash" tab-group="shell"
+numfmtx -d, --field=2 --to=si < sizes.csv
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+Get-Content sizes.csv | numfmtx -d, --field=2 --to=si
+```
+
+## Help in the terminal
+
+```bash
+gnux help numfmtx --field
+```

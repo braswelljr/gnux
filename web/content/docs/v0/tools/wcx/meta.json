@@ -1,0 +1,12 @@
+{
+  "title": "wcx",
+  "pages": [
+    "bytes",
+    "chars",
+    "files0-from",
+    "lines",
+    "max-line-length",
+    "total",
+    "words"
+  ]
+}

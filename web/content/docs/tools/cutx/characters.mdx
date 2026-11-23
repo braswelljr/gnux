@@ -1,0 +1,37 @@
+---
+title: "-c, --characters"
+description: "Select only these characters."
+---
+
+An option of [cutx](/docs/tools/cutx).
+
+## Usage
+
+```bash
+cutx -c string OPTION... [FILE]...
+cutx --characters=string OPTION... [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-c` | `--characters` | `string` |  | select only these characters |
+
+## Examples
+
+### Print characters 5 to 8 of each line
+
+```bash tab="bash" tab-group="shell"
+cutx -c 5-8 codes.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+cutx -c 5-8 codes.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help cutx --characters
+```

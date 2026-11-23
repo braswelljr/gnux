@@ -1,0 +1,57 @@
+---
+title: "-A, --address-radix"
+description: "Output format for file offsets; RADIX is one of [doxn], for Decimal, Octal, Hex or None."
+---
+
+An option of [odx](/docs/tools/odx).
+
+## Usage
+
+```bash
+odx -A RADIX [FILE]...
+odx --address-radix=RADIX [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-A` | `--address-radix` | `RADIX` | `o` | output format for file offsets; RADIX is one of [doxn], for Decimal, Octal, Hex or None |
+
+## Examples
+
+### A hexdump with offsets in hex and the text alongside
+
+```bash tab="bash" tab-group="shell"
+odx -A x -t x1z image.png
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -A x -t x1z image.png
+```
+
+### A config file breaks a parser, but looks fine in an editor: find the stray carriage returns and the byte order mark, which the terminal view colors apart from the text
+
+```bash tab="bash" tab-group="shell"
+odx -A x -t x1z -N 64 config.yaml
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -A x -t x1z -N 64 config.yaml
+```
+
+### Read the first four bytes (a magic number)
+
+```bash tab="bash" tab-group="shell"
+odx -A n -t x1 -N 4 image.png
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+odx -A n -t x1 -N 4 image.png
+```
+
+## Help in the terminal
+
+```bash
+gnux help odx --address-radix
+```

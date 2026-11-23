@@ -1,0 +1,36 @@
+---
+title: "--total"
+description: "Output a summary."
+---
+
+An option of [commx](/docs/tools/commx).
+
+## Usage
+
+```bash
+commx --total FILE1 FILE2
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--total` | none |  | output a summary |
+
+## Examples
+
+### Count the lines unique to each file and common to both
+
+```bash tab="bash" tab-group="shell"
+commx --total -123 old.txt new.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+commx --total -123 old.txt new.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help commx --total
+```

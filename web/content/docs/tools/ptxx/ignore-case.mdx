@@ -1,0 +1,39 @@
+---
+title: "-f, --ignore-case"
+description: "Fold lower case to upper case for sorting."
+---
+
+An option of [ptxx](/docs/tools/ptxx).
+
+## Usage
+
+```bash
+ptxx -f [INPUT]...   (without -G)
+ptxx -G [OPTION]... [INPUT [OUTPUT]]
+ptxx --ignore-case [INPUT]...   (without -G)
+ptxx -G [OPTION]... [INPUT [OUTPUT]]
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-f` | `--ignore-case` | none |  | `fold` lower case to upper case for sorting |
+
+## Examples
+
+### Treat each line as its own context, ignoring case when sorting
+
+```bash tab="bash" tab-group="shell"
+ptxx -f -S '\n' titles.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+ptxx -f -S '\n' titles.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help ptxx --ignore-case
+```

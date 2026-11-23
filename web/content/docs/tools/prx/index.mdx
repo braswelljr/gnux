@@ -1,0 +1,196 @@
+---
+title: "prx"
+description: "Paginate or columnate files for printing."
+---
+
+Mirrors GNU `pr`. Run it as `prx`, or as `gnux prx`.
+
+## Synopsis
+
+```bash
+prx [OPTION]... [FILE]...
+```
+
+## GNU reference
+
+- [GNU coreutils manual: pr invocation](https://www.gnu.org/software/coreutils/manual/html_node/pr-invocation.html)
+- [Source: src/pr.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/pr.c)
+
+## Description
+
+`prx` breaks each FILE into pages of 66 lines (`-l`) with a five-line header, the `date`, the file name and the page number, and a five-line footer; `-t` drops the header and footer and `-T` also the page breaks that form feeds in the input make. `-COLUMN` (or `--columns`) prints the text in that many columns down the page, balancing the last page, `-a` across instead, and `-m` prints the FILEs side by side, one per column; columns are cut to fit the page width (72, `-w` or `-W`) unless `-J` joins whole lines. `-n` numbers the lines, `-d` double-spaces, `-o` indents, `-h` replaces the file name in the header and `-D` the `date`'s format, `-e` and `-i expand` and make tabs, `-c` and `-v` show control characters, `-s` and `-S` choose the column separator, and +FIRST[:LAST] (or `--pages`) prints only those pages. With no FILE, or when FILE is -, it reads standard input. The layout is GNU `pr`'s, page break for page break. `gnux` works in the C locale, so the header's `date` is in the C locale's words.
+
+## Permissions
+
+Needs read permission on each FILE. Nothing is modified.
+
+## Use cases
+
+- Printing source code or logs with page headers and numbers.
+- Putting a long list into several columns to fit a screen or a page.
+- Comparing files side by side with `-m`.
+- Numbering the lines of a listing for review.
+
+## Flags
+
+```text
+  -a, --across                         print columns across rather than down, used together with -COLUMN
+      --columns COLUMN                 output COLUMN columns and print columns down, unless -a is used; also -COLUMN
+  -D, --date-format FORMAT             use FORMAT for the header date
+  -d, --double-space                   double space the output
+  -e, --expand-tabs CHAR               expand input CHARs (TABs) to tab `WIDTH` (8); written -e[CHAR[WIDTH]]
+  -N, --first-line-number NUMBER       start counting with NUMBER at 1st line of first page printed
+  -f, --form-feed                      use form feeds instead of newlines to separate pages (also -F)
+  -h, --header HEADER                  use a centered HEADER instead of filename in page header
+      --help                           display this help and exit
+  -o, --indent MARGIN                  offset each line with MARGIN (zero) spaces
+  -J, --join-lines                     merge full lines, turns off -W line truncation, no column alignment, --sep-string[=STRING] sets separators
+  -l, --length PAGE_LENGTH             set the page length to PAGE_LENGTH (66) lines
+  -m, --merge                          print all files in parallel, one in each column, truncate lines, but join lines of full length with -J
+  -r, --no-file-warnings               omit warning when a file cannot be opened
+  -n, --number-lines DIGITS            number lines, use DIGITS (5) digits, then `SEP` (TAB); written -n[SEP[DIGITS]]
+  -t, --omit-header                    omit page headers and trailers; implied if PAGE_LENGTH <= 10
+  -T, --omit-pagination                omit page headers and trailers, eliminate any pagination by form feeds set in input files
+  -i, --output-tabs CHAR               replace spaces with CHARs (TABs) to tab `WIDTH` (8); written -i[CHAR[WIDTH]]
+  -W, --page-width PAGE_WIDTH          set page width to PAGE_WIDTH (72) characters always, truncate lines, except -J option is set, no interference with -S or -s
+      --pages FIRST_PAGE[:LAST_PAGE]   begin [stop] printing with page FIRST_PAGE[:LAST_PAGE]; also +FIRST_PAGE[:LAST_PAGE]
+  -S, --sep-string STRING              separate columns by STRING; without -S, a blank with -J and a space otherwise; written -S[STRING]
+  -s, --separator CHAR                 separate columns by a single character, default for CHAR is TAB without -w and 'no char' with -w; written -s[CHAR]
+  -c, --show-control-chars             use hat notation (^G) and octal backslash notation
+  -v, --show-nonprinting               use octal backslash notation
+      --version                        output version information and exit
+  -w, --width PAGE_WIDTH               set page width to PAGE_WIDTH (72) characters for multiple text-column output only, -s[char] turns off (72)
+```
+
+## Examples
+
+### Add page headers and page breaks to a file before printing it
+
+```bash tab="bash" tab-group="shell"
+prx report.txt | lpr
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx report.txt | Out-Printer
+```
+
+### Show a long list of names in three columns, without headers
+
+```bash tab="bash" tab-group="shell"
+lsx -1 | prx -3 -t
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -1 | prx -3 -t
+```
+
+### Fill the columns across, row by row
+
+```bash tab="bash" tab-group="shell"
+seqx 10 | prx -5 -a -t
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+seqx 10 | prx -5 -a -t
+```
+
+### Put two files side by side to compare them
+
+```bash tab="bash" tab-group="shell"
+prx -m -t old.conf new.conf
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx -m -t old.conf new.conf
+```
+
+### Number the lines of a script, with a custom title
+
+```bash tab="bash" tab-group="shell"
+prx -n -h 'deploy script' deploy.sh
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx -n -h 'deploy script' deploy.ps1
+```
+
+### Print only pages 3 to 5
+
+```bash tab="bash" tab-group="shell"
+prx +3:5 manual.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx +3:5 manual.txt
+```
+
+### Join CSV columns with a comma instead of aligning them
+
+```bash tab="bash" tab-group="shell"
+prx -m -t -s, names.txt emails.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx -m -t -s, names.txt emails.txt
+```
+
+### Use short pages and a form feed between them
+
+```bash tab="bash" tab-group="shell"
+prx -l 40 -f notes.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx -l 40 -f notes.txt
+```
+
+## Options
+
+Each option has a page of its own, with its usage and examples.
+
+- [-a, --across](/docs/tools/prx/across): Print columns across rather than down, used together with `-COLUMN`.
+- [--columns](/docs/tools/prx/columns): Output COLUMN columns and print columns down, unless `-a` is used; also `-COLUMN`.
+- [-D, --date-format](/docs/tools/prx/date-format): Use FORMAT for the header `date`.
+- [-d, --double-space](/docs/tools/prx/double-space): Double space the output.
+- [-e, --expand-tabs](/docs/tools/prx/expand-tabs): Expand input CHARs (TABs) to tab `WIDTH` (8); written `-e`[CHAR[WIDTH]].
+- [-N, --first-line-number](/docs/tools/prx/first-line-number): Start counting with NUMBER at 1st line of first page printed.
+- [-f, --form-feed](/docs/tools/prx/form-feed): Use form feeds instead of newlines to separate pages (also `-F`).
+- [-h, --header](/docs/tools/prx/header): Use a centered HEADER instead of filename in page header.
+- [-o, --indent](/docs/tools/prx/indent): Offset each line with MARGIN (zero) spaces.
+- [-J, --join-lines](/docs/tools/prx/join-lines): Merge full lines, turns off `-W` line truncation, no column alignment, `--sep-string`[=STRING] sets separators.
+- [-l, --length](/docs/tools/prx/length): Set the page length to PAGE_LENGTH (66) lines.
+- [-m, --merge](/docs/tools/prx/merge): Print all files in parallel, one in each column, `truncate` lines, but `join` lines of full length with `-J`.
+- [-r, --no-file-warnings](/docs/tools/prx/no-file-warnings): Omit warning when a file cannot be opened.
+- [-n, --number-lines](/docs/tools/prx/number-lines): Number lines, use DIGITS (5) digits, then `SEP` (TAB); written `-n`[SEP[DIGITS]].
+- [-t, --omit-header](/docs/tools/prx/omit-header): Omit page headers and trailers; implied if PAGE_LENGTH \<= 10.
+- [-T, --omit-pagination](/docs/tools/prx/omit-pagination): Omit page headers and trailers, eliminate any pagination by form feeds set in input files.
+- [-i, --output-tabs](/docs/tools/prx/output-tabs): Replace spaces with CHARs (TABs) to tab `WIDTH` (8); written `-i`[CHAR[WIDTH]].
+- [-W, --page-width](/docs/tools/prx/page-width): Set page width to PAGE_WIDTH (72) characters always, `truncate` lines, except `-J` option is set, no interference with `-S` or `-s`.
+- [--pages](/docs/tools/prx/pages): Begin [stop] printing with page FIRST_PAGE[:LAST_PAGE]; also +FIRST_PAGE[:LAST_PAGE].
+- [-S, --sep-string](/docs/tools/prx/sep-string): Separate columns by STRING; without `-S`, a blank with `-J` and a space otherwise; written `-S`[STRING].
+- [-s, --separator](/docs/tools/prx/separator): Separate columns by a single character, default for CHAR is TAB without `-w` and 'no char' with `-w`; written `-s`[CHAR].
+- [-c, --show-control-chars](/docs/tools/prx/show-control-chars): Use hat notation (^G) and octal backslash notation.
+- [-v, --show-nonprinting](/docs/tools/prx/show-nonprinting): Use octal backslash notation.
+- [-w, --width](/docs/tools/prx/width): Set page width to PAGE_WIDTH (72) characters for multiple text-column output only, `-s`[char] turns off (72).
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+prx --help                # options, first examples, exit status
+gnux help prx             # this page: the full manual
+gnux help prx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [fmtx](/docs/tools/fmtx)
+- [foldx](/docs/tools/foldx)
+- [nlx](/docs/tools/nlx)
+- [pastex](/docs/tools/pastex)

@@ -1,0 +1,36 @@
+---
+title: "--git"
+description: "With -l, print each file's git status (staged, then unstaged)."
+---
+
+An option of [lsx](/docs/tools/lsx).
+
+## Usage
+
+```bash
+lsx --git [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--git` | none |  | with `-l`, print each file's git status (staged, then unstaged) |
+
+## Examples
+
+### Before committing, see which files in src/ you changed, staged or created, with the files git ignores left out
+
+```bash tab="bash" tab-group="shell"
+lsx -l --git --git-ignore src/
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -l --git --git-ignore src
+```
+
+## Help in the terminal
+
+```bash
+gnux help lsx --git
+```

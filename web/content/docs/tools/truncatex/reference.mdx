@@ -1,0 +1,47 @@
+---
+title: "-r, --reference"
+description: "Base size on RFILE."
+---
+
+An option of [truncatex](/docs/tools/truncatex).
+
+## Usage
+
+```bash
+truncatex -r RFILE OPTION... FILE...
+truncatex --reference=RFILE OPTION... FILE...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-r` | `--reference` | `RFILE` |  | base size on RFILE |
+
+## Examples
+
+### Make a file the same size as another
+
+```bash tab="bash" tab-group="shell"
+truncatex -r original.bin copy.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+truncatex -r original.bin copy.bin
+```
+
+### Make a file 100 bytes larger than another
+
+```bash tab="bash" tab-group="shell"
+truncatex -r original.bin -s +100 copy.bin
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+truncatex -r original.bin -s +100 copy.bin
+```
+
+## Help in the terminal
+
+```bash
+gnux help truncatex --reference
+```

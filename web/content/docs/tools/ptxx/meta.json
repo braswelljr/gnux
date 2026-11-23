@@ -1,0 +1,23 @@
+{
+  "title": "ptxx",
+  "pages": [
+    "auto-reference",
+    "break-file",
+    "flag-truncation",
+    "format",
+    "gap-size",
+    "ignore-case",
+    "ignore-file",
+    "macro-name",
+    "only-file",
+    "references",
+    "right-side-refs",
+    "roff",
+    "sentence-regexp",
+    "tex",
+    "traditional",
+    "typeset-mode",
+    "width",
+    "word-regexp"
+  ]
+}

@@ -1,0 +1,37 @@
+---
+title: "-p, --output-error-warn-nopipe"
+description: "Operate in a more appropriate MODE with pipes."
+---
+
+An option of [teex](/docs/tools/teex).
+
+## Usage
+
+```bash
+teex -p [FILE]...
+teex --output-error-warn-nopipe [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-p` | `--output-error-warn-nopipe` | none |  | operate in a more appropriate MODE with pipes |
+
+## Examples
+
+### Keep going when the reader stops early, without an error
+
+```bash tab="bash" tab-group="shell"
+yesx | teex -p copy.txt | headx -n 3
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+yesx | teex -p copy.txt | headx -n 3
+```
+
+## Help in the terminal
+
+```bash
+gnux help teex --output-error-warn-nopipe
+```

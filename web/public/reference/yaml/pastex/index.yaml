@@ -1,0 +1,74 @@
+name: pastex
+synopsis: Merge lines of files.
+description: |-
+    pastex writes lines made of the corresponding lines of each FILE, separated by TABs, to standard output. With no FILE, or when FILE is -, it reads standard input; every - reads the same standard input, so 'pastex - -' joins pairs of lines. A file that runs out of lines contributes empty fields while the others continue. -s pastes one file at a time instead, turning each file into a single line. -d LIST uses the characters of LIST as delimiters instead of TAB, cycling through them and starting again from the first on every output line (and, with -s, for every file). LIST understands the escapes \n, \t, \\, \b, \f, \r, \v and \0, the empty delimiter. -z makes NUL the line delimiter. Delimiters are single bytes: a multibyte character in LIST is used one byte at a time.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. pastex --help shows the options and the first examples; gnux help pastex prints the full manual, and gnux help pastex OPTION explains one option.
+
+    SEE ALSO. cutx, joinx, commx, catx.
+
+    PERMISSIONS. Needs read permission on each FILE and search permission on the directories leading to it. Nothing is ever modified.
+
+    USE CASES.
+      - Putting two lists side by side, one column each.
+      - Joining every two or three lines of a file into one with 'pastex - - < file'.
+      - Turning a list of lines into one comma-separated line with -s -d ','.
+      - Building a CSV from columns kept in separate files.
+      - Summing a column of numbers by joining it with '+' for another tool.
+      - Merging a file of keys and a file of values line by line.
+usage: pastex [OPTION]... [FILE]...
+options:
+    - name: delimiters
+      shorthand: d
+      usage: reuse characters from `LIST` instead of TABs
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: serial
+      shorthand: s
+      default_value: "false"
+      usage: paste one file at a time instead of in parallel
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+    - name: zero-terminated
+      shorthand: z
+      default_value: "false"
+      usage: line delimiter is NUL, not newline
+example: |4-
+      # Put two files side by side, separated by a TAB
+      pastex names.txt ages.txt
+
+      # Use a comma instead of a TAB
+      pastex -d , names.txt ages.txt
+
+      # Join all the lines of a file into one comma-separated line
+      pastex -s -d , hosts.txt
+
+      # Join every two lines of standard input
+      printf 'a\nb\nc\nd\n' | pastex - -
+
+      # Lay a list out in three columns
+      seqx 9 | pastex - - -
+
+      # Cycle through several delimiters
+      pastex -d ',;' a.txt b.txt c.txt
+
+      # Join columns with no delimiter at all
+      pastex -d '\0' first.txt last.txt
+
+      # Show each file as one TAB-separated line
+      pastex -s a.txt b.txt
+
+      # Paste NUL-terminated records
+      pastex -z keys.bin values.bin
+
+      # Turn a column of numbers into one sum expression (1+2+3+4+5)
+      seqx 5 | pastex -s -d +
+
+      # Paste in the portable gnux shell
+      gnux shell -c 'seqx 6 | pastex - - | sortx -rn'

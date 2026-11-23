@@ -1,0 +1,83 @@
+---
+title: "hostidx"
+description: "Print the numeric identifier for the current host."
+---
+
+Mirrors GNU `hostid`. Run it as `hostidx`, or as `gnux hostidx`.
+
+## Synopsis
+
+```bash
+hostidx [OPTION]
+```
+
+## GNU reference
+
+- [GNU coreutils manual: hostid invocation](https://www.gnu.org/software/coreutils/manual/html_node/hostid-invocation.html)
+- [Source: src/hostid.c in coreutils/coreutils](https://github.com/coreutils/coreutils/blob/master/src/hostid.c)
+
+## Description
+
+`hostidx` prints the host's 32-bit identifier in hexadecimal, eight digits wide, as gethostid(3) returns it. On Linux that is the contents of /etc/`hostid` when the file exists, and otherwise a value glibc derives from the first IPv4 address the host name resolves to. On macOS and the BSDs it is the kern.`hostid` sysctl, which may be zero. Windows has no gethostid, so `hostidx` derives the value from the host's address there too, as glibc does; with no address it prints 00000000. The identifier is not guaranteed to be unique.
+
+## Permissions
+
+Reads /etc/`hostid` on Linux when it exists. Needs no permissions.
+
+## Use cases
+
+- Reporting the identifier that some license managers bind to.
+- Telling machines apart in a log when the `hostname` is not enough.
+
+## Flags
+
+```text
+      --help      display this help and exit
+      --version   output version information and exit
+```
+
+## Examples
+
+### Print the host identifier a license server asks for
+
+```bash tab="bash" tab-group="shell"
+hostidx
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+hostidx
+```
+
+```text title="Output"
+a8c002d7
+```
+
+### Record the host name and identifier together in a log line
+
+```bash tab="bash" tab-group="shell"
+echox "$(hostnamex) $(hostidx)" >> machines.log
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+echox "$(hostnamex) $(hostidx)" >> machines.log
+```
+
+## Exit status
+
+| Status | Meaning |
+|--------|---------|
+| 0 | success: every operand was processed |
+| 1 | failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake |
+
+## Help in the terminal
+
+```bash
+hostidx --help                # options, first examples, exit status
+gnux help hostidx             # this page: the full manual
+gnux help hostidx --OPTION    # one option in depth, with its examples
+```
+
+## See also
+
+- [hostnamex](/docs/tools/hostnamex)
+- [unamex](/docs/tools/unamex)

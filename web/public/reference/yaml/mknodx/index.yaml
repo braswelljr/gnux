@@ -1,0 +1,42 @@
+name: mknodx
+synopsis: Make block or character special files, or named pipes.
+description: |-
+    mknodx creates the special file NAME of TYPE: b for a block device, c (or u) for a character device, both with their MAJOR and MINOR device numbers, or p for a named pipe, which takes none. Only TYPE's first letter counts, so 'character' works. Device numbers are decimal, octal with a leading 0, or hexadecimal with 0x. The file is readable and writable by everyone, less the umask; -m MODE sets its permissions exactly, octal or symbolic as chmod takes it, applied to a=rw (only the permission bits). Creating a device file normally needs root. -Z and --context are accepted and ignored, as by GNU mknod on a kernel without SELinux. Windows has no special files, so there every TYPE fails with 'Operation not supported'.
+
+    EXIT STATUS.
+      0  success: every operand was processed
+      1  failure: an operand could not be processed (diagnosed on standard error), or a command-line mistake
+
+    HELP. mknodx --help shows the options and the first examples; gnux help mknodx prints the full manual, and gnux help mknodx OPTION explains one option.
+
+    SEE ALSO. mkfifox, statx, lsx.
+
+    PERMISSIONS. Needs write and search permission on the directory, and for a device file the privilege to create one (root, or CAP_MKNOD on Linux).
+
+    USE CASES.
+      - Recreating a missing /dev entry in a chroot, container image or rescue system.
+      - Creating a named pipe where only mknod is at hand in a script.
+usage: mknodx [OPTION]... NAME TYPE [MAJOR MINOR]
+options:
+    - name: context
+      shorthand: Z
+      usage: |
+        set the SELinux security context to default type, or to `CTX` (ignored: gnux does not support SELinux)
+    - name: help
+      default_value: "false"
+      usage: display this help and exit
+    - name: mode
+      shorthand: m
+      usage: set file permission bits to `MODE`, not a=rw - umask
+    - name: version
+      default_value: "false"
+      usage: output version information and exit
+example: |4-
+      # Recreate /dev/null in a chroot (Linux, as root)
+      mknodx -m 666 /srv/chroot/dev/null c 1 3
+
+      # Make a named pipe, as mkfifox does
+      mknodx jobs.fifo p
+
+      # Create a loop device node (Linux, as root)
+      mknodx -m 660 /dev/loop8 b 7 8

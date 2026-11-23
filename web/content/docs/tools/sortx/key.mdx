@@ -1,0 +1,47 @@
+---
+title: "-k, --key"
+description: "Sort via a key; KEYDEF gives location and type."
+---
+
+An option of [sortx](/docs/tools/sortx).
+
+## Usage
+
+```bash
+sortx -k KEYDEF [FILE]...
+sortx --key=KEYDEF [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-k` | `--key` | `KEYDEF` |  | sort via a key; KEYDEF gives location and type |
+
+## Examples
+
+### Sort a colon-separated file numerically on its third field
+
+```bash tab="bash" tab-group="shell"
+sortx -t : -k 3,3n /etc/passwd
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sortx -t : -k 3,3n users.txt
+```
+
+### Sort on the second column, then by the first in reverse
+
+```bash tab="bash" tab-group="shell"
+sortx -k 2,2 -k 1,1r scores.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sortx -k 2,2 -k 1,1r scores.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help sortx --key
+```

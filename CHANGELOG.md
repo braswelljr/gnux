@@ -4,6 +4,10 @@ Every notable change to gnux, release by release, newest first. The format follo
 
 ## [Unreleased]
 
+### Changed
+
+- The website's generated docs, YAML reference and wasm are built locally by the pre-commit hook and committed. Vercel deploys them and no longer runs Go or downloads release docs.
+
 ## [1.5.1] - 2026-11-03
 
 gnux 1.5.1 is a patch release. On the website, the trees, frames, tables and bars of the

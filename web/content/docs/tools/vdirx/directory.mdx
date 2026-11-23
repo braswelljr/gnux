@@ -1,0 +1,37 @@
+---
+title: "-d, --directory"
+description: "List directories themselves, not their contents."
+---
+
+An option of [vdirx](/docs/tools/vdirx).
+
+## Usage
+
+```bash
+vdirx -d [FILE]...
+vdirx --directory [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-d` | `--directory` | none |  | list directories themselves, not their contents |
+
+## Examples
+
+### Describe a directory itself, not its contents
+
+```bash tab="bash" tab-group="shell"
+vdirx -d src
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+vdirx -d src
+```
+
+## Help in the terminal
+
+```bash
+gnux help vdirx --directory
+```

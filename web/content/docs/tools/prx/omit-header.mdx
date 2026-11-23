@@ -1,0 +1,67 @@
+---
+title: "-t, --omit-header"
+description: "Omit page headers and trailers; implied if PAGE_LENGTH \u003c= 10."
+---
+
+An option of [prx](/docs/tools/prx).
+
+## Usage
+
+```bash
+prx -t [FILE]...
+prx --omit-header [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-t` | `--omit-header` | none |  | omit page headers and trailers; implied if PAGE_LENGTH \<= 10 |
+
+## Examples
+
+### Show a long list of names in three columns, without headers
+
+```bash tab="bash" tab-group="shell"
+lsx -1 | prx -3 -t
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+lsx -1 | prx -3 -t
+```
+
+### Fill the columns across, row by row
+
+```bash tab="bash" tab-group="shell"
+seqx 10 | prx -5 -a -t
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+seqx 10 | prx -5 -a -t
+```
+
+### Put two files side by side to compare them
+
+```bash tab="bash" tab-group="shell"
+prx -m -t old.conf new.conf
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx -m -t old.conf new.conf
+```
+
+### Join CSV columns with a comma instead of aligning them
+
+```bash tab="bash" tab-group="shell"
+prx -m -t -s, names.txt emails.txt
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+prx -m -t -s, names.txt emails.txt
+```
+
+## Help in the terminal
+
+```bash
+gnux help prx --omit-header
+```

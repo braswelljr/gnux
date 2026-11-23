@@ -1,0 +1,41 @@
+---
+title: "--quiet"
+description: "Don't print OK for each successfully verified file."
+---
+
+An option of [sha384sumx](/docs/tools/sha384sumx).
+
+## Usage
+
+```bash
+sha384sumx --quiet [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+|  | `--quiet` | none |  | don't print OK for each successfully verified file |
+
+## Examples
+
+### Re-check a large archive set and show only what no longer matches
+
+```bash tab="bash" tab-group="shell"
+sha384sumx -c --quiet sha384.sums
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+sha384sumx -c --quiet sha384.sums
+```
+
+```text title="Output"
+notes.txt: FAILED
+sha384sumx: WARNING: 1 computed checksum did NOT match
+```
+
+## Help in the terminal
+
+```bash
+gnux help sha384sumx --quiet
+```

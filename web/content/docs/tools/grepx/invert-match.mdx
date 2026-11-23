@@ -1,0 +1,37 @@
+---
+title: "-v, --invert-match"
+description: "Select the lines that do not match."
+---
+
+An option of [grepx](/docs/tools/grepx).
+
+## Usage
+
+```bash
+grepx -v PATTERNS [FILE]...
+grepx --invert-match PATTERNS [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-v` | `--invert-match` | none |  | select the lines that do not match |
+
+## Examples
+
+### Drop comment lines and empty lines from a configuration file
+
+```bash tab="bash" tab-group="shell"
+grepx -v -e '^#' -e '^$' app.conf
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+grepx -v -e '^#' -e '^$' app.conf
+```
+
+## Help in the terminal
+
+```bash
+gnux help grepx --invert-match
+```

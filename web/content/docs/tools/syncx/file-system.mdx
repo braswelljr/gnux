@@ -1,0 +1,37 @@
+---
+title: "-f, --file-system"
+description: "Sync the file systems that contain the files."
+---
+
+An option of [syncx](/docs/tools/syncx).
+
+## Usage
+
+```bash
+syncx -f [OPTION] [FILE]...
+syncx --file-system [OPTION] [FILE]...
+```
+
+## Details
+
+| Short | Long | Value | Default | Meaning |
+| --- | --- | --- | --- | --- |
+| `-f` | `--file-system` | none |  | `sync` the file systems that contain the files |
+
+## Examples
+
+### Flush the whole file system a mount point is on
+
+```bash tab="bash" tab-group="shell"
+syncx -f /mnt/usb
+```
+
+```powershell tab="PowerShell" tab-group="shell"
+syncx -f E:\
+```
+
+## Help in the terminal
+
+```bash
+gnux help syncx --file-system
+```

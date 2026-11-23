@@ -1,0 +1,23 @@
+{
+  "title": "dfx",
+  "pages": [
+    "all",
+    "block-size",
+    "exclude-type",
+    "human-readable",
+    "inodes",
+    "kilobytes",
+    "local",
+    "no-sync",
+    "output",
+    "portability",
+    "pretty",
+    "print-type",
+    "si",
+    "sync",
+    "sysv",
+    "theme",
+    "total",
+    "type"
+  ]
+}
